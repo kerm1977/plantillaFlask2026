@@ -1,0 +1,299 @@
+<!-- Vista: dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .glass-table-container {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .info-item {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    /* Estilizar la tabla para que no tenga fondos sólidos oscuros */
+    .table-glass th {
+        background: rgba(255, 140, 0, 0.15) !important;
+        color: #333 !important;
+        border-bottom: 2px solid rgba(255, 140, 0, 0.3) !important;
+    }
+    .table-glass td {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    }
+    .table-hover tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.5) !important;
+    }
+</style>
+
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-lg-12 col-xl-10">
+        
+        <div class="glass-panel rounded-5 p-4 p-md-5 mb-4 position-relative border-0 shadow-lg">
+            <h2 class="fw-bold text-dark mb-4 text-center text-md-start">
+                <i class="bi bi-speedometer2 text-orange me-2"></i>Dashboard de Administración
+            </h2>
+            
+            <!-- VISTA 1: Lista de Usuarios -->
+            <div id="adminUsersList">
+                <div class="d-flex flex-column flex-md-row justify-content-between mb-4 gap-3">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden w-100">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-orange"></i></span>
+                        <!-- El input ahora busca automáticamente mediante JavaScript -->
+                        <input type="text" class="form-control border-0 py-2 bg-white" id="searchUserInput" placeholder="Buscar usuario por nombre o correo...">
+                    </div>
+                    <!-- Botón Actualizar (Diseño Naranja/Blanco) -->
+                    <button class="btn bg-white rounded-pill px-4 flex-shrink-0 shadow-sm fw-bold" style="color: #ff8c00; border: 2px solid #ff8c00;" onclick="loadAllUsers()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+                    </button>
+                </div>
+
+                <div class="table-responsive glass-table-container rounded-4 p-2 shadow-sm">
+                    <table class="table table-hover table-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="border-0 rounded-start fw-bold py-3">Usuario</th>
+                                <th class="border-0 fw-bold py-3">Email</th>
+                                <th class="border-0 fw-bold py-3">Rol</th>
+                                <th class="border-0 fw-bold py-3">Estado</th>
+                                <th class="border-0 rounded-end text-center fw-bold py-3">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="5" class="text-center py-4 text-muted"><i class="bi bi-hourglass-split me-2"></i>Cargando registros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VISTA 2: Detalle Absoluto del Usuario (Oculto por defecto) -->
+            <div id="adminUserDetails" class="d-none animate__animated animate__fadeInRight">
+                <!-- Botón Volver (Blanco/Gris) -->
+                <button class="btn bg-white rounded-pill px-4 shadow-sm mb-4 fw-bold" style="color: #6c757d; border: 1px solid #ced4da;" onclick="showUsersList()">
+                    <i class="bi bi-arrow-left me-1"></i>Volver a la lista
+                </button>
+                
+                <div class="glass-table-container p-4 p-md-5 rounded-4 mb-4" id="userDetailsContent">
+                    <!-- El contenido detallado se inyecta por JS -->
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row gap-3 justify-content-end border-top border-white border-opacity-50 pt-4">
+                    <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-dark" id="btnBlockUser" onclick="toggleUserStatus()">
+                        <i class="bi bi-slash-circle me-1"></i>Bloquear Acceso
+                    </button>
+                    <!-- Botón Editar (Naranja/Blanco) con alerta estilizada -->
+                    <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #ff8c00; border: 2px solid #ff8c00;" id="btnEditUserAdmin" onclick="showGlassAlert('Funcionalidad de edición de terceros por implementar.', '<i class=\'bi bi-tools text-orange\' style=\'font-size: 3rem;\'></i>')">
+                        <i class="bi bi-pencil-square me-1"></i>Editar Datos
+                    </button>
+                    <!-- Botón Borrar (Rojo) -->
+                    <button class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" id="btnDeleteUser" onclick="confirmDeleteUser()">
+                        <i class="bi bi-trash-fill me-1"></i>Borrar Usuario
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Personalizado Glassmorphic para Alertas y Confirmaciones -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-body p-0">
+                <div id="actionModalIcon" class="mb-3"></div>
+                <h5 id="actionModalMessage" class="fw-bold text-dark mb-4"></h5>
+                <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    // Cargar lista automáticamente al entrar a Dashboard
+    loadAllUsers();
+
+    // Evento de Buscador en tiempo real
+    document.getElementById('searchUserInput').addEventListener('input', function() {
+        const filter = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#usersTableBody tr.user-row');
+        
+        rows.forEach(row => {
+            const textContent = row.innerText.toLowerCase();
+            if (textContent.includes(filter)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+});
+
+let currentSelectedUserId = null;
+let currentSelectedUserName = "";
+
+// Función para mostrar nuestro Modal Glassmorphic en lugar de alert()
+function showGlassAlert(message, iconHTML = '<i class="bi bi-info-circle text-orange" style="font-size: 3rem;"></i>') {
+    document.getElementById('actionModalIcon').innerHTML = iconHTML;
+    document.getElementById('actionModalMessage').innerText = message;
+    const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+    actionModal.show();
+}
+
+function loadAllUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-orange me-2"></div>Cargando base de datos...</td></tr>';
+    
+    setTimeout(() => {
+        const mockUsers = [
+            { id: 1, name: "Kenth", last: "Admin", email: "kenth1977@gmail.com", role: "Superusuario", status: "Activo", dob: "1977-05-10", phone: "+506 88888888", created: "10 de Mayo, 2026 - 14:30", updated: "10 de Mayo, 2026 - 15:00" },
+            { id: 2, name: "Lt", last: "Hiking", email: "lthikingcr@gmail.com", role: "Superusuario", status: "Activo", dob: "1980-08-20", phone: "+506 88881111", created: "11 de Mayo, 2026 - 09:15", updated: "12 de Mayo, 2026 - 10:20" },
+            { id: 3, name: "Juan", last: "Pérez", email: "juan@ejemplo.com", role: "Usuario", status: "Bloqueado", dob: "1995-12-01", phone: "No registrado", created: "15 de Mayo, 2026 - 18:45", updated: "16 de Mayo, 2026 - 08:10" }
+        ];
+        
+        tbody.innerHTML = '';
+        mockUsers.forEach(u => {
+            const statusBadge = u.status === 'Activo' ? '<span class="badge bg-success rounded-pill px-3 shadow-sm">Activo</span>' : '<span class="badge bg-danger rounded-pill px-3 shadow-sm">Bloqueado</span>';
+            const roleBadge = u.role === 'Superusuario' ? '<span class="badge bg-warning text-dark rounded-pill px-3 shadow-sm"><i class="bi bi-shield-lock-fill"></i> Super</span>' : `<span class="badge bg-secondary rounded-pill px-3 shadow-sm">${u.role}</span>`;
+            
+            // Se agrega la clase user-row para el buscador
+            tbody.innerHTML += `
+                <tr style="cursor:pointer;" onclick='viewUserDetails(${JSON.stringify(u)})' class="bg-white bg-opacity-50 user-row">
+                    <td class="fw-bold text-dark py-3"><i class="bi bi-person-circle text-orange me-2 fs-5"></i>${u.name} ${u.last}</td>
+                    <td class="text-secondary py-3">${u.email}</td>
+                    <td class="py-3">${roleBadge}</td>
+                    <td class="py-3">${statusBadge}</td>
+                    <td class="text-center py-3">
+                        <button class="btn btn-sm btn-orange rounded-circle shadow-sm" title="Ver Expediente"><i class="bi bi-eye-fill"></i></button>
+                    </td>
+                </tr>
+            `;
+        });
+        
+        // Volver a aplicar el filtro de búsqueda si el input tiene texto (útil tras recargar)
+        document.getElementById('searchUserInput').dispatchEvent(new Event('input'));
+    }, 800);
+}
+
+function viewUserDetails(userObj) {
+    currentSelectedUserId = userObj.id;
+    currentSelectedUserName = `${userObj.name} ${userObj.last}`;
+    document.getElementById('adminUsersList').classList.add('d-none');
+    document.getElementById('adminUserDetails').classList.remove('d-none');
+    
+    let ageStr = 'No especificada';
+    if (userObj.dob) {
+        const dob = new Date(userObj.dob);
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) { age--; }
+        ageStr = `${userObj.dob} (<span class="badge bg-secondary rounded-pill ms-1">${age} años</span>)`;
+    }
+
+    const content = document.getElementById('userDetailsContent');
+    content.innerHTML = `
+        <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4">
+            <i class="bi bi-person-vcard-fill text-orange me-2"></i>Expediente #${userObj.id}
+        </h3>
+        <div class="row g-4 text-start">
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Nombre Completo</label>
+                    <div class="fw-bold fs-5 ps-2 text-dark text-break">${userObj.name} ${userObj.last}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Rol y Estado</label>
+                    <div class="fw-semibold fs-6 ps-2 text-dark">
+                        ${userObj.role} - 
+                        ${userObj.status === 'Activo' ? '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Activo</span>' : '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Bloqueado</span>'}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Correo Electrónico</label>
+                    <div class="fw-semibold fs-6 ps-2 text-dark text-break">${userObj.email}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Teléfono</label>
+                    <div class="fw-semibold fs-6 ps-2 text-dark">${userObj.phone}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Fecha de Nacimiento</label>
+                    <div class="fw-semibold fs-6 ps-2 text-dark">${ageStr}</div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="info-item w-100 shadow-sm h-100">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Fechas de Sistema</label>
+                    <div class="fw-semibold text-dark" style="font-size: 0.85rem;">
+                        <div class="mb-1"><i class="bi bi-calendar-check text-orange me-1"></i>Reg: ${userObj.created || 'N/A'}</div>
+                        <div><i class="bi bi-clock-history text-orange me-1"></i>Mod: ${userObj.updated || 'N/A'}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    const btnBlock = document.getElementById('btnBlockUser');
+    if (userObj.status === 'Activo') {
+        btnBlock.innerHTML = '<i class="bi bi-slash-circle me-1"></i>Bloquear Acceso';
+        btnBlock.className = 'btn btn-warning rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-dark';
+    } else {
+        btnBlock.innerHTML = '<i class="bi bi-check-circle me-1"></i>Desbloquear';
+        btnBlock.className = 'btn btn-success rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-white';
+    }
+}
+
+function showUsersList() {
+    currentSelectedUserId = null;
+    currentSelectedUserName = "";
+    document.getElementById('adminUserDetails').classList.add('d-none');
+    document.getElementById('adminUsersList').classList.remove('d-none');
+}
+
+function toggleUserStatus() {
+    showGlassAlert(`Cambiando estado del usuario ${currentSelectedUserName}`, '<i class="bi bi-arrow-repeat text-warning" style="font-size: 3rem;"></i>');
+    showUsersList();
+    loadAllUsers();
+}
+
+let deleteClicks = 0;
+function confirmDeleteUser() {
+    const btn = document.getElementById('btnDeleteUser');
+    deleteClicks++;
+    if(deleteClicks === 1) {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>¿Seguro?';
+        btn.classList.replace('btn-danger', 'btn-secondary');
+    } else if (deleteClicks === 2) {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>Confirmar Borrado';
+        btn.classList.replace('btn-secondary', 'btn-danger');
+    } else {
+        showGlassAlert(`Usuario ${currentSelectedUserName} ha sido eliminado permanentemente de la base de datos.`, '<i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>');
+        deleteClicks = 0;
+        showUsersList();
+        loadAllUsers();
+    }
+    
+    setTimeout(() => { 
+        if(deleteClicks > 0 && deleteClicks < 3) {
+            deleteClicks = 0;
+            btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
+            btn.className = 'btn btn-danger rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto';
+        }
+    }, 3000);
+}
+</script>
+{% endblock %}

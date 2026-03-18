@@ -27,6 +27,15 @@ def profile():
         
     return render_template('perfil.html', user=user)
 
+@bp.route('/dashboard')
+def dashboard():
+    """Ruta para el panel de administración exclusivo de Superusuarios."""
+    # Verificación de seguridad: solo Superusuarios pueden acceder
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+        
+    return render_template('dashboard.html')
+
 @bp.route('/manifest.json')
 def manifest():
     return jsonify({
