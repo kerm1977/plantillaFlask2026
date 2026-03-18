@@ -1,4 +1,3 @@
-# users.py
 import bcrypt
 from db import db
 from models import User
@@ -11,19 +10,33 @@ def check_password(password, hashed):
 
 def inject_superusers():
     """Inyecta 2 superusuarios intocables si no existen en la base de datos."""
-    super_emails = ['admin1@sistema.local', 'admin2@sistema.local']
-    for email in super_emails:
+    # CORRECCIÓN: Se actualizan los correos específicos solicitados
+    super_emails = ['kenth1977@gmail.com', 'lthikingcr@gmail.com']
+    
+    for email in super_emails: # Iterar sobre la lista
+        email = email.lower() # Asegurar minúsculas individualmente
         user = User.query.filter_by(email=email).first()
         if not user:
             new_super = User(
                 role='Superusuario',
-                weight=100, # Peso máximo, no pueden ser editados por otros supers
+                weight=100, # Peso máximo
                 name='Super',
-                last_name_1='Administrador',
+                last_name_1='Admin',
                 last_name_2='Sistema',
                 email=email,
+                # Se recomienda cambiar esta contraseña inmediatamente en producción
                 password_hash=hash_password('Root#Admin2026'),
-                status='Activo'
+                status='Activo',
+                avatar='default.png'
             )
             db.session.add(new_super)
+            print(f"--- Superusuario inyectado: {email} ---")
+        else:
+            # CORRECCIÓN: Si ya existen pero tienen el rol equivocado, actualizarlo.
+            if user.role != 'Superusuario' or user.weight != 100:
+                 user.role = 'Superusuario'
+                 user.weight = 100
+                 db.session.add(user) # Marcar para actualizar
+                 print(f"--- Rol corregido a Superusuario para: {email} ---")
+
     db.session.commit()

@@ -3,18 +3,24 @@
 <html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
+    <!-- Viewport seguro para evitar solapamientos en dispositivos móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Plataforma PWA</title>
     
+    <!-- SIN CDNs: Carga directa de Bootstrap Local -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}">
+    
+    <!-- Carga de CSS Global y Principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
     
     <link rel="manifest" href="/manifest.json">
 
     <style>
+        /* Estilos base para el efecto Glassmorphism */
         body {
+            /* Fondo con degradado anaranjado sutil, ligeramente más intenso a la derecha */
             background: linear-gradient(to right, #ffe0bd 0%, #ffcc99 100%);
             background-attachment: fixed;
             min-height: 100vh;
@@ -50,6 +56,7 @@
             border-color: var(--primary-orange, #ff8c00) !important;
         }
 
+        /* Botones personalizados */
         .btn-orange {
             background-color: var(--primary-orange, #ff8c00);
             color: #fff;
@@ -64,53 +71,128 @@
             box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
         }
 
-        .custom-navbar { padding: 0.8rem 2rem; z-index: 1040; }
+        /* Ajustes de Navbar Desktop */
+        .custom-navbar {
+            padding: 0.8rem 2rem;
+            z-index: 1040;
+        }
 
+        /* Ajustes de Mobile Bottom Bar */
         .mobile-bottom-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
             height: var(--nav-mobile-height, 70px);
-            display: flex; justify-content: space-around; align-items: center;
-            z-index: 1030; padding-bottom: env(safe-area-inset-bottom);
-            border-top-left-radius: 20px; border-top-right-radius: 20px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1030;
+            padding-bottom: env(safe-area-inset-bottom);
+            border-top-left-radius: 20px;
+            border-top-right-radius: 20px;
         }
         
         .mobile-nav-item {
-            color: #495057; text-decoration: none; display: flex;
-            flex-direction: column; align-items: center; font-size: 0.8rem;
-            font-weight: 500; transition: all 0.3s ease;
+            color: #495057;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
 
         .mobile-nav-item:hover, .mobile-nav-item:active {
-            color: var(--primary-orange, #ff8c00); transform: translateY(-2px);
+            color: var(--primary-orange, #ff8c00);
+            transform: translateY(-2px);
         }
 
+        /* Botón Global Volver */
         .btn-global-back {
-            position: fixed; bottom: calc(var(--nav-mobile-height, 70px) + 20px); left: 20px;
-            width: 50px; height: 50px; border-radius: 50%;
-            background: rgba(255, 140, 0, 0.8); backdrop-filter: blur(5px);
-            color: white; border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4); z-index: 1020;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: all 0.3s ease;
+            position: fixed;
+            bottom: calc(var(--nav-mobile-height, 70px) + 20px);
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 140, 0, 0.8);
+            backdrop-filter: blur(5px);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+            z-index: 1020;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
-        .btn-global-back:hover { background: rgba(255, 140, 0, 1); transform: scale(1.05); }
+        .btn-global-back:hover {
+            background: rgba(255, 140, 0, 1);
+            transform: scale(1.05);
+        }
 
+        /* Alertas Glass dentro de Modales */
         .modal-alert {
-            backdrop-filter: blur(5px); border: none; border-radius: 10px; font-weight: 500;
+            backdrop-filter: blur(5px);
+            border: none;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        /* Estilos para el Editor de Imagen Visual */
+        .image-editor-controls input[type=range] {
+            height: 25px;
+            -webkit-appearance: none;
+            margin: 10px 0;
+            width: 100%;
+            background: transparent;
+        }
+        .image-editor-controls input[type=range]:focus {
+            outline: none;
+        }
+        .image-editor-controls input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 5px;
+            cursor: pointer;
+            animate: 0.2s;
+            box-shadow: 0px 0px 0px #000000;
+            background: rgba(255, 140, 0, 0.5);
+            border-radius: 5px;
+            border: 0px solid #000000;
+        }
+        .image-editor-controls input[type=range]::-webkit-slider-thumb {
+            box-shadow: 0px 0px 0px #000000;
+            border: 2px solid var(--primary-orange);
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
         }
     </style>
 </head>
 <body>
+    <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
     <div class="container mt-4">
         <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
             <div class="container-fluid">
-                <a class="navbar-brand text-orange fw-bold fs-4" href="/">DualApp</a>
+                <!-- Marca de la Navbar vacía para ser programada luego -->
+                <a class="navbar-brand text-orange fw-bold fs-4" href="/">
+                    
+                </a>
                 <div class="ms-auto">
                     {% if session.get('user_id') %}
+                        <!-- Ícono de Perfil cuando está logueado -->
                         <a href="{{ url_for('main.profile') }}" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center">
                             <i class="bi bi-person-circle me-2 fs-5"></i>Perfil
                         </a>
                     {% else %}
+                        <!-- Botón "Ingresar" cuando no hay sesión -->
                         <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Ingresar</button>
                     {% endif %}
                 </div>
@@ -118,18 +200,23 @@
         </nav>
     </div>
 
+    <!-- Contenido Principal sin Card (Libre para las vistas hijas) -->
     <main class="container mt-5 mb-5 pb-5 content-wrapper">
-        {% block content %}{% endblock %}
+        {% block content %}
+        {% endblock %}
     </main>
 
+    <!-- Botón Volver Atrás Global (Glassmorphic) -->
     <button id="btnBack" class="btn-global-back" onclick="window.history.back()">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
     </button>
     
+    <!-- Botón Instalar PWA -->
     <button id="btnInstallPwa" class="btn btn-warning rounded-pill px-4 shadow fw-bold position-fixed top-0 end-0 m-4 d-none" style="z-index: 1050;">
         <i class="bi bi-download me-2"></i>Instalar App
     </button>
 
+    <!-- Mobile Bottom Bar (< 768px) Glassmorphic -->
     <div class="mobile-bottom-bar glass-panel d-md-none">
         <a href="/" class="mobile-nav-item">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
@@ -137,11 +224,13 @@
         </a>
         
         {% if session.get('user_id') %}
+            <!-- Ícono de Perfil para Móvil -->
             <a href="{{ url_for('main.profile') }}" class="mobile-nav-item">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 <span>Perfil</span>
             </a>
         {% else %}
+            <!-- Ícono de Ingresar para Móvil (Puerta con flecha) -->
             <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#loginModal">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
                 <span>Ingresar</span>
@@ -149,7 +238,7 @@
         {% endif %}
     </div>
 
-    <!-- Modal Login -->
+    <!-- Modal Login (Glassmorphic) -->
     <div class="modal fade" id="loginModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content glass-modal shadow-lg border-0">
@@ -158,7 +247,9 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 px-md-5 pb-5 pt-4">
+                    <!-- Contenedor para mensajes de Login -->
                     <div id="loginMessage" class="mb-3"></div>
+
                     <form id="loginForm">
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary">Email</label>
@@ -184,7 +275,7 @@
         </div>
     </div>
 
-    <!-- Modal Registro -->
+    <!-- Modal Registro (Glassmorphic) -->
     <div class="modal fade" id="registerModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content glass-modal shadow-lg border-0">
@@ -193,31 +284,54 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <!-- Contenedor para mensajes de Registro -->
                     <div id="registerMessage" class="mb-3"></div>
 
                     <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
-                            <img src="{{ url_for('static', filename='default.png') }}" class="avatar-preview rounded-circle shadow-sm border border-white border-3" alt="Avatar" width="120" height="120" style="object-fit: cover;">
-                            <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-orange text-white rounded-circle p-2 shadow cursor-pointer" style="background-color: var(--primary-orange); cursor: pointer;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                        <!-- Contenedor de Avatar con Editor Visual -->
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                <img id="avatarPreviewImg" src="{{ url_for('static', filename='default.png') }}" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                            </div>
+                            
+                            <label for="avatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
                             </label>
                             <input type="file" id="avatarUpload" class="d-none" accept="image/*">
+
+                            <!-- Controles del Editor Visual (Zoom, X, Y) -->
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="scaleSlider" min="1" max="3" step="0.1" value="1">
+                                
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="posXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="posYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block text-center mt-1" style="font-size: 0.65rem;">*Ajuste visual para previsualización.</small>
+                            </div>
                         </div>
                     </div>
-                    
+
                     <form id="registerForm">
                         <div class="row g-3 mb-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold text-secondary">Nombre</label>
-                                <input type="text" class="form-control glass-input rounded-3" id="regName" required>
+                                <input type="text" class="form-control glass-input validate-name" id="regName" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold text-secondary">Primer Apellido</label>
-                                <input type="text" class="form-control glass-input rounded-3" id="regLastName1" required>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName1" required>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold text-secondary">Segundo Apellido</label>
-                                <input type="text" class="form-control glass-input rounded-3" id="regLastName2" required>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName2" required>
                             </div>
                         </div>
                         <div class="mb-4">
@@ -225,7 +339,7 @@
                             <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
                         </div>
                         
-                        <!-- Lógica Dinámica en Select ORIGINAL RESTAURADA -->
+                        <!-- Lógica Dinámica en Select -->
                         <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
                             <label class="text-orange fw-bold mb-2"><i class="bi bi-plus-circle me-2"></i>Agregar Información Adicional</label>
                             <select class="form-select glass-input rounded-3 mb-3" id="dynamicSelect" onchange="handleDynamicSelect()">
@@ -261,9 +375,11 @@
         </div>
     </div>
 
+    <!-- Scripts Locales -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
     <script>
+        // Lógica para el Ojo de la Contraseña
         function togglePasswordVisibility(inputId, iconElement) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
@@ -279,69 +395,52 @@
             }
         }
 
+        // --- LÓGICA DEL EDITOR VISUAL DE IMAGEN ---
+        const avatarUpload = document.getElementById('avatarUpload');
+        const avatarPreviewImg = document.getElementById('avatarPreviewImg');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const posXSlider = document.getElementById('posXSlider');
+        const posYSlider = document.getElementById('posYSlider');
+
+        function updateImageTransform() {
+            const scale = scaleSlider.value;
+            const posX = posXSlider.value;
+            const posY = posYSlider.value;
+            avatarPreviewImg.style.transform = `scale(${scale}) translate(${posX}px, ${posY}px)`;
+        }
+
+        scaleSlider.addEventListener('input', updateImageTransform);
+        posXSlider.addEventListener('input', updateImageTransform);
+        posYSlider.addEventListener('input', updateImageTransform);
+
+        avatarUpload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    avatarPreviewImg.src = e.target.result;
+                    // Resetear sliders al cargar nueva imagen
+                    scaleSlider.value = 1;
+                    posXSlider.value = 0;
+                    posYSlider.value = 0;
+                    updateImageTransform();
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+
+        // --- MANEJO DE FORMULARIOS CON FETCH Y FEEDBACK ---
+
         const showMessage = (containerId, text, type = 'danger') => {
             const container = document.getElementById(containerId);
             container.innerHTML = `
-                <div class="alert alert-${type} modal-alert alert-dismissible fade show" role="alert" style="background: rgba(${type === 'danger' ? '220,53,69' : '25,135,84'}, 0.2); color: ${type === 'danger' ? '#842029' : '#0f5132'};">
+                <div class="alert alert-${type} modal-alert alert-dismissible fade show animate__animated animate__fadeInDown" role="alert" style="background: rgba(${type === 'danger' ? '220,53,69' : '25,135,84'}, 0.2); color: ${type === 'danger' ? '#842029' : '#0f5132'};">
                     ${text}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>`;
         };
 
-        // AHORA SÍ: Generación perfecta de los inputs dinámicos en base a la selección
-        function handleDynamicSelect() {
-            const select = document.getElementById('dynamicSelect');
-            const container = document.getElementById('dynamicContainer');
-            const value = select.value;
-
-            if (!value) {
-                container.innerHTML = '';
-                return;
-            }
-
-            let htmlContent = '';
-
-            if (value === 'Telefono' || value === 'Whatsapp') {
-                htmlContent = `
-                    <div class="row g-2 mt-3">
-                        <div class="col-4">
-                            <label class="form-label fw-semibold text-secondary small">Cód.</label>
-                            <input type="text" class="form-control glass-input rounded-3" id="dynPhoneCode" placeholder="+506">
-                        </div>
-                        <div class="col-8">
-                            <label class="form-label fw-semibold text-secondary small">Número</label>
-                            <input type="tel" class="form-control glass-input rounded-3" id="dynPhone" placeholder="88888888">
-                        </div>
-                    </div>`;
-            } else if (value === 'Facebook' || value === 'Instagram') {
-                htmlContent = `
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold text-secondary small">URL de ${value}</label>
-                        <input type="url" class="form-control glass-input rounded-3" id="dynUrl" placeholder="https://...">
-                    </div>`;
-            } else if (value === 'Direccion') {
-                htmlContent = `
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold text-secondary small">Dirección</label>
-                        <textarea class="form-control glass-input rounded-3" id="dynAddress" rows="2" placeholder="Enlace de Maps o dirección exacta"></textarea>
-                    </div>`;
-            } else if (value === 'Fecha') {
-                htmlContent = `
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold text-secondary small">Fecha</label>
-                        <input type="date" class="form-control glass-input rounded-3" id="dynDate">
-                    </div>`;
-            } else {
-                htmlContent = `
-                    <div class="mt-3">
-                        <label class="form-label fw-semibold text-secondary small">Detalle (${value})</label>
-                        <input type="text" class="form-control glass-input rounded-3" id="dynText" placeholder="Escribe aquí...">
-                    </div>`;
-            }
-
-            container.innerHTML = htmlContent;
-        }
-
+        // LOGIN SUBMIT
         document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('logEmail').value;
@@ -356,7 +455,7 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    window.location.reload(); 
+                    window.location.reload();
                 } else {
                     showMessage('loginMessage', result.error || 'Error al iniciar sesión');
                 }
@@ -365,7 +464,7 @@
             }
         });
 
-        // AHORA SÍ: Captura precisa y estructurada para enviar a la base de datos
+        // REGISTER SUBMIT
         document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -382,28 +481,8 @@
                 last_name_2: document.getElementById('regLastName2').value,
                 email: document.getElementById('regEmail').value,
                 password: pass
+                // Nota: El archivo de imagen no se envía en este JSON. Se requiere FormData para eso.
             };
-
-            // Evaluar qué seleccionó en el menú dinámico y atrapar el dato
-            const dynType = document.getElementById('dynamicSelect').value;
-            if (dynType === 'Telefono') {
-                userData.phone_code = document.getElementById('dynPhoneCode')?.value;
-                userData.phone = document.getElementById('dynPhone')?.value;
-            } else if (dynType === 'Whatsapp') {
-                userData.whatsapp = document.getElementById('dynPhone')?.value;
-            } else if (dynType === 'Facebook') {
-                userData.facebook = document.getElementById('dynUrl')?.value;
-            } else if (dynType === 'Instagram') {
-                userData.instagram = document.getElementById('dynUrl')?.value;
-            } else if (dynType === 'Direccion') {
-                userData.address = document.getElementById('dynAddress')?.value;
-            } else if (dynType === 'Fecha') {
-                userData.dob = document.getElementById('dynDate')?.value;
-            } else if (dynType === 'Institucion') {
-                userData.institution = document.getElementById('dynText')?.value;
-            } else if (dynType === 'Otro') {
-                userData.other_info = document.getElementById('dynText')?.value;
-            }
 
             try {
                 const response = await fetch('/api/register', {
@@ -416,7 +495,10 @@
                 if (response.ok) {
                     showMessage('registerMessage', '¡Registro exitoso! Ya puedes iniciar sesión.', 'success');
                     document.getElementById('registerForm').reset();
-                    document.getElementById('dynamicContainer').innerHTML = ''; // Limpiamos la caja dinámica
+                    // Resetear preview de imagen
+                    avatarPreviewImg.src = "{{ url_for('static', filename='default.png') }}";
+                    scaleSlider.value = 1; posXSlider.value = 0; posYSlider.value = 0;
+                    updateImageTransform();
                 } else {
                     showMessage('registerMessage', result.error || 'Error al registrarse');
                 }
@@ -425,6 +507,7 @@
             }
         });
 
+        // PWA Install Logic
         let deferredPrompt;
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
