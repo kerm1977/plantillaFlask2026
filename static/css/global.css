@@ -1,0 +1,71 @@
+:root {
+    --bg-dark: #1e1e1e;
+    --bg-darker: #121212;
+    --text-light: #f1f1f1;
+    --primary-orange: #ff8c00;
+    --primary-hover: #e07b00;
+    --nav-mobile-height: 65px;
+}
+
+body[data-theme="dark"] {
+    background-color: var(--bg-darker);
+    color: var(--text-light);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    padding-bottom: env(safe-area-inset-bottom); /* Prevenir colisión en iOS */
+}
+
+/* Tipografía y Enlaces */
+.text-orange { color: var(--primary-orange) !important; }
+a { color: var(--primary-orange); text-decoration: none; }
+a:hover { color: var(--primary-hover); }
+
+/* Componentes Globales */
+.custom-navbar { background-color: var(--bg-dark); border-bottom: 2px solid var(--primary-orange); }
+.bg-darker { background-color: var(--bg-dark); }
+.custom-alert { background-color: var(--bg-dark); border: 1px solid var(--primary-orange); color: white; }
+
+/* Botones */
+.btn-primary { background-color: var(--primary-orange); border-color: var(--primary-orange); color: #fff;}
+.btn-primary:hover { background-color: var(--primary-hover); border-color: var(--primary-hover); }
+
+/* Modales */
+.custom-modal { background-color: var(--bg-dark); border: 1px solid #333; }
+.custom-modal input, .custom-modal select, .custom-modal textarea {
+    background-color: #2a2a2a; color: white; border: 1px solid #444;
+}
+.custom-modal input:focus, .custom-modal select:focus {
+    background-color: #333; color: white; border-color: var(--primary-orange); box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25);
+}
+
+/* Ojo de contraseña */
+.toggle-password {
+    position: absolute; right: 10px; top: 35px; cursor: pointer; user-select: none; color: #aaa; z-index: 10;
+}
+
+/* Barra Móvil Inferior */
+.mobile-bottom-bar {
+    position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-mobile-height);
+    background-color: var(--bg-dark); border-top: 2px solid var(--primary-orange);
+    display: flex; justify-content: space-around; align-items: center; z-index: 1030;
+    padding-bottom: env(safe-area-inset-bottom);
+}
+.mobile-nav-item {
+    display: flex; flex-direction: column; align-items: center; color: var(--text-light); font-size: 0.75rem;
+}
+.mobile-nav-item svg { width: 24px; height: 24px; margin-bottom: 2px; }
+.mobile-nav-item:hover, .mobile-nav-item:active { color: var(--primary-orange); }
+
+/* Botón Global Volver */
+.btn-global-back {
+    position: fixed; bottom: calc(var(--nav-mobile-height) + 20px); left: 20px;
+    width: 50px; height: 50px; border-radius: 50%; background-color: var(--primary-orange);
+    color: white; border: none; box-shadow: 0 4px 6px rgba(0,0,0,0.3); z-index: 1020;
+    display: flex; justify-content: center; align-items: center; cursor: pointer;
+}
+.btn-global-back:hover { background-color: var(--primary-hover); }
+
+/* Botón PWA */
+.btn-pwa {
+    position: fixed; top: 20px; right: 20px; z-index: 1050; background-color: var(--primary-orange);
+    color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold;
+}

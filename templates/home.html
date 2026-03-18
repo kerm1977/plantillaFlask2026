@@ -1,0 +1,29 @@
+<!-- Vista: home.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <!-- El texto de bienvenida ha sido eliminado. -->
+    
+    <!-- Sistema Notificador Flash -->
+    <div class="row mt-4">
+        <div class="col-md-8 offset-md-2">
+            {% for notif in notifications %}
+            <div class="alert alert-dismissible fade show glass-panel border-0 shadow-sm" role="alert" style="background: rgba(255, 255, 255, 0.6);">
+                <div class="d-flex align-items-center">
+                    {% if notif.image %}
+                        <img src="{{ notif.image }}" class="rounded me-3 border border-white shadow-sm" width="50" height="50" style="object-fit: cover;" alt="Notificación">
+                    {% endif %}
+                    <div>
+                        <h5 class="alert-heading text-orange mb-1 fw-bold">{{ notif.type_notif }}</h5>
+                        <p class="mb-0 text-dark">{{ notif.message }}</p>
+                        <small class="text-secondary">Válido hasta: {{ notif.end_date.strftime('%d/%m/%Y') }}</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

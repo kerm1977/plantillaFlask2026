@@ -1,0 +1,446 @@
+<!-- Vista: base.html -->
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Plataforma PWA</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
+    
+    <link rel="manifest" href="/manifest.json">
+
+    <style>
+        body {
+            background: linear-gradient(to right, #ffe0bd 0%, #ffcc99 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 1.5rem;
+        }
+
+        .glass-input {
+            background: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.5) !important;
+            color: #333 !important;
+        }
+        
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.95) !important;
+            box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25) !important;
+            border-color: var(--primary-orange, #ff8c00) !important;
+        }
+
+        .btn-orange {
+            background-color: var(--primary-orange, #ff8c00);
+            color: #fff;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-orange:hover, .btn-orange:focus {
+            background-color: #e07b00;
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+        }
+
+        .custom-navbar { padding: 0.8rem 2rem; z-index: 1040; }
+
+        .mobile-bottom-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: var(--nav-mobile-height, 70px);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 1030; padding-bottom: env(safe-area-inset-bottom);
+            border-top-left-radius: 20px; border-top-right-radius: 20px;
+        }
+        
+        .mobile-nav-item {
+            color: #495057; text-decoration: none; display: flex;
+            flex-direction: column; align-items: center; font-size: 0.8rem;
+            font-weight: 500; transition: all 0.3s ease;
+        }
+
+        .mobile-nav-item:hover, .mobile-nav-item:active {
+            color: var(--primary-orange, #ff8c00); transform: translateY(-2px);
+        }
+
+        .btn-global-back {
+            position: fixed; bottom: calc(var(--nav-mobile-height, 70px) + 20px); left: 20px;
+            width: 50px; height: 50px; border-radius: 50%;
+            background: rgba(255, 140, 0, 0.8); backdrop-filter: blur(5px);
+            color: white; border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4); z-index: 1020;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.3s ease;
+        }
+        .btn-global-back:hover { background: rgba(255, 140, 0, 1); transform: scale(1.05); }
+
+        .modal-alert {
+            backdrop-filter: blur(5px); border: none; border-radius: 10px; font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
+            <div class="container-fluid">
+                <a class="navbar-brand text-orange fw-bold fs-4" href="/">DualApp</a>
+                <div class="ms-auto">
+                    {% if session.get('user_id') %}
+                        <a href="{{ url_for('main.profile') }}" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center">
+                            <i class="bi bi-person-circle me-2 fs-5"></i>Perfil
+                        </a>
+                    {% else %}
+                        <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Ingresar</button>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <main class="container mt-5 mb-5 pb-5 content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+
+    <button id="btnBack" class="btn-global-back" onclick="window.history.back()">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </button>
+    
+    <button id="btnInstallPwa" class="btn btn-warning rounded-pill px-4 shadow fw-bold position-fixed top-0 end-0 m-4 d-none" style="z-index: 1050;">
+        <i class="bi bi-download me-2"></i>Instalar App
+    </button>
+
+    <div class="mobile-bottom-bar glass-panel d-md-none">
+        <a href="/" class="mobile-nav-item">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            <span>Inicio</span>
+        </a>
+        
+        {% if session.get('user_id') %}
+            <a href="{{ url_for('main.profile') }}" class="mobile-nav-item">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <span>Perfil</span>
+            </a>
+        {% else %}
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+                <span>Ingresar</span>
+            </a>
+        {% endif %}
+    </div>
+
+    <!-- Modal Login -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Iniciar Sesión</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-4">
+                    <div id="loginMessage" class="mb-3"></div>
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 py-2" id="logEmail" required placeholder="tu@email.com">
+                        </div>
+                        <div class="mb-4 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                            <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('logPass', this)"></i>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="rememberMe">
+                                <label class="form-check-label text-secondary" for="rememberMe">Recordarme</label>
+                            </div>
+                            <a href="#" class="text-orange text-decoration-none fw-semibold">¿Olvidó su contraseña?</a>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">Ingresar</button>
+                        <p class="mt-4 text-center text-secondary">¿No tienes cuenta? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-orange fw-bold text-decoration-none">Regístrate</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registro -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Registro de Usuario</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <div id="registerMessage" class="mb-3"></div>
+
+                    <div class="text-center mb-4">
+                        <div class="position-relative d-inline-block">
+                            <img src="{{ url_for('static', filename='default.png') }}" class="avatar-preview rounded-circle shadow-sm border border-white border-3" alt="Avatar" width="120" height="120" style="object-fit: cover;">
+                            <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-orange text-white rounded-circle p-2 shadow cursor-pointer" style="background-color: var(--primary-orange); cursor: pointer;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                            </label>
+                            <input type="file" id="avatarUpload" class="d-none" accept="image/*">
+                        </div>
+                    </div>
+                    
+                    <form id="registerForm">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Nombre</label>
+                                <input type="text" class="form-control glass-input rounded-3" id="regName" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Primer Apellido</label>
+                                <input type="text" class="form-control glass-input rounded-3" id="regLastName1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Segundo Apellido</label>
+                                <input type="text" class="form-control glass-input rounded-3" id="regLastName2" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
+                        </div>
+                        
+                        <!-- Lógica Dinámica en Select ORIGINAL RESTAURADA -->
+                        <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
+                            <label class="text-orange fw-bold mb-2"><i class="bi bi-plus-circle me-2"></i>Agregar Información Adicional</label>
+                            <select class="form-select glass-input rounded-3 mb-3" id="dynamicSelect" onchange="handleDynamicSelect()">
+                                <option value="">Seleccione el tipo de dato...</option>
+                                <option value="Telefono">Teléfono</option>
+                                <option value="Whatsapp">Whatsapp</option>
+                                <option value="Facebook">Facebook (URL)</option>
+                                <option value="Instagram">Instagram (URL)</option>
+                                <option value="Direccion">Dirección (Google Maps)</option>
+                                <option value="Fecha">Fecha</option>
+                                <option value="Institucion">Institución/Proveedor/Tienda/Fábrica</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <div id="dynamicContainer"></div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPass" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPass', this)"></i>
+                            </div>
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Verificar Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPassVerify" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPassVerify', this)"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm mt-2">Crear mi cuenta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
+    <script>
+        function togglePasswordVisibility(inputId, iconElement) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                iconElement.classList.remove('bi-eye-slash');
+                iconElement.classList.add('bi-eye');
+                iconElement.style.color = 'var(--primary-orange, #ff8c00)';
+            } else {
+                input.type = 'password';
+                iconElement.classList.remove('bi-eye');
+                iconElement.classList.add('bi-eye-slash');
+                iconElement.style.color = '#6c757d';
+            }
+        }
+
+        const showMessage = (containerId, text, type = 'danger') => {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <div class="alert alert-${type} modal-alert alert-dismissible fade show" role="alert" style="background: rgba(${type === 'danger' ? '220,53,69' : '25,135,84'}, 0.2); color: ${type === 'danger' ? '#842029' : '#0f5132'};">
+                    ${text}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+        };
+
+        // AHORA SÍ: Generación perfecta de los inputs dinámicos en base a la selección
+        function handleDynamicSelect() {
+            const select = document.getElementById('dynamicSelect');
+            const container = document.getElementById('dynamicContainer');
+            const value = select.value;
+
+            if (!value) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let htmlContent = '';
+
+            if (value === 'Telefono' || value === 'Whatsapp') {
+                htmlContent = `
+                    <div class="row g-2 mt-3">
+                        <div class="col-4">
+                            <label class="form-label fw-semibold text-secondary small">Cód.</label>
+                            <input type="text" class="form-control glass-input rounded-3" id="dynPhoneCode" placeholder="+506">
+                        </div>
+                        <div class="col-8">
+                            <label class="form-label fw-semibold text-secondary small">Número</label>
+                            <input type="tel" class="form-control glass-input rounded-3" id="dynPhone" placeholder="88888888">
+                        </div>
+                    </div>`;
+            } else if (value === 'Facebook' || value === 'Instagram') {
+                htmlContent = `
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold text-secondary small">URL de ${value}</label>
+                        <input type="url" class="form-control glass-input rounded-3" id="dynUrl" placeholder="https://...">
+                    </div>`;
+            } else if (value === 'Direccion') {
+                htmlContent = `
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold text-secondary small">Dirección</label>
+                        <textarea class="form-control glass-input rounded-3" id="dynAddress" rows="2" placeholder="Enlace de Maps o dirección exacta"></textarea>
+                    </div>`;
+            } else if (value === 'Fecha') {
+                htmlContent = `
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold text-secondary small">Fecha</label>
+                        <input type="date" class="form-control glass-input rounded-3" id="dynDate">
+                    </div>`;
+            } else {
+                htmlContent = `
+                    <div class="mt-3">
+                        <label class="form-label fw-semibold text-secondary small">Detalle (${value})</label>
+                        <input type="text" class="form-control glass-input rounded-3" id="dynText" placeholder="Escribe aquí...">
+                    </div>`;
+            }
+
+            container.innerHTML = htmlContent;
+        }
+
+        document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('logEmail').value;
+            const password = document.getElementById('logPass').value;
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    window.location.reload(); 
+                } else {
+                    showMessage('loginMessage', result.error || 'Error al iniciar sesión');
+                }
+            } catch (err) {
+                showMessage('loginMessage', 'Error de conexión con el servidor');
+            }
+        });
+
+        // AHORA SÍ: Captura precisa y estructurada para enviar a la base de datos
+        document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const pass = document.getElementById('regPass').value;
+            const verify = document.getElementById('regPassVerify').value;
+            if (pass !== verify) {
+                showMessage('registerMessage', 'Las contraseñas no coinciden');
+                return;
+            }
+
+            const userData = {
+                name: document.getElementById('regName').value,
+                last_name_1: document.getElementById('regLastName1').value,
+                last_name_2: document.getElementById('regLastName2').value,
+                email: document.getElementById('regEmail').value,
+                password: pass
+            };
+
+            // Evaluar qué seleccionó en el menú dinámico y atrapar el dato
+            const dynType = document.getElementById('dynamicSelect').value;
+            if (dynType === 'Telefono') {
+                userData.phone_code = document.getElementById('dynPhoneCode')?.value;
+                userData.phone = document.getElementById('dynPhone')?.value;
+            } else if (dynType === 'Whatsapp') {
+                userData.whatsapp = document.getElementById('dynPhone')?.value;
+            } else if (dynType === 'Facebook') {
+                userData.facebook = document.getElementById('dynUrl')?.value;
+            } else if (dynType === 'Instagram') {
+                userData.instagram = document.getElementById('dynUrl')?.value;
+            } else if (dynType === 'Direccion') {
+                userData.address = document.getElementById('dynAddress')?.value;
+            } else if (dynType === 'Fecha') {
+                userData.dob = document.getElementById('dynDate')?.value;
+            } else if (dynType === 'Institucion') {
+                userData.institution = document.getElementById('dynText')?.value;
+            } else if (dynType === 'Otro') {
+                userData.other_info = document.getElementById('dynText')?.value;
+            }
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+                if (response.ok) {
+                    showMessage('registerMessage', '¡Registro exitoso! Ya puedes iniciar sesión.', 'success');
+                    document.getElementById('registerForm').reset();
+                    document.getElementById('dynamicContainer').innerHTML = ''; // Limpiamos la caja dinámica
+                } else {
+                    showMessage('registerMessage', result.error || 'Error al registrarse');
+                }
+            } catch (err) {
+                showMessage('registerMessage', 'Error de conexión con el servidor');
+            }
+        });
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            const btn = document.getElementById('btnInstallPwa');
+            if (btn) btn.classList.remove('d-none');
+        });
+        
+        document.getElementById('btnInstallPwa')?.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') document.getElementById('btnInstallPwa').classList.add('d-none');
+                deferredPrompt = null;
+            }
+        });
+    </script>
+</body>
+</html>
