@@ -97,6 +97,23 @@
         background: #f8f9fa !important;
         border-color: #dee2e6 !important;
     }
+
+    /* Estilos Modal de Edición */
+    .check-btn-wrapper input[type="checkbox"]:checked + label {
+        background-color: #ff8c00;
+        color: white !important;
+        border-color: #ff8c00 !important;
+    }
+    .check-btn-wrapper label {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        color: #495057;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .check-btn-wrapper label:hover {
+        background: rgba(255, 255, 255, 0.8);
+    }
 </style>
 
 <div class="row justify-content-center animate__animated animate__fadeIn">
@@ -106,9 +123,11 @@
         <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-5 mb-5 position-relative border-0 shadow-lg">
             
             <!-- Botón Volver -->
-            <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 shadow-sm mb-4 fw-bold d-inline-flex align-items-center hide-on-export" style="color: #6c757d; border: 1px solid #ced4da; width: fit-content;">
-                <i class="bi bi-arrow-left me-2"></i>Volver
-            </a>
+            <div class="mb-4 hide-on-export">
+                <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; width: fit-content;">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
+                </a>
+            </div>
 
             <div class="row g-4 g-lg-5">
                 
@@ -263,7 +282,298 @@
                         </div>
                     </div>
 
+                    <!-- ZONA DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
+                    {% if session.get('role') == 'Superusuario' %}
+                    <hr class="border-danger opacity-25 mt-5 mb-4 hide-on-export">
+                    <div class="admin-section hide-on-export">
+                        <h6 class="fw-bold text-danger mb-3 text-center text-md-start"><i class="bi bi-exclamation-octagon-fill me-2"></i>Acciones de Alto Riesgo:</h6>
+                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
+                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="color: #ff8c00; border: 2px solid #ff8c00;" data-bs-toggle="modal" data-bs-target="#editEventModal">
+                                <i class="bi bi-pencil-square me-2 fs-5"></i> Editar Evento
+                            </button>
+                            <button class="btn btn-danger shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
+                                <i class="bi bi-trash-fill me-2 fs-5"></i> Eliminar Evento
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODALES DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
+<!-- ============================================== -->
+
+<!-- Modal Eliminar Evento (Glassmorphic con validación de 3 pasos) -->
+<div class="modal fade" id="deleteEventModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+            <div class="modal-body pb-0">
+                <h5 class="fw-bold text-dark mb-2">¿Eliminar Evento?</h5>
+                <p class="text-secondary small mb-4">Esta acción borrará permanentemente "<strong>{{ evento.nombre_lugar }}</strong>" de la base de datos y no se puede deshacer.</p>
+                <div class="d-flex flex-column gap-2">
+                    <!-- Botón con estado cambiante -->
+                    <button type="button" id="btnConfirmDelete" class="btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white" onclick="processDeleteEvento({{ evento.id }})">
+                        Sí, eliminar evento
+                    </button>
+                    <button type="button" class="btn bg-white text-secondary fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="border: 1px solid #ced4da;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Evento (Glassmorphic Formulario Completo) -->
+<div class="modal fade" id="editEventModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-pencil-square text-orange me-2"></i>Editar Evento</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-3 text-start">
+                <form id="editEventForm">
+                    
+                    <!-- Subir Imagen 9:16 -->
+                    <div class="text-center mb-5">
+                        <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento (9:16)</label>
+                        <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
+                            {% set edit_poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+                            <img id="editEventImagePreview" src="{{ edit_poster_url }}" alt="Póster" style="width: 100%; height: 100%; object-fit: cover;">
+                            <label for="editEventImageUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
+                            </label>
+                            <input type="file" id="editEventImageUpload" name="poster" class="d-none" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-muted small mb-1">Nombre del Lugar</label>
+                            <input type="text" id="editNombreLugar" name="nombreLugar" required class="form-control glass-input rounded-3 fw-bold" value="{{ evento.nombre_lugar }}">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Dificultad</label>
+                            <select id="editDificultad" name="dificultad" class="form-select glass-input rounded-3">
+                                <option value="Paseo" {% if evento.dificultad == 'Paseo' %}selected{% endif %}>Paseo</option>
+                                <option value="Básico" {% if evento.dificultad == 'Básico' %}selected{% endif %}>Básico</option>
+                                <option value="Intermedio" {% if evento.dificultad == 'Intermedio' %}selected{% endif %}>Intermedio</option>
+                                <option value="Dificil" {% if evento.dificultad == 'Dificil' %}selected{% endif %}>Dificil</option>
+                                <option value="Avanzado" {% if evento.dificultad == 'Avanzado' %}selected{% endif %}>Avanzado</option>
+                                <option value="Técnico" {% if evento.dificultad == 'Técnico' %}selected{% endif %}>Técnico</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Actividad</label>
+                            <select id="editActividad" name="actividad" class="form-select glass-input rounded-3" onchange="toggleEditActividad()">
+                                <option value="Caminata" {% if evento.actividad == 'Caminata' %}selected{% endif %}>Caminata</option>
+                                <option value="Internacional" {% if evento.actividad == 'Internacional' %}selected{% endif %}>Internacional</option>
+                                <option value="Parque Nacional" {% if evento.actividad == 'Parque Nacional' %}selected{% endif %}>Parque Nacional</option>
+                                <option value="El Camino de Costa Rica" {% if evento.actividad == 'El Camino de Costa Rica' %}selected{% endif %}>El Camino de Costa Rica</option>
+                                <option value="Fiesta" {% if evento.actividad == 'Fiesta' %}selected{% endif %}>Fiesta</option>
+                                <option value="Convivio" {% if evento.actividad == 'Convivio' %}selected{% endif %}>Convivio</option>
+                                <option value="Reunión" {% if evento.actividad == 'Reunión' %}selected{% endif %}>Reunión</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Moneda</label>
+                            <select id="editMoneda" name="moneda" class="form-select glass-input rounded-3">
+                                <option value="¢" {% if evento.moneda == '¢' %}selected{% endif %}>Colones (¢)</option>
+                                <option value="$" {% if evento.moneda == '$' %}selected{% endif %}>Dólares ($)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Precio</label>
+                            <input type="number" id="editPrecio" name="precio" required class="form-control glass-input rounded-3" value="{{ evento.precio }}">
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Reserva con</label>
+                            <input type="number" id="editReserva" name="reserva" required class="form-control glass-input rounded-3" value="{{ evento.reserva }}">
+                        </div>
+                        
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
+                            <select id="editCapacidad" name="capacidad" required class="form-select glass-input rounded-3">
+                                <option value="14-17" {% if evento.capacidad == '14-17' %}selected{% endif %}>14-17</option>
+                                <option value="17-28" {% if evento.capacidad == '17-28' %}selected{% endif %}>17-28</option>
+                                <option value="17-31" {% if evento.capacidad == '17-31' %}selected{% endif %}>17-31</option>
+                                <option value="MÁS DE 31" {% if evento.capacidad == 'MÁS DE 31' %}selected{% endif %}>MÁS DE 31</option>
+                                <option value="NO APLICA" {% if evento.capacidad == 'NO APLICA' %}selected{% endif %}>NO APLICA</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">SINPE</label>
+                            <select id="editSinpe" name="sinpe" class="form-select glass-input rounded-3">
+                                <option {% if evento.sinpe == '86529837 - Jenny Ceciliano Cordoba' %}selected{% endif %}>86529837 - Jenny Ceciliano Cordoba</option>
+                                <option {% if evento.sinpe == '87984232 - Jenny Ceciliano Cordoba' %}selected{% endif %}>87984232 - Jenny Ceciliano Cordoba</option>
+                                <option {% if evento.sinpe == '86227500 - Kenneth Ruiz Matamoros' %}selected{% endif %}>86227500 - Kenneth Ruiz Matamoros</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">CUENTAS</label>
+                            <select id="editCuenta" name="cuenta" class="form-select glass-input rounded-3">
+                                <option value="Ninguna" {% if evento.cuenta == 'Ninguna' %}selected{% endif %}>-- Ninguna / Solo usar SINPE --</option>
+                                <option {% if evento.cuenta == 'Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103' %}selected{% endif %}>Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103</option>
+                                <option {% if evento.cuenta == 'Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163' %}selected{% endif %}>Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163</option>
+                                <option {% if evento.cuenta == 'Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778' %}selected{% endif %}>Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778</option>
+                                <option {% if evento.cuenta == 'Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793' %}selected{% endif %}>Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793</option>
+                                <option {% if evento.cuenta == 'Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158' %}selected{% endif %}>Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Nacional -->
+                    <div id="editNationalFields" class="p-3 p-md-4 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
+                            <h5 class="fw-bold mb-0 text-orange">Logística y Fechas</h5>
+                            <div class="form-check form-switch d-flex align-items-center bg-white bg-opacity-50 px-3 py-2 rounded-pill shadow-sm border border-white" style="width: fit-content; margin: 0;">
+                                <input class="form-check-input m-0" type="checkbox" id="editSoloChatToggle" name="solo_chat" value="true" onchange="toggleEditSoloChat()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if evento.solo_chat %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="editSoloChatToggle" style="cursor: pointer; padding-top: 1px;">
+                                    <i class="bi bi-shield-lock-fill me-1"></i>Modo Seguro
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
+                                <div class="edit-normal-logistics">
+                                    <input type="number" id="editDias" name="dias" min="1" max="10" value="{{ evento.dias }}" onchange="toggleEditDateInputs()" class="form-control glass-input rounded-3">
+                                </div>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="Solo en el Chat" disabled>
+                            </div>
+                            
+                            <div id="editSingleDateGroup" class="col-12 col-md-8">
+                                <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
+                                <div class="edit-normal-logistics">
+                                    <input type="date" id="editFechaUnica" name="fechaUnica" class="form-control glass-input rounded-3" value="{{ evento.fecha_unica or '' }}">
+                                </div>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="📅 Solo en el Chat" disabled>
+                            </div>
+
+                            <div id="editRangeDateGroup" class="col-12 col-md-8 d-none">
+                                <div class="row g-2 edit-normal-logistics">
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold text-muted small mb-1">Fecha Inicio</label>
+                                        <input type="date" id="editFechaInicio" name="fechaInicio" class="form-control glass-input rounded-3" value="{{ evento.fecha_inicio or '' }}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-bold text-muted small mb-1">Fecha Regreso</label>
+                                        <input type="date" id="editFechaRegreso" name="fechaRegreso" class="form-control glass-input rounded-3" value="{{ evento.fecha_regreso or '' }}">
+                                    </div>
+                                </div>
+                                <div class="edit-secure-logistics d-none">
+                                    <label class="form-label fw-bold text-muted small mb-1">Rango de Fechas</label>
+                                    <input type="text" class="form-control glass-input rounded-3 fw-bold text-danger bg-light" value="📅 Solo en el Chat" disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
+                                <div class="edit-normal-logistics">
+                                    <input type="time" id="editHoraSalida" name="horaSalida" class="form-control glass-input rounded-3" value="{{ evento.hora_salida or '' }}">
+                                </div>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
+                                <div class="edit-normal-logistics">
+                                    <select id="editLugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
+                                        <option value="Parque de Tres Ríos - Escuela" {% if evento.lugar_salida == 'Parque de Tres Ríos - Escuela' %}selected{% endif %}>Parque de Tres Ríos - Escuela</option>
+                                        <option value="Parque de Tres Ríos - Cruz Roja" {% if evento.lugar_salida == 'Parque de Tres Ríos - Cruz Roja' %}selected{% endif %}>Parque de Tres Ríos - Cruz Roja</option>
+                                        <option value="Parque de Tres Ríos - Letras" {% if evento.lugar_salida == 'Parque de Tres Ríos - Letras' %}selected{% endif %}>Parque de Tres Ríos - Letras</option>
+                                        <option value="San José" {% if evento.lugar_salida == 'San José' %}selected{% endif %}>San José (Sabana)</option>
+                                    </select>
+                                </div>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Pasamos a recoger en (Separar por comas):</label>
+                            <div class="edit-normal-logistics">
+                                <textarea id="editPuntosRecogida" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3">{{ evento.puntos_recogida or '' }}</textarea>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                        </div>
+                    </div>
+
+                    <!-- Internacional -->
+                    <div id="editInternationalFields" class="p-3 p-md-4 rounded-4 mb-4 d-none" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
+                        <h5 class="fw-bold mb-3 text-orange"><i class="bi bi-airplane-fill me-2"></i>Logística Internacional</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-12">
+                                <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
+                                <input type="text" id="editDestinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" value="{{ evento.lugar_salida if evento.actividad == 'Internacional' else '' }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Incluye -->
+                    <div class="mb-4 p-3 rounded-4 shadow-sm" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
+                        <h5 class="fw-bold text-orange border-bottom border-secondary border-opacity-25 pb-2 mb-3">Incluye</h5>
+                        <div class="row g-2 mb-3 text-muted small check-btn-wrapper" id="editIncluyeWrapper">
+                            <!-- Los checkboxes se marcarán automáticamente por JS basado en evento.incluye -->
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc1" name="incluye_check" value="Transporte" class="d-none"><label for="e_inc1" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Transporte</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc2" name="incluye_check" value="Lancha" class="d-none"><label for="e_inc2" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Lancha</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc3" name="incluye_check" value="Desayuno" class="d-none"><label for="e_inc3" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Desayuno</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc4" name="incluye_check" value="Café" class="d-none"><label for="e_inc4" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Café</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc5" name="incluye_check" value="Almuerzo" class="d-none"><label for="e_inc5" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Almuerzo</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc6" name="incluye_check" value="Refrigerio" class="d-none"><label for="e_inc6" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Refrigerio</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc7" name="incluye_check" value="Cena" class="d-none"><label for="e_inc7" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Cena</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc8" name="incluye_check" value="Guías" class="d-none"><label for="e_inc8" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Guías</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc9" name="incluye_check" value="Pasaporte" class="d-none"><label for="e_inc9" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Pasaporte</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc10" name="incluye_check" value="Entrada" class="d-none"><label for="e_inc10" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Entrada</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc11" name="incluye_check" value="Reconocimiento" class="d-none"><label for="e_inc11" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Reconocimiento</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc12" name="incluye_check" value="Rifas" class="d-none"><label for="e_inc12" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Rifas</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc13" name="incluye_check" value="Estadía" class="d-none"><label for="e_inc13" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Estadía</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc14" name="incluye_check" value="Ducha" class="d-none"><label for="e_inc14" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Ducha</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc15" name="incluye_check" value="Servicios Sanitarios" class="d-none"><label for="e_inc15" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Serv. Sanitarios</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc16" name="incluye_check" value="Impuestos" class="d-none"><label for="e_inc16" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Impuestos</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc17" name="incluye_check" value="Tiquetes Aereos" class="d-none"><label for="e_inc17" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Tiquetes Aéreos</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc18" name="incluye_check" value="Zona de Camping" class="d-none"><label for="e_inc18" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Zona Camping</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc19" name="incluye_check" value="Póliza de Viajero" class="d-none"><label for="e_inc19" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Póliza Viajero</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc20" name="incluye_check" value="Taxi/Uber/Otro" class="d-none"><label for="e_inc20" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Taxi/Uber/Otro</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc21" name="incluye_check" value="Acarreo" class="d-none"><label for="e_inc21" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Acarreo</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc22" name="incluye_check" value="Guías Certificados" class="d-none"><label for="e_inc22" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Guías Certif.</label></div>
+                            <div class="col-6 col-md-3"><input type="checkbox" id="e_checkOtros" name="incluye_check" value="Otros" class="d-none" onchange="toggleEditOtherDesc()"><label for="e_checkOtros" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Otros</label></div>
+                        </div>
+                        
+                        <div id="editOtrosDescContainer" class="d-none mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm">
+                            <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
+                            <input type="text" id="editOtrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
+                        </div>
+                    </div>
+
+                    <!-- Itinerario -->
+                    <div class="mb-4">
+                        <label class="form-label h5 fw-bold text-orange mb-2">Itinerario Detallado</label>
+                        <textarea id="editItinerario" name="itinerario" rows="6" class="form-control glass-input rounded-4 shadow-sm">{{ evento.itinerario or '' }}</textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-4 border-top border-secondary border-opacity-25">
+                        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color: #6c757d; border: 1px solid #ced4da;">Cancelar</button>
+                        <button type="submit" class="btn btn-orange shadow-sm rounded-pill px-4 fw-bold text-white"><i class="bi bi-save me-2"></i>Guardar Cambios</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -273,100 +583,226 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-    // 1. Función para RESERVAR el cupo (El usuario se inscribe contactando al Admin)
+    // PRECARGAR DATOS AL INICIAR LA PÁGINA (Modal de Edición)
+    document.addEventListener("DOMContentLoaded", () => {
+        // Inicializar Estado de Formularios
+        toggleEditActividad();
+        toggleEditDateInputs();
+        toggleEditSoloChat();
+        
+        // Marcar checkboxes guardados en 'incluye'
+        const includesGuardados = "{{ evento.incluye or '' }}".split(',').map(s => s.trim());
+        const checkboxes = document.querySelectorAll('#editIncluyeWrapper input[type="checkbox"]');
+        
+        checkboxes.forEach(cb => {
+            if (cb.value !== "Otros" && includesGuardados.includes(cb.value)) {
+                cb.checked = true;
+                // Quitarlo de la lista para saber cuáles son los "Otros"
+                const index = includesGuardados.indexOf(cb.value);
+                if (index > -1) includesGuardados.splice(index, 1);
+            }
+        });
+        
+        // Lo que queda en includesGuardados son los "Otros" (si no está vacío)
+        const filteredOtros = includesGuardados.filter(item => item !== "Otros" && item !== "");
+        if (filteredOtros.length > 0) {
+            document.getElementById('e_checkOtros').checked = true;
+            document.getElementById('editOtrosDescripcion').value = filteredOtros.join(', ');
+            toggleEditOtherDesc();
+        }
+
+        // Previsualizar Imagen de Edición
+        const editImageUpload = document.getElementById('editEventImageUpload');
+        if (editImageUpload) {
+            editImageUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        document.getElementById('editEventImagePreview').src = evt.target.result;
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    });
+
+    // ==============================================
+    // FUNCIONES DEL MODAL DE EDICIÓN
+    // ==============================================
+    function toggleEditActividad() {
+        const act = document.getElementById('editActividad').value;
+        document.getElementById('editNationalFields').classList.toggle('d-none', act === 'Internacional');
+        document.getElementById('editInternationalFields').classList.toggle('d-none', act !== 'Internacional');
+    }
+
+    function toggleEditDateInputs() {
+        const dias = parseInt(document.getElementById('editDias').value) || 1;
+        document.getElementById('editSingleDateGroup').classList.toggle('d-none', dias > 1);
+        document.getElementById('editRangeDateGroup').classList.toggle('d-none', dias <= 1);
+    }
+
+    function toggleEditSoloChat() {
+        const isSecure = document.getElementById('editSoloChatToggle').checked;
+        document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+        document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+    }
+
+    function toggleEditOtherDesc() {
+        document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
+    }
+
+    // ENVÍO DEL FORMULARIO DE EDICIÓN AL BACKEND
+    document.getElementById('editEventForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        formData.set('solo_chat', document.getElementById('editSoloChatToggle').checked);
+
+        // Agrupar Incluye en un solo string
+        const incluyeArr = [];
+        document.querySelectorAll('#editIncluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
+            if(cb.value === "Otros") {
+                const desc = document.getElementById('editOtrosDescripcion').value;
+                if(desc) incluyeArr.push(desc);
+            } else {
+                incluyeArr.push(cb.value);
+            }
+        });
+        formData.set('incluye', incluyeArr.join(', '));
+
+        try {
+            const response = await fetch('/api/update_event/{{ evento.id }}', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                alert("¡Evento actualizado exitosamente!");
+                window.location.reload(); // Recargar para ver los cambios actualizados
+            } else {
+                alert("Error al actualizar: " + (result.error || "Desconocido"));
+            }
+        } catch (err) { 
+            alert("Error de conexión al intentar actualizar el evento."); 
+        }
+    });
+
+    // ==============================================
+    // FUNCIONES DEL MODAL DE ELIMINACIÓN (3 PASOS)
+    // ==============================================
+    let deleteClicks = 0;
+    function processDeleteEvento(eventId) {
+        const btn = document.getElementById('btnConfirmDelete');
+        deleteClicks++;
+        
+        if (deleteClicks === 1) {
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
+            btn.classList.replace('btn-danger', 'btn-warning');
+            btn.classList.replace('text-white', 'text-dark');
+        } else if (deleteClicks === 2) {
+            btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
+            btn.classList.replace('btn-warning', 'btn-dark');
+            btn.classList.add('text-white');
+        } else {
+            // Tercer clic: Ejecuta la acción real
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
+            btn.disabled = true;
+            ejecutarBorradoReal(eventId);
+        }
+        
+        // Resetear el botón si el usuario no hace clic consecutivamente
+        setTimeout(() => {
+            if (deleteClicks > 0 && deleteClicks < 3) {
+                deleteClicks = 0;
+                btn.innerHTML = 'Sí, eliminar evento';
+                btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
+            }
+        }, 4000);
+    }
+
+    async function ejecutarBorradoReal(eventId) {
+        try {
+            const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                // Borrar también en IndexedDB local si es que existe
+                try {
+                    const request = indexedDB.open("EventosLocalDB", 2);
+                    request.onsuccess = (e) => {
+                        e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId);
+                    };
+                } catch(e) {}
+                
+                alert("¡El evento ha sido eliminado permanentemente!");
+                window.location.href = '/'; // Redirigir al inicio
+            } else {
+                alert("Error al eliminar el evento: " + (result.error || "Desconocido"));
+                document.getElementById('btnConfirmDelete').disabled = false;
+            }
+        } catch (err) {
+            alert("Error de conexión al intentar eliminar el evento.");
+            document.getElementById('btnConfirmDelete').disabled = false;
+        }
+    }
+
+    // ==============================================
+    // FUNCIONES DE COMPARTIR Y EXPORTAR
+    // ==============================================
     function reservarPorWhatsApp() {
         const nombreEvento = "{{ evento.nombre_lugar }}";
         const precio = "{{ evento.moneda }}{{ evento.precio }}";
         const sinpeString = "{{ evento.sinpe }}";
-        
-        let numeroAdmin = "50686529837"; // Número por defecto (Jenny)
+        let numeroAdmin = "50686529837"; 
         if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
-        if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; // Kenneth
-
+        if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; 
         const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
         window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
     }
 
-    // 2. Función para COMPARTIR A UN AMIGO por WhatsApp (Manda link general)
     function shareToFriendWhatsApp() {
         const nombreEvento = "{{ evento.nombre_lugar }}";
         const precio = "{{ evento.moneda }}{{ evento.precio }}";
         let fecha = "{{ evento.fecha_unica }}";
         {% if evento.dias > 1 %} fecha = "{{ evento.fecha_inicio }} al {{ evento.fecha_regreso }}"; {% endif %}
         {% if evento.solo_chat %} fecha = "Por definir"; {% endif %}
-
         const url = window.location.href;
         const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
-        
-        // No se pone número para que el usuario elija en sus contactos de WhatsApp
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
     }
 
-    // 3. Función SHARE NATIVO (Abre el menú nativo de compartir del Celular: Insta, SMS, Copiar Link)
     async function shareNative() {
         const nombreEvento = "{{ evento.nombre_lugar }}";
         const url = window.location.href;
-        const shareData = {
-            title: `Aventura en ${nombreEvento}`,
-            text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`,
-            url: url
-        };
-
+        const shareData = { title: `Aventura en ${nombreEvento}`, text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`, url: url };
         if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.log('Interacción cancelada o error:', err);
-            }
+            try { await navigator.share(shareData); } catch (err) {}
         } else {
-            // Fallback si está en PC y no soporta Web Share API
             alert('Tu navegador no soporta compartir nativo. Copia este enlace para compartir el evento:\n' + url);
         }
     }
 
-    // 4. Función DESCARGAR PNG DIRECTO (Toma foto de la pantalla y la descarga)
     async function exportToPNG() {
         const cardToExport = document.getElementById('eventCardToExport');
         const btnExport = document.getElementById('btnExportPNG');
         const originalHtml = btnExport.innerHTML;
-        
-        // 1. Mostrar estado de carga y ocultar botones/elementos que no deben salir en la foto
         btnExport.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
         btnExport.disabled = true;
-        
         const elementsToHide = document.querySelectorAll('.hide-on-export');
         elementsToHide.forEach(el => el.style.display = 'none');
-        
-        // Añadir clase temporal para limpiar el fondo (quitar transparencias que rompen la imagen)
         cardToExport.classList.add('exporting-mode');
 
         try {
-            // 2. Tomar la foto (Renderiza el DOM a un Canvas interno)
-            const canvas = await html2canvas(cardToExport, {
-                scale: 2, // Alta resolución
-                useCORS: true, // Permite cargar la imagen del póster desde el servidor local
-                backgroundColor: '#ffffff' // Fondo blanco garantizado
-            });
-
-            // 3. Convertir a imagen PNG y forzar descarga
+            const canvas = await html2canvas(cardToExport, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
             const imgData = canvas.toDataURL('image/png');
             const link = document.createElement('a');
             link.href = imgData;
-            
-            // Limpiar nombre del evento para un nombre de archivo bonito
             const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
             link.download = `Aventura_${safeName}.png`;
-            
-            // Clic invisible para iniciar descarga
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-
         } catch (error) {
-            console.error('Error al generar PNG:', error);
             alert('Ocurrió un problema al generar la imagen. Intenta de nuevo.');
         } finally {
-            // 4. Restaurar la vista original para el usuario
             elementsToHide.forEach(el => el.style.display = '');
             cardToExport.classList.remove('exporting-mode');
             btnExport.innerHTML = originalHtml;

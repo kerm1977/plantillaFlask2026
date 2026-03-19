@@ -122,6 +122,67 @@ def create_event():
         print(f"Error grave al guardar evento: {e}")
         return jsonify({"error": str(e)}), 500
 
+@bp.route('/api/update_event/<int:event_id>', methods=['POST'])
+def update_event(event_id):
+    """Actualiza un evento existente en SQLite"""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+    
+    evento = Event.query.get_or_404(event_id)
+    try:
+        # Actualización de imagen si se provee una nueva
+        file = request.files.get('poster')
+        if file and file.filename != '':
+            filename = secure_filename(f"event_{os.urandom(4).hex()}_{file.filename}")
+            upload_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
+            os.makedirs(upload_path, exist_ok=True)
+            file.save(os.path.join(upload_path, filename))
+            evento.poster = filename
+
+        destino_db = request.form.get('destinoInternacional') if request.form.get('actividad') == 'Internacional' else request.form.get('lugarSalida')
+
+        evento.nombre_lugar = request.form.get('nombreLugar', evento.nombre_lugar)
+        evento.dificultad = request.form.get('dificultad', evento.dificultad)
+        evento.actividad = request.form.get('actividad', evento.actividad)
+        evento.moneda = request.form.get('moneda', evento.moneda)
+        evento.precio = int(request.form.get('precio', evento.precio) if request.form.get('precio') else 0)
+        evento.reserva = int(request.form.get('reserva', evento.reserva) if request.form.get('reserva') else 0)
+        evento.capacidad = request.form.get('capacidad', evento.capacidad)
+        evento.sinpe = request.form.get('sinpe', evento.sinpe)
+        evento.cuenta = request.form.get('cuenta', evento.cuenta)
+        evento.solo_chat = request.form.get('solo_chat') == 'true'
+        evento.dias = int(request.form.get('dias', evento.dias) if request.form.get('dias') else 1)
+        evento.fecha_unica = request.form.get('fechaUnica', evento.fecha_unica)
+        evento.fecha_inicio = request.form.get('fechaInicio', evento.fecha_inicio)
+        evento.fecha_regreso = request.form.get('fechaRegreso', evento.fecha_regreso)
+        evento.hora_salida = request.form.get('horaSalida', evento.hora_salida)
+        evento.lugar_salida = destino_db if destino_db else evento.lugar_salida
+        evento.puntos_recogida = request.form.get('puntosRecogida', evento.puntos_recogida)
+        evento.itinerario = request.form.get('itinerario', evento.itinerario)
+        evento.incluye = request.form.get('incluye', evento.incluye)
+
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error al actualizar evento: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@bp.route('/api/delete_event/<int:event_id>', methods=['DELETE'])
+def delete_event(event_id):
+    """Elimina un evento de SQLite permanentemente"""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+        
+    evento = Event.query.get_or_404(event_id)
+    try:
+        db.session.delete(evento)
+        db.session.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
 @bp.route('/manifest.json')
 def manifest():
     return jsonify({
