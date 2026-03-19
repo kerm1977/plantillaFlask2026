@@ -144,7 +144,7 @@
                 <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm d-none d-sm-block" onclick="filterEventsLive()">Buscar</button>
             </div>
             
-            <!-- Filtros Rápidos (Criterios con un clic) -->
+            <!-- Filtros Rápidos (Criterios con un clic sin iconos) -->
             <div class="d-flex flex-wrap justify-content-center gap-2">
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Caminata')">Caminata</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Internacional')">Internacional</span>
@@ -263,9 +263,9 @@ function renderEvents(eventsToRender) {
 
     // 1. ORDENAR CRONOLÓGICAMENTE: Extraemos la fecha "YYYY-MM-DD" si existe en el string
     const sortedEvents = [...eventsToRender].sort((a, b) => {
-        const matchA = a.fecha.match(/(\d{4}-\d{2}-\d{2})/);
-        const matchB = b.fecha.match(/(\d{4}-\d{2}-\d{2})/);
-        const dateA = matchA ? matchA[1] : '9999-99-99'; // Si es "Solo Chat" o "Por definir" se va al final
+        const matchA = a.fecha && a.fecha.match(/(\d{4}-\d{2}-\d{2})/);
+        const matchB = b.fecha && b.fecha.match(/(\d{4}-\d{2}-\d{2})/);
+        const dateA = matchA ? matchA[1] : '9999-99-99'; 
         const dateB = matchB ? matchB[1] : '9999-99-99';
         return dateA.localeCompare(dateB);
     });
@@ -278,9 +278,10 @@ function renderEvents(eventsToRender) {
         
         // --- LÓGICA DE AGRUPAMIENTO POR MES ---
         let monthGroup = "Próximamente / Fechas por Definir";
-        const dateMatch = ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
+        const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
         
-        if (dateMatch && !ev.solo_chat) {
+        // Agrupamos TODOS los eventos (incluso los privados) si tienen fecha
+        if (dateMatch) {
             const year = dateMatch[1];
             const monthIndex = parseInt(dateMatch[2], 10) - 1;
             monthGroup = `${meses[monthIndex]} ${year}`;
@@ -308,11 +309,27 @@ function renderEvents(eventsToRender) {
 
         const imgPath = ev.poster || ev.imagen || 'https://via.placeholder.com/270x480?text=Sin+Imagen';
         
-        // Formateo visual amigable de la fecha extraída
-        let dateDisplay = ev.fecha;
-        if(dateMatch && ev.fecha.length > 15) {
-            dateDisplay = dateMatch[3] + "/" + dateMatch[2] + "/" + dateMatch[1].substring(2); // dd/mm/yy
-            if(ev.fecha.includes('al')) dateDisplay += "...";
+        // --- FORMATEO VISUAL INTELIGENTE DE FECHA (Misterio solo en Modo Seguro) ---
+        let dateDisplay = ev.fecha || "Por definir";
+        
+        if (ev.solo_chat) {
+            // MODO SEGURO (SECCIÓN PRIVADA): Ocultamos el día exacto, mostramos solo Mes y Año.
+            if (dateMatch) {
+                const year = dateMatch[1];
+                const monthName = meses[parseInt(dateMatch[2], 10) - 1];
+                dateDisplay = `${monthName} ${year} <i class="bi bi-shield-lock-fill text-danger ms-1" title="Día exacto por chat"></i>`;
+            } else {
+                dateDisplay = "📅 Solo en el Chat";
+            }
+        } else {
+            // EVENTO NORMAL (PÚBLICO): Mostramos el día exacto.
+            if (dateMatch) {
+                const day = dateMatch[3];
+                const month = dateMatch[2];
+                const yearShort = dateMatch[1].substring(2);
+                dateDisplay = `${day}/${month}/${yearShort}`;
+                if (ev.fecha.includes('al')) dateDisplay += "..."; 
+            }
         }
 
         // Se usa col-xxs-6 para forzar 2 columnas entre 350px y 575px. <350px toma 1 sola tarjeta completa.
@@ -338,9 +355,9 @@ function renderEvents(eventsToRender) {
                                 <span class="fw-bold text-orange fs-6">${ev.precio}</span>
                             </div>
                             <div class="text-end d-flex flex-column text-end-mobile">
-                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Actividad</span>
+                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Salida</span>
                                 <span class="fw-semibold text-dark small">
-                                    <i class="bi bi-calendar-check me-1 text-orange"></i>${dateDisplay}
+                                    ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check me-1 text-orange"></i>${dateDisplay}`}
                                 </span>
                             </div>
                         </div>

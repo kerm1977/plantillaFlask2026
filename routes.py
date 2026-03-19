@@ -68,7 +68,8 @@ def get_events():
             "actividad": e.actividad,
             "precio": f"{e.moneda}{e.precio}",
             "destino": destino_text,
-            "fecha": "📅 Solo en el Chat" if e.solo_chat else (e.fecha_unica if e.dias == 1 else f"{e.fecha_inicio} al {e.fecha_regreso}"),
+            # AHORA ENVIAMOS LA FECHA REAL SIEMPRE PARA QUE EL FRONTEND PUEDA AGRUPAR POR MES
+            "fecha": e.fecha_unica if e.dias == 1 else f"{e.fecha_inicio} al {e.fecha_regreso}",
             "solo_chat": e.solo_chat
         })
     return jsonify(output)
