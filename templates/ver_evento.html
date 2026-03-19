@@ -1,0 +1,377 @@
+<!-- Vista: ver_evento.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Estilos del Póster */
+    .event-poster {
+        width: 100%;
+        border-radius: 1.5rem;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        object-fit: cover;
+        aspect-ratio: 9/16;
+        max-height: 550px;
+    }
+    
+    .badge-dificultad {
+        font-size: 0.85rem;
+        letter-spacing: 1px;
+        padding: 0.6rem 1.2rem;
+        backdrop-filter: blur(5px);
+    }
+
+    /* Banner de Precio */
+    .price-banner {
+        background: linear-gradient(135deg, rgba(255,140,0,0.15) 0%, rgba(255,140,0,0.05) 100%);
+        border: 1px solid rgba(255,140,0,0.2);
+        border-radius: 1.2rem;
+        padding: 1.5rem;
+    }
+
+    /* Lista de Detalles (Logística y Pagos fluida) */
+    .detail-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+    .detail-icon {
+        width: 45px;
+        height: 45px;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-orange, #ff8c00);
+        font-size: 1.3rem;
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        margin-right: 1.2rem;
+    }
+    .detail-text p {
+        margin-bottom: 0.2rem;
+        color: #495057;
+        line-height: 1.4;
+    }
+
+    /* Sección Incluye */
+    .incluye-pill {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        color: #555;
+        font-weight: 600;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.85rem;
+        display: inline-flex;
+        align-items: center;
+        margin: 0.3rem 0.3rem 0 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+    .incluye-pill i {
+        color: var(--primary-orange, #ff8c00);
+    }
+
+    /* Sección Itinerario */
+    .itinerario-block {
+        border-left: 4px solid var(--primary-orange, #ff8c00);
+        padding-left: 1.5rem;
+        margin-top: 0.5rem;
+        white-space: pre-wrap;
+        line-height: 1.7;
+        color: #495057;
+        font-size: 0.95rem;
+    }
+
+    /* Estilos Especiales para Exportar a PNG */
+    .exporting-mode {
+        background: white !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 2px solid #eee !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+    .exporting-mode .detail-icon, .exporting-mode .incluye-pill {
+        background: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+</style>
+
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-lg-11 col-xl-10">
+        
+        <!-- Tarjeta Principal Glassmorphic -->
+        <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-5 mb-5 position-relative border-0 shadow-lg">
+            
+            <!-- Botón Volver -->
+            <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 shadow-sm mb-4 fw-bold d-inline-flex align-items-center hide-on-export" style="color: #6c757d; border: 1px solid #ced4da; width: fit-content;">
+                <i class="bi bi-arrow-left me-2"></i>Volver
+            </a>
+
+            <div class="row g-4 g-lg-5">
+                
+                <!-- COLUMNA IZQUIERDA: Póster y CTA Principal -->
+                <div class="col-12 col-md-5 col-lg-4 d-flex flex-column align-items-center">
+                    <div class="position-relative w-100" style="max-width: 350px;">
+                        {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+                        <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
+                        
+                        <!-- Etiqueta de Dificultad sobre la imagen -->
+                        {% set badge_class = 'bg-success' %}
+                        {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
+                        {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
+                        <span class="position-absolute top-0 end-0 badge rounded-pill {{ badge_class }} m-3 border border-2 border-white shadow-sm badge-dificultad text-uppercase">
+                            {{ evento.dificultad }}
+                        </span>
+                    </div>
+
+                    <!-- Botón Principal de Reserva (Se oculta al exportar) -->
+                    <button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm mt-4 fs-5 hide-on-export" onclick="reservarPorWhatsApp()" style="max-width: 350px;">
+                        <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
+                    </button>
+                </div>
+                
+                <!-- COLUMNA DERECHA: Información Organizada -->
+                <div class="col-12 col-md-7 col-lg-8">
+                    
+                    <!-- 1. Cabecera y Título -->
+                    <div class="mb-4">
+                        <span class="badge bg-dark rounded-pill px-3 mb-2 text-uppercase fw-bold shadow-sm">{{ evento.actividad }}</span>
+                        <h1 class="fw-bold text-dark display-5 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
+                        
+                        <!-- Banner de Precio y Reserva Unificado -->
+                        <div class="price-banner d-flex flex-wrap align-items-center justify-content-between gap-3">
+                            <div>
+                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Inversión Total</span>
+                                <span class="fw-bold text-orange" style="font-size: 2.2rem; line-height: 1;">{{ evento.moneda }}{{ evento.precio }}</span>
+                            </div>
+                            <div class="text-start text-md-end border-start border-secondary border-opacity-25 ps-0 ps-md-4 pt-3 pt-md-0 w-100 w-md-auto" style="border-left-width: 2px !important;">
+                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Reserva tu espacio con</span>
+                                <span class="fw-bold text-dark fs-3">{{ evento.moneda }}{{ evento.reserva }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="border-secondary opacity-25 my-4">
+
+                    <!-- 2. Lista de Detalles (Logística y Pagos) -->
+                    <div class="row">
+                        <div class="col-12">
+                            
+                            <!-- Ítem: Fecha y Hora -->
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
+                                <div class="detail-text">
+                                    <h6 class="fw-bold text-dark mb-1">Fecha y Duración</h6>
+                                    {% if evento.solo_chat %}
+                                        <p class="text-danger fw-bold mb-0"><i class="bi bi-shield-lock-fill me-1"></i>Información protegida (Solo en el Chat)</p>
+                                    {% else %}
+                                        <p>
+                                            {% if evento.dias > 1 %}
+                                                Del <strong>{{ evento.fecha_inicio }}</strong> al <strong>{{ evento.fecha_regreso }}</strong> ({{ evento.dias }} días)
+                                            {% else %}
+                                                <strong>{{ evento.fecha_unica }}</strong>
+                                            {% endif %}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Ítem: Punto de Salida -->
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
+                                <div class="detail-text">
+                                    <h6 class="fw-bold text-dark mb-1">Punto de Salida</h6>
+                                    {% if evento.solo_chat %}
+                                        <p class="text-danger fw-bold mb-0"><i class="bi bi-shield-lock-fill me-1"></i>Ubicación protegida (Solo en el Chat)</p>
+                                    {% else %}
+                                        <p><strong>Lugar:</strong> {{ evento.lugar_salida }}</p>
+                                        <p><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}</p>
+                                        {% if evento.puntos_recogida %}
+                                            <p class="small text-secondary mt-1"><i class="bi bi-bus-front me-1"></i><strong>Recogidas:</strong> {{ evento.puntos_recogida }}</p>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Ítem: Capacidad y Cuentas -->
+                            <div class="detail-item">
+                                <div class="detail-icon"><i class="bi bi-credit-card"></i></div>
+                                <div class="detail-text">
+                                    <h6 class="fw-bold text-dark mb-1">Cupos y Métodos de Pago</h6>
+                                    <p><strong>Capacidad del evento:</strong> {{ evento.capacidad }} personas max.</p>
+                                    {% if evento.sinpe %}
+                                        <p class="mt-2 mb-1"><strong><i class="bi bi-phone me-1"></i>SINPE Móvil:</strong> {{ evento.sinpe }}</p>
+                                    {% endif %}
+                                    {% if evento.cuenta and evento.cuenta != 'Ninguna' %}
+                                        <p class="mb-0"><strong><i class="bi bi-bank me-1"></i>Cuenta Bancaria:</strong> {{ evento.cuenta }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 3. Sección: ¿Qué Incluye? -->
+                    {% if evento.incluye %}
+                    <hr class="border-secondary opacity-25 my-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bag-check-fill text-orange me-2 fs-5"></i>El evento incluye:</h6>
+                        <div class="d-flex flex-wrap">
+                            {% for item in evento.incluye.split(',') %}
+                                {% if item.strip() %}
+                                    <span class="incluye-pill"><i class="bi bi-check2-circle me-2 fs-6"></i>{{ item.strip() }}</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- 4. Sección: Itinerario -->
+                    {% if evento.itinerario %}
+                    <hr class="border-secondary opacity-25 my-4">
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-text text-orange me-2 fs-5"></i>Itinerario y Detalles Especiales</h6>
+                        <div class="itinerario-block">
+                            {{ evento.itinerario }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- NUEVA SECCIÓN: BOTONES DE COMPARTIR Y EXPORTAR -->
+                    <div class="share-section mt-5 pt-4 border-top border-secondary border-opacity-25 hide-on-export">
+                        <h6 class="fw-bold text-secondary mb-3 text-center text-md-start">Invita a tus amigos y comparte la aventura:</h6>
+                        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
+                            
+                            <!-- Compartir Nativo (Web Share API) -->
+                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="color: #495057; border: 1px solid #ced4da;" onclick="shareNative()">
+                                <i class="bi bi-share-fill text-primary me-2 fs-5"></i>Compartir
+                            </button>
+
+                            <!-- Enviar Link por WhatsApp -->
+                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="color: #198754; border: 1px solid #198754;" onclick="shareToFriendWhatsApp()">
+                                <i class="bi bi-whatsapp me-2 fs-5"></i>Enviar Link
+                            </button>
+
+                            <!-- Exportar PNG directo (html2canvas) -->
+                            <button id="btnExportPNG" class="btn btn-orange shadow-sm rounded-pill px-4 py-2 fw-bold text-white d-flex align-items-center ms-md-auto" onclick="exportToPNG()">
+                                <i class="bi bi-image me-2 fs-5"></i>Descargar Póster
+                            </button>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Librería html2canvas para capturar el HTML y convertirlo en imagen (PNG directo) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    // 1. Función para RESERVAR el cupo (El usuario se inscribe contactando al Admin)
+    function reservarPorWhatsApp() {
+        const nombreEvento = "{{ evento.nombre_lugar }}";
+        const precio = "{{ evento.moneda }}{{ evento.precio }}";
+        const sinpeString = "{{ evento.sinpe }}";
+        
+        let numeroAdmin = "50686529837"; // Número por defecto (Jenny)
+        if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
+        if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; // Kenneth
+
+        const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
+        window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+
+    // 2. Función para COMPARTIR A UN AMIGO por WhatsApp (Manda link general)
+    function shareToFriendWhatsApp() {
+        const nombreEvento = "{{ evento.nombre_lugar }}";
+        const precio = "{{ evento.moneda }}{{ evento.precio }}";
+        let fecha = "{{ evento.fecha_unica }}";
+        {% if evento.dias > 1 %} fecha = "{{ evento.fecha_inicio }} al {{ evento.fecha_regreso }}"; {% endif %}
+        {% if evento.solo_chat %} fecha = "Por definir"; {% endif %}
+
+        const url = window.location.href;
+        const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
+        
+        // No se pone número para que el usuario elija en sus contactos de WhatsApp
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+    }
+
+    // 3. Función SHARE NATIVO (Abre el menú nativo de compartir del Celular: Insta, SMS, Copiar Link)
+    async function shareNative() {
+        const nombreEvento = "{{ evento.nombre_lugar }}";
+        const url = window.location.href;
+        const shareData = {
+            title: `Aventura en ${nombreEvento}`,
+            text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`,
+            url: url
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.log('Interacción cancelada o error:', err);
+            }
+        } else {
+            // Fallback si está en PC y no soporta Web Share API
+            alert('Tu navegador no soporta compartir nativo. Copia este enlace para compartir el evento:\n' + url);
+        }
+    }
+
+    // 4. Función DESCARGAR PNG DIRECTO (Toma foto de la pantalla y la descarga)
+    async function exportToPNG() {
+        const cardToExport = document.getElementById('eventCardToExport');
+        const btnExport = document.getElementById('btnExportPNG');
+        const originalHtml = btnExport.innerHTML;
+        
+        // 1. Mostrar estado de carga y ocultar botones/elementos que no deben salir en la foto
+        btnExport.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
+        btnExport.disabled = true;
+        
+        const elementsToHide = document.querySelectorAll('.hide-on-export');
+        elementsToHide.forEach(el => el.style.display = 'none');
+        
+        // Añadir clase temporal para limpiar el fondo (quitar transparencias que rompen la imagen)
+        cardToExport.classList.add('exporting-mode');
+
+        try {
+            // 2. Tomar la foto (Renderiza el DOM a un Canvas interno)
+            const canvas = await html2canvas(cardToExport, {
+                scale: 2, // Alta resolución
+                useCORS: true, // Permite cargar la imagen del póster desde el servidor local
+                backgroundColor: '#ffffff' // Fondo blanco garantizado
+            });
+
+            // 3. Convertir a imagen PNG y forzar descarga
+            const imgData = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.href = imgData;
+            
+            // Limpiar nombre del evento para un nombre de archivo bonito
+            const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+            link.download = `Aventura_${safeName}.png`;
+            
+            // Clic invisible para iniciar descarga
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (error) {
+            console.error('Error al generar PNG:', error);
+            alert('Ocurrió un problema al generar la imagen. Intenta de nuevo.');
+        } finally {
+            // 4. Restaurar la vista original para el usuario
+            elementsToHide.forEach(el => el.style.display = '');
+            cardToExport.classList.remove('exporting-mode');
+            btnExport.innerHTML = originalHtml;
+            btnExport.disabled = false;
+        }
+    }
+</script>
+{% endblock %}

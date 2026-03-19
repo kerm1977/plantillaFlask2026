@@ -43,6 +43,12 @@ def eventos():
         
     return render_template('eventos.html')
 
+@bp.route('/detalles_evento/<int:event_id>')
+def detalles_evento(event_id):
+    """Ruta para ver los detalles completos de un evento público."""
+    evento = Event.query.get_or_404(event_id)
+    return render_template('ver_evento.html', evento=evento)
+
 @bp.route('/api/get_events')
 def get_events():
     """Obtiene los eventos de SQLite para mostrarlos en el Home"""
