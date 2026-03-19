@@ -2,28 +2,269 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <!-- El texto de bienvenida ha sido eliminado. -->
+<style>
+    /* Estilos específicos para las tarjetas de eventos */
+    .event-card {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        border: none !important;
+        background: rgba(255, 255, 255, 0.5) !important;
+    }
+    .event-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 15px 30px rgba(255, 140, 0, 0.2) !important;
+    }
+    /* Contenedor de imagen 9:16 */
+    .event-img-container {
+        aspect-ratio: 9/16;
+        width: 100%;
+        max-height: 380px;
+        overflow: hidden;
+        position: relative;
+        border-radius: 1rem 1rem 0 0;
+    }
+    .event-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .badge-dificultad {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        border: 2px solid rgba(255,255,255,0.8);
+    }
+    .event-details-box {
+        background: rgba(255, 255, 255, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 12px;
+        padding: 10px;
+    }
+</style>
+
+<div class="container animate__animated animate__fadeIn">
     
-    <!-- Sistema Notificador Flash -->
-    <div class="row mt-4">
-        <div class="col-md-8 offset-md-2">
+    <!-- SECCIÓN: NOTIFICACIONES (Desde el Servidor) -->
+    {% if notifications %}
+    <div class="row mb-5">
+        <div class="col-12 col-lg-10 mx-auto">
             {% for notif in notifications %}
-            <div class="alert alert-dismissible fade show glass-panel border-0 shadow-sm" role="alert" style="background: rgba(255, 255, 255, 0.6);">
-                <div class="d-flex align-items-center">
-                    {% if notif.image %}
-                        <img src="{{ notif.image }}" class="rounded me-3 border border-white shadow-sm" width="50" height="50" style="object-fit: cover;" alt="Notificación">
-                    {% endif %}
-                    <div>
-                        <h5 class="alert-heading text-orange mb-1 fw-bold">{{ notif.type_notif }}</h5>
-                        <p class="mb-0 text-dark">{{ notif.message }}</p>
-                        <small class="text-secondary">Válido hasta: {{ notif.end_date.strftime('%d/%m/%Y') }}</small>
-                    </div>
+            <div class="glass-panel rounded-4 p-3 mb-3 d-flex align-items-center border-0 shadow-sm animate__animated animate__slideInDown">
+                {% if notif.image %}
+                <div class="flex-shrink-0 me-3">
+                    <img src="{{ notif.image }}" class="rounded-3 border border-white" width="60" height="60" style="object-fit: cover;">
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <span class="badge bg-orange text-white rounded-pill mb-1 px-3">{{ notif.type_notif }}</span>
+                    <p class="mb-0 text-dark fw-semibold" style="line-height: 1.2;">{{ notif.message }}</p>
+                </div>
+                <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
             {% endfor %}
         </div>
     </div>
+    {% endif %}
+
+    <!-- SECCIÓN: PRÓXIMOS EVENTOS (Dinámico) -->
+    <div class="d-flex align-items-center justify-content-center mb-4">
+        <hr class="flex-grow-1 border-orange opacity-25">
+        <h2 class="fw-bold text-dark px-4 mb-0">
+            <i class="bi bi-calendar-heart text-orange me-2"></i>Próximos Eventos
+        </h2>
+        <hr class="flex-grow-1 border-orange opacity-25">
+    </div>
+
+    <!-- Contenedor Dinámico de Cards -->
+    <div id="eventosContainer" class="row g-4 justify-content-center">
+        <!-- Loader inicial -->
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-orange" style="width: 3rem; height: 3rem;" role="status"></div>
+            <p class="mt-3 text-secondary fw-bold">Sincronizando expedientes...</p>
+        </div>
+    </div>
 </div>
+
+<!-- Scripts de Lógica de Datos -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    loadEvents();
+});
+
+const DB_NAME = "EventosLocalDB";
+const DB_VERSION = 2; // INCREMENTADO PARA CORREGIR EL ERROR DE STORE NAME
+const STORE_NAME = "eventos";
+
+/**
+ * Carga eventos intentando primero la API de SQLite
+ */
+async function loadEvents() {
+    const container = document.getElementById('eventosContainer');
+    
+    try {
+        const response = await fetch('/api/get_events');
+        
+        // Detección específica de Error 404 (Ruta de Flask no creada)
+        if (response.status === 404) {
+            throw new Error("API_MISSING");
+        }
+        
+        if (!response.ok) throw new Error("Server error");
+        
+        const events = await response.json();
+        
+        if (events && events.length > 0) {
+            renderEvents(events);
+            syncToIndexedDB(events);
+        } else {
+            container.innerHTML = `
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x opacity-25" style="font-size: 4rem;"></i>
+                    <p class="mt-3 fs-5">No hay eventos publicados actualmente.</p>
+                </div>`;
+        }
+    } catch (err) {
+        // Si el error es específicamente que falta la ruta en routes.py, avisamos claramente:
+        if (err.message === "API_MISSING") {
+            container.innerHTML = `
+                <div class="col-12 col-md-8 mx-auto text-center py-5 text-danger animate__animated animate__shakeX">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 4rem;"></i>
+                    <h4 class="mt-3 fw-bold">Ruta API no encontrada (Error 404)</h4>
+                    <p class="text-muted">La página intentó conectarse a SQLite mediante <code>/api/get_events</code> pero no encontró la ruta.</p>
+                    <p class="small bg-white bg-opacity-50 p-3 rounded-3 border border-danger shadow-sm">Asegúrate de pegar el código de las rutas <b>get_events</b> y <b>create_event</b> en tu archivo <code>routes.py</code> y reinicia tu servidor Flask.</p>
+                </div>`;
+            return;
+        }
+
+        // Si es un error de desconexión real, fallamos hacia IndexedDB
+        console.warn("Fallo de conexión o servidor. Cargando modo Offline (IndexedDB).");
+        loadFromIndexedDB();
+    }
+}
+
+/**
+ * Renderiza las tarjetas de eventos en el DOM
+ */
+function renderEvents(events) {
+    const container = document.getElementById('eventosContainer');
+    if (!container) return;
+    container.innerHTML = ''; 
+
+    events.forEach(ev => {
+        let badgeClass = "bg-success";
+        if(ev.dificultad === 'Intermedio') badgeClass = "bg-warning text-dark";
+        if(ev.dificultad === 'Dificil' || ev.dificultad === 'Técnico') badgeClass = "bg-danger";
+
+        // Asegurar que la imagen tenga un fallback válido si falla la carga local
+        const imgPath = ev.poster || ev.imagen || 'https://via.placeholder.com/270x480?text=Sin+Imagen';
+
+        container.innerHTML += `
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn">
+                <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm">
+                    
+                    <div class="event-img-container">
+                        <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/270x480?text=Error+Imagen'">
+                        <span class="badge-dificultad ${badgeClass}">${ev.dificultad}</span>
+                    </div>
+
+                    <div class="p-3 d-flex flex-column flex-grow-1">
+                        <h5 class="fw-bold text-dark mb-1 text-truncate" title="${ev.nombreLugar}">${ev.nombreLugar}</h5>
+                        <p class="text-secondary small mb-3">
+                            <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
+                        </p>
+
+                        <div class="event-details-box mt-auto d-flex justify-content-between align-items-center">
+                            <div class="d-flex flex-column">
+                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Precio</span>
+                                <span class="fw-bold text-dark fs-6">${ev.precio}</span>
+                            </div>
+                            <div class="text-end d-flex flex-column">
+                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Fecha</span>
+                                <span class="fw-semibold text-dark small">
+                                    <i class="bi bi-calendar-check me-1 text-orange"></i>${ev.fecha}
+                                </span>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-orange w-100 rounded-pill mt-3 fw-bold shadow-sm py-2" 
+                                onclick="window.location.href='/detalles_evento/${ev.id}'">
+                            Ver Detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+/**
+ * INDEXEDDB: Guardar copia local
+ */
+function syncToIndexedDB(events) {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    
+    request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+        }
+    };
+
+    request.onsuccess = (e) => {
+        const db = e.target.result;
+        try {
+            const tx = db.transaction(STORE_NAME, "readwrite");
+            const store = tx.objectStore(STORE_NAME);
+            store.clear(); 
+            events.forEach(ev => store.put(ev));
+        } catch (err) {
+            console.error("Error al sincronizar IndexedDB:", err);
+        }
+    };
+}
+
+/**
+ * INDEXEDDB: Recuperar si no hay internet
+ */
+function loadFromIndexedDB() {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = (e) => {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
+        }
+    };
+
+    request.onsuccess = (e) => {
+        const db = e.target.result;
+        try {
+            const tx = db.transaction(STORE_NAME, "readonly");
+            const store = tx.objectStore(STORE_NAME);
+            const getAll = store.getAll();
+            getAll.onsuccess = () => {
+                if (getAll.result && getAll.result.length > 0) {
+                    renderEvents(getAll.result);
+                } else {
+                    document.getElementById('eventosContainer').innerHTML = 
+                        `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;
+                }
+            };
+        } catch (err) {
+            document.getElementById('eventosContainer').innerHTML = 
+                `<div class="col-12 text-center py-5">Iniciando base de datos local. Refresca la página.</div>`;
+        }
+    };
+
+    request.onerror = () => {
+        document.getElementById('eventosContainer').innerHTML = `<div class="col-12 text-center py-5">Error de acceso a datos locales.</div>`;
+    }
+}
+</script>
 {% endblock %}

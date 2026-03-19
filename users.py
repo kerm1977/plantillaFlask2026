@@ -20,12 +20,12 @@ def inject_superusers():
             new_super = User(
                 role='Superusuario',
                 weight=100, # Peso máximo
-                name='Super',
-                last_name_1='Admin',
-                last_name_2='Sistema',
+                name='Kenneth',
+                last_name_1='Ruiz',
+                last_name_2='Matamoros',
                 email=email,
-                # Se recomienda cambiar esta contraseña inmediatamente en producción
-                password_hash=hash_password('Root#Admin2026'),
+                # Contraseña personalizada y segura solicitada
+                password_hash=hash_password('CR129x7848n'),
                 status='Activo',
                 avatar='default.png'
             )

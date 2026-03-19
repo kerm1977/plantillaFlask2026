@@ -1,8 +1,10 @@
+# app.py
 import os
 from flask import Flask
 from db import db, configure_db_uri
 from routes import bp
 from users import inject_superusers
+import models  # <-- ESTA LÍNEA ES CRÍTICA: Obliga a leer los modelos antes de crear la BD
 
 def create_app():
     app = Flask(__name__)
@@ -12,12 +14,19 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = configure_db_uri()
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+    # Inicializar la base de datos con la app
     db.init_app(app)
+    
+    # Registrar las rutas
     app.register_blueprint(bp)
 
+    # Crear tablas e inyectar usuarios dentro del contexto de la aplicación
     with app.app_context():
+        # Crea el archivo local_app.db y todas sus tablas si no existen
         db.create_all()
-        inject_superusers() # Inyección automática en el primer inicio
+        
+        # Inyecta automáticamente los superusuarios
+        inject_superusers()
 
     return app
 

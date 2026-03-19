@@ -1,0 +1,505 @@
+<!-- Vista: eventos.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .glass-table-container {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .text-warning-custom { color: #ff8c00 !important; }
+    
+    /* Estilos estéticos de Checkboxes para "Incluye" */
+    .check-btn-wrapper input[type="checkbox"]:checked + label {
+        background-color: #ff8c00;
+        color: white !important;
+        border-color: #ff8c00 !important;
+    }
+    .check-btn-wrapper label {
+        background: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        color: #495057;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .check-btn-wrapper label:hover {
+        background: rgba(255, 255, 255, 0.8);
+    }
+</style>
+
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-lg-10 col-xl-8">
+        
+        <div class="glass-panel rounded-5 p-4 p-md-5 mb-4 position-relative border-0 shadow-lg">
+            <h2 class="fw-bold text-dark mb-5 text-center">
+                <i class="bi bi-calendar-plus text-orange me-2"></i>Crear Nuevo Evento
+            </h2>
+            
+            <form id="createEventForm">
+                
+                <!-- Subir Imagen 9:16 -->
+                <div class="text-center mb-5">
+                    <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento (9:16)</label>
+                    <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
+                        <img id="eventImagePreview" src="https://via.placeholder.com/270x480?text=Subir+Póster" alt="Póster" style="width: 100%; height: 100%; object-fit: cover;">
+                        <label for="eventImageUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                            <i class="bi bi-camera-fill text-white"></i>
+                        </label>
+                        <!-- ATENCIÓN: El name="poster" es vital para SQLite -->
+                        <input type="file" id="eventImageUpload" name="poster" class="d-none" accept="image/*">
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <!-- NUEVO CAMPO: Nombre del Lugar -->
+                    <div class="col-12">
+                        <label class="form-label fw-bold text-muted small mb-1">Nombre del Lugar</label>
+                        <input type="text" id="nombreLugar" name="nombreLugar" required class="form-control glass-input rounded-3 fw-bold" placeholder="Ej: Cerro Pelado, Parque Nacional Volcán Irazú, etc.">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-muted small mb-1">Dificultad</label>
+                        <select id="dificultad" name="dificultad" class="form-select glass-input rounded-3">
+                            <option value="Paseo">Paseo</option>
+                            <option value="Básico">Básico</option>
+                            <option value="Intermedio">Intermedio</option>
+                            <option value="Dificil">Dificil</option>
+                            <option value="Avanzado">Avanzado</option>
+                            <option value="Técnico">Técnico</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-muted small mb-1">Actividad</label>
+                        <select id="actividad" name="actividad" class="form-select glass-input rounded-3" onchange="toggleActividad()">
+                            <option value="Caminata">Caminata</option>
+                            <option value="Internacional">Internacional</option>
+                            <option value="Parque Nacional">Parque Nacional</option>
+                            <option value="El Camino de Costa Rica">El Camino de Costa Rica</option>
+                            <option value="Fiesta">Fiesta</option>
+                            <option value="Convivio">Convivio</option>
+                            <option value="Reunión">Reunión</option>
+                        </select>
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Moneda</label>
+                        <select id="moneda" name="moneda" class="form-select glass-input rounded-3">
+                            <option value="¢">Colones (¢)</option>
+                            <option value="$">Dólares ($)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Precio</label>
+                        <input type="number" id="precio" name="precio" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                    </div>
+
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Reserva con</label>
+                        <input type="number" id="reserva" name="reserva" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                    </div>
+                    
+                    <div class="col-6 col-md-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
+                        <select id="capacidad" name="capacidad" required class="form-select glass-input rounded-3">
+                            <option value="14-17">14-17</option>
+                            <option value="17-28">17-28</option>
+                            <option value="17-31">17-31</option>
+                            <option value="MÁS DE 31">MÁS DE 31</option>
+                            <option value="NO APLICA">NO APLICA</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-muted small mb-1">SINPE</label>
+                        <select id="sinpe" name="sinpe" class="form-select glass-input rounded-3">
+                            <option>86529837 - Jenny Ceciliano Cordoba</option>
+                            <option>87984232 - Jenny Ceciliano Cordoba</option>
+                            <option>86227500 - Kenneth Ruiz Matamoros</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-bold text-muted small mb-1">CUENTAS</label>
+                        <select id="cuenta" name="cuenta" class="form-select glass-input rounded-3">
+                            <option value="Ninguna">-- Ninguna / Solo usar SINPE --</option>
+                            <option>Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103</option>
+                            <option>Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163</option>
+                            <option>Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778</option>
+                            <option>Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793</option>
+                            <option>Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Nacional -->
+                <div id="nationalFields" class="glass-table-container p-3 p-md-4 rounded-4 mb-4">
+                    
+                    <!-- Encabezado con Interruptor (Toggle) de Seguridad -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
+                        <h5 class="fw-bold mb-0 text-warning-custom">Logística y Fechas</h5>
+                        <div class="form-check form-switch d-flex align-items-center bg-white bg-opacity-50 px-3 py-2 rounded-pill shadow-sm border border-white" style="width: fit-content; margin: 0;">
+                            <input class="form-check-input m-0" type="checkbox" id="soloChatToggle" onchange="toggleSoloChat()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="soloChatToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Modo Seguro
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
+                            <div class="normal-logistics">
+                                <input type="number" id="dias" name="dias" min="1" max="10" value="1" onchange="toggleDateInputs()" class="form-control glass-input rounded-3">
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="Solo en el Chat" disabled>
+                        </div>
+                        
+                        <div id="singleDateGroup" class="col-12 col-md-8">
+                            <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
+                            <div class="normal-logistics">
+                                <input type="date" id="fechaUnica" name="fechaUnica" class="form-control glass-input rounded-3">
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="📅 Solo en el Chat" disabled>
+                        </div>
+
+                        <div id="rangeDateGroup" class="col-12 col-md-8 d-none">
+                            <div class="row g-2 normal-logistics">
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-muted small mb-1">Fecha Inicio</label>
+                                    <input type="date" id="fechaInicio" name="fechaInicio" class="form-control glass-input rounded-3">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-bold text-muted small mb-1">Fecha Regreso</label>
+                                    <input type="date" id="fechaRegreso" name="fechaRegreso" class="form-control glass-input rounded-3">
+                                </div>
+                            </div>
+                            <div class="secure-logistics d-none">
+                                <label class="form-label fw-bold text-muted small mb-1">Rango de Fechas</label>
+                                <input type="text" class="form-control glass-input rounded-3 fw-bold text-danger bg-light" value="📅 Solo en el Chat" disabled>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
+                            <div class="d-flex align-items-center gap-2 normal-logistics">
+                                <input type="time" id="horaSalida" name="horaSalida" class="form-control glass-input rounded-3" onchange="updateTimePreview()">
+                                <span id="timePreview" class="small fw-bold text-warning-custom text-nowrap" style="min-width: 70px;"></span>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
+                            <div class="normal-logistics">
+                                <select id="lugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
+                                    <option value="Parque de Tres Ríos - Escuela">Parque de Tres Ríos - Escuela</option>
+                                    <option value="Parque de Tres Ríos - Cruz Roja">Parque de Tres Ríos - Cruz Roja</option>
+                                    <option value="Parque de Tres Ríos - Letras">Parque de Tres Ríos - Letras</option>
+                                    <option value="San José">San José (Sabana)</option>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Pasamos a recoger en (Separar por comas):</label>
+                        <div class="normal-logistics">
+                            <textarea id="puntosRecogidaInput" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3" placeholder="Ej: Cartago, Plaza del Sol, Outlet Mall, Sabana..."></textarea>
+                            <div class="form-text text-secondary" style="font-size: 0.75rem;">Escriba los lugares donde pasará la buseta, separados por comas.</div>
+                        </div>
+                        <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                    </div>
+                </div>
+
+                <!-- Internacional (CORREGIDOS LOS NOMBRES FALTANTES) -->
+                <div id="internationalFields" class="glass-table-container p-3 p-md-4 rounded-4 mb-4 d-none">
+                    <h5 class="fw-bold mb-3 text-warning-custom"><i class="bi bi-airplane-fill me-2"></i>Logística Internacional y Vuelos</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">País Destino</label>
+                            <select id="pais" name="pais" class="form-select glass-input rounded-3">
+                                <option value="Panamá">Panamá</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="España">España</option>
+                                <option value="Perú">Perú</option>
+                                <option value="Colombia">Colombia</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
+                            <input type="text" id="destinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" placeholder="Ej: Ciudad de México, Machu Picchu...">
+                        </div>
+                    </div>
+
+                    <!-- VUELO IDA -->
+                    <div class="glass-panel p-3 rounded-3 mb-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                        <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">✈️ Vuelo de IDA</h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha</label>
+                                <input type="date" id="fechaIda" name="fechaIda" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Salida</label>
+                                <input type="time" id="horaIda" name="horaIda" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Aerolínea</label>
+                                <select id="aerolineaIda" name="aerolineaIda" class="form-select form-select-sm glass-input rounded-2">
+                                    <option>Avianca</option><option>Copa Airlines</option><option>Volaris</option>
+                                    <option>Aeroméxico</option><option>Iberia</option><option>LATAM</option>
+                                    <option>Wingo</option><option>Sansa</option><option>American Airlines</option>
+                                    <option>United Airlines</option><option>Delta</option><option>Air France</option>
+                                    <option>KLM</option><option>Edelweiss</option><option>Arajet</option><option>Otra</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;"># Vuelo</label>
+                                <input type="text" id="vueloIda" name="vueloIda" class="form-control form-control-sm glass-input rounded-2" placeholder="Ej: CM 115">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VUELO REGRESO -->
+                    <div class="glass-panel p-3 rounded-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                        <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">🛬 Vuelo de REGRESO</h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha Regreso</label>
+                                <input type="date" id="fechaRegresoInt" name="fechaRegresoInt" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Regreso</label>
+                                <input type="time" id="horaRegresoInt" name="horaRegresoInt" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Aerolínea</label>
+                                <select id="aerolineaRegreso" name="aerolineaRegreso" class="form-select form-select-sm glass-input rounded-2">
+                                    <option>Avianca</option><option>Copa Airlines</option><option>Volaris</option>
+                                    <option>Aeroméxico</option><option>Iberia</option><option>LATAM</option>
+                                    <option>Wingo</option><option>Sansa</option><option>American Airlines</option>
+                                    <option>United Airlines</option><option>Delta</option><option>Air France</option>
+                                    <option>KLM</option><option>Edelweiss</option><option>Arajet</option><option>Otra</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;"># Vuelo</label>
+                                <input type="text" id="vueloRegreso" name="vueloRegreso" class="form-control form-control-sm glass-input rounded-2" placeholder="Ej: AV 631">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Incluye -->
+                <div class="mb-4 glass-table-container p-3 rounded-4 shadow-sm">
+                    <h5 class="fw-bold text-warning-custom border-bottom border-secondary border-opacity-25 pb-2 mb-3">Incluye</h5>
+                    <div class="row g-2 mb-3 text-muted small check-btn-wrapper">
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc1" name="incluye" value="Transporte" class="d-none"><label for="inc1" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Transporte">Transporte</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc2" name="incluye" value="Lancha" class="d-none"><label for="inc2" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Lancha">Lancha</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc3" name="incluye" value="Desayuno" class="d-none"><label for="inc3" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Desayuno">Desayuno</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc4" name="incluye" value="Café" class="d-none"><label for="inc4" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Café">Café</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc5" name="incluye" value="Almuerzo" class="d-none"><label for="inc5" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Almuerzo">Almuerzo</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc6" name="incluye" value="Refrigerio" class="d-none"><label for="inc6" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Refrigerio">Refrigerio</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc7" name="incluye" value="Cena" class="d-none"><label for="inc7" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Cena">Cena</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc8" name="incluye" value="Guías" class="d-none"><label for="inc8" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Guías">Guías</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc9" name="incluye" value="Pasaporte" class="d-none"><label for="inc9" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Pasaporte">Pasaporte</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc10" name="incluye" value="Entrada" class="d-none"><label for="inc10" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Entrada">Entrada</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc11" name="incluye" value="Reconocimiento" class="d-none"><label for="inc11" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Reconocimiento">Reconocimiento</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc12" name="incluye" value="Rifas" class="d-none"><label for="inc12" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Rifas">Rifas</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc13" name="incluye" value="Estadía" class="d-none"><label for="inc13" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Estadía">Estadía</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc14" name="incluye" value="Ducha" class="d-none"><label for="inc14" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Ducha">Ducha</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc15" name="incluye" value="Servicios Sanitarios" class="d-none"><label for="inc15" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Serv. Sanitarios">Serv. Sanitarios</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc16" name="incluye" value="Impuestos" class="d-none"><label for="inc16" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Impuestos">Impuestos</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc17" name="incluye" value="Tiquetes Aereos" class="d-none"><label for="inc17" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Tiquetes Aéreos">Tiquetes Aéreos</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc18" name="incluye" value="Zona de Camping" class="d-none"><label for="inc18" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Zona de Camping">Zona Camping</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc19" name="incluye" value="Póliza de Viajero" class="d-none"><label for="inc19" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Póliza de Viajero">Póliza Viajero</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc20" name="incluye" value="Taxi/Uber/Otro" class="d-none"><label for="inc20" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Taxi/Uber/Otro">Taxi/Uber/Otro</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc21" name="incluye" value="Acarreo" class="d-none"><label for="inc21" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Acarreo">Acarreo</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="inc22" name="incluye" value="Guías Certificados" class="d-none"><label for="inc22" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Guías Certificados">Guías Certif.</label></div>
+                        <div class="col-6 col-md-3"><input type="checkbox" id="checkOtros" name="incluye" value="Otros" class="d-none" onchange="toggleOtherDesc()"><label for="checkOtros" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer" title="Otros">Otros</label></div>
+                    </div>
+                    
+                    <div id="otrosDescContainer" class="d-none mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm">
+                        <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
+                        <input type="text" id="otrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
+                    </div>
+                </div>
+
+                <!-- Itinerario -->
+                <div class="mb-4">
+                    <label class="form-label h5 fw-bold text-warning-custom mb-2">Itinerario Detallado</label>
+                    <textarea id="itinerario" name="itinerario" rows="4" class="form-control glass-input rounded-4 shadow-sm" placeholder="Describa el itinerario día por día..."></textarea>
+                </div>
+
+                <!-- Botones de Acción -->
+                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-4 border-top border-white border-opacity-50">
+                    <a href="javascript:history.back()" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" style="color: #6c757d; border: 1px solid #ced4da;">Cancelar</a>
+                    <button type="submit" class="btn btn-warning shadow-sm rounded-pill px-4 fw-bold text-dark"><i class="bi bi-save me-2"></i>Publicar Evento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Personalizado Glassmorphic para Alertas -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-body p-0">
+                <div id="actionModalIcon" class="mb-3"></div>
+                <h5 id="actionModalMessage" class="fw-bold text-dark mb-4 fs-6"></h5>
+                <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT DE SINCRONIZACIÓN LOCAL Y SERVIDOR -->
+<script>
+// Inicializar Base de datos Local para Modo Offline
+const DB_NAME = "EventosLocalDB";
+const DB_VERSION = 2;
+let localDB;
+const request = indexedDB.open(DB_NAME, DB_VERSION);
+request.onupgradeneeded = (e) => {
+    let db = e.target.result;
+    if (!db.objectStoreNames.contains("eventos")) {
+        db.createObjectStore("eventos", { keyPath: "id", autoIncrement: true });
+    }
+};
+request.onsuccess = (e) => localDB = e.target.result;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const eventImageUpload = document.getElementById('eventImageUpload');
+    if (eventImageUpload) {
+        eventImageUpload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('eventImagePreview').src = evt.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    document.getElementById('createEventForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // 1. Recolectar todos los datos del formulario automáticamente usando "name"
+        const formData = new FormData(this);
+        
+        // 2. Adjuntar el valor correcto del switch "Modo Seguro"
+        const isSecure = document.getElementById('soloChatToggle').checked;
+        formData.set('solo_chat', isSecure);
+
+        // 3. Procesar los checkboxes de 'incluye'
+        const incluyeArr = [];
+        document.querySelectorAll('input[name="incluye"]:checked').forEach(cb => {
+            if(cb.value === "Otros") {
+                const desc = document.getElementById('otrosDescripcion').value;
+                if(desc) incluyeArr.push(desc);
+            } else {
+                incluyeArr.push(cb.value);
+            }
+        });
+        formData.set('incluye', incluyeArr.join(', '));
+
+        // 4. Si es internacional, sobrescribir el destino con el input de texto libre
+        // Usamos el id directamente porque el form lo ignora si no tiene el name correcto
+        if (document.getElementById('actividad').value === 'Internacional') {
+            formData.set('fechaUnica', document.getElementById('fechaIda').value);
+        }
+
+        try {
+            // ENVIAR A SQLITE (BACKEND FLASK)
+            const response = await fetch('/api/create_event', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                
+                // GUARDAR TAMBIÉN EN INDEXEDDB (COPIA LOCAL PARA OFFLINE)
+                if (localDB) {
+                    const tx = localDB.transaction("eventos", "readwrite");
+                    const store = tx.objectStore("eventos");
+                    
+                    // Calculamos los strings amigables para visualización offline
+                    const finalDestino = isSecure ? "📍 Solo en el Chat" : (formData.get('actividad') === 'Internacional' ? formData.get('destinoInternacional') : formData.get('lugarSalida'));
+                    const finalFecha = isSecure ? "📅 Solo en el Chat" : (formData.get('dias') > 1 ? `${formData.get('fechaInicio')} al ${formData.get('fechaRegreso')}` : formData.get('fechaUnica'));
+
+                    store.add({
+                        id: result.event_id,
+                        nombreLugar: formData.get('nombreLugar'),
+                        actividad: formData.get('actividad'),
+                        precio: formData.get('moneda') + formData.get('precio'),
+                        poster: document.getElementById('eventImagePreview').src, // Imagen local
+                        destino: finalDestino,
+                        fecha: finalFecha,
+                        dificultad: formData.get('dificultad'),
+                        timestamp: Date.now()
+                    });
+                }
+
+                // Mostrar Éxito y redirigir
+                document.getElementById('actionModalIcon').innerHTML = '<i class="bi bi-calendar-check text-success" style="font-size: 3rem;"></i>';
+                document.getElementById('actionModalMessage').innerText = '¡El evento ha sido publicado exitosamente!';
+                const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+                actionModal.show();
+
+                setTimeout(() => { window.location.href = '/'; }, 1500);
+            } else {
+                alert("Error al guardar en el servidor: " + (result.error || "Desconocido"));
+            }
+        } catch (err) { 
+            console.error(err);
+            alert("Error de conexión al intentar guardar el evento."); 
+        }
+    });
+});
+
+/* ----------------------------------------------------
+   FUNCIONES VISUALES DEL FORMULARIO
+---------------------------------------------------- */
+function toggleActividad() {
+    const act = document.getElementById('actividad').value;
+    document.getElementById('nationalFields').classList.toggle('d-none', act === 'Internacional');
+    document.getElementById('internationalFields').classList.toggle('d-none', act !== 'Internacional');
+}
+
+function toggleDateInputs() {
+    const dias = parseInt(document.getElementById('dias').value) || 1;
+    document.getElementById('singleDateGroup').classList.toggle('d-none', dias > 1);
+    document.getElementById('rangeDateGroup').classList.toggle('d-none', dias <= 1);
+}
+
+function updateTimePreview() {
+    const time = document.getElementById('horaSalida').value;
+    if (!time) return;
+    let [h, m] = time.split(':');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('timePreview').innerText = `${h}:${m} ${ampm}`;
+}
+
+function toggleOtherDesc() {
+    document.getElementById('otrosDescContainer').classList.toggle('d-none', !document.getElementById('checkOtros').checked);
+}
+
+function toggleSoloChat() {
+    const isSecure = document.getElementById('soloChatToggle').checked;
+    document.querySelectorAll('.normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+</script>
+{% endblock %}

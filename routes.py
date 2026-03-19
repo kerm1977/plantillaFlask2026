@@ -1,6 +1,6 @@
 # routes.py
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for
-from models import User, Notification
+from models import User, Notification, Event
 from users import hash_password, check_password
 from db import db
 from datetime import datetime
@@ -30,11 +30,91 @@ def profile():
 @bp.route('/dashboard')
 def dashboard():
     """Ruta para el panel de administración exclusivo de Superusuarios."""
-    # Verificación de seguridad: solo Superusuarios pueden acceder
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
         
     return render_template('dashboard.html')
+
+@bp.route('/eventos')
+def eventos():
+    """Ruta para la creación y gestión de eventos (Solo Superusuarios)."""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+        
+    return render_template('eventos.html')
+
+@bp.route('/api/get_events')
+def get_events():
+    """Obtiene los eventos de SQLite para mostrarlos en el Home"""
+    events = Event.query.order_by(Event.created_at.desc()).all()
+    output = []
+    for e in events:
+        # Resolvemos el destino correcto de acuerdo a si es nacional, internacional o seguro
+        destino_text = e.lugar_salida
+        if e.solo_chat:
+            destino_text = "📍 Solo en el Chat"
+            
+        output.append({
+            "id": e.id,
+            "poster": f"/static/uploads/{e.poster}" if e.poster else "/static/default.png",
+            "nombreLugar": e.nombre_lugar,
+            "dificultad": e.dificultad,
+            "actividad": e.actividad,
+            "precio": f"{e.moneda}{e.precio}",
+            "destino": destino_text,
+            "fecha": "📅 Solo en el Chat" if e.solo_chat else (e.fecha_unica if e.dias == 1 else f"{e.fecha_inicio} al {e.fecha_regreso}"),
+            "solo_chat": e.solo_chat
+        })
+    return jsonify(output)
+
+@bp.route('/api/create_event', methods=['POST'])
+def create_event():
+    """Guarda un nuevo evento en SQLite con su imagen poster"""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+    
+    try:
+        # Manejo de la subida de imagen poster 9:16
+        file = request.files.get('poster')
+        filename = "default_event.png"
+        if file and file.filename != '':
+            filename = secure_filename(f"event_{os.urandom(4).hex()}_{file.filename}")
+            upload_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
+            os.makedirs(upload_path, exist_ok=True)
+            file.save(os.path.join(upload_path, filename))
+
+        # Determinar el destino unificado (si es internacional o local)
+        destino_db = request.form.get('destinoInternacional') if request.form.get('actividad') == 'Internacional' else request.form.get('lugarSalida')
+
+        new_event = Event(
+            poster=filename,
+            nombre_lugar=request.form.get('nombreLugar'),
+            dificultad=request.form.get('dificultad'),
+            actividad=request.form.get('actividad'),
+            moneda=request.form.get('moneda'),
+            precio=int(request.form.get('precio', 0) if request.form.get('precio') else 0),
+            reserva=int(request.form.get('reserva', 0) if request.form.get('reserva') else 0),
+            capacidad=request.form.get('capacidad'),
+            sinpe=request.form.get('sinpe'),
+            cuenta=request.form.get('cuenta'),
+            solo_chat=request.form.get('solo_chat') == 'true',
+            dias=int(request.form.get('dias', 1) if request.form.get('dias') else 1),
+            fecha_unica=request.form.get('fechaUnica'),
+            fecha_inicio=request.form.get('fechaInicio'),
+            fecha_regreso=request.form.get('fechaRegreso'),
+            hora_salida=request.form.get('horaSalida'),
+            lugar_salida=destino_db,
+            puntos_recogida=request.form.get('puntosRecogida'),
+            itinerario=request.form.get('itinerario'),
+            incluye=request.form.get('incluye')
+        )
+        db.session.add(new_event)
+        db.session.commit()
+        return jsonify({"success": True, "event_id": new_event.id})
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error grave al guardar evento: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @bp.route('/manifest.json')
 def manifest():
@@ -83,7 +163,6 @@ def register():
             new_user.dob = datetime.strptime(data.get('dob'), '%Y-%m-%d').date()
 
         # Guardar el resto de opciones de "Información Adicional" (WhatsApp, Facebook, Instagram, etc)
-        # Usamos hasattr para evitar que Flask colapse si aún no has agregado estas columnas a models.py
         if data.get('whatsapp') and hasattr(new_user, 'whatsapp'):
             new_user.whatsapp = data.get('whatsapp')
         if data.get('facebook') and hasattr(new_user, 'facebook'):
