@@ -3,7 +3,7 @@
 
 {% block content %}
 <style>
-    /* Estilos específicos para las tarjetas de eventos */
+    /* Estilos específicos para las tarjetas de eventos (GRID) */
     .event-card {
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         border: none !important;
@@ -47,6 +47,26 @@
         padding: 10px;
     }
     
+    /* Estilos específicos para Modo LISTA (Sin Imagen) */
+    .list-card-hover {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+    .list-card-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255, 140, 0, 0.15) !important;
+        background: rgba(255,255,255,0.7) !important;
+    }
+    .badge-dificultad-list {
+        padding: 4px 10px;
+        border-radius: 50px;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        letter-spacing: 0.5px;
+        border: 1px solid rgba(255,255,255,0.8);
+    }
+
     .text-truncate-multiline {
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -54,7 +74,7 @@
         overflow: hidden;
     }
 
-    /* Estilos del Buscador y Filtros Rápidos */
+    /* Buscador y Filtros Rápidos */
     .search-container {
         background: rgba(255, 255, 255, 0.6);
         backdrop-filter: blur(15px);
@@ -67,6 +87,8 @@
         cursor: pointer;
         transition: all 0.2s ease;
         border: 1px solid transparent;
+        display: inline-flex;
+        align-items: center;
     }
     .quick-filter-badge:hover {
         transform: translateY(-2px);
@@ -74,16 +96,75 @@
         color: white !important;
     }
 
+    /* Selector de Meses */
+    .month-filter-select {
+        background-color: white;
+        color: #6c757d;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 50rem;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff8c00'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+        transition: all 0.2s ease;
+    }
+    .month-filter-select:hover, .month-filter-select:focus {
+        transform: translateY(-2px);
+        color: var(--primary-orange);
+    }
+
+    /* Botón Opciones Glassmorphic Minimalista */
+    .btn-glass-options {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 140, 0, 0.6);
+        color: var(--primary-orange);
+        transition: all 0.3s ease;
+    }
+    .btn-glass-options:hover {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: var(--primary-orange);
+        color: #e07b00;
+        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
+    }
+    
+    /* Botón Outline Orange (para fallbacks y otros usos) */
+    .btn-outline-orange {
+        color: var(--primary-orange);
+        border-color: var(--primary-orange);
+        background-color: white;
+    }
+    .btn-outline-orange:hover {
+        background-color: var(--primary-orange);
+        color: white;
+    }
+
+    /* Estilos del Mes Colapsable */
+    .month-header-title {
+        transition: opacity 0.3s ease, transform 0.2s ease;
+    }
+    .month-header-title:active {
+        transform: scale(0.98);
+    }
+
     /* ========================================================
        REGLA EXACTA DE REJILLA: 2 Tarjetas entre 350px y 575px
-       Por debajo de 350px, col-12 toma el control natural (1 tarjeta).
+       Por debajo de 350px, col-12 toma el control natural.
     ======================================================== */
     @media (min-width: 350px) and (max-width: 575.98px) {
         .col-xxs-6 {
             flex: 0 0 auto;
             width: 50%;
         }
-        /* Ajustes de legibilidad para el tamaño compacto */
         .col-xxs-6 h5 { font-size: 0.95rem !important; }
         .col-xxs-6 .badge-dificultad { font-size: 0.55rem; padding: 5px 10px; }
         .col-xxs-6 .event-details-box { 
@@ -103,7 +184,7 @@
 
 <div class="container animate__animated animate__fadeIn">
     
-    <!-- SECCIÓN: NOTIFICACIONES (Desde el Servidor) -->
+    <!-- NOTIFICACIONES -->
     {% if notifications %}
     <div class="row mb-4">
         <div class="col-12 col-lg-10 mx-auto">
@@ -129,14 +210,42 @@
     <div class="d-flex align-items-center justify-content-center mb-4 mt-2">
         <hr class="flex-grow-1 border-orange opacity-25">
         <h2 class="fw-bold text-dark px-4 mb-0 text-center">
-            <i class="bi bi-compass text-orange me-2"></i>Descubre Aventuras
+            <i class="bi bi-compass text-orange me-2"></i>Caminatas de La Tribu
         </h2>
         <hr class="flex-grow-1 border-orange opacity-25">
     </div>
 
-    <!-- SECCIÓN: BUSCADOR INTELIGENTE Y FILTROS RÁPIDOS -->
-    <div class="row justify-content-center mb-5">
-        <div class="col-12 col-md-10 col-lg-8 text-center">
+    <!-- CONTROLES SUPERIORES: BOTÓN OPCIONES Y VISTA -->
+    <div class="row justify-content-center mb-3">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50">
+                
+                <!-- Botón Colapsable Opciones (Minimalista Icon-only) -->
+                <button class="btn btn-glass-options rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
+                    <i class="bi bi-sliders fs-5"></i>
+                </button>
+
+                <!-- TOGGLE DE VISTAS (Grid vs Lista) -->
+                <div class="d-flex align-items-center">
+                    <span class="text-secondary fw-bold small me-2 text-uppercase d-none d-sm-inline" style="letter-spacing: 1px;">Vista:</span>
+                    <div class="btn-group bg-white rounded-pill shadow-sm border border-white" role="group">
+                        <button type="button" id="btnViewGrid" class="btn btn-orange rounded-pill px-3 fw-bold shadow-sm" onclick="setViewMode('grid')" title="Cuadrícula">
+                            <i class="bi bi-grid-fill"></i>
+                        </button>
+                        <button type="button" id="btnViewList" class="btn bg-transparent text-secondary rounded-pill px-3 fw-bold" onclick="setViewMode('list')" title="Lista">
+                            <i class="bi bi-list-ul fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN COLAPSABLE: BUSCADOR INTELIGENTE Y FILTROS RÁPIDOS -->
+    <div class="row justify-content-center mb-4 collapse" id="filtersCollapse">
+        <div class="col-12 col-md-10 col-lg-8 text-center pt-2">
+            
             <!-- Barra de Búsqueda -->
             <div class="search-container mb-3 d-flex align-items-center">
                 <i class="bi bi-search text-orange fs-4 ms-3 me-2"></i>
@@ -144,14 +253,32 @@
                 <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm d-none d-sm-block" onclick="filterEventsLive()">Buscar</button>
             </div>
             
-            <!-- Filtros Rápidos (Criterios con un clic sin iconos) -->
-            <div class="d-flex flex-wrap justify-content-center gap-2">
+            <!-- Filtros Rápidos y Meses -->
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Caminata')">Caminata</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Internacional')">Internacional</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Intermedio')">Intermedio</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Paseo')">Paseo</span>
+                
+                <select id="monthFilter" class="month-filter-select" onchange="filterEventsLive()">
+                    <option value="">Buscar x Mes</option>
+                    <option value="-01-">Enero</option>
+                    <option value="-02-">Febrero</option>
+                    <option value="-03-">Marzo</option>
+                    <option value="-04-">Abril</option>
+                    <option value="-05-">Mayo</option>
+                    <option value="-06-">Junio</option>
+                    <option value="-07-">Julio</option>
+                    <option value="-08-">Agosto</option>
+                    <option value="-09-">Septiembre</option>
+                    <option value="-10-">Octubre</option>
+                    <option value="-11-">Noviembre</option>
+                    <option value="-12-">Diciembre</option>
+                </select>
+
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('')"><i class="bi bi-x-circle me-1"></i> Ver Todos</span>
             </div>
+            
         </div>
     </div>
 
@@ -167,20 +294,76 @@
 
 <!-- Scripts de Lógica de Datos -->
 <script>
-// Array global para guardar los eventos en memoria y buscar súper rápido
 let allEvents = [];
-
-document.addEventListener("DOMContentLoaded", () => {
-    loadEvents();
-});
+let currentViewMode = 'grid'; 
+let localDB; 
 
 const DB_NAME = "EventosLocalDB";
-const DB_VERSION = 2; 
-const STORE_NAME = "eventos";
+const DB_VERSION = 3; 
 
-/**
- * Carga eventos intentando primero la API de SQLite
- */
+document.addEventListener("DOMContentLoaded", async () => {
+    await initDB();
+    
+    currentViewMode = await loadSetting('userViewMode', 'grid');
+    updateViewButtons(currentViewMode);
+    
+    loadEvents();
+
+    const filtersCollapse = document.getElementById('filtersCollapse');
+    const btnToggle = document.getElementById('btnToggleOpciones');
+    
+    // Cambia el ícono al expandir/contraer
+    filtersCollapse.addEventListener('show.bs.collapse', () => {
+        btnToggle.innerHTML = '<i class="bi bi-x-lg fs-5"></i>';
+        btnToggle.classList.add('bg-white');
+    });
+    filtersCollapse.addEventListener('hide.bs.collapse', () => {
+        btnToggle.innerHTML = '<i class="bi bi-sliders fs-5"></i>';
+        btnToggle.classList.remove('bg-white');
+    });
+});
+
+function initDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("eventos")) {
+                db.createObjectStore("eventos", { keyPath: "id", autoIncrement: true });
+            }
+            if (!db.objectStoreNames.contains("settings")) {
+                db.createObjectStore("settings", { keyPath: "id" });
+            }
+        };
+        request.onsuccess = (e) => {
+            localDB = e.target.result;
+            resolve(localDB);
+        };
+        request.onerror = (e) => {
+            console.error("IndexedDB error:", e.target.error);
+            reject(e.target.error);
+        };
+    });
+}
+
+function saveSetting(key, value) {
+    if (!localDB) return;
+    const tx = localDB.transaction("settings", "readwrite");
+    tx.objectStore("settings").put({ id: key, value: value });
+}
+
+function loadSetting(key, defaultValue) {
+    return new Promise((resolve) => {
+        if (!localDB) resolve(defaultValue);
+        const tx = localDB.transaction("settings", "readonly");
+        const request = tx.objectStore("settings").get(key);
+        request.onsuccess = () => {
+            resolve(request.result ? request.result.value : defaultValue);
+        };
+        request.onerror = () => resolve(defaultValue);
+    });
+}
+
 async function loadEvents() {
     const container = document.getElementById('eventosContainer');
     
@@ -197,7 +380,7 @@ async function loadEvents() {
         
         if (allEvents && allEvents.length > 0) {
             renderEvents(allEvents);
-            syncToIndexedDB(allEvents);
+            syncEventsToIndexedDB(allEvents);
         } else {
             container.innerHTML = `
                 <div class="col-12 text-center py-5 text-muted">
@@ -215,38 +398,80 @@ async function loadEvents() {
                 </div>`;
             return;
         }
-
         console.warn("Fallo de conexión. Cargando modo Offline.");
-        loadFromIndexedDB();
+        loadEventsFromIndexedDB();
     }
 }
 
-/**
- * Asigna el valor al buscador desde los botones de Filtro Rápido
- */
-function setQuickFilter(term) {
-    document.getElementById('globalSearchInput').value = term;
+function setViewMode(mode) {
+    currentViewMode = mode;
+    saveSetting('userViewMode', mode);
+    updateViewButtons(mode);
     filterEventsLive();
 }
 
-/**
- * Función de Buscador en Vivo
- */
+function updateViewButtons(mode) {
+    const btnGrid = document.getElementById('btnViewGrid');
+    const btnList = document.getElementById('btnViewList');
+
+    if (mode === 'grid') {
+        btnGrid.className = 'btn btn-orange rounded-pill px-3 fw-bold shadow-sm';
+        btnList.className = 'btn bg-transparent text-secondary rounded-pill px-3 fw-bold';
+    } else {
+        btnList.className = 'btn btn-orange rounded-pill px-3 fw-bold shadow-sm';
+        btnGrid.className = 'btn bg-transparent text-secondary rounded-pill px-3 fw-bold';
+    }
+}
+
+function setQuickFilter(term) {
+    document.getElementById('globalSearchInput').value = term;
+    if (term === '') {
+        document.getElementById('monthFilter').value = '';
+    }
+    filterEventsLive();
+}
+
 function filterEventsLive() {
     const query = document.getElementById('globalSearchInput').value.toLowerCase();
+    const monthQuery = document.getElementById('monthFilter').value; 
     
     const filteredEvents = allEvents.filter(ev => {
-        // Concatenamos toda la info útil del evento para hacer una búsqueda global "Bruta"
         const searchPool = `${ev.nombreLugar} ${ev.dificultad} ${ev.actividad} ${ev.precio} ${ev.destino} ${ev.fecha}`.toLowerCase();
-        return searchPool.includes(query);
+        const matchesText = searchPool.includes(query);
+
+        let matchesMonth = true;
+        if (monthQuery !== "") {
+            matchesMonth = ev.fecha && ev.fecha.includes(monthQuery);
+        }
+
+        return matchesText && matchesMonth;
     });
 
     renderEvents(filteredEvents);
 }
 
 /**
- * Renderiza las tarjetas e inserta los separadores de MES cronológicamente
+ * Función para colapsar/expandir los eventos de un mes.
+ * Oculta las tarjetas y le baja la opacidad al título del mes.
  */
+function toggleMonthCards(monthId) {
+    const items = document.querySelectorAll(`.month-item-${monthId}`);
+    const headerTitle = document.getElementById(`header-title-${monthId}`);
+    
+    items.forEach(item => {
+        item.classList.toggle('d-none');
+    });
+
+    if (headerTitle) {
+        // Alternar opacidad visual para indicar estado colapsado
+        if (headerTitle.style.opacity === '0.5') {
+            headerTitle.style.opacity = '1';
+        } else {
+            headerTitle.style.opacity = '0.5';
+        }
+    }
+}
+
 function renderEvents(eventsToRender) {
     const container = document.getElementById('eventosContainer');
     container.innerHTML = ''; 
@@ -256,12 +481,11 @@ function renderEvents(eventsToRender) {
             <div class="col-12 text-center py-5 text-muted animate__animated animate__fadeIn">
                 <i class="bi bi-search opacity-25" style="font-size: 4rem;"></i>
                 <p class="mt-3 fs-5 fw-bold">No encontramos aventuras con esos criterios.</p>
-                <button class="btn btn-outline-secondary rounded-pill mt-2" onclick="setQuickFilter('')">Limpiar Buscador</button>
+                <button class="btn btn-outline-secondary rounded-pill mt-2 fw-bold" onclick="setQuickFilter('')">Limpiar Filtros</button>
             </div>`;
         return;
     }
 
-    // 1. ORDENAR CRONOLÓGICAMENTE: Extraemos la fecha "YYYY-MM-DD" si existe en el string
     const sortedEvents = [...eventsToRender].sort((a, b) => {
         const matchA = a.fecha && a.fecha.match(/(\d{4}-\d{2}-\d{2})/);
         const matchB = b.fecha && b.fecha.match(/(\d{4}-\d{2}-\d{2})/);
@@ -272,27 +496,26 @@ function renderEvents(eventsToRender) {
 
     const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
     let currentMonthLabel = "";
+    let currentMonthId = "";
 
-    // 2. GENERAR HTML
     sortedEvents.forEach(ev => {
         
-        // --- LÓGICA DE AGRUPAMIENTO POR MES ---
         let monthGroup = "Próximamente / Fechas por Definir";
         const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
         
-        // Agrupamos TODOS los eventos (incluso los privados) si tienen fecha
         if (dateMatch) {
             const year = dateMatch[1];
             const monthIndex = parseInt(dateMatch[2], 10) - 1;
             monthGroup = `${meses[monthIndex]} ${year}`;
         }
 
-        // Si cambió el mes, insertamos el separador
+        // Separador Interactivo de Meses (Sin botón adicional, solo el texto y el hover)
         if (monthGroup !== currentMonthLabel) {
+            currentMonthId = monthGroup.replace(/[^a-zA-Z0-9]/g, '-');
             container.innerHTML += `
                 <div class="col-12 mt-4 mb-2 animate__animated animate__fadeIn w-100 text-center text-sm-start">
-                    <div class="d-flex align-items-center">
-                        <h4 class="fw-bold text-orange text-uppercase mb-0 pb-1 border-bottom border-orange border-2 d-inline-block" style="letter-spacing: 1px;">
+                    <div class="d-flex align-items-center" onclick="toggleMonthCards('${currentMonthId}')" style="cursor: pointer;" title="Presiona una vez para colapsar o Expandir">
+                        <h4 id="header-title-${currentMonthId}" class="month-header-title fw-bold text-orange text-uppercase mb-0 pb-1 border-bottom border-orange border-2 d-inline-block" style="letter-spacing: 1px;">
                             <i class="bi bi-calendar3 me-2"></i>${monthGroup}
                         </h4>
                         <hr class="flex-grow-1 border-secondary opacity-25 ms-3 my-0 d-none d-sm-block">
@@ -302,126 +525,122 @@ function renderEvents(eventsToRender) {
             currentMonthLabel = monthGroup;
         }
 
-        // --- LÓGICA DE ETIQUETAS DE LA TARJETA ---
         let badgeClass = "bg-success";
         if(ev.dificultad === 'Intermedio') badgeClass = "bg-warning text-dark";
         if(ev.dificultad === 'Dificil' || ev.dificultad === 'Técnico' || ev.dificultad === 'Avanzado') badgeClass = "bg-danger";
 
         const imgPath = ev.poster || ev.imagen || 'https://via.placeholder.com/270x480?text=Sin+Imagen';
         
-        // --- FORMATEO VISUAL INTELIGENTE DE FECHA (Misterio solo en Modo Seguro) ---
         let dateDisplay = ev.fecha || "Por definir";
-        
         if (ev.solo_chat) {
-            // MODO SEGURO (SECCIÓN PRIVADA): Ocultamos el día exacto, mostramos solo Mes y Año.
-            if (dateMatch) {
-                const year = dateMatch[1];
-                const monthName = meses[parseInt(dateMatch[2], 10) - 1];
-                dateDisplay = `${monthName} ${year} <i class="bi bi-shield-lock-fill text-danger ms-1" title="Día exacto por chat"></i>`;
-            } else {
-                dateDisplay = "📅 Solo en el Chat";
-            }
-        } else {
-            // EVENTO NORMAL (PÚBLICO): Mostramos el día exacto.
-            if (dateMatch) {
-                const day = dateMatch[3];
-                const month = dateMatch[2];
-                const yearShort = dateMatch[1].substring(2);
-                dateDisplay = `${day}/${month}/${yearShort}`;
-                if (ev.fecha.includes('al')) dateDisplay += "..."; 
-            }
+            dateDisplay = "📅 Solo en el Chat";
+        } else if (dateMatch) {
+            const day = dateMatch[3];
+            const month = dateMatch[2];
+            const yearShort = dateMatch[1].substring(2);
+            dateDisplay = `${day}/${month}/${yearShort}`;
+            if (ev.fecha.includes('al')) dateDisplay += "..."; 
         }
 
-        // Se usa col-xxs-6 para forzar 2 columnas entre 350px y 575px. <350px toma 1 sola tarjeta completa.
-        container.innerHTML += `
-            <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn">
-                <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm" onclick="window.location.href='/detalles_evento/${ev.id}'" style="cursor: pointer;">
-                    
-                    <div class="event-img-container border-bottom border-white border-2">
-                        <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/270x480?text=Error+Imagen'">
-                        <span class="badge-dificultad ${badgeClass}">${ev.dificultad}</span>
-                    </div>
+        if (currentViewMode === 'grid') {
+            container.innerHTML += `
+                <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn month-item-${currentMonthId}">
+                    <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm" onclick="window.location.href='/detalles_evento/${ev.id}'" style="cursor: pointer;">
+                        
+                        <div class="event-img-container border-bottom border-white border-2">
+                            <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/270x480?text=Error+Imagen'">
+                            <span class="badge-dificultad ${badgeClass}">${ev.dificultad}</span>
+                        </div>
 
-                    <div class="p-3 d-flex flex-column flex-grow-1">
-                        <span class="badge bg-dark rounded-pill align-self-start mb-2 px-2 py-1 shadow-sm" style="font-size: 0.65rem;">${ev.actividad}</span>
-                        <h5 class="fw-bold text-dark mb-1 text-truncate-multiline lh-sm">${ev.nombreLugar}</h5>
-                        <p class="text-secondary small mb-3 text-truncate">
-                            <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
-                        </p>
+                        <div class="p-3 d-flex flex-column flex-grow-1">
+                            <span class="badge bg-dark rounded-pill align-self-start mb-2 px-2 py-1 shadow-sm" style="font-size: 0.65rem;">${ev.actividad}</span>
+                            <h5 class="fw-bold text-dark mb-1 text-truncate-multiline lh-sm">${ev.nombreLugar}</h5>
+                            <p class="text-secondary small mb-3 text-truncate">
+                                <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
+                            </p>
 
-                        <div class="event-details-box mt-auto d-flex justify-content-between align-items-center">
-                            <div class="d-flex flex-column">
-                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Inversión</span>
-                                <span class="fw-bold text-orange fs-6">${ev.precio}</span>
+                            <div class="event-details-box mt-auto d-flex justify-content-between align-items-center">
+                                <div class="d-flex flex-column">
+                                    <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Precio</span>
+                                    <span class="fw-bold text-orange fs-6">${ev.precio}</span>
+                                </div>
+                                <div class="text-end d-flex flex-column text-end-mobile">
+                                    <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Salida</span>
+                                    <span class="fw-semibold text-dark small">
+                                        ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check me-1 text-orange"></i>${dateDisplay}`}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="text-end d-flex flex-column text-end-mobile">
-                                <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Salida</span>
-                                <span class="fw-semibold text-dark small">
-                                    ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check me-1 text-orange"></i>${dateDisplay}`}
-                                </span>
+
+                            <button class="btn btn-orange w-100 rounded-pill mt-3 fw-bold shadow-sm py-2">
+                                Ver Detalles
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML += `
+                <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp month-item-${currentMonthId}">
+                    <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50" onclick="window.location.href='/detalles_evento/${ev.id}'" style="cursor: pointer;">
+                        
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="pe-2 overflow-hidden">
+                                <span class="badge bg-dark rounded-pill mb-1 d-inline-block" style="font-size: 0.6rem;">${ev.actividad}</span>
+                                <h6 class="fw-bold text-dark mb-0 text-truncate lh-sm" style="font-size: 1rem; max-width: 100%;">${ev.nombreLugar}</h6>
+                            </div>
+                            <span class="badge-dificultad-list ${badgeClass} flex-shrink-0 shadow-sm mt-1">${ev.dificultad}</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-end mt-3 border-top border-white border-opacity-75 pt-2">
+                            <div class="text-secondary small" style="font-size: 0.8rem;">
+                                <div class="text-truncate mb-1" style="max-width: 170px;">
+                                    <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
+                                </div>
+                                <div class="fw-bold text-dark" style="font-size: 0.75rem;">
+                                    ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}`}
+                                </div>
+                            </div>
+                            
+                            <div class="text-end">
+                                <span class="text-muted d-block lh-1" style="font-size: 0.6rem; text-transform: uppercase; font-weight: 800;">Precio</span>
+                                <span class="fw-bold text-orange fs-5 lh-1">${ev.precio}</span>
                             </div>
                         </div>
 
-                        <button class="btn btn-orange w-100 rounded-pill mt-3 fw-bold shadow-sm py-2">
-                            Ver Detalles
-                        </button>
                     </div>
                 </div>
-            </div>
-        `;
+            `;
+        }
     });
 }
 
-/**
- * INDEXEDDB: Guardar copia local
- */
-function syncToIndexedDB(events) {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-        }
-    };
-    request.onsuccess = (e) => {
-        const db = e.target.result;
-        try {
-            const tx = db.transaction(STORE_NAME, "readwrite");
-            const store = tx.objectStore(STORE_NAME);
-            store.clear(); 
-            events.forEach(ev => store.put(ev));
-        } catch (err) {}
-    };
+function syncEventsToIndexedDB(events) {
+    if (!localDB) return;
+    try {
+        const tx = localDB.transaction("eventos", "readwrite");
+        const store = tx.objectStore("eventos");
+        store.clear(); 
+        events.forEach(ev => store.put(ev));
+    } catch (err) {}
 }
 
-/**
- * INDEXEDDB: Recuperar si no hay internet
- */
-function loadFromIndexedDB() {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-    request.onupgradeneeded = (e) => {
-        const db = e.target.result;
-        if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME, { keyPath: "id", autoIncrement: true });
-        }
-    };
-    request.onsuccess = (e) => {
-        const db = e.target.result;
-        try {
-            const tx = db.transaction(STORE_NAME, "readonly");
-            const store = tx.objectStore(STORE_NAME);
-            const getAll = store.getAll();
-            getAll.onsuccess = () => {
-                if (getAll.result && getAll.result.length > 0) {
-                    allEvents = getAll.result;
-                    renderEvents(allEvents);
-                } else {
-                    document.getElementById('eventosContainer').innerHTML = 
-                        `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;
-                }
-            };
-        } catch (err) {}
-    };
+function loadEventsFromIndexedDB() {
+    if (!localDB) return;
+    try {
+        const tx = localDB.transaction("eventos", "readonly");
+        const store = tx.objectStore("eventos");
+        const getAll = store.getAll();
+        getAll.onsuccess = () => {
+            if (getAll.result && getAll.result.length > 0) {
+                allEvents = getAll.result;
+                renderEvents(allEvents);
+            } else {
+                document.getElementById('eventosContainer').innerHTML = 
+                    `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;
+            }
+        };
+    } catch (err) {}
 }
 </script>
 {% endblock %}
