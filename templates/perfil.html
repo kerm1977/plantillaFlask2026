@@ -2,6 +2,12 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Lógica inteligente para detectar si la imagen vieja se guardó sin 'uploads/' -->
+{% set avatar_file = user.avatar or 'default.png' %}
+{% if avatar_file != 'default.png' and not avatar_file.startswith('uploads/') %}
+    {% set avatar_file = 'uploads/' + avatar_file %}
+{% endif %}
+
 <!-- Estilos específicos para asegurar que nada se desborde -->
 <style>
     .info-item {
@@ -33,7 +39,7 @@
                     <div class="position-relative d-inline-block">
                         <!-- Contenedor circular con overflow-hidden para que el zoom no se salga -->
                         <div class="rounded-circle shadow-lg border border-4 border-white overflow-hidden" style="width: 200px; height: 200px; background-color: #fff;">
-                            <img id="mainProfileAvatar" src="{{ url_for('static', filename=user.avatar or 'default.png') }}" 
+                            <img id="mainProfileAvatar" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" 
                                  onerror="this.src='{{ url_for('static', filename='default.png') }}'"
                                  style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
                         </div>
@@ -139,7 +145,7 @@
     </div>
 </div>
 
-<!-- Modal Editar Perfil (Glassmorphic & Centrado - IGUAL AL REGISTRO) -->
+<!-- Modal Editar Perfil (Glassmorphic & Centrado) -->
 <div class="modal fade" id="editProfileModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content glass-modal border-0 shadow-lg">
@@ -148,21 +154,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body px-4 px-md-5 pb-5 pt-2">
-                <form id="editProfileForm">
+                <!-- FORMULARIO CONECTADO A FETCH -->
+                <form id="editProfileForm" enctype="multipart/form-data">
                     
-                    <!-- Editor Visual de Avatar (Igual a registro) -->
+                    <!-- Editor Visual de Avatar -->
                     <div class="text-center mb-4">
                         <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
                             <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
-                                <img id="editAvatarPreviewImg" src="{{ url_for('static', filename=user.avatar or 'default.png') }}" onerror="this.src='{{ url_for('static', filename='default.png') }}'" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                                <img id="editAvatarPreviewImg" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" onerror="this.src='{{ url_for('static', filename='default.png') }}'" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
                             </div>
                             
                             <label for="editAvatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
                                 <i class="bi bi-camera-fill text-white"></i>
                             </label>
-                            <input type="file" id="editAvatarUpload" class="d-none" accept="image/*">
+                            <!-- El input name="avatar" es CRÍTICO para que python reciba el archivo -->
+                            <input type="file" name="avatar" id="editAvatarUpload" class="d-none" accept="image/*">
 
-                            <!-- Controles del Editor Visual (Zoom, X, Y) -->
+                            <!-- Controles del Editor Visual -->
                             <div class="image-editor-controls mt-3 text-start">
                                 <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
                                 <input type="range" class="form-range" id="editScaleSlider" min="1" max="3" step="0.1" value="1">
@@ -186,21 +194,21 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-secondary">Nombre</label>
-                            <input type="text" class="form-control glass-input validate-name" id="editName" value="{{ user.name }}" required>
+                            <input type="text" name="name" class="form-control glass-input validate-name" id="editName" value="{{ user.name }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-secondary">1° Apellido</label>
-                            <input type="text" class="form-control glass-input validate-lastname" id="editLastName1" value="{{ user.last_name_1 }}" required>
+                            <input type="text" name="last_name_1" class="form-control glass-input validate-lastname" id="editLastName1" value="{{ user.last_name_1 }}" required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-secondary">2° Apellido</label>
-                            <input type="text" class="form-control glass-input validate-lastname" id="editLastName2" value="{{ user.last_name_2 }}" required>
+                            <input type="text" name="last_name_2" class="form-control glass-input validate-lastname" id="editLastName2" value="{{ user.last_name_2 }}" required>
                         </div>
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label fw-semibold text-secondary">Email</label>
-                        <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" value="{{ user.email }}" required>
+                        <input type="email" name="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" value="{{ user.email }}" required>
                     </div>
 
                     <!-- SECCIÓN: AGREGAR INFORMACIÓN ADICIONAL -->
@@ -254,7 +262,6 @@ document.addEventListener("DOMContentLoaded", () => {
             const today = new Date();
             let age = today.getFullYear() - dob.getFullYear();
             const m = today.getMonth() - dob.getMonth();
-            // Restar 1 si aún no ha pasado el mes, o si es el mes pero no ha llegado el día
             if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
                 age--;
             }
@@ -275,14 +282,14 @@ document.addEventListener("DOMContentLoaded", () => {
             editDynContainer.innerHTML = `
                 <div class="input-group">
                     <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
-                    <input type="text" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
+                    <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
                     oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" value="${existingPhone}">
                 </div>
                 <small class="text-muted mt-1 d-block ps-2">Solo números permitidos.</small>`;
         }
     }
 
-    // Inicializar Lógica del Editor de Imagen en Modal de Edición
+    // Lógica del Editor de Imagen en Modal de Edición
     const editAvatarUpload = document.getElementById('editAvatarUpload');
     const editAvatarPreviewImg = document.getElementById('editAvatarPreviewImg');
     const editScaleSlider = document.getElementById('editScaleSlider');
@@ -339,61 +346,69 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch(e) { console.error("Error leyendo transformaciones guardadas", e); }
     }
 
-    // --- CAPTURAR GUARDADO Y REFLEJAR CAMBIOS VISUALMENTE ---
+    // --- CAPTURAR GUARDADO Y ENVIAR AL SERVIDOR REALMENTE CON FETCH ---
     const editProfileForm = document.getElementById('editProfileForm');
     if (editProfileForm) {
-        editProfileForm.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevenir recarga de página (hasta que tengas backend)
-
-            // 1. Reflejar Avatar e Imagen (Calculando la proporción correcta del contenedor)
-            const mainAvatar = document.getElementById('mainProfileAvatar');
-            if (mainAvatar && editAvatarPreviewImg) {
-                mainAvatar.src = editAvatarPreviewImg.src;
-                
-                // Factor de conversión: Preview es 120px, Main es 200px. Relación = 200/120
-                const factor = 200 / 120;
-                const scale = editScaleSlider.value;
-                const editPosX = editPosXSlider.value;
-                const editPosY = editPosYSlider.value;
-                const mainPosX = editPosX * factor;
-                const mainPosY = editPosY * factor;
-                
-                mainAvatar.style.transform = `scale(${scale}) translate(${mainPosX}px, ${mainPosY}px)`;
-
-                // GUARDAR EN LOCALSTORAGE PARA PERSISTENCIA AL RECARGAR PÁGINA
-                localStorage.setItem('avatarTransform_{{ user.id }}', JSON.stringify({
-                    scale: scale,
-                    mainPosX: mainPosX,
-                    mainPosY: mainPosY,
-                    editPosX: editPosX,
-                    editPosY: editPosY
-                }));
+        editProfileForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            
+            // Validar contraseñas
+            const pass = document.getElementById('editPass').value;
+            const passVerify = document.getElementById('editPassVerify').value;
+            if (pass && pass !== passVerify) {
+                alert("Las contraseñas no coinciden");
+                return;
             }
 
-            // 2. Reflejar Cambios de Texto Básicos
-            const newName = document.getElementById('editName').value;
-            const newLast1 = document.getElementById('editLastName1').value;
-            const newLast2 = document.getElementById('editLastName2').value;
-            const newEmail = document.getElementById('editEmail').value;
+            // Recolectar datos y archivo
+            const formData = new FormData(this);
+            if (pass) {
+                formData.set('password', pass);
+            }
 
-            document.getElementById('mainProfileName').innerText = newName;
-            document.getElementById('mainProfileLastName').innerText = `${newLast1} ${newLast2}`;
-            document.getElementById('mainProfileEmail').innerText = newEmail;
+            try {
+                const btnSubmit = editProfileForm.querySelector('button[type="submit"]');
+                const originalText = btnSubmit.innerHTML;
+                btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+                btnSubmit.disabled = true;
 
-            // 3. Reflejar Teléfono si está en Información Adicional
-            const dynSelect = document.getElementById('editDynamicSelect').value;
-            if (dynSelect === 'Telefono' || dynSelect === 'Whatsapp') {
-                const phoneInput = document.querySelector('#editDynamicContainer input[type="text"]');
-                const mainPhoneEl = document.getElementById('mainProfilePhone');
-                if (phoneInput && mainPhoneEl) {
-                    mainPhoneEl.innerText = phoneInput.value || 'No registrado';
+                // Llamada a routes.py
+                const response = await fetch('/api/update_profile', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Guardar los ajustes visuales del zoom localmente
+                    const scale = document.getElementById('editScaleSlider').value;
+                    const editPosX = document.getElementById('editPosXSlider').value;
+                    const editPosY = document.getElementById('editPosYSlider').value;
+                    const factor = 200 / 120; // Proporción de la ventana de vista
+                    
+                    localStorage.setItem('avatarTransform_{{ user.id }}', JSON.stringify({
+                        scale: scale,
+                        mainPosX: editPosX * factor,
+                        mainPosY: editPosY * factor,
+                        editPosX: editPosX,
+                        editPosY: editPosY
+                    }));
+
+                    // RECARGAR PÁGINA PARA DESCARGAR AVATAR NUEVO
+                    window.location.reload();
+                } else {
+                    alert(result.error || "Error al actualizar perfil");
+                    btnSubmit.innerHTML = originalText;
+                    btnSubmit.disabled = false;
                 }
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión con el servidor");
+                const btnSubmit = editProfileForm.querySelector('button[type="submit"]');
+                btnSubmit.innerHTML = 'Guardar Cambios';
+                btnSubmit.disabled = false;
             }
-
-            // 4. Cerrar el modal
-            const editModalEl = document.getElementById('editProfileModal');
-            const modal = bootstrap.Modal.getInstance(editModalEl);
-            if(modal) modal.hide();
         });
     }
 });
@@ -422,42 +437,36 @@ function handleEditDynamicSelect() {
     container.innerHTML = ''; // Limpiar previo
 
     if (select === 'Telefono' || select === 'Whatsapp') {
+        const fieldName = select === 'Telefono' ? 'phone' : 'whatsapp';
         container.innerHTML = `
             <div class="input-group">
                 <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
-                <input type="text" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
+                <input type="text" name="${fieldName}" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
                 oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15">
             </div>
             <small class="text-muted mt-1 d-block ps-2">Solo números permitidos.</small>`;
     } 
     else if (select === 'Facebook' || select === 'Instagram' || select === 'Direccion') {
+        const fieldName = select === 'Direccion' ? 'address' : select.toLowerCase();
         container.innerHTML = `
-            <input type="text" class="form-control glass-input mb-2" placeholder="Descripción (Ej: Perfil Personal)">
-            <div class="input-group">
+            <div class="input-group mt-2">
                 <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-link-45deg"></i></span>
-                <input type="url" class="form-control glass-input" placeholder="https://ejemplo.com/perfil">
+                <input type="url" name="${fieldName}" class="form-control glass-input" placeholder="https://ejemplo.com/perfil">
             </div>`;
     }
     else if (select === 'Fecha') {
         container.innerHTML = `
-            <input type="text" class="form-control glass-input mb-2" placeholder="Descripción (Ej: Aniversario)">
-            <div class="row g-2">
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Día" min="1" max="31"></div>
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Mes" min="1" max="12"></div>
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Año" min="1900"></div>
-            </div>`;
+            <label class="form-label small text-secondary fw-bold">Fecha Especial (Día/Mes/Año)</label>
+            <input type="date" name="dob" class="form-control glass-input">`;
     }
     else if (select === 'Institucion') {
         container.innerHTML = `
-            <div class="row g-2">
-                <div class="col-12"><input type="text" class="form-control glass-input mb-2" placeholder="Nombre de la Institución/Empresa"></div>
-                <div class="col-md-6"><input type="text" class="form-control glass-input mb-2" placeholder="Teléfono Institución" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
-                <div class="col-md-6"><input type="text" class="form-control glass-input mb-2" placeholder="Nombre de Contacto"></div>
-                <div class="col-12"><input type="text" class="form-control glass-input" placeholder="Teléfono Contacto" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+            <div class="row g-2 mt-1">
+                <div class="col-12"><input type="text" name="institution" class="form-control glass-input mb-2" placeholder="Nombre de la Institución/Empresa"></div>
             </div>`;
     }
     else if (select === 'Otro') {
-        container.innerHTML = `<input type="text" class="form-control glass-input mt-2" placeholder="Descripción General" style="text-transform: capitalize;">`;
+        container.innerHTML = `<input type="text" name="other_info" class="form-control glass-input mt-2" placeholder="Descripción General" style="text-transform: capitalize;">`;
     }
 }
 </script>

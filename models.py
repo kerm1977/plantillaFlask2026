@@ -61,3 +61,12 @@ class Notification(db.Model):
     end_date = db.Column(db.DateTime)
     type_notif = db.Column(db.String(50)) 
     message = db.Column(db.Text)
+
+
+class Song(db.Model):
+    __tablename__ = 'songs'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    filename = db.Column(db.String(255), nullable=False)
+    cover_filename = db.Column(db.String(255), default='logo.png')

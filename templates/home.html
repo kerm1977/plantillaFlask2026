@@ -121,31 +121,30 @@
         color: var(--primary-orange);
     }
 
-    /* Botón Opciones Glassmorphic Minimalista */
-    .btn-glass-options {
-        background: rgba(255, 255, 255, 0.4);
+    /* Botones Adicionales (Opciones y Mostrar Todo) */
+    .btn-glass-action {
+        background: rgba(255, 255, 255, 0.6);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border: 2px solid rgba(255, 140, 0, 0.6);
         color: var(--primary-orange);
         transition: all 0.3s ease;
     }
-    .btn-glass-options:hover {
-        background: rgba(255, 255, 255, 0.8);
+    .btn-glass-action:hover {
+        background: rgba(255, 255, 255, 0.95);
         border-color: var(--primary-orange);
         color: #e07b00;
         box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
     }
-    
-    /* Botón Outline Orange (para fallbacks y otros usos) */
-    .btn-outline-orange {
-        color: var(--primary-orange);
-        border-color: var(--primary-orange);
-        background-color: white;
+
+    /* Colores Alternos de los Meses */
+    .month-black {
+        color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
     }
-    .btn-outline-orange:hover {
-        background-color: var(--primary-orange);
-        color: white;
+    .month-gray {
+        color: #6c757d !important;
+        border-color: #6c757d !important;
     }
 
     /* Estilos del Mes Colapsable */
@@ -156,11 +155,39 @@
         transform: scale(0.98);
     }
 
-    /* ========================================================
-       REGLA EXACTA DE REJILLA: 2 Tarjetas entre 350px y 575px
-       Por debajo de 350px, col-12 toma el control natural.
-    ======================================================== */
-    @media (min-width: 350px) and (max-width: 575.98px) {
+    /* Estilos para "Sin Espacio" (Agotado) */
+    .sold-out-card {
+        filter: grayscale(85%);
+        opacity: 0.85;
+        background: rgba(220, 220, 220, 0.4) !important;
+    }
+    .sold-out-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-10deg);
+        background: rgba(220, 53, 69, 0.95);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 900;
+        padding: 8px 25px;
+        border: 3px solid white;
+        border-radius: 8px;
+        z-index: 15;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    /* Transición suave para la flecha de la nota colapsable */
+    #notaChevron {
+        transition: transform 0.3s ease;
+    }
+
+    /* REGLA EXACTA DE REJILLA: 2 Tarjetas entre 310px y 575px */
+    @media (min-width: 310px) and (max-width: 575.98px) {
         .col-xxs-6 {
             flex: 0 0 auto;
             width: 50%;
@@ -215,19 +242,30 @@
         <hr class="flex-grow-1 border-orange opacity-25">
     </div>
 
-    <!-- CONTROLES SUPERIORES: BOTÓN OPCIONES Y VISTA -->
+
+    <!-- CONTROLES SUPERIORES: BOTÓN OPCIONES, ORACIÓN Y VISTA -->
     <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-10 col-lg-8">
-            <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50">
+            <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50 flex-wrap gap-2">
                 
-                <!-- Botón Colapsable Opciones (Minimalista Icon-only) -->
-                <button class="btn btn-glass-options rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" aria-expanded="false" aria-controls="filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
-                    <i class="bi bi-sliders fs-5"></i>
-                </button>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
+                        <i class="bi bi-search fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#prayerModal" title="Oración de La Tribu">
+                        <i class="bi bi-stars fs-5"></i>
+                    </button>
+                    <!-- ICONO AÑADIDO PARA IR AL REPRODUCTOR DE MÚSICA GLOBAL -->
+                    <button type="button" class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" title="Reproductor de Música" onclick="openBigPlayer()">
+                        <i class="bi bi-music-note-beamed fs-5"></i>
+                    </button>
+                </div>
 
-                <!-- TOGGLE DE VISTAS (Grid vs Lista) -->
-                <div class="d-flex align-items-center">
-                    <span class="text-secondary fw-bold small me-2 text-uppercase d-none d-sm-inline" style="letter-spacing: 1px;">Vista:</span>
+                <div class="d-flex align-items-center flex-wrap gap-2 justify-content-end">
+                    <button id="btnToggleAllMonths" class="btn btn-glass-action rounded-pill px-3 fw-bold shadow-sm" onclick="toggleAllMonths()">
+                        <i class="bi bi-arrows-expand me-1"></i>Mostrar Todo
+                    </button>
+
                     <div class="btn-group bg-white rounded-pill shadow-sm border border-white" role="group">
                         <button type="button" id="btnViewGrid" class="btn btn-orange rounded-pill px-3 fw-bold shadow-sm" onclick="setViewMode('grid')" title="Cuadrícula">
                             <i class="bi bi-grid-fill"></i>
@@ -246,21 +284,19 @@
     <div class="row justify-content-center mb-4 collapse" id="filtersCollapse">
         <div class="col-12 col-md-10 col-lg-8 text-center pt-2">
             
-            <!-- Barra de Búsqueda -->
             <div class="search-container mb-3 d-flex align-items-center">
                 <i class="bi bi-search text-orange fs-4 ms-3 me-2"></i>
-                <input type="text" id="globalSearchInput" class="form-control bg-transparent border-0 py-2 fw-bold text-dark fs-5 shadow-none" placeholder="Buscar lugar, actividad, precio..." oninput="filterEventsLive()">
-                <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm d-none d-sm-block" onclick="filterEventsLive()">Buscar</button>
+                <input type="text" id="globalSearchInput" class="form-control bg-transparent border-0 py-2 fw-bold text-dark fs-5 shadow-none" placeholder="Buscar lugar, actividad, precio..." oninput="filterEventsLive(true)">
+                <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm d-none d-sm-block" onclick="filterEventsLive(true)">Buscar</button>
             </div>
             
-            <!-- Filtros Rápidos y Meses -->
             <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Caminata')">Caminata</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Internacional')">Internacional</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Intermedio')">Intermedio</span>
                 <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Paseo')">Paseo</span>
                 
-                <select id="monthFilter" class="month-filter-select" onchange="filterEventsLive()">
+                <select id="monthFilter" class="month-filter-select" onchange="filterEventsLive(true)">
                     <option value="">Buscar x Mes</option>
                     <option value="-01-">Enero</option>
                     <option value="-02-">Febrero</option>
@@ -284,10 +320,92 @@
 
     <!-- Contenedor Dinámico de Cards y Separadores de Mes -->
     <div id="eventosContainer" class="row g-3 g-sm-4 justify-content-center pb-4">
-        <!-- Loader inicial -->
         <div class="col-12 text-center py-5">
             <div class="spinner-border text-orange" style="width: 3rem; height: 3rem;" role="status"></div>
             <p class="mt-3 text-secondary fw-bold">Sincronizando expedientes...</p>
+        </div>
+    </div>
+    
+    <!-- SECCIÓN DE NOTA DE LA TRIBU (COLAPSABLE Y JUSTIFICADA) -->
+    <div class="row justify-content-center mt-3 mb-5">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="glass-panel rounded-4 p-4 shadow-sm border border-white border-opacity-50">
+                <!-- Cabecera Clickable -->
+                <div class="d-inline-flex align-items-center user-select-none" 
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#collapseNotaTribu" 
+                     aria-expanded="false" 
+                     aria-controls="collapseNotaTribu" 
+                     style="cursor: pointer;">
+                    <h4 class="fw-bold text-dark mb-0 me-2 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-orange me-2"></i>Nota:
+                    </h4>
+                    <!-- La flechita que girará -->
+                    <i class="bi bi-chevron-down fs-5 text-dark" id="notaChevron"></i>
+                </div>
+
+                <!-- Contenido Colapsable -->
+                <div class="collapse mt-3" id="collapseNotaTribu">
+                    <div class="text-secondary" style="text-align: justify; line-height: 1.7; font-size: 0.95rem;">
+                        <p class="mb-3">La Tribu de Los Libres es un grupo Privado del Cantón de La Unión de Cartago Costa Rica. Aunque somos Tour Operadores Oficiales del Camino de Costa Rica  no organizamos eventos fuera de nuestra comunidad de La Tribu. No estamos cerrados a agregar a más aventurer@s que deseen formar parte de esta comunidad, pero intentamos mantener un ambiente libre de indeseables situaciones y personas que con mala intención se acercan a La Tribu. Por respeto y seguridad de tod@s los caminantes decidimos cuántas personas llevaremos a ciertas rutas según su complejidad y dificultad. Preferimos la Personalización que lo masivo. Puedes comunicarte a los teléfonos <strong>86227500</strong> y <strong>86529837</strong>.</p>
+                        
+                        <p class="mb-4">No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas.</p>
+                        
+                        <div class="text-center text-md-start">
+                            <a href="https://www.facebook.com/LaTribuDeLosLibres/" target="_blank" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center">
+                                <i class="bi bi-facebook fs-5 me-2"></i>Visítanos en Facebook
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ORACIÓN LA TRIBU -->
+<div class="modal fade" id="prayerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-md">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 justify-content-center position-relative">
+                <h4 class="fw-bold text-orange mb-0 mt-3"><i class="bi bi-stars me-2"></i>Oración de La Tribu</h4>
+                <button type="button" class="btn-close position-absolute end-0 top-0 m-3" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-4 text-center">
+                <p class="text-dark fw-bold mb-0" style="line-height: 1.8; font-size: 1rem; text-transform: uppercase;">
+                    GRACIAS SEÑOR POR ESTE HERMOSO DÍA QUE NOS HAS REGALADO.<br><br>
+                    POR NUESTROS AMIGOS Y AMIGAS QUE NOS ACOMPAÑAN EN ESTA ACTIVIDAD Y AQUELLOS QUE NO PUDIERON ESTAR HOY CON NOSOTROS.<br><br>
+                    NOS AMPARAMOS A TU PROTECCIÓN Y LA DE NUESTROS FAMILIARES QUE NOS ESPERAN EN CASA.<br><br>
+                    PROTEGE A LOS INDEFENSOS QUE SUFREN LA AGRESIÓN Y ABANDONO DE CUALQUIER TIPO.<br><br>
+                    PONEMOS A TODAS LAS PERSONAS QUE ESTÁN EN LOS HOSPITALES, A LOS PRIVADOS DE LIBERTAD Y DE MOVIMIENTO QUE DESEAN TENER LA OPORTUNIDAD QUE NOSOTROS TENEMOS EN ESTE DÍA... ACOMPÁÑALOS Y DALES FUERZA PARA VENCER SU ANGUSTIA.<br><br>
+                    QUE TU PROTECCIÓN LLEGUE A LOS DEMÁS GRUPOS Y SENDERISTAS DEL MUNDO QUE COMPARTEN NUESTRA MISMA PASIÓN PARA QUE LLEVEMOS UN CORAZÓN PASIVO, ALEGRE Y SERENO CON UN ESPÍRITU PROTECTOR DE LA NATURALEZA Y NUESTRO ENTORNO, DISFRUTANDO ASÍ CADA PASO QUE DAMOS EN NUESTRA NACIÓN Y NUESTRA TIERRA.<br><br>
+                    QUE HOY LA NATURALEZA Y LA MONTAÑA SE SOMETAN A TU ORDEN Y A TU PROTECCIÓN..... PARA QUE CONVIVAMOS CON ELLA DE MANERA PASIVA Y ARMONIOSA.<br><br>
+                    FORTALECE NUESTRA AMISTAD, NUESTRA HERMANDAD Y DIOS CUBRA CON SU SANGRE PRECIOSA A ESTE GRUPO LLAMADO LA TRIBU.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Eliminar Publicación Home -->
+<div class="modal fade" id="deleteEventHomeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+            <div class="modal-body pb-0">
+                <h5 class="fw-bold text-dark mb-2">¿Eliminar Publicación?</h5>
+                <p class="text-secondary small mb-4" id="deleteEventHomeName">Esta acción borrará permanentemente la publicación de la base de datos.</p>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" id="btnConfirmDeleteHome" class="btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white" onclick="processDeleteEventHome()">
+                        Sí, eliminar evento
+                    </button>
+                    <button type="button" class="btn bg-white text-secondary fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="border: 1px solid #ced4da;">Cancelar</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -298,8 +416,16 @@ let allEvents = [];
 let currentViewMode = 'grid'; 
 let localDB; 
 
+let expandedMonths = new Set(); 
+let allMonthsList = []; 
+
+// Se obtiene la variable de sesión para saber si es superusuario
+const isSuperUser = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
 const DB_NAME = "EventosLocalDB";
 const DB_VERSION = 3; 
+
+let deleteHomeEventId = null;
+let deleteHomeClicks = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initDB();
@@ -312,15 +438,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filtersCollapse = document.getElementById('filtersCollapse');
     const btnToggle = document.getElementById('btnToggleOpciones');
     
-    // Cambia el ícono al expandir/contraer
     filtersCollapse.addEventListener('show.bs.collapse', () => {
         btnToggle.innerHTML = '<i class="bi bi-x-lg fs-5"></i>';
         btnToggle.classList.add('bg-white');
     });
     filtersCollapse.addEventListener('hide.bs.collapse', () => {
-        btnToggle.innerHTML = '<i class="bi bi-sliders fs-5"></i>';
+        btnToggle.innerHTML = '<i class="bi bi-search fs-5"></i>';
         btnToggle.classList.remove('bg-white');
     });
+
+    // LÓGICA DE LA FLECHITA DE LA NOTA
+    const collapseNotaTribu = document.getElementById('collapseNotaTribu');
+    const notaChevron = document.getElementById('notaChevron');
+    if (collapseNotaTribu && notaChevron) {
+        collapseNotaTribu.addEventListener('show.bs.collapse', () => {
+            notaChevron.style.transform = 'rotate(180deg)';
+        });
+        collapseNotaTribu.addEventListener('hide.bs.collapse', () => {
+            notaChevron.style.transform = 'rotate(0deg)';
+        });
+    }
 });
 
 function initDB() {
@@ -328,78 +465,130 @@ function initDB() {
         const request = indexedDB.open(DB_NAME, DB_VERSION);
         request.onupgradeneeded = (e) => {
             const db = e.target.result;
-            if (!db.objectStoreNames.contains("eventos")) {
-                db.createObjectStore("eventos", { keyPath: "id", autoIncrement: true });
-            }
-            if (!db.objectStoreNames.contains("settings")) {
-                db.createObjectStore("settings", { keyPath: "id" });
-            }
+            if (!db.objectStoreNames.contains("eventos")) db.createObjectStore("eventos", { keyPath: "id", autoIncrement: true });
+            if (!db.objectStoreNames.contains("settings")) db.createObjectStore("settings", { keyPath: "id" });
         };
         request.onsuccess = (e) => {
             localDB = e.target.result;
             resolve(localDB);
         };
-        request.onerror = (e) => {
-            console.error("IndexedDB error:", e.target.error);
-            reject(e.target.error);
-        };
+        request.onerror = (e) => reject(e.target.error);
     });
 }
 
 function saveSetting(key, value) {
     if (!localDB) return;
-    const tx = localDB.transaction("settings", "readwrite");
-    tx.objectStore("settings").put({ id: key, value: value });
+    localDB.transaction("settings", "readwrite").objectStore("settings").put({ id: key, value: value });
 }
 
 function loadSetting(key, defaultValue) {
     return new Promise((resolve) => {
         if (!localDB) resolve(defaultValue);
-        const tx = localDB.transaction("settings", "readonly");
-        const request = tx.objectStore("settings").get(key);
-        request.onsuccess = () => {
-            resolve(request.result ? request.result.value : defaultValue);
-        };
+        const request = localDB.transaction("settings", "readonly").objectStore("settings").get(key);
+        request.onsuccess = () => resolve(request.result ? request.result.value : defaultValue);
         request.onerror = () => resolve(defaultValue);
     });
 }
 
 async function loadEvents() {
     const container = document.getElementById('eventosContainer');
-    
     try {
         const response = await fetch('/api/get_events');
-        
-        if (response.status === 404) {
-            throw new Error("API_MISSING");
-        }
-        
         if (!response.ok) throw new Error("Server error");
-        
         allEvents = await response.json();
         
         if (allEvents && allEvents.length > 0) {
-            renderEvents(allEvents);
+            renderEvents(allEvents, false);
             syncEventsToIndexedDB(allEvents);
         } else {
-            container.innerHTML = `
-                <div class="col-12 text-center py-5 text-muted">
-                    <i class="bi bi-calendar-x opacity-25" style="font-size: 4rem;"></i>
-                    <p class="mt-3 fs-5">No hay eventos publicados actualmente.</p>
-                </div>`;
+            container.innerHTML = `<div class="col-12 text-center py-5 text-muted"><i class="bi bi-calendar-x opacity-25" style="font-size: 4rem;"></i><p class="mt-3 fs-5">No hay eventos publicados actualmente.</p></div>`;
         }
     } catch (err) {
-        if (err.message === "API_MISSING") {
-            container.innerHTML = `
-                <div class="col-12 col-md-8 mx-auto text-center py-5 text-danger animate__animated animate__shakeX">
-                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 4rem;"></i>
-                    <h4 class="mt-3 fw-bold">Ruta API no encontrada (Error 404)</h4>
-                    <p class="text-muted">Asegúrate de pegar el código de las rutas en routes.py</p>
-                </div>`;
-            return;
-        }
         console.warn("Fallo de conexión. Cargando modo Offline.");
         loadEventsFromIndexedDB();
+    }
+}
+
+async function toggleEspacio(eventId) {
+    try {
+        const response = await fetch(`/api/toggle_espacio/${eventId}`, { method: 'POST' });
+        const result = await response.json();
+        if (response.ok && result.success) loadEvents(); 
+        else alert(result.error || "No se pudo cambiar el estado del evento.");
+    } catch(err) {
+        alert("Error de conexión al intentar guardar la disponibilidad.");
+    }
+}
+
+// FUNCIÓN PARA HACER PÚBLICO EL EVENTO
+async function makePublic(eventId) {
+    try {
+        const response = await fetch(`/api/make_public/${eventId}`, { method: 'POST' });
+        const result = await response.json();
+        if (response.ok && result.success) {
+            loadEvents(); 
+        } else {
+            alert(result.error || "No se pudo hacer público el evento.");
+        }
+    } catch(err) {
+        alert("Error de conexión al intentar hacer público.");
+    }
+}
+
+function initiateDeleteEvent(eventId, eventName) {
+    deleteHomeEventId = eventId;
+    deleteHomeClicks = 0;
+    const nameEl = document.getElementById('deleteEventHomeName');
+    if(nameEl) nameEl.innerHTML = `Esta acción borrará permanentemente la publicación "<strong>${eventName}</strong>" y no se puede deshacer.`;
+    resetDeleteBtn();
+    new bootstrap.Modal(document.getElementById('deleteEventHomeModal')).show();
+}
+
+function processDeleteEventHome() {
+    const btn = document.getElementById('btnConfirmDeleteHome');
+    deleteHomeClicks++;
+    if (deleteHomeClicks === 1) {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
+        btn.className = 'btn btn-warning fw-bold rounded-pill px-4 shadow-sm w-100 text-dark';
+    } else if (deleteHomeClicks === 2) {
+        btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
+        btn.className = 'btn btn-dark fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
+    } else {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
+        btn.disabled = true;
+        executeDeleteEventHome(deleteHomeEventId);
+    }
+    setTimeout(() => { if (deleteHomeClicks > 0 && deleteHomeClicks < 3) resetDeleteBtn(); }, 4000);
+}
+
+async function executeDeleteEventHome(eventId) {
+    try {
+        const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
+        const result = await response.json();
+        if (response.ok && result.success) {
+            try {
+                indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (e) => e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId);
+            } catch(e) {}
+            const modalEl = document.getElementById('deleteEventHomeModal');
+            bootstrap.Modal.getInstance(modalEl)?.hide();
+            loadEvents();
+        } else {
+            alert("Error al eliminar el evento: " + (result.error || "Desconocido"));
+            resetDeleteBtn();
+        }
+    } catch (err) {
+        alert("Error de conexión al intentar eliminar el evento.");
+        resetDeleteBtn();
+    }
+}
+
+function resetDeleteBtn() {
+    const btn = document.getElementById('btnConfirmDeleteHome');
+    if(btn) {
+        btn.disabled = false;
+        deleteHomeClicks = 0;
+        btn.innerHTML = 'Sí, eliminar evento';
+        btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
     }
 }
 
@@ -407,13 +596,12 @@ function setViewMode(mode) {
     currentViewMode = mode;
     saveSetting('userViewMode', mode);
     updateViewButtons(mode);
-    filterEventsLive();
+    filterEventsLive(false); 
 }
 
 function updateViewButtons(mode) {
     const btnGrid = document.getElementById('btnViewGrid');
     const btnList = document.getElementById('btnViewList');
-
     if (mode === 'grid') {
         btnGrid.className = 'btn btn-orange rounded-pill px-3 fw-bold shadow-sm';
         btnList.className = 'btn bg-transparent text-secondary rounded-pill px-3 fw-bold';
@@ -425,56 +613,89 @@ function updateViewButtons(mode) {
 
 function setQuickFilter(term) {
     document.getElementById('globalSearchInput').value = term;
-    if (term === '') {
-        document.getElementById('monthFilter').value = '';
-    }
-    filterEventsLive();
+    filterEventsLive(true); 
 }
 
-function filterEventsLive() {
+function filterEventsLive(isUserInput = false) {
     const query = document.getElementById('globalSearchInput').value.toLowerCase();
     const monthQuery = document.getElementById('monthFilter').value; 
-    
+    const isSearching = (query.length > 0 || monthQuery !== "");
+
+    if (isUserInput) {
+        expandedMonths.clear();
+    }
+
     const filteredEvents = allEvents.filter(ev => {
         const searchPool = `${ev.nombreLugar} ${ev.dificultad} ${ev.actividad} ${ev.precio} ${ev.destino} ${ev.fecha}`.toLowerCase();
         const matchesText = searchPool.includes(query);
-
         let matchesMonth = true;
         if (monthQuery !== "") {
             matchesMonth = ev.fecha && ev.fecha.includes(monthQuery);
         }
-
         return matchesText && matchesMonth;
     });
 
-    renderEvents(filteredEvents);
+    renderEvents(filteredEvents, isUserInput && isSearching);
 }
 
-/**
- * Función para colapsar/expandir los eventos de un mes.
- * Oculta las tarjetas y le baja la opacidad al título del mes.
- */
-function toggleMonthCards(monthId) {
+function toggleMonthCards(monthId, targetState = null, isGlobalAction = false) {
+    const isNowExpanded = expandedMonths.has(monthId);
+    let nextState = targetState !== null ? targetState : !isNowExpanded;
+
+    if (nextState && !isGlobalAction) {
+        expandedMonths.forEach(otherId => {
+            if (otherId !== monthId) applyMonthState(otherId, false);
+        });
+    }
+
+    applyMonthState(monthId, nextState);
+    updateGlobalToggleBtn();
+}
+
+function applyMonthState(monthId, expand) {
     const items = document.querySelectorAll(`.month-item-${monthId}`);
     const headerTitle = document.getElementById(`header-title-${monthId}`);
-    
-    items.forEach(item => {
-        item.classList.toggle('d-none');
-    });
+    const badge = document.getElementById(`badge-${monthId}`);
+    const chevron = document.getElementById(`chevron-${monthId}`);
+    const hint = document.getElementById(`hint-${monthId}`);
 
-    if (headerTitle) {
-        // Alternar opacidad visual para indicar estado colapsado
-        if (headerTitle.style.opacity === '0.5') {
-            headerTitle.style.opacity = '1';
-        } else {
-            headerTitle.style.opacity = '0.5';
-        }
+    if (expand) {
+        expandedMonths.add(monthId);
+        items.forEach(i => i.classList.remove('d-none'));
+        if (headerTitle) headerTitle.style.opacity = '1';
+        if (badge) { badge.classList.remove('d-inline-flex'); badge.classList.add('d-none'); }
+        if (chevron) chevron.style.transform = 'rotate(180deg)';
+        if (hint) hint.classList.add('d-none');
+    } else {
+        expandedMonths.delete(monthId);
+        items.forEach(i => i.classList.add('d-none'));
+        if (headerTitle) headerTitle.style.opacity = '0.6';
+        if (badge) { badge.classList.remove('d-none'); badge.classList.add('d-inline-flex'); }
+        if (chevron) chevron.style.transform = 'rotate(0deg)';
+        if (hint) hint.classList.remove('d-none');
     }
 }
 
-function renderEvents(eventsToRender) {
+function toggleAllMonths() {
+    const isExpandingAll = expandedMonths.size < allMonthsList.length;
+    allMonthsList.forEach(monthId => { applyMonthState(monthId, isExpandingAll); });
+    updateGlobalToggleBtn();
+}
+
+function updateGlobalToggleBtn() {
+    const btn = document.getElementById('btnToggleAllMonths');
+    if (!btn) return;
+    if (expandedMonths.size === allMonthsList.length && allMonthsList.length > 0) {
+        btn.innerHTML = '<i class="bi bi-arrows-collapse me-1"></i>Ocultar Todo';
+    } else {
+        btn.innerHTML = '<i class="bi bi-arrows-expand me-1"></i>Mostrar Todo';
+    }
+}
+
+function renderEvents(eventsToRender, autoExpandAllSearch = false) {
     const container = document.getElementById('eventosContainer');
     container.innerHTML = ''; 
+    allMonthsList = [];
 
     if (eventsToRender.length === 0) {
         container.innerHTML = `
@@ -494,31 +715,64 @@ function renderEvents(eventsToRender) {
         return dateA.localeCompare(dateB);
     });
 
-    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
-    let currentMonthLabel = "";
-    let currentMonthId = "";
-
+    const mesesNombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    
+    const monthCounts = {};
     sortedEvents.forEach(ev => {
-        
         let monthGroup = "Próximamente / Fechas por Definir";
         const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
-        
         if (dateMatch) {
             const year = dateMatch[1];
             const monthIndex = parseInt(dateMatch[2], 10) - 1;
-            monthGroup = `${meses[monthIndex]} ${year}`;
+            monthGroup = `${mesesNombres[monthIndex]} ${year}`;
+        }
+        monthCounts[monthGroup] = (monthCounts[monthGroup] || 0) + 1;
+    });
+
+    let currentMonthLabel = "";
+    let currentMonthId = "";
+    let monthIndexCounter = 0;
+
+    sortedEvents.forEach(ev => {
+        let monthGroup = "Próximamente / Fechas por Definir";
+        const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
+        if (dateMatch) {
+            const year = dateMatch[1];
+            const monthIndex = parseInt(dateMatch[2], 10) - 1;
+            monthGroup = `${mesesNombres[monthIndex]} ${year}`;
         }
 
-        // Separador Interactivo de Meses (Sin botón adicional, solo el texto y el hover)
         if (monthGroup !== currentMonthLabel) {
             currentMonthId = monthGroup.replace(/[^a-zA-Z0-9]/g, '-');
+            allMonthsList.push(currentMonthId);
+            const count = monthCounts[monthGroup];
+            const colorClass = (monthIndexCounter % 2 === 0) ? 'month-black' : 'month-gray';
+            monthIndexCounter++;
+
+            if (autoExpandAllSearch) expandedMonths.add(currentMonthId);
+            
+            const isExpanded = expandedMonths.has(currentMonthId);
+            const headerOpacity = isExpanded ? '1' : '0.6';
+            const badgeDisplay = isExpanded ? 'd-none' : 'd-inline-flex';
+            const chevronRotation = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+            const hintClass = isExpanded ? 'd-none' : '';
+
             container.innerHTML += `
                 <div class="col-12 mt-4 mb-2 animate__animated animate__fadeIn w-100 text-center text-sm-start">
-                    <div class="d-flex align-items-center" onclick="toggleMonthCards('${currentMonthId}')" style="cursor: pointer;" title="Presiona una vez para colapsar o Expandir">
-                        <h4 id="header-title-${currentMonthId}" class="month-header-title fw-bold text-orange text-uppercase mb-0 pb-1 border-bottom border-orange border-2 d-inline-block" style="letter-spacing: 1px;">
-                            <i class="bi bi-calendar3 me-2"></i>${monthGroup}
-                        </h4>
-                        <hr class="flex-grow-1 border-secondary opacity-25 ms-3 my-0 d-none d-sm-block">
+                    <div class="d-flex flex-column align-items-center justify-content-center justify-content-sm-start" onclick="toggleMonthCards('${currentMonthId}')" style="cursor: pointer;" title="Presiona una vez para expandir o colapsar">
+                        <div class="d-flex align-items-center w-100 justify-content-center justify-content-sm-start">
+                            <h4 id="header-title-${currentMonthId}" class="${colorClass} fw-bold text-uppercase mb-0 pb-1 border-bottom border-2 d-inline-flex align-items-center month-header-title" style="letter-spacing: 1px; opacity: ${headerOpacity};">
+                                <i class="bi bi-calendar3 me-2"></i>${monthGroup}
+                                <i class="bi bi-chevron-down ms-2 fs-5" id="chevron-${currentMonthId}" style="transform: ${chevronRotation}; transition: transform 0.3s ease;"></i>
+                                <span id="badge-${currentMonthId}" class="badge bg-white text-dark ms-3 shadow-sm border ${badgeDisplay} align-items-center" style="font-size: 0.85rem; border-radius: 12px;">
+                                    <i class="bi bi-droplet-fill text-info me-1"></i> ${count}
+                                </span>
+                            </h4>
+                            <hr class="flex-grow-1 border-secondary opacity-25 ms-3 my-0 d-none d-sm-block">
+                        </div>
+                        <small id="hint-${currentMonthId}" class="text-muted mt-1 ${hintClass} text-center text-sm-start w-100" style="font-size: 0.75rem;">
+                            <i class="bi bi-hand-index-thumb me-1"></i>Toca para expandir el mes
+                        </small>
                     </div>
                 </div>
             `;
@@ -531,32 +785,87 @@ function renderEvents(eventsToRender) {
 
         const imgPath = ev.poster || ev.imagen || 'https://via.placeholder.com/270x480?text=Sin+Imagen';
         
+        // LA FECHA SIEMPRE ES VISIBLE, AL IGUAL QUE EL MES/AÑO
         let dateDisplay = ev.fecha || "Por definir";
-        if (ev.solo_chat) {
-            dateDisplay = "📅 Solo en el Chat";
-        } else if (dateMatch) {
-            const day = dateMatch[3];
-            const month = dateMatch[2];
-            const yearShort = dateMatch[1].substring(2);
-            dateDisplay = `${day}/${month}/${yearShort}`;
-            if (ev.fecha.includes('al')) dateDisplay += "..."; 
+        if (dateMatch) {
+            const day = parseInt(dateMatch[3], 10);
+            const month = mesesNombres[parseInt(dateMatch[2], 10) - 1];
+            const yearShort = dateMatch[1];
+            // FORMATEADO REQUERIDO: XX de Mes del Año
+            dateDisplay = `${day} de ${month} del ${yearShort}`;
+            if (ev.fecha.includes('al')) dateDisplay += " (varios días)"; 
         }
+
+        // LÓGICA DE HORA Y LUGAR EN BASE A LA SEGURIDAD INYECTADA DESDE ROUTES.PY
+        let isPrivate = ev.solo_chat || ev.logistica_segura;
+        let destinoDisplay = "";
+        let timeDisplay = "";
+
+        if (isPrivate) {
+            if (isSuperUser) {
+                // Es superusuario, ve la data real pero con advertencia visual "Oculto"
+                destinoDisplay = `<i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino} <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.55rem;">Oculto</span>`;
+                timeDisplay = `<i class="bi bi-clock-fill text-orange me-1"></i>${ev.hora_salida || 'Por definir'} <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.55rem;">Oculto</span>`;
+            } else {
+                // Usuario normal ve que está protegido ("Info en chat")
+                destinoDisplay = `<span class="text-danger fw-bold"><i class="bi bi-shield-lock-fill me-1"></i>Info en chat</span>`;
+                timeDisplay = `<span class="text-danger fw-bold"><i class="bi bi-shield-lock-fill me-1"></i>Info en chat</span>`;
+            }
+        } else {
+            // Evento público para todos
+            destinoDisplay = `<i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}`;
+            timeDisplay = `<i class="bi bi-clock-fill text-orange me-1"></i>${ev.hora_salida || 'Por definir'}`;
+        }
+
+        const isSoldOut = ev.capacidad && ev.capacidad.startsWith('AGOTADO');
+        const cardClass = isSoldOut ? 'sold-out-card' : '';
+        const overlay = isSoldOut ? '<div class="sold-out-overlay">SIN ESPACIO</div>' : '';
+        
+        const superUserBtns = isSuperUser ? `
+            <div class="position-absolute top-0 start-0 m-2 d-flex gap-2" style="z-index: 20;">
+                <button class="btn btn-sm ${isSoldOut ? 'btn-success' : 'btn-danger'} shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;" onclick="event.stopPropagation(); toggleEspacio(${ev.id})" title="${isSoldOut ? 'Habilitar Espacio' : 'Marcar Sin Espacio'}">
+                    <i class="bi ${isSoldOut ? 'bi-check-lg' : 'bi-x-lg'} fs-6"></i>
+                </button>
+                <button class="btn btn-sm btn-dark shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;" onclick="event.stopPropagation(); initiateDeleteEvent(${ev.id}, '${ev.nombreLugar.replace(/'/g, "\\'").replace(/"/g, "&quot;")}')" title="Eliminar Publicación">
+                    <i class="bi bi-trash-fill fs-6 text-white"></i>
+                </button>
+            </div>
+        ` : '';
+
+        const btnAccion = isSoldOut 
+            ? '<button class="btn btn-secondary w-100 rounded-pill mt-3 fw-bold shadow-sm py-2 disabled">Sin Espacio</button>' 
+            : '<button class="btn btn-orange w-100 rounded-pill mt-3 fw-bold shadow-sm py-2">Ver Detalles</button>';
+
+        // BOTÓN HACER PÚBLICO (Exclusivo Superusuarios)
+        const btnHacerPublico = (isSuperUser && isPrivate)
+            ? `<button class="btn btn-outline-info w-100 rounded-pill mt-2 fw-bold shadow-sm py-1" style="font-size: 0.8rem; border-width: 2px;" onclick="event.stopPropagation(); makePublic(${ev.id})"><i class="bi bi-unlock-fill me-1"></i>Hacerlo Público</button>`
+            : '';
+
+        const isExpanded = expandedMonths.has(currentMonthId);
+        const visibilityClass = isExpanded ? '' : 'd-none';
 
         if (currentViewMode === 'grid') {
             container.innerHTML += `
-                <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn month-item-${currentMonthId}">
-                    <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm" onclick="window.location.href='/detalles_evento/${ev.id}'" style="cursor: pointer;">
+                <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn month-item-${currentMonthId} ${visibilityClass}">
+                    <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm ${cardClass}" onclick="${!isSoldOut || isSuperUser ? `window.location.href='/detalles_evento/${ev.id}'` : ''}" style="cursor: ${isSoldOut && !isSuperUser ? 'not-allowed' : 'pointer'}; position: relative;">
                         
-                        <div class="event-img-container border-bottom border-white border-2">
+                        ${superUserBtns}
+                        <div class="event-img-container border-bottom border-white border-2 position-relative">
+                            ${overlay}
                             <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/270x480?text=Error+Imagen'">
                             <span class="badge-dificultad ${badgeClass}">${ev.dificultad}</span>
                         </div>
 
                         <div class="p-3 d-flex flex-column flex-grow-1">
-                            <span class="badge bg-dark rounded-pill align-self-start mb-2 px-2 py-1 shadow-sm" style="font-size: 0.65rem;">${ev.actividad}</span>
+                            <!-- El badge de actividad ahora usa white-space: normal para evitar desbordes -->
+                            <span class="badge bg-dark rounded-pill align-self-start mb-2 px-2 py-1 shadow-sm" style="font-size: 0.65rem; white-space: normal; text-align: center; max-width: 100%; line-height: 1.2;">${ev.actividad}</span>
                             <h5 class="fw-bold text-dark mb-1 text-truncate-multiline lh-sm">${ev.nombreLugar}</h5>
-                            <p class="text-secondary small mb-3 text-truncate">
-                                <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
+                            
+                            <p class="text-secondary small mb-1 text-truncate" title="Punto de Salida">
+                                ${destinoDisplay}
+                            </p>
+                            <p class="text-secondary small mb-3 text-truncate" title="Hora de Salida">
+                                ${timeDisplay}
                             </p>
 
                             <div class="event-details-box mt-auto d-flex justify-content-between align-items-center">
@@ -565,54 +874,61 @@ function renderEvents(eventsToRender) {
                                     <span class="fw-bold text-orange fs-6">${ev.precio}</span>
                                 </div>
                                 <div class="text-end d-flex flex-column text-end-mobile">
-                                    <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Salida</span>
-                                    <span class="fw-semibold text-dark small">
-                                        ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check me-1 text-orange"></i>${dateDisplay}`}
+                                    <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Día Exacto</span>
+                                    <span class="fw-semibold text-dark small" style="font-size: 0.75rem;">
+                                        <i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}
                                     </span>
                                 </div>
                             </div>
-
-                            <button class="btn btn-orange w-100 rounded-pill mt-3 fw-bold shadow-sm py-2">
-                                Ver Detalles
-                            </button>
+                            ${btnHacerPublico}
+                            ${btnAccion}
                         </div>
                     </div>
                 </div>
             `;
         } else {
             container.innerHTML += `
-                <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp month-item-${currentMonthId}">
-                    <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50" onclick="window.location.href='/detalles_evento/${ev.id}'" style="cursor: pointer;">
-                        
+                <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp month-item-${currentMonthId} ${visibilityClass}">
+                    <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50 ${cardClass}" onclick="${!isSoldOut || isSuperUser ? `window.location.href='/detalles_evento/${ev.id}'` : ''}" style="cursor: ${isSoldOut && !isSuperUser ? 'not-allowed' : 'pointer'}; position: relative; overflow: hidden;">
+                        ${superUserBtns}
+                        ${overlay}
+
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div class="pe-2 overflow-hidden">
-                                <span class="badge bg-dark rounded-pill mb-1 d-inline-block" style="font-size: 0.6rem;">${ev.actividad}</span>
+                                <span class="badge bg-dark rounded-pill mb-1 d-inline-block" style="font-size: 0.6rem; white-space: normal; text-align: left; max-width: 100%; line-height: 1.2;">${ev.actividad}</span>
                                 <h6 class="fw-bold text-dark mb-0 text-truncate lh-sm" style="font-size: 1rem; max-width: 100%;">${ev.nombreLugar}</h6>
                             </div>
                             <span class="badge-dificultad-list ${badgeClass} flex-shrink-0 shadow-sm mt-1">${ev.dificultad}</span>
                         </div>
                         
                         <div class="d-flex justify-content-between align-items-end mt-3 border-top border-white border-opacity-75 pt-2">
-                            <div class="text-secondary small" style="font-size: 0.8rem;">
-                                <div class="text-truncate mb-1" style="max-width: 170px;">
-                                    <i class="bi bi-geo-alt-fill text-orange me-1"></i>${ev.destino}
+                            <div class="text-secondary small" style="font-size: 0.8rem; flex-grow: 1; min-width: 0; padding-right: 10px;">
+                                <div class="text-truncate mb-1">
+                                    ${destinoDisplay}
                                 </div>
-                                <div class="fw-bold text-dark" style="font-size: 0.75rem;">
-                                    ${ev.solo_chat ? dateDisplay : `<i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}`}
+                                <div class="text-truncate mb-1">
+                                    ${timeDisplay}
+                                </div>
+                                <div class="fw-bold text-dark text-truncate">
+                                    <i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}
                                 </div>
                             </div>
                             
-                            <div class="text-end">
+                            <div class="text-end flex-shrink-0">
                                 <span class="text-muted d-block lh-1" style="font-size: 0.6rem; text-transform: uppercase; font-weight: 800;">Precio</span>
                                 <span class="fw-bold text-orange fs-5 lh-1">${ev.precio}</span>
                             </div>
                         </div>
-
+                        
+                        ${btnHacerPublico}
+                        <div class="mt-2"></div>
                     </div>
                 </div>
             `;
         }
     });
+
+    updateGlobalToggleBtn();
 }
 
 function syncEventsToIndexedDB(events) {
@@ -634,10 +950,9 @@ function loadEventsFromIndexedDB() {
         getAll.onsuccess = () => {
             if (getAll.result && getAll.result.length > 0) {
                 allEvents = getAll.result;
-                renderEvents(allEvents);
+                renderEvents(allEvents, false);
             } else {
-                document.getElementById('eventosContainer').innerHTML = 
-                    `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;
+                document.getElementById('eventosContainer').innerHTML = `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;
             }
         };
     } catch (err) {}

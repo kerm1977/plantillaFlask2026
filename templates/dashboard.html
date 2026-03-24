@@ -151,7 +151,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body px-4 px-md-5 pb-5 pt-2">
-                <form id="adminEditUserForm">
+                <form id="adminEditUserForm" enctype="multipart/form-data">
                     
                     <!-- Editor Visual de Avatar -->
                     <div class="text-center mb-4">
@@ -163,7 +163,7 @@
                             <label for="editAvatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
                                 <i class="bi bi-camera-fill text-white"></i>
                             </label>
-                            <input type="file" id="editAvatarUpload" class="d-none" accept="image/*">
+                            <input type="file" name="avatar" id="editAvatarUpload" class="d-none" accept="image/*">
 
                             <!-- Controles del Editor Visual -->
                             <div class="image-editor-controls mt-3 text-start">
@@ -188,15 +188,19 @@
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
                             <label class="form-label fw-bold text-secondary">Nombre</label>
-                            <input type="text" class="form-control glass-input validate-name" id="editName" required>
+                            <input type="text" name="name" class="form-control glass-input validate-name" id="editName" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary">Apellidos</label>
-                            <input type="text" class="form-control glass-input validate-lastname" id="editLastNames" required>
+                            <label class="form-label fw-bold text-secondary">1° Apellido</label>
+                            <input type="text" name="last_name_1" class="form-control glass-input validate-lastname" id="editLastName1" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-bold text-secondary">Rol</label>
-                            <select class="form-select glass-input" id="editRole" required>
+                            <label class="form-label fw-bold text-secondary">2° Apellido</label>
+                            <input type="text" name="last_name_2" class="form-control glass-input validate-lastname" id="editLastName2" required>
+                        </div>
+                        <div class="col-md-12 mt-3">
+                            <label class="form-label fw-bold text-secondary">Rol de Seguridad</label>
+                            <select class="form-select glass-input" name="role" id="editRole" required>
                                 <option value="Usuario">Usuario</option>
                                 <option value="Colaborador">Colaborador</option>
                                 <option value="Administrador">Administrador</option>
@@ -206,8 +210,8 @@
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label fw-semibold text-secondary">Email</label>
-                        <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" required>
+                        <label class="form-label fw-semibold text-secondary">Email Principal</label>
+                        <input type="email" name="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" required>
                     </div>
 
                     <!-- Información Adicional Dinámica -->
@@ -216,13 +220,6 @@
                         <select class="form-select glass-input rounded-3 mb-3" id="editDynamicSelect" onchange="handleEditDynamicSelect()">
                             <option value="">Seleccione para agregar...</option>
                             <option value="Telefono">Teléfono</option>
-                            <option value="Whatsapp">Whatsapp</option>
-                            <option value="Facebook">Facebook (URL)</option>
-                            <option value="Instagram">Instagram (URL)</option>
-                            <option value="Direccion">Dirección (Google Maps)</option>
-                            <option value="Fecha">Fecha Especial</option>
-                            <option value="Institucion">Institución/Empresa</option>
-                            <option value="Otro">Otros</option>
                         </select>
                         <div id="editDynamicContainer" class="animate__animated animate__fadeIn"></div>
                     </div>
@@ -231,7 +228,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-12 position-relative">
                             <label class="form-label fw-semibold text-secondary">Forzar Nueva Contraseña (Opcional)</label>
-                            <input type="password" class="form-control glass-input rounded-3 pe-5" id="editPass" placeholder="Dejar en blanco para mantener la actual">
+                            <input type="password" name="password" class="form-control glass-input rounded-3 pe-5" id="editPass" placeholder="Dejar en blanco para mantener la actual">
                             <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('editPass', this)"></i>
                         </div>
                     </div>
@@ -247,7 +244,7 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    // Cargar lista automáticamente al entrar a Dashboard
+    // Cargar lista automáticamente al entrar a Dashboard usando la base de datos real
     loadAllUsers();
 
     // Evento de Buscador en tiempo real INTOCABLE
@@ -301,21 +298,44 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Manejar Guardado del Formulario de Edición
-    document.getElementById('adminEditUserForm').addEventListener('submit', function(e) {
+    // MANEJAR GUARDADO DEL FORMULARIO CONECTADO A LA BASE DE DATOS
+    document.getElementById('adminEditUserForm').addEventListener('submit', async function(e) {
         e.preventDefault();
-        
-        // Ocultar modal de edición
-        const editModalEl = document.getElementById('adminEditUserModal');
-        const modal = bootstrap.Modal.getInstance(editModalEl);
-        if(modal) modal.hide();
+        const formData = new FormData(this);
 
-        // Alerta personalizada Glassmorphic de éxito
-        showGlassAlert(`Los datos de ${document.getElementById('editName').value} han sido actualizados correctamente.`, '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>');
-        
-        // Simular regreso y recarga
-        showUsersList();
-        loadAllUsers();
+        try {
+            const btnSubmit = this.querySelector('button[type="submit"]');
+            const originalHTML = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+            btnSubmit.disabled = true;
+
+            // Llamada POST a tu ruta Flask
+            const response = await fetch(`/api/admin/update_user/${currentSelectedUserId}`, {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // Ocultar modal de edición
+                const editModalEl = document.getElementById('adminEditUserModal');
+                const modal = bootstrap.Modal.getInstance(editModalEl);
+                if(modal) modal.hide();
+
+                // Alerta personalizada Glassmorphic de éxito
+                showGlassAlert(`Los datos del usuario han sido actualizados correctamente.`, '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>');
+                
+                showUsersList();
+                loadAllUsers(); // Recarga la base de datos
+            } else {
+                alert("Error al actualizar: " + (result.error || 'Desconocido'));
+            }
+            
+            btnSubmit.innerHTML = originalHTML;
+            btnSubmit.disabled = false;
+        } catch(err) {
+            alert("Error de conexión al guardar los datos.");
+        }
     });
 });
 
@@ -331,29 +351,40 @@ function showGlassAlert(message, iconHTML = '<i class="bi bi-info-circle text-or
     actionModal.show();
 }
 
-function loadAllUsers() {
+// LLAMADA REAL A LA BASE DE DATOS PARA CARGAR USUARIOS
+async function loadAllUsers() {
     const tbody = document.getElementById('usersTableBody');
     tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-orange me-2"></div>Cargando base de datos...</td></tr>';
     
-    setTimeout(() => {
-        const mockUsers = [
-            { id: 1, name: "Kenth", last: "Admin", email: "kenth1977@gmail.com", role: "Superusuario", status: "Activo", dob: "1977-05-10", phone: "+506 88888888", created: "10 de Mayo, 2026 - 14:30", updated: "10 de Mayo, 2026 - 15:00" },
-            { id: 2, name: "Lt", last: "Hiking", email: "lthikingcr@gmail.com", role: "Superusuario", status: "Activo", dob: "1980-08-20", phone: "+506 88881111", created: "11 de Mayo, 2026 - 09:15", updated: "12 de Mayo, 2026 - 10:20" },
-            { id: 3, name: "Juan", last: "Pérez", email: "juan@ejemplo.com", role: "Usuario", status: "Bloqueado", dob: "1995-12-01", phone: "No registrado", created: "15 de Mayo, 2026 - 18:45", updated: "16 de Mayo, 2026 - 08:10" }
-        ];
+    try {
+        const response = await fetch('/api/admin/users');
+        const data = await response.json();
         
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">${data.error}</td></tr>`;
+            return;
+        }
+
         tbody.innerHTML = '';
-        mockUsers.forEach(u => {
+        if(data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se encontraron usuarios.</td></tr>';
+            return;
+        }
+
+        data.forEach(u => {
             const statusBadge = u.status === 'Activo' ? '<span class="badge bg-success rounded-pill px-3 shadow-sm">Activo</span>' : '<span class="badge bg-danger rounded-pill px-3 shadow-sm">Bloqueado</span>';
             const roleBadge = u.role === 'Superusuario' ? '<span class="badge bg-warning text-dark rounded-pill px-3 shadow-sm"><i class="bi bi-shield-lock-fill"></i> Super</span>' : `<span class="badge bg-secondary rounded-pill px-3 shadow-sm">${u.role}</span>`;
             
+            // Construcción dinámica (Inyectado seguro por JS escapando JSON)
+            const safeUser = JSON.stringify(u).replace(/'/g, "&apos;");
+            
             // LA MAGIA OCURRE AQUÍ: Disposición responsiva de datos. En móviles se inyecta Rol y Estado debajo del correo.
             tbody.innerHTML += `
-                <tr style="cursor:pointer;" onclick='viewUserDetails(${JSON.stringify(u)})' class="bg-white bg-opacity-50 user-row">
+                <tr style="cursor:pointer;" onclick='viewUserDetails(${safeUser})' class="bg-white bg-opacity-50 user-row">
                     <td class="py-3">
                         <div class="fw-bold text-dark d-flex align-items-center">
                             <i class="bi bi-person-circle text-orange me-2 fs-5"></i> 
-                            <span class="text-truncate">${u.name} ${u.last}</span>
+                            <span class="text-truncate">${u.name} ${u.last_name_1} ${u.last_name_2}</span>
                         </div>
                         <div class="text-secondary small ms-4" style="word-break: break-all;">${u.email}</div>
                         <!-- Rol y Estado en versión Móvil -->
@@ -371,12 +402,14 @@ function loadAllUsers() {
         
         // Disparar evento para reflejar búsqueda si el input no estaba vacío
         document.getElementById('searchUserInput').dispatchEvent(new Event('input'));
-    }, 800);
+    } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-danger">Fallo de conexión al servidor</td></tr>';
+    }
 }
 
 function viewUserDetails(userObj) {
     currentSelectedUserId = userObj.id;
-    currentSelectedUserName = `${userObj.name} ${userObj.last}`;
+    currentSelectedUserName = `${userObj.name} ${userObj.last_name_1}`;
     currentSelectedUserObj = userObj; // Guardar datos para editar
     
     document.getElementById('adminUsersList').classList.add('d-none');
@@ -402,7 +435,7 @@ function viewUserDetails(userObj) {
             <div class="col-12 col-md-6">
                 <div class="info-item w-100 shadow-sm h-100">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size: 0.7rem;">Nombre Completo</label>
-                    <div class="fw-bold fs-5 ps-2 text-dark text-break">${userObj.name} ${userObj.last}</div>
+                    <div class="fw-bold fs-5 ps-2 text-dark text-break">${userObj.name} ${userObj.last_name_1} ${userObj.last_name_2}</div>
                 </div>
             </div>
             <div class="col-12 col-md-6">
@@ -470,9 +503,13 @@ function openEditUserModal() {
     
     // Poblar los inputs básicos
     document.getElementById('editName').value = currentSelectedUserObj.name;
-    document.getElementById('editLastNames').value = currentSelectedUserObj.last;
+    document.getElementById('editLastName1').value = currentSelectedUserObj.last_name_1;
+    document.getElementById('editLastName2').value = currentSelectedUserObj.last_name_2;
     document.getElementById('editEmail').value = currentSelectedUserObj.email;
     document.getElementById('editRole').value = currentSelectedUserObj.role;
+    
+    const avatarPath = currentSelectedUserObj.avatar && currentSelectedUserObj.avatar.startsWith('uploads') ? currentSelectedUserObj.avatar : (currentSelectedUserObj.avatar === 'default.png' ? 'default.png' : 'uploads/' + currentSelectedUserObj.avatar);
+    document.getElementById('editAvatarPreviewImg').src = "/static/" + avatarPath;
     
     // Poblar teléfono si existe
     const dynSelect = document.getElementById('editDynamicSelect');
@@ -482,8 +519,8 @@ function openEditUserModal() {
         dynContainer.innerHTML = `
             <div class="input-group">
                 <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
-                <input type="text" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
-                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" value="${currentSelectedUserObj.phone}">
+                <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
+                oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" value="${currentSelectedUserObj.phone.replace(/[^0-9]/g, '')}">
             </div>`;
     } else {
         dynSelect.value = '';
@@ -504,50 +541,59 @@ function handleEditDynamicSelect() {
         container.innerHTML = `
             <div class="input-group">
                 <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
-                <input type="text" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
+                <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
                 oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15">
             </div>
             <small class="text-muted mt-1 d-block ps-2">Solo números permitidos.</small>`;
     } 
     else if (select === 'Facebook' || select === 'Instagram' || select === 'Direccion') {
+        const fieldName = select === 'Direccion' ? 'address' : select.toLowerCase();
         container.innerHTML = `
-            <input type="text" class="form-control glass-input mb-2" placeholder="Descripción (Ej: Perfil Personal)">
-            <div class="input-group">
+            <div class="input-group mt-2">
                 <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-link-45deg"></i></span>
-                <input type="url" class="form-control glass-input" placeholder="https://ejemplo.com/perfil">
+                <input type="url" name="${fieldName}" class="form-control glass-input" placeholder="https://ejemplo.com/perfil">
             </div>`;
     }
     else if (select === 'Fecha') {
         container.innerHTML = `
-            <input type="text" class="form-control glass-input mb-2" placeholder="Descripción (Ej: Aniversario)">
-            <div class="row g-2">
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Día" min="1" max="31"></div>
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Mes" min="1" max="12"></div>
-                <div class="col-4"><input type="number" class="form-control glass-input" placeholder="Año" min="1900"></div>
-            </div>`;
+            <label class="form-label small text-secondary fw-bold">Fecha Especial (Día/Mes/Año)</label>
+            <input type="date" name="dob" class="form-control glass-input">`;
     }
     else if (select === 'Institucion') {
         container.innerHTML = `
-            <div class="row g-2">
-                <div class="col-12"><input type="text" class="form-control glass-input mb-2" placeholder="Nombre de la Institución/Empresa"></div>
-                <div class="col-md-6"><input type="text" class="form-control glass-input mb-2" placeholder="Teléfono Institución" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
-                <div class="col-md-6"><input type="text" class="form-control glass-input mb-2" placeholder="Nombre de Contacto"></div>
-                <div class="col-12"><input type="text" class="form-control glass-input" placeholder="Teléfono Contacto" oninput="this.value = this.value.replace(/[^0-9]/g, '')"></div>
+            <div class="row g-2 mt-1">
+                <div class="col-12"><input type="text" name="institution" class="form-control glass-input mb-2" placeholder="Nombre de la Institución/Empresa"></div>
             </div>`;
     }
     else if (select === 'Otro') {
-        container.innerHTML = `<input type="text" class="form-control glass-input mt-2" placeholder="Descripción General" style="text-transform: capitalize;">`;
+        container.innerHTML = `<input type="text" name="other_info" class="form-control glass-input mt-2" placeholder="Descripción General" style="text-transform: capitalize;">`;
     }
 }
 
-function toggleUserStatus() {
-    showGlassAlert(`Cambiando estado del usuario ${currentSelectedUserName}`, '<i class="bi bi-arrow-repeat text-warning" style="font-size: 3rem;"></i>');
-    showUsersList();
-    loadAllUsers();
+// CONEXIÓN REAL A LA BASE DE DATOS: Bloquear o Desbloquear
+async function toggleUserStatus() {
+    if(!currentSelectedUserId) return;
+    try {
+        const response = await fetch(`/api/admin/toggle_status/${currentSelectedUserId}`, { method: 'POST' });
+        const result = await response.json();
+        
+        if(response.ok && result.success) {
+            showGlassAlert(`El estado del usuario ahora es: <b>${result.new_status}</b>`, '<i class="bi bi-arrow-repeat text-warning" style="font-size: 3rem;"></i>');
+            showUsersList();
+            loadAllUsers();
+        } else {
+            alert(result.error || "No se pudo cambiar el estado del usuario.");
+        }
+    } catch(err) {
+        alert("Error de red al intentar comunicarse con el servidor.");
+    }
 }
 
+// CONEXIÓN REAL A LA BASE DE DATOS: Borrado en 3 clics
 let deleteClicks = 0;
-function confirmDeleteUser() {
+async function confirmDeleteUser() {
+    if(!currentSelectedUserId) return;
+    
     const btn = document.getElementById('btnDeleteUser');
     deleteClicks++;
     if(deleteClicks === 1) {
@@ -557,10 +603,30 @@ function confirmDeleteUser() {
         btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>Confirmar Borrado';
         btn.classList.replace('btn-secondary', 'btn-danger');
     } else {
-        showGlassAlert(`Usuario ${currentSelectedUserName} ha sido eliminado permanentemente de la base de datos.`, '<i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>');
-        deleteClicks = 0;
-        showUsersList();
-        loadAllUsers();
+        // Ejecución Real del borrado
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando...';
+        btn.disabled = true;
+        try {
+            const response = await fetch(`/api/admin/delete_user/${currentSelectedUserId}`, { method: 'DELETE' });
+            const result = await response.json();
+            if(response.ok && result.success) {
+                showGlassAlert(`Usuario eliminado permanentemente de la base de datos.`, '<i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>');
+                deleteClicks = 0;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
+                showUsersList();
+                loadAllUsers();
+            } else {
+                alert(result.error || "No se pudo eliminar el usuario.");
+                btn.disabled = false;
+                deleteClicks = 0;
+                btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
+                btn.classList.replace('btn-secondary', 'btn-danger');
+            }
+        } catch(err) {
+            alert("Error al intentar conectarse para eliminar el usuario.");
+            btn.disabled = false;
+        }
     }
     
     setTimeout(() => { 
@@ -568,6 +634,7 @@ function confirmDeleteUser() {
             deleteClicks = 0;
             btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
             btn.className = 'btn btn-danger rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto btn-action-mobile';
+            btn.disabled = false;
         }
     }, 3000);
 }

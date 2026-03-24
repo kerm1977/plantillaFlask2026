@@ -122,27 +122,93 @@
         text-align: center;
         font-weight: bold;
     }
+
+    /* Estilos para "Sin Espacio" (Agotado) */
+    .sold-out-card {
+        filter: grayscale(85%);
+        opacity: 0.85;
+        background: rgba(220, 220, 220, 0.4) !important;
+    }
+    .sold-out-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-10deg);
+        background: rgba(220, 53, 69, 0.95);
+        color: white;
+        font-size: 2rem;
+        font-weight: 900;
+        padding: 10px 30px;
+        border: 4px solid white;
+        border-radius: 10px;
+        z-index: 15;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        pointer-events: none;
+        white-space: nowrap;
+    }
 </style>
 
-<!-- Procesamiento Jinja para Fecha del Evento Público -->
-{% set meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"] %}
-{% set mes_nombre_unico = "" %}{% set anio_unico = "" %}
-{% if evento.fecha_unica %}
-    {% set pU = evento.fecha_unica.split('-') %}
-    {% if pU|length == 3 %}
-        {% set anio_unico = pU[0] %}
-        {% set mes_nombre_unico = meses[pU[1]|int - 1] %}
+<!-- Procesamiento Jinja: Variables Lógicas de Seguridad Absoluta -->
+{% set is_logistica_segura = evento.lugar_salida and evento.lugar_salida.startswith('SEGURO_') %}
+{% set is_private = evento.solo_chat or is_logistica_segura %}
+{% set lugar_real = evento.lugar_salida|replace('SEGURO_', '') if is_logistica_segura else evento.lugar_salida %}
+{% set is_sold_out = evento.capacidad and evento.capacidad.startswith('AGOTADO') %}
+{% set is_super_user = session.get('role') == 'Superusuario' %}
+
+<!-- Procesamiento Jinja: Formato de Fecha Hermosa "XX de Mes del Año" -->
+{% set meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"] %}
+
+{% set fecha_str = evento.fecha_unica %}
+{% set fecha_formateada = "Por definir" %}
+{% if fecha_str %}
+    {% set p = fecha_str.split('-') %}
+    {% if p|length == 3 %}
+        {% set fecha_formateada = p[2]|int ~ " de " ~ meses_nombres[p[1]|int - 1] ~ " del " ~ p[0] %}
+    {% else %}
+        {% set fecha_formateada = fecha_str %}
+    {% endif %}
+{% endif %}
+
+{% set inicio_str = evento.fecha_inicio %}
+{% set inicio_formateada = evento.fecha_inicio %}
+{% if inicio_str %}
+    {% set pi = inicio_str.split('-') %}
+    {% if pi|length == 3 %}
+        {% set inicio_formateada = pi[2]|int ~ " de " ~ meses_nombres[pi[1]|int - 1] ~ " del " ~ pi[0] %}
+    {% endif %}
+{% endif %}
+
+{% set regreso_str = evento.fecha_regreso %}
+{% set regreso_formateada = evento.fecha_regreso %}
+{% if regreso_str %}
+    {% set pr = regreso_str.split('-') %}
+    {% if pr|length == 3 %}
+        {% set regreso_formateada = pr[2]|int ~ " de " ~ meses_nombres[pr[1]|int - 1] ~ " del " ~ pr[0] %}
     {% endif %}
 {% endif %}
 
 <div class="row justify-content-center animate__animated animate__fadeIn">
     <div class="col-lg-11 col-xl-10">
         
-        <!-- Tarjeta Principal Glassmorphic -->
-        <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-5 mb-5 position-relative border-0 shadow-lg">
+        <!-- Tarjeta Principal Glassmorphic (Clase Condicional para Sin Espacio) -->
+        <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-5 mb-5 position-relative border-0 shadow-lg {{ 'sold-out-card' if is_sold_out else '' }}">
             
+            <!-- Botón Rápido de Superusuario para Alternar Sin Espacio -->
+            {% if is_super_user %}
+            <div class="position-absolute top-0 start-0 m-3 hide-on-export d-flex gap-2" style="z-index: 20;">
+                <button class="btn {{ 'btn-success' if is_sold_out else 'btn-danger' }} shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" onclick="toggleEspacio({{ evento.id }})" title="{{ 'Habilitar Espacio' if is_sold_out else 'Marcar Sin Espacio' }}">
+                    <i class="bi {{ 'bi-check-lg' if is_sold_out else 'bi-x-lg' }} fs-5"></i>
+                </button>
+                <button class="btn btn-dark shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" data-bs-toggle="modal" data-bs-target="#deleteEventModal" title="Eliminar Publicación">
+                    <i class="bi bi-trash-fill fs-5 text-white"></i>
+                </button>
+            </div>
+            {% endif %}
+
             <!-- Botón Volver -->
-            <div class="mb-4 hide-on-export">
+            <div class="mb-4 hide-on-export d-flex justify-content-end justify-content-md-start">
                 <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; width: fit-content;">
                     <i class="bi bi-arrow-left me-2"></i>Volver
                 </a>
@@ -153,10 +219,15 @@
                 <!-- COLUMNA IZQUIERDA: Póster y CTA Principal -->
                 <div class="col-12 col-md-5 col-lg-4 d-flex flex-column align-items-center">
                     <div class="position-relative w-100" style="max-width: 350px;">
+                        <!-- Rótulo de Sin Espacio (Agotado) -->
+                        {% if is_sold_out %}
+                            <div class="sold-out-overlay">SIN ESPACIO</div>
+                        {% endif %}
+
                         {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
                         <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
                         
-                        <!-- Etiqueta de Dificultad sobre la imagen -->
+                        <!-- Etiqueta de Dificultad -->
                         {% set badge_class = 'bg-success' %}
                         {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
                         {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
@@ -165,10 +236,16 @@
                         </span>
                     </div>
 
-                    <!-- Botón Principal de Reserva (Se oculta al exportar) -->
+                    <!-- Botón Principal de Reserva Condicional -->
+                    {% if is_sold_out and not is_super_user %}
+                    <button class="btn btn-secondary w-100 rounded-pill py-3 fw-bold shadow-sm mt-4 fs-5 hide-on-export disabled" style="max-width: 350px;">
+                        <i class="bi bi-x-circle me-2"></i>Sin Espacio
+                    </button>
+                    {% else %}
                     <button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm mt-4 fs-5 hide-on-export" onclick="reservarPorWhatsApp()" style="max-width: 350px;">
                         <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
                     </button>
+                    {% endif %}
                 </div>
                 
                 <!-- COLUMNA DERECHA: Información Organizada -->
@@ -179,7 +256,6 @@
                         <span class="badge bg-dark rounded-pill px-3 mb-2 text-uppercase fw-bold shadow-sm">{{ evento.actividad }}</span>
                         <h1 class="fw-bold text-dark display-5 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
                         
-                        <!-- Banner de Precio y Reserva Unificado -->
                         <div class="price-banner d-flex flex-wrap align-items-center justify-content-between gap-3">
                             <div>
                                 <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Inversión Total</span>
@@ -198,44 +274,45 @@
                     <div class="row">
                         <div class="col-12">
                             
-                            <!-- Ítem: Fecha y Hora -->
+                            <!-- Ítem: Fecha (SIEMPRE VISIBLE Y FORMATEADO) -->
                             <div class="detail-item">
                                 <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
                                 <div class="detail-text">
-                                    <h6 class="fw-bold text-dark mb-1">Mes y Duración</h6>
-                                    {% if evento.solo_chat %}
-                                        <p class="mb-0 fw-bold">
-                                            {% if evento.dias > 1 %} 
-                                                Fecha Protegida 
-                                            {% else %} 
-                                                {{ mes_nombre_unico }} {{ anio_unico }} 
-                                            {% endif %}
-                                            <span class="text-danger small ms-1"><i class="bi bi-shield-lock-fill me-1"></i>(Día exacto por chat)</span>
-                                        </p>
-                                    {% else %}
-                                        <p>
-                                            {% if evento.dias > 1 %}
-                                                Del <strong>{{ evento.fecha_inicio }}</strong> al <strong>{{ evento.fecha_regreso }}</strong> ({{ evento.dias }} días)
-                                            {% else %}
-                                                <strong>{{ evento.fecha_unica }}</strong>
-                                            {% endif %}
-                                        </p>
-                                    {% endif %}
+                                    <h6 class="fw-bold text-dark mb-1">Fecha de la Actividad</h6>
+                                    <p class="mb-0 fs-5 text-dark fw-bold">
+                                        {% if evento.dias > 1 %}
+                                            Del {{ inicio_formateada }} al {{ regreso_formateada }}
+                                        {% else %}
+                                            <i class="bi bi-calendar-check text-orange me-1"></i> {{ fecha_formateada }}
+                                        {% endif %}
+                                    </p>
                                 </div>
                             </div>
 
-                            <!-- Ítem: Punto de Salida -->
+                            <!-- Ítem: Punto de Salida y Hora (ESTRICTAMENTE BLOQUEADO SI ES PRIVADO) -->
                             <div class="detail-item">
                                 <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
                                 <div class="detail-text">
-                                    <h6 class="fw-bold text-dark mb-1">Punto de Salida</h6>
-                                    {% if evento.solo_chat %}
-                                        <p class="text-danger fw-bold mb-0"><i class="bi bi-shield-lock-fill me-1"></i>Ubicación protegida (Solo en el Chat)</p>
+                                    <h6 class="fw-bold text-dark mb-1">Punto de Salida y Hora</h6>
+                                    
+                                    <!-- SI ES PRIVADO Y EL USUARIO ES NORMAL: BLOQUEAR -->
+                                    {% if is_private and not is_super_user %}
+                                        <p class="text-danger fw-bold fs-5 mt-2 mb-0"><i class="bi bi-shield-lock-fill me-2"></i>¡Información en el chat!</p>
+                                    
+                                    <!-- SI ES PÚBLICO O EL USUARIO ES EL DIOS (SUPERUSUARIO) -->
                                     {% else %}
-                                        <p><strong>Lugar:</strong> {{ evento.lugar_salida }}</p>
-                                        <p><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}</p>
+                                        <p class="mb-1 text-dark fs-5"><strong>Lugar:</strong> {{ lugar_real }} 
+                                        {% if is_private and is_super_user %}
+                                            <span class="badge bg-danger rounded-pill ms-2" style="font-size:0.65rem; vertical-align: middle;">Oculto</span>
+                                        {% endif %}
+                                        </p>
+                                        <p class="mb-1 text-dark fs-5"><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}
+                                        {% if is_private and is_super_user %}
+                                            <span class="badge bg-danger rounded-pill ms-2" style="font-size:0.65rem; vertical-align: middle;">Oculto</span>
+                                        {% endif %}
+                                        </p>
                                         {% if evento.puntos_recogida %}
-                                            <p class="small text-secondary mt-1"><i class="bi bi-bus-front me-1"></i><strong>Recogidas:</strong> {{ evento.puntos_recogida }}</p>
+                                            <p class="small text-secondary mt-2 mb-0"><i class="bi bi-bus-front text-orange me-1"></i><strong>Pasamos a recoger en:</strong> {{ evento.puntos_recogida }}</p>
                                         {% endif %}
                                     {% endif %}
                                 </div>
@@ -246,12 +323,12 @@
                                 <div class="detail-icon"><i class="bi bi-credit-card"></i></div>
                                 <div class="detail-text">
                                     <h6 class="fw-bold text-dark mb-1">Cupos y Métodos de Pago</h6>
-                                    <p><strong>Capacidad del evento:</strong> {{ evento.capacidad }} personas max.</p>
+                                    <p><strong>Capacidad del evento:</strong> {{ evento.capacidad|replace('AGOTADO_', '') }} personas max.</p>
                                     {% if evento.sinpe %}
-                                        <p class="mt-2 mb-1"><strong><i class="bi bi-phone me-1"></i>SINPE Móvil:</strong> {{ evento.sinpe }}</p>
+                                        <p class="mt-2 mb-1"><strong><i class="bi bi-phone text-orange me-1"></i>SINPE Móvil:</strong> {{ evento.sinpe }}</p>
                                     {% endif %}
                                     {% if evento.cuenta and evento.cuenta != 'Ninguna' %}
-                                        <p class="mb-0"><strong><i class="bi bi-bank me-1"></i>Cuenta Bancaria:</strong> {{ evento.cuenta }}</p>
+                                        <p class="mb-0"><strong><i class="bi bi-bank text-orange me-1"></i>Cuenta Bancaria:</strong> {{ evento.cuenta }}</p>
                                     {% endif %}
                                 </div>
                             </div>
@@ -285,7 +362,7 @@
                     </div>
                     {% endif %}
 
-                    <!-- NUEVA SECCIÓN: BOTONES DE COMPARTIR Y EXPORTAR -->
+                    <!-- BOTONES DE COMPARTIR Y EXPORTAR -->
                     <div class="share-section mt-5 pt-4 border-top border-secondary border-opacity-25 hide-on-export">
                         <h6 class="fw-bold text-secondary mb-3 text-center text-md-start">Invita a tus amigos y comparte la aventura:</h6>
                         <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
@@ -331,7 +408,6 @@
 <!-- MODALES DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
 <!-- ============================================== -->
 
-<!-- Modal Eliminar Evento (Glassmorphic con validación de 3 pasos) -->
 <div class="modal fade" id="deleteEventModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
@@ -354,7 +430,6 @@
     </div>
 </div>
 
-<!-- Modal Éxito al Borrar Evento (Estético) -->
 <div class="modal fade" id="successDeleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
@@ -375,7 +450,7 @@
     </div>
 </div>
 
-<!-- Modal Editar Evento (Glassmorphic Formulario Completo) -->
+<!-- Modal Editar Evento -->
 <div class="modal fade" id="editEventModal" tabindex="-1">
     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content glass-modal border-0 shadow-lg">
@@ -383,10 +458,9 @@
                 <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-pencil-square text-orange me-2"></i>Editar Evento</h4>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body px-4 px-md-5 pb-5 pt-3 text-start">
+            <div class="modal-body px-4 px-md-5 pb-5 pt-2 text-start">
                 <form id="editEventForm">
                     
-                    <!-- Subir Imagen 9:16 -->
                     <div class="text-center mb-5">
                         <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento (9:16)</label>
                         <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
@@ -450,12 +524,13 @@
                         
                         <div class="col-6 col-md-3">
                             <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
+                            {% set cap_limpia = evento.capacidad|replace('AGOTADO_', '') %}
                             <select id="editCapacidad" name="capacidad" required class="form-select glass-input rounded-3">
-                                <option value="14-17" {% if evento.capacidad == '14-17' %}selected{% endif %}>14-17</option>
-                                <option value="17-28" {% if evento.capacidad == '17-28' %}selected{% endif %}>17-28</option>
-                                <option value="17-31" {% if evento.capacidad == '17-31' %}selected{% endif %}>17-31</option>
-                                <option value="MÁS DE 31" {% if evento.capacidad == 'MÁS DE 31' %}selected{% endif %}>MÁS DE 31</option>
-                                <option value="NO APLICA" {% if evento.capacidad == 'NO APLICA' %}selected{% endif %}>NO APLICA</option>
+                                <option value="14-17" {% if cap_limpia == '14-17' %}selected{% endif %}>14-17</option>
+                                <option value="17-28" {% if cap_limpia == '17-28' %}selected{% endif %}>17-28</option>
+                                <option value="17-31" {% if cap_limpia == '17-31' %}selected{% endif %}>17-31</option>
+                                <option value="MÁS DE 31" {% if cap_limpia == 'MÁS DE 31' %}selected{% endif %}>MÁS DE 31</option>
+                                <option value="NO APLICA" {% if cap_limpia == 'NO APLICA' %}selected{% endif %}>NO APLICA</option>
                             </select>
                         </div>
 
@@ -483,26 +558,25 @@
 
                     <!-- Nacional -->
                     <div id="editNationalFields" class="p-3 p-md-4 rounded-4 mb-4" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
-                            <h5 class="fw-bold mb-0 text-orange">Logística y Fechas</h5>
-                            <div class="form-check form-switch d-flex align-items-center bg-white bg-opacity-50 px-3 py-2 rounded-pill shadow-sm border border-white" style="width: fit-content; margin: 0;">
-                                <input class="form-check-input m-0" type="checkbox" id="editSoloChatToggle" name="solo_chat" value="true" onchange="toggleEditSoloChat()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if evento.solo_chat %}checked{% endif %}>
-                                <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="editSoloChatToggle" style="cursor: pointer; padding-top: 1px;">
-                                    <i class="bi bi-shield-lock-fill me-1"></i>Modo Seguro
+                        
+                        <!-- SWITCH: DÍA SEGURO -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2 border-bottom border-white border-opacity-50 pb-2">
+                            <h5 class="fw-bold mb-0 text-orange">Fechas de Actividad</h5>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input m-0" type="checkbox" id="editDiaSeguroToggle" onchange="toggleEditDiaSeguro()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if evento.solo_chat %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="editDiaSeguroToggle" style="cursor: pointer; padding-top: 1px;">
+                                    <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Día Exacto
                                 </label>
                             </div>
                         </div>
                         
-                        <div class="row g-3 mb-3">
+                        <div class="row g-3 mb-4">
                             <div class="col-12 col-md-4">
                                 <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
-                                <div class="edit-normal-logistics">
-                                    <input type="number" id="editDias" name="dias" min="1" max="10" value="{{ evento.dias }}" onchange="toggleEditDateInputs()" class="form-control glass-input rounded-3">
-                                </div>
-                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="Solo en el Chat" disabled>
+                                <input type="number" id="editDias" name="dias" min="1" max="10" value="{{ evento.dias }}" onchange="toggleEditDateInputs()" class="form-control glass-input rounded-3">
                             </div>
                             
-                            <!-- FECHA ÚNICA (DIVIDIDA) -->
+                            <!-- FECHA ÚNICA -->
                             <div id="editSingleDateGroup" class="col-12 col-md-8">
                                 <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
                                 <div class="row g-1 date-split">
@@ -510,7 +584,7 @@
                                         <input type="number" id="e_dayUnica" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
                                     </div>
                                     <div class="col-3 edit-secure-day d-none">
-                                        <input type="text" class="form-control glass-input rounded-3 text-danger bg-light" value="🔒 Chat" disabled style="font-size:0.8rem;">
+                                        <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
                                     </div>
                                     <div class="col-5">
                                         <select id="e_monthUnica" class="form-select glass-input rounded-3">
@@ -526,7 +600,7 @@
                                 </div>
                             </div>
 
-                            <!-- RANGO DE FECHAS (DIVIDIDAS) -->
+                            <!-- RANGO DE FECHAS -->
                             <div id="editRangeDateGroup" class="col-12 col-md-8 d-none">
                                 <div class="row g-2">
                                     <div class="col-12 col-sm-6">
@@ -536,7 +610,7 @@
                                                 <input type="number" id="e_dayInicio" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
                                             </div>
                                             <div class="col-3 edit-secure-day d-none">
-                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light" value="🔒 Chat" disabled style="font-size:0.7rem;">
+                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.7rem;">
                                             </div>
                                             <div class="col-5">
                                                 <select id="e_monthInicio" class="form-select glass-input rounded-3">
@@ -557,7 +631,7 @@
                                                 <input type="number" id="e_dayRegreso" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
                                             </div>
                                             <div class="col-3 edit-secure-day d-none">
-                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light" value="🔒 Chat" disabled style="font-size:0.7rem;">
+                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.7rem;">
                                             </div>
                                             <div class="col-5">
                                                 <select id="e_monthRegreso" class="form-select glass-input rounded-3">
@@ -575,25 +649,36 @@
                             </div>
                         </div>
 
+                        <!-- SWITCH: LOGÍSTICA SEGURA -->
+                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 mt-4 gap-2 border-bottom border-white border-opacity-50 pb-2">
+                            <h5 class="fw-bold mb-0 text-orange">Logística de Salida</h5>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input m-0" type="checkbox" id="editLogisticaSeguraToggle" onchange="toggleEditLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if is_logistica_segura %}checked{% endif %}>
+                                <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="editLogisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
+                                    <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="row g-3">
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
                                 <div class="edit-normal-logistics">
                                     <input type="time" id="editHoraSalida" name="horaSalida" class="form-control glass-input rounded-3" value="{{ evento.hora_salida or '' }}">
                                 </div>
-                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Privado en chat" disabled>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
                                 <div class="edit-normal-logistics">
                                     <select id="editLugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
-                                        <option value="Parque de Tres Ríos - Escuela" {% if evento.lugar_salida == 'Parque de Tres Ríos - Escuela' %}selected{% endif %}>Parque de Tres Ríos - Escuela</option>
-                                        <option value="Parque de Tres Ríos - Cruz Roja" {% if evento.lugar_salida == 'Parque de Tres Ríos - Cruz Roja' %}selected{% endif %}>Parque de Tres Ríos - Cruz Roja</option>
-                                        <option value="Parque de Tres Ríos - Letras" {% if evento.lugar_salida == 'Parque de Tres Ríos - Letras' %}selected{% endif %}>Parque de Tres Ríos - Letras</option>
-                                        <option value="San José" {% if evento.lugar_salida == 'San José' %}selected{% endif %}>San José (Sabana)</option>
+                                        <option value="Parque de Tres Ríos - Escuela" {% if lugar_real == 'Parque de Tres Ríos - Escuela' %}selected{% endif %}>Parque de Tres Ríos - Escuela</option>
+                                        <option value="Parque de Tres Ríos - Cruz Roja" {% if lugar_real == 'Parque de Tres Ríos - Cruz Roja' %}selected{% endif %}>Parque de Tres Ríos - Cruz Roja</option>
+                                        <option value="Parque de Tres Ríos - Letras" {% if lugar_real == 'Parque de Tres Ríos - Letras' %}selected{% endif %}>Parque de Tres Ríos - Letras</option>
+                                        <option value="San José" {% if lugar_real == 'San José' %}selected{% endif %}>San José (Sabana)</option>
                                     </select>
                                 </div>
-                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                                <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="📍 Privado en chat" disabled>
                             </div>
                         </div>
 
@@ -602,7 +687,7 @@
                             <div class="edit-normal-logistics">
                                 <textarea id="editPuntosRecogida" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3">{{ evento.puntos_recogida or '' }}</textarea>
                             </div>
-                            <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                            <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Logística interna" disabled>
                         </div>
                     </div>
 
@@ -613,23 +698,17 @@
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold text-muted small mb-1">País Destino</label>
                                 <select id="editPais" name="pais" class="form-select glass-input rounded-3">
-                                    <option value="Panamá">Panamá</option>
-                                    <option value="Nicaragua">Nicaragua</option>
-                                    <option value="El Salvador">El Salvador</option>
-                                    <option value="Honduras">Honduras</option>
-                                    <option value="Guatemala">Guatemala</option>
-                                    <option value="México">México</option>
-                                    <option value="Colombia">Colombia</option>
+                                    <option value="Panamá">Panamá</option><option value="Colombia">Colombia</option>
                                 </select>
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
-                                <input type="text" id="editDestinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" value="{{ evento.lugar_salida if evento.actividad == 'Internacional' else '' }}">
+                                <input type="text" id="editDestinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" value="{{ lugar_real if evento.actividad == 'Internacional' else '' }}">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Incluye -->
+                    <!-- Incluye (RESTAURADO COMPLETO) -->
                     <div class="mb-4 p-3 rounded-4 shadow-sm" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
                         <h5 class="fw-bold text-orange border-bottom border-secondary border-opacity-25 pb-2 mb-3">Incluye</h5>
                         <div class="row g-2 mb-3 text-muted small check-btn-wrapper" id="editIncluyeWrapper">
@@ -657,7 +736,6 @@
                             <div class="col-6 col-md-3"><input type="checkbox" id="e_inc22" name="incluye_check" value="Guías Certificados" class="d-none"><label for="e_inc22" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Guías Certif.</label></div>
                             <div class="col-6 col-md-3"><input type="checkbox" id="e_checkOtros" name="incluye_check" value="Otros" class="d-none" onchange="toggleEditOtherDesc()"><label for="e_checkOtros" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Otros</label></div>
                         </div>
-                        
                         <div id="editOtrosDescContainer" class="d-none mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm">
                             <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
                             <input type="text" id="editOtrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
@@ -680,18 +758,15 @@
     </div>
 </div>
 
-<!-- Librería html2canvas para capturar el HTML y convertirlo en imagen (PNG directo) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <script>
-    // PRECARGAR DATOS AL INICIAR LA PÁGINA (Modal de Edición)
     document.addEventListener("DOMContentLoaded", () => {
-        // Inicializar Estado de Formularios
         toggleEditActividad();
         toggleEditDateInputs();
-        toggleEditSoloChat();
+        toggleEditDiaSeguro();
+        toggleEditLogisticaSegura();
         
-        // Helper para inyectar datos en inputs divididos
         const setDateFields = (dateStr, dId, mId, yId) => {
             if(!dateStr) return;
             const pts = dateStr.split('-');
@@ -702,25 +777,21 @@
             }
         };
 
-        // Inyectamos las fechas existentes
         setDateFields("{{ evento.fecha_unica or '' }}", 'e_dayUnica', 'e_monthUnica', 'e_yearUnica');
         setDateFields("{{ evento.fecha_inicio or '' }}", 'e_dayInicio', 'e_monthInicio', 'e_yearInicio');
         setDateFields("{{ evento.fecha_regreso or '' }}", 'e_dayRegreso', 'e_monthRegreso', 'e_yearRegreso');
 
-        // Marcar checkboxes guardados en 'incluye'
         const includesGuardados = "{{ evento.incluye or '' }}".split(',').map(s => s.trim());
         const checkboxes = document.querySelectorAll('#editIncluyeWrapper input[type="checkbox"]');
         
         checkboxes.forEach(cb => {
             if (cb.value !== "Otros" && includesGuardados.includes(cb.value)) {
                 cb.checked = true;
-                // Quitarlo de la lista para saber cuáles son los "Otros"
                 const index = includesGuardados.indexOf(cb.value);
                 if (index > -1) includesGuardados.splice(index, 1);
             }
         });
         
-        // Lo que queda en includesGuardados son los "Otros" (si no está vacío)
         const filteredOtros = includesGuardados.filter(item => item !== "Otros" && item !== "");
         if (filteredOtros.length > 0) {
             document.getElementById('e_checkOtros').checked = true;
@@ -728,7 +799,6 @@
             toggleEditOtherDesc();
         }
 
-        // Previsualizar Imagen de Edición
         const editImageUpload = document.getElementById('editEventImageUpload');
         if (editImageUpload) {
             editImageUpload.addEventListener('change', function(e) {
@@ -743,9 +813,20 @@
         }
     });
 
-    // ==============================================
-    // FUNCIONES DEL MODAL DE EDICIÓN
-    // ==============================================
+    async function toggleEspacio(eventId) {
+        try {
+            const response = await fetch(`/api/toggle_espacio/${eventId}`, { method: 'POST' });
+            const result = await response.json();
+            if (response.ok && result.success) {
+                window.location.reload(); 
+            } else {
+                alert(result.error || "No se pudo cambiar el estado del evento.");
+            }
+        } catch(err) {
+            alert("Error de conexión al intentar guardar la disponibilidad.");
+        }
+    }
+
     function toggleEditActividad() {
         const act = document.getElementById('editActividad').value;
         document.getElementById('editNationalFields').classList.toggle('d-none', act === 'Internacional');
@@ -758,29 +839,35 @@
         document.getElementById('editRangeDateGroup').classList.toggle('d-none', dias <= 1);
     }
 
-    function toggleEditSoloChat() {
-        const isSecure = document.getElementById('editSoloChatToggle').checked;
-        document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
-        document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
-        
-        // Esconder el input de DÍA
+    function toggleEditDiaSeguro() {
+        const isSecure = document.getElementById('editDiaSeguroToggle').checked;
         document.querySelectorAll('.edit-normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
         document.querySelectorAll('.edit-secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+    }
+
+    function toggleEditLogisticaSegura() {
+        const isSecure = document.getElementById('editLogisticaSeguraToggle').checked;
+        document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+        document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
     }
 
     function toggleEditOtherDesc() {
         document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
     }
 
-    // ENVÍO DEL FORMULARIO DE EDICIÓN AL BACKEND
     document.getElementById('editEventForm')?.addEventListener('submit', async function(e) {
         e.preventDefault();
         const formData = new FormData(this);
         
-        const isSecure = document.getElementById('editSoloChatToggle').checked;
-        formData.set('solo_chat', isSecure);
+        const isSecureDia = document.getElementById('editDiaSeguroToggle').checked;
+        formData.set('solo_chat', isSecureDia);
 
-        // Agrupar Incluye en un solo string
+        const isSecureLog = document.getElementById('editLogisticaSeguraToggle').checked;
+        if (isSecureLog) {
+            const lugar = formData.get('lugarSalida');
+            formData.set('lugarSalida', 'SEGURO_' + lugar);
+        }
+
         const incluyeArr = [];
         document.querySelectorAll('#editIncluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
             if(cb.value === "Otros") {
@@ -792,7 +879,6 @@
         });
         formData.set('incluye', incluyeArr.join(', '));
 
-        // Reconstrucción inteligente de fechas (Igual a creación)
         const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0'+v : v)); };
         
         if (document.getElementById('editActividad').value === 'Internacional') {
@@ -802,17 +888,17 @@
             if (dias === 1) {
                 const y = document.getElementById('e_yearUnica').value;
                 const m = document.getElementById('e_monthUnica').value;
-                const d = isSecure ? '01' : pad(document.getElementById('e_dayUnica').value);
+                const d = isSecureDia ? '01' : pad(document.getElementById('e_dayUnica').value);
                 formData.set('fechaUnica', `${y}-${m}-${d}`);
             } else {
                 const yI = document.getElementById('e_yearInicio').value;
                 const mI = document.getElementById('e_monthInicio').value;
-                const dI = isSecure ? '01' : pad(document.getElementById('e_dayInicio').value);
+                const dI = isSecureDia ? '01' : pad(document.getElementById('e_dayInicio').value);
                 formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
                 
                 const yR = document.getElementById('e_yearRegreso').value;
                 const mR = document.getElementById('e_monthRegreso').value;
-                const dR = isSecure ? '01' : pad(document.getElementById('e_dayRegreso').value);
+                const dR = isSecureDia ? '01' : pad(document.getElementById('e_dayRegreso').value);
                 formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
             }
         }
@@ -822,8 +908,7 @@
             const result = await response.json();
             
             if (response.ok && result.success) {
-                alert("¡Evento actualizado exitosamente!");
-                window.location.reload(); // Recargar para ver los cambios actualizados
+                window.location.reload(); 
             } else {
                 alert("Error al actualizar: " + (result.error || "Desconocido"));
             }
@@ -832,9 +917,6 @@
         }
     });
 
-    // ==============================================
-    // FUNCIONES DEL MODAL DE ELIMINACIÓN (3 PASOS)
-    // ==============================================
     let deleteClicks = 0;
     function processDeleteEvento(eventId) {
         const btn = document.getElementById('btnConfirmDelete');
@@ -849,13 +931,11 @@
             btn.classList.replace('btn-warning', 'btn-dark');
             btn.classList.add('text-white');
         } else {
-            // Tercer clic: Ejecuta la acción real
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
             btn.disabled = true;
             ejecutarBorradoReal(eventId);
         }
         
-        // Resetear el botón si el usuario no hace clic consecutivamente
         setTimeout(() => {
             if (deleteClicks > 0 && deleteClicks < 3) {
                 deleteClicks = 0;
@@ -871,30 +951,17 @@
             const result = await response.json();
             
             if (response.ok && result.success) {
-                // Borrar también en IndexedDB local si es que existe
                 try {
-                    const request = indexedDB.open("EventosLocalDB", 2);
-                    request.onsuccess = (e) => {
-                        e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId);
-                    };
+                    const request = indexedDB.open("EventosLocalDB", 3);
+                    request.onsuccess = (e) => { e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId); };
                 } catch(e) {}
                 
-                // Ocultar modal de advertencia
-                const deleteModalEl = document.getElementById('deleteEventModal');
-                const deleteModal = bootstrap.Modal.getInstance(deleteModalEl);
+                const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
                 if(deleteModal) deleteModal.hide();
-
-                // Mostrar Modal de Éxito súper estético
-                const successModal = new bootstrap.Modal(document.getElementById('successDeleteModal'));
-                successModal.show();
-
-                // Redirigir al inicio después de 2 segundos
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 2000);
-
+                new bootstrap.Modal(document.getElementById('successDeleteModal')).show();
+                setTimeout(() => { window.location.href = '/'; }, 2000);
             } else {
-                alert("Error al eliminar el evento: " + (result.error || "Desconocido"));
+                alert("Error al eliminar el evento.");
                 document.getElementById('btnConfirmDelete').disabled = false;
             }
         } catch (err) {
@@ -903,9 +970,6 @@
         }
     }
 
-    // ==============================================
-    // FUNCIONES DE COMPARTIR Y EXPORTAR
-    // ==============================================
     function reservarPorWhatsApp() {
         const nombreEvento = "{{ evento.nombre_lugar }}";
         const precio = "{{ evento.moneda }}{{ evento.precio }}";
@@ -920,9 +984,8 @@
     function shareToFriendWhatsApp() {
         const nombreEvento = "{{ evento.nombre_lugar }}";
         const precio = "{{ evento.moneda }}{{ evento.precio }}";
-        let fecha = "{{ evento.fecha_unica }}";
-        {% if evento.dias > 1 %} fecha = "{{ evento.fecha_inicio }} al {{ evento.fecha_regreso }}"; {% endif %}
-        {% if evento.solo_chat %} fecha = "Por definir"; {% endif %}
+        let fecha = "{{ fecha_formateada }}";
+        {% if evento.dias > 1 %} fecha = "{{ inicio_formateada }} al {{ regreso_formateada }}"; {% endif %}
         const url = window.location.href;
         const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
         window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');

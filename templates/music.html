@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Música de La Tribu - Reproductor</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Animate CSS (Para animaciones del Mini Player) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <style>
+        /* === FONDO Y GLASSMORPHISM === */
+        body {
+            background: radial-gradient(circle at top right, #1a2a40 0%, #0d1117 100%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5) !important;
+        }
+
+        .glass-input {
+            background: rgba(0, 0, 0, 0.2) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+        .glass-input:focus {
+            background: rgba(0, 0, 0, 0.4) !important;
+            border-color: #0d6efd !important;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+        }
+
+        /* === ANIMACIÓN CARÁTULA === */
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+        .cover-spin {
+            animation: spin 6s linear infinite;
+            animation-play-state: paused; 
+        }
+        .cover-spin.playing {
+            animation-play-state: running; 
+        }
+        
+        /* Garantizar carátula redonda */
+        .cover-img {
+            width: 280px;
+            height: 280px;
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 25px rgba(0,0,0,0.6);
+            transition: box-shadow 0.3s ease, border-color 0.3s ease;
+            background-color: #1a2a40; /* Color de fondo por si no hay imagen */
+        }
+        
+        /* Efectos de Hover para la carátula */
+        .cover-img-hover {
+            cursor: pointer;
+        }
+        .cover-img-hover:hover {
+            box-shadow: 0 0 35px rgba(13, 110, 253, 0.6); 
+            border-color: rgba(13, 110, 253, 0.4);
+        }
+
+        /* === PLAYLIST === */
+        .playlist-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .playlist-item:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .playlist-item.active-song {
+            background-color: rgba(13, 110, 253, 0.2);
+            border-left: 4px solid #0d6efd;
+        }
+
+        /* === BOTONES DEL REPRODUCTOR OPTIMIZADOS === */
+        .btn-play-perfect {
+            width: 75px;
+            height: 75px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50% !important;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        .btn-play-perfect:active {
+            transform: scale(0.92);
+        }
+        .icon-play-offset {
+            margin-left: 4px; 
+        }
+        
+        .btn-control {
+            width: 45px;
+            height: 45px;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50% !important;
+            padding: 0;
+            transition: background-color 0.2s;
+        }
+
+        /* === MINI PLAYER ESTILOS === */
+        #mini-player {
+            transition: transform 0.3s ease;
+        }
+        #mini-player:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8) !important;
+        }
+
+        /* === MEDIA QUERIES PARA MÓVILES PEQUEÑOS === */
+        @media (max-width: 400px) {
+            .container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+            .cover-img { width: 200px; height: 200px; border-width: 3px; }
+            .btn-play-perfect { width: 60px; height: 60px; }
+            .btn-play-perfect i { font-size: 2rem !important; }
+            .btn-control { width: 38px; height: 38px; }
+            .btn-control i { font-size: 1rem !important; }
+            .controls-gap { gap: 0.5rem !important; }
+            h4#current-title { font-size: 1.25rem; margin-bottom: 1rem !important; }
+            .card-body { padding: 1rem !important; }
+        }
+    </style>
+</head>
+<body class="text-light pb-5">
+
+<div class="container py-5">
+    <!-- Header principal -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom border-secondary">
+        <h2 class="m-0 text-primary fs-3 fw-bold" style="text-shadow: 0 2px 5px rgba(0,0,0,0.5);">
+            <i class="bi bi-disc-fill me-2"></i>MÚSICA ORIGINAL DE LA TRIBU
+        </h2>
+        <div class="d-flex gap-2">
+            
+            <!-- BOTÓN: ATRÁS (Va al Home.html /) -->
+            <a href="/" class="btn btn-outline-light rounded-pill px-3 d-flex align-items-center justify-content-center fw-bold shadow-sm" title="Ir al Inicio">
+                <i class="bi bi-chevron-left me-1"></i><span class="d-none d-sm-inline">Atrás</span>
+            </a>
+
+            <!-- BOTÓN SUBIR EXCLUSIVO SUPERUSUARIO -->
+            {% if session.get('role') == 'Superusuario' %}
+            <button class="btn btn-primary rounded-pill px-3 px-sm-4 fw-bold" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="bi bi-cloud-arrow-up-fill me-1"></i><span class="d-none d-sm-inline">Subir</span>
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row g-4 transition-all duration-300">
+        
+        <!-- SECCIÓN: REPRODUCTOR PRINCIPAL -->
+        <div id="main-player-col" class="col-lg-6">
+            <div class="card glass-card rounded-4 p-3 p-sm-4 text-center h-100">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center p-0 p-sm-3">
+                    
+                    <!-- Carátula Redonda -->
+                    <div class="position-relative mb-4" title="Clic para cambiar el logo inicial">
+                        
+                        <!-- SOLUCIÓN AL SERVICE WORKER: Siempre mostramos el input, sin condicionales de Jinja.
+                             El backend se encargará de bloquear a los que no tengan sesión. -->
+                        <label for="quick-cover-upload" class="d-block m-0" style="cursor: pointer;">
+                        
+                            <!-- CORRECCIÓN DE IMAGEN ROTA: Muestra el disco SVG si no existe logo.png -->
+                            <img id="cover-img" src="{{ url_for('static', filename='music/logo.png') }}" alt="Carátula de canción" 
+                                 class="rounded-circle cover-img cover-img-hover cover-spin" 
+                                 onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22%231a2a40%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2215%22%20fill%3D%22%230d1117%22%2F%3E%3C%2Fsvg%3E'; this.classList.remove('cover-spin');">
+                            
+                            <!-- Etiqueta de 'Cambiar' siempre visible -->
+                            <div class="position-absolute bottom-0 start-50 translate-middle-x bg-primary text-white px-3 py-1 rounded-pill pointer-events-none shadow" style="opacity: 0.85; font-size: 0.75rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                                <i class="bi bi-camera-fill me-1"></i>Cambiar
+                            </div>
+
+                        </label>
+                        
+                        <!-- Input nativo de archivo conectado al label superior -->
+                        <input type="file" id="quick-cover-upload" accept="image/*" class="d-none" onchange="quickUploadCover(event)">
+                    </div>
+                    
+                    <!-- Título -->
+                    <h4 id="current-title" class="fw-bold mb-4 text-truncate w-100 px-2" style="text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Selecciona una canción</h4>
+                    
+                    <!-- Barra de Tiempo -->
+                    <div class="w-100 mb-4 px-3">
+                        <input type="range" class="form-range" id="progress-bar" min="0" value="0" step="0.1">
+                        <div class="d-flex justify-content-between small text-white-50 font-monospace mt-1">
+                            <span id="current-time">0:00</span>
+                            <span id="total-time">0:00</span>
+                        </div>
+                    </div>
+
+                    <!-- Controles de Audio -->
+                    <div class="d-flex justify-content-center align-items-center gap-3 controls-gap">
+                        <button class="btn btn-outline-light btn-control" onclick="skipBackward()" title="Retroceder 10s">
+                            <i class="bi bi-rewind-fill fs-5"></i>
+                        </button>
+                        <button class="btn btn-outline-light btn-control" onclick="prevSong()" title="Anterior">
+                            <i class="bi bi-skip-start-fill fs-3"></i>
+                        </button>
+                        
+                        <!-- Botón PLAY / PAUSE -->
+                        <button id="play-btn" class="btn btn-primary btn-play-perfect shadow-lg" onclick="togglePlay()">
+                            <i id="icon-play" class="bi bi-play-fill fs-1 icon-play-offset"></i>
+                            <i id="icon-pause" class="bi bi-pause-fill fs-1 d-none"></i>
+                        </button>
+                        
+                        <button class="btn btn-outline-light btn-control" onclick="nextSong()" title="Siguiente">
+                            <i class="bi bi-skip-end-fill fs-3"></i>
+                        </button>
+                        <button class="btn btn-outline-light btn-control" onclick="skipForward()" title="Adelantar 10s">
+                            <i class="bi bi-fast-forward-fill fs-5"></i>
+                        </button>
+                        
+                        <!-- Botón DETENER / REINICIAR -->
+                        <button class="btn btn-outline-danger btn-control ms-1" onclick="stopPlayer()" title="Detener y volver al inicio">
+                            <i class="bi bi-stop-fill fs-4"></i>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN: PLAYLIST -->
+        <div id="playlist-col" class="col-lg-6 transition-all duration-300">
+            <div class="card glass-card h-100 rounded-4">
+                <div class="card-header border-bottom border-light border-opacity-10 bg-transparent pt-4 pb-3">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-music-note-list me-2"></i>Lista de Canciones</h5>
+                </div>
+                <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                    <ul class="list-group list-group-flush" id="playlist">
+                        <li class="list-group-item bg-transparent text-center text-white-50 py-5 border-0">
+                            Cargando tu música...
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MINI PLAYER (Para colocar en tu base.html)   -->
+<!-- ============================================== -->
+<div id="mini-player" class="fixed-bottom m-2 m-md-4 p-3 glass-card rounded-pill d-none animate__animated animate__fadeInUp shadow-lg" style="z-index: 1050; cursor: pointer; background: rgba(26, 42, 64, 0.95); border: 1px solid rgba(255,255,255,0.2);" onclick="window.location.href='/reproductor'" title="Abrir reproductor completo">
+    <div class="d-flex align-items-center justify-content-between">
+        <!-- Info Izquierda -->
+        <div class="d-flex align-items-center overflow-hidden" style="max-width: 60%;">
+            <img id="mini-cover" src="{{ url_for('static', filename='music/logo.png') }}" class="rounded-circle cover-spin me-3 shadow-sm" style="width: 50px; height: 50px; object-fit: cover; border: 2px solid rgba(255,255,255,0.2);" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22%231a2a40%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2215%22%20fill%3D%22%230d1117%22%2F%3E%3C%2Fsvg%3E';">
+            <div class="text-truncate">
+                <h6 id="mini-title" class="mb-0 fw-bold text-light text-truncate" style="font-size: 1rem;">Selecciona una canción</h6>
+                <small class="text-info fw-bold" style="font-size: 0.75rem;"><i class="bi bi-soundwave me-1"></i>Tocando ahora</small>
+            </div>
+        </div>
+        
+        <!-- Controles Derecha -->
+        <div class="d-flex align-items-center gap-2 gap-sm-3 pe-2">
+            <button class="btn btn-sm btn-outline-light rounded-circle btn-control d-none d-sm-flex" onclick="event.stopPropagation(); prevSong()" style="width: 38px; height: 38px;"><i class="bi bi-skip-start-fill"></i></button>
+            
+            <button class="btn btn-sm btn-primary rounded-circle btn-play-perfect shadow-sm" onclick="event.stopPropagation(); togglePlay()" style="width: 50px; height: 50px;">
+                <i id="mini-icon-play" class="bi bi-play-fill fs-4 icon-play-offset"></i>
+                <i id="mini-icon-pause" class="bi bi-pause-fill fs-4 d-none"></i>
+            </button>
+            
+            <button class="btn btn-sm btn-outline-light rounded-circle btn-control d-none d-sm-flex" onclick="event.stopPropagation(); nextSong()" style="width: 38px; height: 38px;"><i class="bi bi-skip-end-fill"></i></button>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================== -->
+<!-- MODALES EXCLUSIVOS PARA SUPERUSUARIO -->
+<!-- ============================================== -->
+{% if session.get('role') == 'Superusuario' %}
+
+<!-- Modal: Subir Canción -->
+<div class="modal fade" id="uploadModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-cloud-upload text-primary me-2"></i> Subir Audio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="upload-form">
+                    <div class="mb-3">
+                        <label class="form-label text-light fw-semibold">Selecciona el archivo (.mp3, .wav)</label>
+                        <input class="form-control glass-input rounded-3" type="file" id="audio-file" accept="audio/*" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-light border-opacity-10">
+                <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button id="btn-submit-audio" type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="uploadSong()">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Editar Canción -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-card border-0">
+            <div class="modal-header border-bottom border-light border-opacity-10">
+                <h5 class="modal-title fw-bold text-white"><i class="bi bi-pencil-square text-info me-2"></i> Editar Información</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="edit-form">
+                    <input type="hidden" id="edit-id">
+                    <div class="mb-4">
+                        <label class="form-label text-light fw-semibold">Nombre de la Canción</label>
+                        <input type="text" class="form-control glass-input rounded-3" id="edit-title" required>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label text-light fw-semibold">Carátula (Opcional)</label>
+                        <input type="file" class="form-control glass-input rounded-3" id="edit-cover" accept="image/*">
+                        <div class="form-text text-white-50 small mt-2"><i class="bi bi-info-circle me-1"></i>Puedes dejarlo vacío para mantener la imagen actual. También puedes cambiarla rápidamente haciendo clic en el centro del disco.</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-light border-opacity-10">
+                <button type="button" class="btn btn-outline-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-info rounded-pill px-4 fw-bold text-dark" onclick="submitEdit()">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+<!-- ============================================== -->
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- SPA Logic y SISTEMA DE MEMORIA (LocalStorage) -->
+<script>
+    // Inyectamos el permiso del Backend a JavaScript
+    const isSuperUser = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+
+    let songs = [];
+    let currentIndex = -1;
+    
+    // Si tienes el código en base.html, asegúrate de declarar el audio globalmente
+    if (typeof window.appAudio === 'undefined') {
+        window.appAudio = new Audio();
+    }
+    const audio = window.appAudio;
+    
+    let pendingCoverFile = null;
+    
+    const coverImg = document.getElementById('cover-img');
+    const miniCoverImg = document.getElementById('mini-cover');
+    
+    const iconPlay = document.getElementById('icon-play');
+    const iconPause = document.getElementById('icon-pause');
+    const miniIconPlay = document.getElementById('mini-icon-play');
+    const miniIconPause = document.getElementById('mini-icon-pause');
+    
+    const progressBar = document.getElementById('progress-bar');
+    const titleEl = document.getElementById('current-title');
+    const miniTitleEl = document.getElementById('mini-title');
+
+    let uploadModal = null;
+    let editModal = null;
+
+    // === REPRODUCCIÓN SEGURA PARA EVITAR ERRORES DOMException ===
+    function playAudioSafe() {
+        if (!audio.src || audio.src === window.location.href || audio.src.endsWith('/reproductor')) return;
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.warn("Reproducción pausada: el navegador requiere interacción primero o ruta no válida.");
+            });
+        }
+    }
+
+    // === GUARDAR ESTADO AL CAMBIAR DE PÁGINA ===
+    window.addEventListener('beforeunload', () => {
+        if (currentIndex !== -1) {
+            localStorage.setItem('tribu_music_idx', currentIndex);
+            localStorage.setItem('tribu_music_time', audio.currentTime);
+            localStorage.setItem('tribu_music_playing', !audio.paused);
+        }
+    });
+
+    window.onload = () => {
+        if (document.getElementById('uploadModal')) uploadModal = new bootstrap.Modal(document.getElementById('uploadModal'));
+        if (document.getElementById('editModal')) editModal = new bootstrap.Modal(document.getElementById('editModal'));
+        
+        loadSongs();
+        
+        // Forzamos al cargar que el coverImg intente buscar la última versión esquivando la caché
+        if (currentIndex === -1 && coverImg && coverImg.src.includes('logo.png')) {
+            const noCacheUrl = `/static/music/logo.png?t=${new Date().getTime()}`;
+            coverImg.src = noCacheUrl;
+            if (miniCoverImg) miniCoverImg.src = noCacheUrl;
+        }
+    };
+
+    async function loadSongs() {
+        try {
+            const res = await fetch('/api/songs');
+            songs = await res.json();
+            renderPlaylist();
+
+            // === RECUPERAR ESTADO AL CARGAR LA PÁGINA ===
+            const savedIdx = localStorage.getItem('tribu_music_idx');
+            if (savedIdx !== null && currentIndex === -1) {
+                const idx = parseInt(savedIdx);
+                if (idx >= 0 && idx < songs.length) {
+                    loadSongInfo(idx);
+                    audio.currentTime = parseFloat(localStorage.getItem('tribu_music_time')) || 0;
+                    
+                    if (localStorage.getItem('tribu_music_playing') === 'true') {
+                        playAudioSafe();
+                    } else if (document.getElementById('mini-player')) {
+                        document.getElementById('mini-player').classList.remove('d-none');
+                    }
+                }
+            }
+
+        } catch (error) {
+            console.error("Error cargando canciones:", error);
+            const list = document.getElementById('playlist');
+            if(list) list.innerHTML = `<li class="list-group-item bg-transparent text-center text-danger border-0"><i class="bi bi-exclamation-triangle-fill fs-2 d-block mb-2"></i>Error al conectar con el servidor.</li>`;
+        }
+    }
+
+    function renderPlaylist() {
+        const list = document.getElementById('playlist');
+        if (!list) return; // Por si estamos en otra vista que no tiene playlist
+        
+        if (songs.length === 0) {
+            list.innerHTML = '<li class="list-group-item bg-transparent text-center text-white-50 py-5 border-0"><i class="bi bi-music-note-list fs-1 d-block mb-3 opacity-50"></i>No hay canciones en la biblioteca.</li>';
+            return;
+        }
+
+        list.innerHTML = '';
+        songs.forEach((song, index) => {
+            const isPlaying = index === currentIndex;
+            const li = document.createElement('li');
+            li.className = `list-group-item bg-transparent text-light border-bottom border-light border-opacity-10 d-flex justify-content-between align-items-center p-3 playlist-item ${isPlaying ? 'active-song' : ''}`;
+            
+            const adminButtons = isSuperUser ? `
+                <div class="ms-3 d-flex gap-2">
+                    <button onclick="event.stopPropagation(); openEditModal(${song.id}, '${song.title.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-info text-light rounded-circle border-0" title="Editar">
+                        <i class="bi bi-pencil-fill"></i>
+                    </button>
+                    <button onclick="event.stopPropagation(); deleteSong(${song.id})" class="btn btn-sm btn-outline-danger text-light rounded-circle border-0" title="Eliminar">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </div>
+            ` : '';
+
+            li.innerHTML = `
+                <div class="d-flex align-items-center flex-grow-1 overflow-hidden" onclick="playSpecificSong(${index})">
+                    <img src="/static/music/${song.cover}" onerror="this.onerror=null; this.src='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';" class="rounded-circle me-3 object-fit-cover shadow-sm border border-light border-opacity-25" style="width: 50px; height: 50px;">
+                    <div class="text-truncate fw-semibold ${isPlaying ? 'text-primary' : ''}">${song.title}</div>
+                </div>
+                ${adminButtons}
+            `;
+            list.appendChild(li);
+        });
+    }
+
+    function loadSongInfo(index) {
+        if (index < 0 || index >= songs.length) return;
+        currentIndex = index;
+        
+        pendingCoverFile = null; 
+        
+        const song = songs[currentIndex];
+        const newSrc = `/static/music/${song.cover}?t=${new Date().getTime()}`;
+        
+        audio.src = `/static/music/${song.filename}`;
+        audio.load();
+        
+        if(titleEl) titleEl.textContent = song.title;
+        if(miniTitleEl) miniTitleEl.textContent = song.title;
+        
+        if(coverImg) coverImg.src = newSrc; 
+        if(miniCoverImg) miniCoverImg.src = newSrc;
+        
+        // Al seleccionar, mostramos el mini player automáticamente si estamos en base.html
+        if(document.getElementById('mini-player')) {
+            document.getElementById('mini-player').classList.remove('d-none');
+        }
+        
+        renderPlaylist();
+    }
+
+    function playSpecificSong(index) {
+        if (currentIndex !== index) {
+            loadSongInfo(index);
+        }
+        playAudioSafe();
+    }
+
+    function togglePlay() {
+        if (songs.length === 0) return;
+        if (currentIndex === -1) loadSongInfo(0);
+        
+        if (audio.paused) {
+            playAudioSafe();
+        } else {
+            audio.pause();
+        }
+    }
+
+    function nextSong() {
+        if (songs.length === 0) return;
+        let next = currentIndex + 1;
+        if (next >= songs.length) next = 0;
+        loadSongInfo(next);
+        playAudioSafe();
+    }
+
+    function prevSong() {
+        if (songs.length === 0) return;
+        let prev = currentIndex - 1;
+        if (prev < 0) prev = songs.length - 1;
+        loadSongInfo(prev);
+        playAudioSafe();
+    }
+
+    function skipForward() { audio.currentTime += 10; }
+    function skipBackward() { audio.currentTime -= 10; }
+
+    // === DETENER / REINICIAR REPRODUCTOR AL ESTADO BASE ===
+    function stopPlayer() {
+        audio.pause();
+        audio.currentTime = 0;
+        currentIndex = -1; // Deseleccionamos la canción
+        
+        // Volvemos la imagen y los textos al estado inicial (logo.png) forzando salto de caché
+        if(titleEl) titleEl.textContent = "Selecciona una canción";
+        if(miniTitleEl) miniTitleEl.textContent = "Selecciona una canción";
+        
+        const defaultLogo = `/static/music/logo.png?t=${new Date().getTime()}`;
+        
+        if(coverImg) {
+            coverImg.src = defaultLogo;
+            coverImg.classList.remove('playing');
+        }
+        if(miniCoverImg) {
+            miniCoverImg.src = defaultLogo;
+            miniCoverImg.classList.remove('playing');
+        }
+        
+        // Regresamos los iconos a estado "Play"
+        if(iconPlay) iconPlay.classList.remove('d-none');
+        if(iconPause) iconPause.classList.add('d-none');
+        if(miniIconPlay) miniIconPlay.classList.remove('d-none');
+        if(miniIconPause) miniIconPause.classList.add('d-none');
+        
+        // Vaciamos barra de progreso
+        if(progressBar) progressBar.value = 0;
+        const cTimeEl = document.getElementById('current-time');
+        if(cTimeEl) cTimeEl.textContent = "0:00";
+        const tTimeEl = document.getElementById('total-time');
+        if(tTimeEl) tTimeEl.textContent = "0:00";
+        
+        // Limpiamos la memoria para que al recargar la página no arranque sola
+        localStorage.removeItem('tribu_music_idx');
+        localStorage.removeItem('tribu_music_time');
+        localStorage.setItem('tribu_music_playing', 'false');
+        
+        renderPlaylist(); // Refrescar lista para quitar estilos azules activos
+    }
+
+    if(progressBar) {
+        progressBar.addEventListener('input', (e) => {
+            audio.currentTime = e.target.value;
+        });
+    }
+
+    audio.addEventListener('play', () => {
+        if(coverImg) coverImg.classList.add('playing');
+        if(iconPlay) iconPlay.classList.add('d-none');
+        if(iconPause) iconPause.classList.remove('d-none');
+        
+        if(miniCoverImg) miniCoverImg.classList.add('playing');
+        if(miniIconPlay) miniIconPlay.classList.add('d-none');
+        if(miniIconPause) miniIconPause.classList.remove('d-none');
+        
+        localStorage.setItem('tribu_music_playing', 'true');
+    });
+
+    audio.addEventListener('pause', () => {
+        if(coverImg) coverImg.classList.remove('playing');
+        if(iconPlay) iconPlay.classList.remove('d-none');
+        if(iconPause) iconPause.classList.add('d-none');
+        
+        if(miniCoverImg) miniCoverImg.classList.remove('playing');
+        if(miniIconPlay) miniIconPlay.classList.remove('d-none');
+        if(miniIconPause) miniIconPause.classList.add('d-none');
+        
+        localStorage.setItem('tribu_music_playing', 'false');
+    });
+
+    audio.addEventListener('ended', nextSong);
+
+    audio.addEventListener('error', (e) => {
+        // Silenciamos los errores de red en la interfaz para no desbordar al usuario
+        if (!audio.src || audio.src === window.location.href || audio.src.endsWith('/reproductor')) return; 
+        
+        if(titleEl) titleEl.innerHTML = `<span class="text-warning"><i class="bi bi-exclamation-triangle-fill"></i> Audio no disponible (404)</span>`;
+        if(miniTitleEl) miniTitleEl.innerHTML = `Audio no disponible`;
+        
+        if(coverImg) coverImg.classList.remove('playing');
+        if(miniCoverImg) miniCoverImg.classList.remove('playing');
+        
+        if(iconPlay) iconPlay.classList.remove('d-none');
+        if(iconPause) iconPause.classList.add('d-none');
+        if(miniIconPlay) miniIconPlay.classList.remove('d-none');
+        if(miniIconPause) miniIconPause.classList.add('d-none');
+    });
+
+    function formatTime(seconds) {
+        if (isNaN(seconds)) return "0:00";
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    }
+
+    audio.addEventListener('timeupdate', () => {
+        if(progressBar) progressBar.value = audio.currentTime;
+        const cTimeEl = document.getElementById('current-time');
+        if(cTimeEl) cTimeEl.textContent = formatTime(audio.currentTime);
+        
+        // Actualizamos localStorage periódicamente
+        if (Math.floor(audio.currentTime) % 5 === 0) {
+             localStorage.setItem('tribu_music_time', audio.currentTime);
+        }
+    });
+
+    audio.addEventListener('loadedmetadata', () => {
+        if(progressBar) progressBar.max = audio.duration;
+        const tTimeEl = document.getElementById('total-time');
+        if(tTimeEl) tTimeEl.textContent = formatTime(audio.duration);
+    });
+
+    // ==========================================
+    // FUNCIONES PROTEGIDAS (Solo Superusuario)
+    // ==========================================
+
+    async function quickUploadCover(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Si NO hay ninguna canción seleccionada (currentIndex === -1), 
+        // significa que el usuario quiere subir la IMAGEN LOGO.PNG POR DEFECTO
+        if (currentIndex === -1) {
+            const formData = new FormData();
+            formData.append('logo', file);
+
+            try {
+                if(coverImg) coverImg.style.opacity = '0.5';
+                
+                const res = await fetch('/api/upload_default_logo', { method: 'POST', body: formData });
+                
+                if(!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || "Error del servidor al subir logo predeterminado");
+                }
+                
+                // Forzamos al navegador a evitar la caché agregando la hora actual
+                const newLogoUrl = `/static/music/logo.png?t=${new Date().getTime()}`;
+                if(coverImg) coverImg.src = newLogoUrl;
+                if(miniCoverImg) miniCoverImg.src = newLogoUrl;
+                
+                alert("¡Logo principal actualizado exitosamente!");
+                
+            } catch (err) {
+                alert("Atención: " + err.message);
+            } finally {
+                if(coverImg) coverImg.style.opacity = '1';
+                event.target.value = '';
+            }
+            return;
+        }
+
+        // --- SI HAY UNA CANCIÓN SONANDO, CAMBIA LA PORTADA DE ESA CANCIÓN ---
+        if (!isSuperUser) {
+            alert("Solo los administradores pueden cambiar la portada de una canción específica.");
+            event.target.value = '';
+            return;
+        }
+
+        const id = songs[currentIndex].id;
+        const formData = new FormData();
+        formData.append('cover', file);
+        const wasPlaying = !audio.paused;
+
+        try {
+            if(coverImg) coverImg.style.opacity = '0.5';
+            const res = await fetch(`/api/songs/${id}`, { method: 'PUT', body: formData });
+            if(!res.ok) throw new Error("Error al guardar la imagen");
+            await loadSongs(); 
+            loadSongInfo(currentIndex);
+            if (wasPlaying) {
+                if(coverImg) coverImg.classList.add('playing');
+                if(miniCoverImg) miniCoverImg.classList.add('playing');
+            }
+        } catch (err) {
+            alert("Hubo un error al actualizar la portada. Revisa los permisos de la carpeta static/music.");
+        } finally {
+            if(coverImg) coverImg.style.opacity = '1';
+            event.target.value = '';
+        }
+    }
+
+    async function uploadSong() {
+        if (!isSuperUser) return;
+        const fileInput = document.getElementById('audio-file');
+        const file = fileInput.files[0];
+        
+        if (!file) {
+            alert("Selecciona un archivo de audio primero.");
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('audio', file);
+        
+        const btnSubmit = document.getElementById('btn-submit-audio');
+        const originalText = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Cargando...';
+        btnSubmit.disabled = true;
+
+        try {
+            const res = await fetch('/api/songs', { method: 'POST', body: formData });
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || "Fallo en el servidor");
+            }
+            const data = await res.json();
+            
+            if (pendingCoverFile && data.id) {
+                const coverFormData = new FormData();
+                coverFormData.append('cover', pendingCoverFile);
+                await fetch(`/api/songs/${data.id}`, { method: 'PUT', body: coverFormData });
+                pendingCoverFile = null; 
+            }
+
+            fileInput.value = '';
+            if (uploadModal) uploadModal.hide();
+            await loadSongs();
+            
+            const newIndex = songs.findIndex(s => s.id === data.id);
+            if(newIndex !== -1) playSpecificSong(newIndex);
+
+        } catch (err) {
+            alert("ERROR AL SUBIR: " + err.message);
+        } finally {
+            btnSubmit.innerHTML = originalText;
+            btnSubmit.disabled = false;
+        }
+    }
+
+    function openEditModal(id, title) {
+        if (!isSuperUser) return;
+        document.getElementById('edit-id').value = id;
+        document.getElementById('edit-title').value = title;
+        document.getElementById('edit-cover').value = '';
+        if (editModal) editModal.show();
+    }
+
+    async function submitEdit() {
+        if (!isSuperUser) return;
+        const id = document.getElementById('edit-id').value;
+        const newTitle = document.getElementById('edit-title').value;
+        const coverFile = document.getElementById('edit-cover').files[0];
+
+        const formData = new FormData();
+        formData.append('title', newTitle);
+        if (coverFile) formData.append('cover', coverFile);
+
+        try {
+            const res = await fetch(`/api/songs/${id}`, { method: 'PUT', body: formData });
+            if(!res.ok) throw new Error("Error al editar");
+            if (editModal) editModal.hide();
+            await loadSongs();
+            
+            if (songs[currentIndex] && songs[currentIndex].id == id) {
+                const wasPlaying = !audio.paused;
+                loadSongInfo(currentIndex);
+                if (wasPlaying) {
+                    if(coverImg) coverImg.classList.add('playing');
+                    if(miniCoverImg) miniCoverImg.classList.add('playing');
+                }
+            }
+        } catch (err) {q
+            alert("Error al actualizar la canción.");
+        }
+    }
+
+    async function deleteSong(id) {
+        if (!isSuperUser) return;
+        if (!confirm("¿Deseas eliminar definitivamente esta canción?")) return;
+        
+        try {
+            const res = await fetch(`/api/songs/${id}`, { method: 'DELETE' });
+            if(!res.ok) throw new Error("Error al borrar");
+            
+            if (songs[currentIndex] && songs[currentIndex].id === id) {
+                stopPlayer(); // Usamos la nueva función para limpiar y restaurar imagen por defecto
+            }
+            await loadSongs();
+        } catch (err) {
+            console.error(err);
+        }
+    }
+</script>
+</body>
+</html>

@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <!-- Viewport seguro para evitar solapamientos en dispositivos móviles -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Plataforma PWA</title>
+    
+    <title>Caminatas La Tribu</title>
     
     <!-- SIN CDNs: Carga directa de Bootstrap Local -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
@@ -14,13 +15,10 @@
     <!-- Carga de CSS Global y Principal -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">
-    
-    <link rel="manifest" href="/manifest.json">
 
     <style>
         /* Estilos base para el efecto Glassmorphism */
         body {
-            /* Fondo con degradado anaranjado sutil, ligeramente más intenso a la derecha */
             background: linear-gradient(to right, #ffe0bd 0%, #ffcc99 100%);
             background-attachment: fixed;
             min-height: 100vh;
@@ -112,7 +110,7 @@
         /* Botón Global Volver */
         .btn-global-back {
             position: fixed;
-            bottom: calc(var(--nav-mobile-height, 70px) + 20px);
+            bottom: calc(var(--nav-mobile-height, 70px) + 85px); /* Subido para evadir el Mini Player */
             left: 20px;
             width: 50px;
             height: 50px;
@@ -122,7 +120,7 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
-            z-index: 1020;
+            z-index: 1045; /* Mayor que el bottom-bar y el miniplayer */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -137,7 +135,7 @@
         /* Botón Global Crear (A la derecha) */
         .btn-global-add {
             position: fixed;
-            bottom: calc(var(--nav-mobile-height, 70px) + 20px);
+            bottom: calc(var(--nav-mobile-height, 70px) + 85px); /* Subido para evadir el Mini Player */
             right: 20px;
             width: 50px;
             height: 50px;
@@ -147,7 +145,7 @@
             color: white;
             border: 1px solid rgba(255, 255, 255, 0.3);
             box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
-            z-index: 1020;
+            z-index: 1045; /* Mayor que el bottom-bar y el miniplayer */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -161,7 +159,6 @@
             color: white;
         }
 
-        /* Alertas Glass dentro de Modales */
         .modal-alert {
             backdrop-filter: blur(5px);
             border: none;
@@ -169,7 +166,6 @@
             font-weight: 500;
         }
 
-        /* Estilos para el Editor de Imagen Visual */
         .image-editor-controls input[type=range] {
             height: 25px;
             -webkit-appearance: none;
@@ -200,6 +196,110 @@
             -webkit-appearance: none;
             margin-top: -7px;
         }
+        
+        /* ========================================== */
+        /* ESTILOS NUEVOS: REPRODUCTOR Y GLASSMORPHISM */
+        /* ========================================== */
+        
+        /* MiniPlayer Glassmorphism y Posicionamiento Seguro */
+        .miniplayer-glass {
+            background: rgba(25, 25, 30, 0.85) !important;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        #miniPlayer {
+            /* Flotando justo encima de la bottom bar móvil */
+            bottom: calc(var(--nav-mobile-height, 70px) + 12px);
+        }
+        @media (min-width: 768px) {
+            #miniPlayer { bottom: 25px; } /* En desktop va abajo del todo */
+        }
+
+        /* Reproductor Grande (Offcanvas 100% Pantalla) Glassmorphism */
+        .offcanvas-glass {
+            background: rgba(15, 15, 20, 0.92) !important;
+            backdrop-filter: blur(35px);
+            -webkit-backdrop-filter: blur(35px);
+            border: none !important;
+        }
+
+        /* Indicador de arrastre táctil (Píldora superior) */
+        .drag-indicator {
+            width: 40px;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            margin: 0 auto;
+        }
+
+        /* Ocultar barra de scroll para un aspecto más limpio en el reproductor */
+        .player-scroll::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+
+        /* Botones Perfectamente Redondos (Previene deformaciones de Bootstrap) */
+        .btn-circle-player {
+            width: 75px;
+            height: 75px;
+            border-radius: 50% !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Impide que flexbox lo achate */
+            padding: 0;
+        }
+        .btn-circle-player-sm {
+            width: 50px;
+            height: 50px;
+            border-radius: 50% !important;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        /* Efecto de giro para las imágenes */
+        .spin-animation {
+            animation: spin 6s linear infinite;
+        }
+        @keyframes spin { 
+            100% { transform: rotate(360deg); } 
+        }
+
+        /* Playlist Item Hover Effect */
+        .playlist-item {
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+        .playlist-item:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateX(4px);
+        }
+
+        /* Personalización sutil del input range del reproductor */
+        .glass-range {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        .glass-range::-webkit-slider-runnable-track {
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            height: 6px;
+        }
+        .glass-range::-webkit-slider-thumb {
+            background: var(--primary-orange);
+            border: 2px solid white;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            margin-top: -5px;
+            -webkit-appearance: none;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
     </style>
 </head>
 <body>
@@ -207,68 +307,80 @@
     <div class="container mt-4">
         <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
             <div class="container-fluid">
-                <!-- Marca de la Navbar vacía para ser programada luego -->
-                <a class="navbar-brand text-orange fw-bold fs-4" href="/">
-                    
+                <!-- Marca de la Navbar SÚPER LIMPIA -->
+                <a class="navbar-brand text-orange fw-bold fs-4 d-flex align-items-center gap-2" href="/">
+                    <i class="bi bi-compass"></i> La Tribu
                 </a>
-                <div class="ms-auto">
+                <div class="ms-auto d-flex align-items-center gap-3">
                     {% if session.get('user_id') %}
-                        <!-- Ícono de Perfil cuando está logueado -->
                         <a href="{{ url_for('main.profile') }}" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center">
                             <i class="bi bi-person-circle me-2 fs-5"></i>Perfil
                         </a>
                     {% else %}
-                        <!-- Botón "Ingresar" cuando no hay sesión -->
-                        <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold" data-bs-toggle="modal" data-bs-target="#loginModal">Ingresar</button>
+                        <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right me-2 fs-5"></i> Ingresar
+                        </button>
                     {% endif %}
                 </div>
             </div>
         </nav>
     </div>
 
-    <!-- Contenido Principal sin Card (Libre para las vistas hijas) -->
-    <main class="container mt-5 mb-5 pb-5 content-wrapper">
+    <!-- Contenido Principal -->
+    <main class="container mt-2 mt-md-5 mb-5 pb-5 content-wrapper">
         {% block content %}
         {% endblock %}
     </main>
 
-    <!-- Botón Volver Atrás Global (Glassmorphic) -->
-    <button id="btnBack" class="btn-global-back" onclick="window.history.back()" title="Volver Atrás">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    <!-- Botón Volver Atrás Global (OCULTO EN INICIO) -->
+    {% if request.path != '/' %}
+    <button id="btnBack" class="btn-global-back" onclick="if(document.referrer.includes(window.location.host) && window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }" title="Volver Atrás">
+        <i class="bi bi-arrow-left fs-4"></i>
     </button>
+    {% endif %}
 
-    <!-- Botón Crear Nuevo Evento Global (Glassmorphic a la derecha) -->
     {% if session.get('role') == 'Superusuario' %}
     <a href="/eventos" class="btn-global-add" title="Crear Evento">
         <i class="bi bi-plus-lg fs-4"></i>
     </a>
     {% endif %}
-    
-    <!-- Botón Instalar PWA -->
-    <button id="btnInstallPwa" class="btn btn-warning rounded-pill px-4 shadow fw-bold position-fixed top-0 end-0 m-4 d-none" style="z-index: 1050;">
-        <i class="bi bi-download me-2"></i>Instalar App
-    </button>
 
-    <!-- Mobile Bottom Bar (< 768px) Glassmorphic -->
-    <div class="mobile-bottom-bar glass-panel d-md-none">
+    <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
+    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-evenly gap-3 px-3">
         <a href="/" class="mobile-nav-item">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+            <i class="bi bi-house-door-fill fs-3 mb-1"></i>
             <span>Inicio</span>
         </a>
-        
         {% if session.get('user_id') %}
-            <!-- Ícono de Perfil para Móvil -->
             <a href="{{ url_for('main.profile') }}" class="mobile-nav-item">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                <i class="bi bi-person-circle fs-3 mb-1"></i>
                 <span>Perfil</span>
             </a>
         {% else %}
-            <!-- Ícono de Ingresar para Móvil (Puerta con flecha) -->
             <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#loginModal">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" class="mb-1"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M13.8 12H3"/></svg>
+                <i class="bi bi-box-arrow-in-right fs-3 mb-1"></i>
                 <span>Ingresar</span>
             </a>
         {% endif %}
+    </div>
+
+    <!-- MODAL UNIVERSAL PARA INSTALAR LA PWA A LA FUERZA -->
+    <div class="modal fade" id="manualInstallModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+                <div class="modal-body p-0">
+                    <i class="bi bi-cloud-arrow-down fs-1 mb-3 text-orange"></i>
+                    <h5 class="fw-bold text-dark mb-3">Instalar La Tribu</h5>
+                    <p class="text-secondary small mb-4 text-start">
+                        <strong>En Android/Chrome:</strong><br>
+                        Toca los 3 puntos (⋮) arriba a la derecha y selecciona <strong>"Agregar a la pantalla principal"</strong> o "Instalar aplicación".<br><br>
+                        <strong>En iPhone/Safari:</strong><br>
+                        Toca "Compartir" <i class="bi bi-box-arrow-up border rounded p-1 mx-1 text-dark"></i> abajo y selecciona <strong>"Agregar a inicio"</strong> <i class="bi bi-plus-square border rounded p-1 mx-1 text-dark"></i>.
+                    </p>
+                    <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">¡Entendido!</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Login (Glassmorphic) -->
@@ -280,25 +392,16 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 px-md-5 pb-5 pt-4">
-                    <!-- Contenedor para mensajes de Login -->
                     <div id="loginMessage" class="mb-3"></div>
-
                     <form id="loginForm">
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary">Email</label>
-                            <input type="email" class="form-control glass-input rounded-3 py-2" id="logEmail" required placeholder="tu@email.com">
+                            <input type="email" class="form-control glass-input rounded-3 py-2 force-lowercase" id="logEmail" required placeholder="tu@email.com">
                         </div>
                         <div class="mb-4 position-relative">
                             <label class="form-label fw-semibold text-secondary">Contraseña</label>
                             <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••">
                             <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('logPass', this)"></i>
-                        </div>
-                        <div class="d-flex justify-content-between align-items-center mb-4">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="rememberMe">
-                                <label class="form-check-label text-secondary" for="rememberMe">Recordarme</label>
-                            </div>
-                            <a href="#" class="text-orange text-decoration-none fw-semibold">¿Olvidó su contraseña?</a>
                         </div>
                         <button type="submit" class="btn btn-orange w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">Ingresar</button>
                         <p class="mt-4 text-center text-secondary">¿No tienes cuenta? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-orange fw-bold text-decoration-none">Regístrate</a></p>
@@ -317,26 +420,21 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 px-md-5 pb-5 pt-3">
-                    <!-- Contenedor para mensajes de Registro -->
                     <div id="registerMessage" class="mb-3"></div>
 
                     <div class="text-center mb-4">
-                        <!-- Contenedor de Avatar con Editor Visual -->
                         <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
                             <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
                                 <img id="avatarPreviewImg" src="{{ url_for('static', filename='default.png') }}" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
                             </div>
-                            
                             <label for="avatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
                                 <i class="bi bi-camera-fill text-white"></i>
                             </label>
                             <input type="file" id="avatarUpload" class="d-none" accept="image/*">
-
-                            <!-- Controles del Editor Visual (Zoom, X, Y) -->
+                            
                             <div class="image-editor-controls mt-3 text-start">
                                 <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
                                 <input type="range" class="form-range" id="scaleSlider" min="1" max="3" step="0.1" value="1">
-                                
                                 <div class="row g-2">
                                     <div class="col-6">
                                         <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
@@ -372,18 +470,12 @@
                             <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
                         </div>
                         
-                        <!-- Lógica Dinámica en Select -->
                         <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
                             <label class="text-orange fw-bold mb-2"><i class="bi bi-plus-circle me-2"></i>Agregar Información Adicional</label>
                             <select class="form-select glass-input rounded-3 mb-3" id="dynamicSelect" onchange="handleDynamicSelect()">
                                 <option value="">Seleccione el tipo de dato...</option>
                                 <option value="Telefono">Teléfono</option>
                                 <option value="Whatsapp">Whatsapp</option>
-                                <option value="Facebook">Facebook (URL)</option>
-                                <option value="Instagram">Instagram (URL)</option>
-                                <option value="Direccion">Dirección (Google Maps)</option>
-                                <option value="Fecha">Fecha</option>
-                                <option value="Institucion">Institución/Proveedor/Tienda/Fábrica</option>
                                 <option value="Otro">Otro</option>
                             </select>
                             <div id="dynamicContainer"></div>
@@ -408,29 +500,801 @@
         </div>
     </div>
 
-    <!-- Scripts Locales -->
+    <!-- ========================================== -->
+    <!-- REPRODUCTOR DE MÚSICA GLOBAL DE LA TRIBU   -->
+    <!-- ========================================== -->
+
+    <!-- Reproductor de Audio Oculto -->
+    <audio id="globalAudioPlayer"></audio>
+
+    <!-- Mini Player (Flotante y Glassmorphic). Se usa 'd-none' nativo para garantizar el control JavaScript -->
+    <div id="miniPlayer" class="miniplayer-glass text-white rounded-pill px-3 py-2 align-items-center gap-2 d-none" style="position: fixed; left: 50%; transform: translateX(-50%); z-index: 1040; width: 90%; max-width: 400px;">
+        <img id="miniCover" src="/static/music/logo.png" class="rounded-circle border border-white border-opacity-25" width="45" height="45" style="object-fit: cover; cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#reproductorGlobal" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22%231a2a40%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2215%22%20fill%3D%22%230d1117%22%2F%3E%3C%2Fsvg%3E';">
+        
+        <div class="flex-grow-1 text-truncate pe-2" style="cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#reproductorGlobal">
+            <h6 id="miniTitle" class="mb-0 text-truncate fw-bold text-orange" style="font-size: 0.95rem;">Cargando...</h6>
+            <small class="text-white text-opacity-75" style="font-size: 0.7rem;">MÚSICA ORIGINAL DE LA TRIBU</small>
+        </div>
+        
+        <button class="btn btn-sm text-white p-0 rounded-circle" style="width: 32px; height: 32px;" onclick="togglePlayPause()">
+            <i id="miniPlayIcon" class="bi bi-play-fill fs-3"></i>
+        </button>
+        <button class="btn btn-sm text-white p-0 rounded-circle ms-1" style="width: 32px; height: 32px;" onclick="nextSong()">
+            <i class="bi bi-skip-forward-fill fs-4"></i>
+        </button>
+        
+        <!-- Botón para Cerrar Miniplayer y BORRAR su estado -->
+        <button class="btn btn-sm text-white text-opacity-50 p-0 ms-2" onclick="closeMiniPlayer()" title="Cerrar">
+            <i class="bi bi-x-circle-fill fs-5"></i>
+        </button>
+    </div>
+
+    <!-- Offcanvas: Reproductor Grande 100% Pantalla (Moderno) -->
+    <div class="offcanvas offcanvas-bottom offcanvas-glass text-white shadow-lg border-0" tabindex="-1" id="reproductorGlobal" style="height: 100dvh; border-radius: 0;">
+        
+        <!-- HEADER: Píldora de arrastre y Botón Minimizar estilo nativo -->
+        <div class="offcanvas-header flex-column border-0 pb-0 pt-3 px-4">
+            <div class="drag-indicator mb-3"></div>
+            <div class="d-flex justify-content-between align-items-center w-100">
+                <button type="button" class="btn text-white opacity-75 border-0 p-0" data-bs-dismiss="offcanvas" aria-label="Close">
+                    <i class="bi bi-chevron-down fs-1"></i>
+                </button>
+                <span class="text-white opacity-75 small fw-bold text-uppercase" style="letter-spacing: 2px; font-size: 0.75rem;">MÚSICA ORIGINAL DE LA TRIBU</span>
+                <div style="width: 32px;"></div> <!-- Espaciador fantasma para centrar el texto -->
+            </div>
+        </div>
+        
+        <!-- BODY: Con overflow-y-auto para que TODO el contenido se deslice fluidamente -->
+        <div class="offcanvas-body d-flex flex-column align-items-center justify-content-start pt-4 px-4 overflow-y-auto player-scroll pb-5">
+            
+            <!-- Imagen que Gira (AHORA CON BOTÓN DE CARGA INCORPORADO, SIN BORDE Y A LA MITAD DE TAMAÑO) -->
+            <div class="position-relative mb-5" title="Clic para cambiar la portada global">
+                {% if session.get('user_id') %}
+                <label for="quick-cover-upload" class="d-block m-0" style="cursor: pointer;">
+                {% endif %}
+
+                    <img id="bigCover" src="/static/music/logo.png" class="rounded-circle shadow-lg cover-img-hover cover-spin" style="width: 140px; height: 140px; object-fit: cover;" onerror="this.onerror=null; this.src='data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2250%22%20fill%3D%22%231a2a40%22%2F%3E%3Ccircle%20cx%3D%2250%22%20cy%3D%2250%22%20r%3D%2215%22%20fill%3D%22%230d1117%22%2F%3E%3C%2Fsvg%3E'; this.classList.remove('cover-spin');">
+                    
+                {% if session.get('user_id') %}
+                    <div class="position-absolute bottom-0 start-50 translate-middle-x bg-primary text-white px-3 py-1 rounded-pill pointer-events-none shadow" style="opacity: 0.85; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                        <i class="bi bi-camera-fill me-1"></i>Cambiar Logo
+                    </div>
+                </label>
+                <input type="file" id="quick-cover-upload" accept="image/*" class="d-none" onchange="quickUploadCover(event)">
+                {% endif %}
+            </div>
+
+            <!-- Títulos alineados a la izquierda -->
+            <div class="w-100 d-flex flex-column align-items-start mb-4">
+                <h3 id="bigTitle" class="fw-bold mb-1 w-100 text-truncate text-white">Selecciona una pista</h3>
+                <h6 class="text-orange mb-0 fw-bold">La Tribu</h6>
+            </div>
+
+            <!-- Barra de Progreso -->
+            <div class="w-100 mb-4 flex-shrink-0">
+                <input type="range" id="progressBar" class="form-range glass-range" value="0" step="1" min="0" max="100">
+                <div class="d-flex justify-content-between text-white text-opacity-75 small fw-bold mt-2" style="font-size: 0.8rem;">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalTime">0:00</span>
+                </div>
+            </div>
+
+            <!-- Controles Principales -->
+            <div class="d-flex align-items-center justify-content-between w-100 mb-5 px-2">
+                <!-- Botón Shuffle -->
+                <button class="btn border-0 text-white opacity-50 p-2" id="btnShuffle" onclick="toggleShuffle()" title="Aleatorio">
+                    <i class="bi bi-shuffle fs-3"></i>
+                </button>
+                
+                <div class="d-flex align-items-center justify-content-center gap-3">
+                    <button class="btn btn-outline-light btn-circle-player-sm border-0 opacity-75" onclick="prevSong()">
+                        <i class="bi bi-skip-backward-fill fs-3"></i>
+                    </button>
+                    <button class="btn btn-orange btn-circle-player shadow-lg" onclick="togglePlayPause()">
+                        <i id="bigPlayIcon" class="bi bi-play-fill" style="font-size: 2.5rem;"></i>
+                    </button>
+                    <button class="btn btn-outline-light btn-circle-player-sm border-0 opacity-75" onclick="nextSong()">
+                        <i class="bi bi-skip-forward-fill fs-3"></i>
+                    </button>
+                </div>
+
+                <!-- Botón Repeat 1 -->
+                <button class="btn border-0 text-white opacity-50 p-2" id="btnRepeat" onclick="toggleRepeat()" title="Repetir Canción">
+                    <i class="bi bi-repeat fs-3"></i>
+                </button>
+            </div>
+
+            <!-- SECCIÓN LISTA DE REPRODUCCIÓN Y GESTIÓN -->
+            <div class="w-100 mt-2 d-flex flex-column bg-dark bg-opacity-25 rounded-4 p-3 border border-white border-opacity-10 shadow-sm" style="flex: 0 0 auto;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold text-white mb-0"><i class="bi bi-music-note-list me-2 text-orange"></i>Canciones</h6>
+                    
+                    <!-- Lógica condicional de permisos Jinja para Superusuario -->
+                    {% if session.get('role') == 'Superusuario' %}
+                    <button class="btn btn-sm btn-outline-light rounded-pill fw-bold px-3 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#musicAdminModal">
+                        <i class="bi bi-gear-fill me-1"></i> Gestionar
+                    </button>
+                    {% endif %}
+                </div>
+                
+                <div id="playlistContainer" class="d-flex flex-column gap-2 pe-2">
+                    <!-- Las canciones se inyectan aquí con JavaScript -->
+                </div>
+
+                <!-- Contador Total de Canciones -->
+                <div id="totalSongsCount" class="text-center text-white opacity-50 small mt-3 fw-bold pb-2">
+                    Cargando canciones...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL DE GESTIÓN DE MÚSICA (SUPERUSUARIO)  -->
+    <!-- ========================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="modal fade" id="musicAdminModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-modal shadow-lg border-0 bg-dark text-white">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
+                    <h5 class="modal-title fw-bold text-orange w-100 text-center"><i class="bi bi-music-note-list me-2"></i>Gestor de Música</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pb-4 pt-4 text-center">
+                    
+                    <!-- Sección Portada y Editor -->
+                    <h6 class="fw-bold text-white opacity-75 mb-3">Portada de Canciones</h6>
+                    <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4 bg-dark bg-opacity-50 w-100">
+                        <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-secondary shadow-sm mb-2" style="width: 160px; height: 160px;">
+                            <img id="musicCoverPreviewImg" src="/static/music/logo.png" alt="Cover" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; transform-origin: center;">
+                        </div>
+                        <br>
+                        <label for="musicCoverUpload" class="btn btn-sm btn-outline-light rounded-pill px-3 shadow-sm mb-3" style="cursor: pointer;">
+                            <i class="bi bi-camera-fill me-1"></i> Cambiar Portada
+                        </label>
+                        <input type="file" id="musicCoverUpload" class="d-none" accept="image/*">
+                        
+                        <!-- Controles de Edición -->
+                        <div class="image-editor-controls text-start bg-black bg-opacity-25 p-3 rounded-3">
+                            <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                            <input type="range" class="form-range glass-range mb-2" id="musicScaleSlider" min="1" max="4" step="0.05" value="1">
+                            
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                    <input type="range" class="form-range glass-range" id="musicPosXSlider" min="-150" max="150" step="1" value="0">
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                    <input type="range" class="form-range glass-range" id="musicPosYSlider" min="-150" max="150" step="1" value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-info w-100 rounded-pill mt-3 mb-4 fw-bold shadow-sm" onclick="applyGlobalCover()">
+                        <i class="bi bi-images me-1"></i> Aplicar Portada a Todas
+                    </button>
+
+                    <hr class="border-secondary opacity-50 mb-4">
+
+                    <!-- Sección Subir Audio -->
+                    <h6 class="fw-bold text-white opacity-75 mb-3 mt-2">Agregar Nueva Canción</h6>
+                    <div class="input-group mb-3 shadow-sm">
+                        <span class="input-group-text bg-dark border-secondary text-orange"><i class="bi bi-file-music-fill"></i></span>
+                        <input type="file" id="musicAudioUpload" class="form-control bg-dark text-white border-secondary" accept=".mp3">
+                    </div>
+                    <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold shadow-sm py-2" onclick="uploadNewSongModal()">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Subir MP3 con esta Portada
+                    </button>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts Locales y Lógica PWA -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
-        <script src="{{ url_for('static', filename='js/html2canvas.js') }}"></script>
-
+    
+    <!-- SCRIPT DE MÚSICA Y FUNCIONES BASE -->
     <script>
-        // Lógica para el Ojo de la Contraseña
+        // =========================================================
+        // 🚨 ELIMINACIÓN FORZADA DEL SERVICE WORKER 🚨       
+        // =========================================================
+        // Se asegura de "matar" cualquier Service Worker rebelde para arreglar estilos perdidos y actualizaciones.
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+            if (window.caches) {
+                caches.keys().then(function(names) {
+                    for (let name of names) {
+                        caches.delete(name);
+                    }
+                });
+            }
+        }
+
+        const isGlobalSuperUser = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+        
+        // ==========================================
+        // LÓGICA DEL REPRODUCTOR GLOBAL Y PLAYLIST
+        // ==========================================
+        const audio = document.getElementById('globalAudioPlayer');
+        let songsList = [];
+        let currentIdx = -1;
+        
+        // Estados para Aleatorio y Repetir
+        let isShuffle = localStorage.getItem('tribu_music_shuffle') === 'true';
+        let isRepeatOne = localStorage.getItem('tribu_music_repeat') === 'true';
+
+        const offcanvasEl = document.getElementById('reproductorGlobal');
+        
+        // Funciones utilitarias para evadir el !important de Bootstrap
+        function showMiniPlayer() {
+            const mp = document.getElementById('miniPlayer');
+            mp.classList.remove('d-none');
+            mp.classList.add('d-flex');
+        }
+
+        function hideMiniPlayer() {
+            const mp = document.getElementById('miniPlayer');
+            mp.classList.remove('d-flex');
+            mp.classList.add('d-none');
+        }
+
+        offcanvasEl.addEventListener('show.bs.offcanvas', () => {
+            hideMiniPlayer();
+        });
+        
+        offcanvasEl.addEventListener('hidden.bs.offcanvas', () => {
+            if (currentIdx !== -1 && (!audio.paused || audio.currentTime > 0)) {
+                showMiniPlayer();
+            }
+        });
+
+        function openBigPlayer() {
+            const myOffcanvas = bootstrap.Offcanvas.getOrCreateInstance(offcanvasEl);
+            myOffcanvas.show();
+        }
+
+        // Cerrar miniplayer Y borrar completamente el estado para que no vuelva a aparecer
+        function closeMiniPlayer() {
+            hideMiniPlayer();
+            
+            audio.pause();
+            audio.currentTime = 0;
+            audio.removeAttribute('src');
+            audio.load();
+            
+            currentIdx = -1; 
+            
+            // Limpieza visual profunda a imagen por defecto GLOBAL
+            document.getElementById('miniTitle').innerText = "Cargando...";
+            document.getElementById('bigTitle').innerText = "Selecciona una pista";
+            
+            const globalLogoUrl = `/static/music/logo.png?v=${new Date().getTime()}`;
+            document.getElementById('miniCover').src = globalLogoUrl;
+            document.getElementById('bigCover').src = globalLogoUrl;
+            
+            localStorage.removeItem('tribu_music_idx');
+            localStorage.removeItem('tribu_music_time');
+            localStorage.setItem('tribu_music_playing', 'false');
+            
+            updateUI();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            updateControlColors(); // Colores iniciales de Shuffle/Repeat
+            await fetchAndRenderSongs();
+            
+            const savedIdx = localStorage.getItem('tribu_music_idx');
+            const savedTime = localStorage.getItem('tribu_music_time');
+            const wasPlaying = localStorage.getItem('tribu_music_playing') === 'true';
+
+            if (savedIdx !== null && songsList[savedIdx]) {
+                currentIdx = parseInt(savedIdx);
+                loadSongData(currentIdx);
+                
+                if (savedTime) audio.currentTime = parseFloat(savedTime);
+                
+                if (wasPlaying) {
+                    showMiniPlayer();
+                    audio.play().catch(e => {
+                        console.log("Se requiere interacción del usuario para reanudar el audio automáticamente.");
+                        updateUI();
+                    });
+                }
+            }
+        });
+
+        async function fetchAndRenderSongs() {
+            try {
+                const res = await fetch('/api/songs');
+                songsList = await res.json();
+                renderPlaylist();
+            } catch (e) { console.error("Error cargando música", e); }
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlistContainer');
+            container.innerHTML = '';
+            
+            if (songsList.length === 0) {
+                container.innerHTML = '<div class="text-center text-white text-opacity-50 mt-3 small">No hay canciones disponibles.</div>';
+                document.getElementById('totalSongsCount').innerText = '0 canciones';
+                return;
+            }
+
+            document.getElementById('totalSongsCount').innerText = `${songsList.length} canciones disponibles`;
+
+            songsList.forEach((song, idx) => {
+                const isPlaying = (idx === currentIdx);
+                const activeClass = isPlaying ? 'bg-orange bg-opacity-75 text-white shadow-sm' : 'bg-dark bg-opacity-25 text-white text-opacity-75';
+                
+                // Animación intuitiva Play/Pause en la misma lista
+                const playIcon = (isPlaying && !audio.paused) 
+                    ? '<i class="bi bi-pause-circle-fill text-white fs-4"></i>' 
+                    : '<i class="bi bi-play-circle-fill fs-4"></i>';
+
+                let adminControls = '';
+                // Botón de descarga universal agregado aquí
+                const downloadBtn = `<a href="/static/music/${song.filename}" download="${song.title}.mp3" class="btn btn-sm btn-dark text-success p-1 ms-1 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px;" onclick="event.stopPropagation();" title="Descargar"><i class="bi bi-cloud-arrow-down-fill"></i></a>`;
+
+                if (isGlobalSuperUser) {
+                    adminControls = `
+                        <button class="btn btn-sm btn-dark text-info p-1 ms-1 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px;" onclick="event.stopPropagation(); editSong(${song.id}, '${song.title.replace(/'/g, "\\'")}')" title="Renombrar"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="btn btn-sm btn-dark text-danger p-1 ms-1 rounded-circle d-flex align-items-center justify-content-center" style="width:28px; height:28px;" onclick="event.stopPropagation(); deleteSong(${song.id})" title="Borrar"><i class="bi bi-trash-fill"></i></button>
+                    `;
+                }
+
+                // USO FORZADO DE LOGO GLOBAL PARA LA LISTA COMPLETA
+                const coverUrl = `/static/music/logo.png?v=${new Date().getTime()}`;
+
+                container.innerHTML += `
+                    <div class="playlist-item d-flex align-items-center justify-content-between p-2 rounded-4 ${activeClass}" style="cursor: pointer; border: 1px solid rgba(255,255,255,0.05);" onclick="playSpecificSong(${idx})">
+                        <div class="d-flex align-items-center gap-3 overflow-hidden">
+                            <div class="position-relative flex-shrink-0">
+                                <img src="${coverUrl}" width="45" height="45" class="rounded-circle shadow-sm" style="object-fit: cover; border: 2px solid rgba(255,255,255,0.2);">
+                            </div>
+                            <div class="d-flex flex-column text-truncate">
+                                <span class="fw-bold text-truncate" style="font-size: 0.9rem;">${song.title}</span>
+                                <span class="small opacity-75" style="font-size: 0.7rem;">La Tribu</span>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center pe-2">
+                            ${playIcon}
+                            ${downloadBtn}
+                            ${adminControls}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function playSpecificSong(idx) {
+            // Si hace click en la canción que YA está seleccionada, activa o pausa (toggle)
+            if (currentIdx === idx) {
+                togglePlayPause();
+            } else {
+                currentIdx = idx;
+                loadSongData(idx);
+                audio.play();
+                updateUI();
+            }
+        }
+
+        function loadSongData(idx) {
+            if(idx < 0 || idx >= songsList.length) return;
+            const song = songsList[idx];
+            audio.src = `/static/music/${song.filename}`;
+            
+            // USO FORZADO DE LOGO GLOBAL PARA TODAS LAS CANCIONES
+            const coverUrl = `/static/music/logo.png?v=${new Date().getTime()}`;
+            
+            document.getElementById('miniCover').src = coverUrl;
+            document.getElementById('bigCover').src = coverUrl;
+            
+            document.getElementById('miniTitle').innerText = song.title;
+            document.getElementById('bigTitle').innerText = song.title;
+            
+            localStorage.setItem('tribu_music_idx', idx);
+            renderPlaylist(); 
+        }
+
+        function togglePlayPause() {
+            if(songsList.length === 0) return;
+            if(currentIdx === -1) { currentIdx = 0; loadSongData(currentIdx); }
+            
+            if (audio.paused) {
+                audio.play();
+                if (!offcanvasEl.classList.contains('show')) {
+                    showMiniPlayer();
+                }
+            } else {
+                audio.pause();
+            }
+            // Importante: updateUI() se llama a través del listener de 'play' y 'pause'
+        }
+
+        function updateUI() {
+            const isPaused = audio.paused;
+            document.getElementById('miniPlayIcon').className = isPaused ? 'bi bi-play-fill fs-3' : 'bi bi-pause-fill fs-3';
+            document.getElementById('bigPlayIcon').className = isPaused ? 'bi bi-play-fill' : 'bi bi-pause-fill';
+            
+            if (isPaused || currentIdx === -1) {
+                document.getElementById('miniCover').classList.remove('spin-animation');
+                document.getElementById('bigCover').classList.remove('spin-animation');
+                if (currentIdx === -1) {
+                    localStorage.setItem('tribu_music_playing', 'false');
+                } else {
+                    localStorage.setItem('tribu_music_playing', 'false');
+                }
+            } else {
+                document.getElementById('miniCover').classList.add('spin-animation');
+                document.getElementById('bigCover').classList.add('spin-animation');
+                localStorage.setItem('tribu_music_playing', 'true');
+            }
+            renderPlaylist(); // Para refrescar los iconos dinámicos play/pause de la lista
+        }
+
+        // ==========================================
+        // LÓGICA DE SHUFFLE Y REPEAT
+        // ==========================================
+        function toggleShuffle() {
+            isShuffle = !isShuffle;
+            localStorage.setItem('tribu_music_shuffle', isShuffle);
+            updateControlColors();
+        }
+
+        function toggleRepeat() {
+            isRepeatOne = !isRepeatOne;
+            localStorage.setItem('tribu_music_repeat', isRepeatOne);
+            updateControlColors();
+        }
+
+        function updateControlColors() {
+            const btnShuffle = document.getElementById('btnShuffle');
+            const btnRepeat = document.getElementById('btnRepeat');
+            
+            if (btnShuffle) {
+                btnShuffle.className = isShuffle ? 'btn border-0 text-orange p-2' : 'btn border-0 text-white opacity-50 p-2';
+            }
+            if (btnRepeat) {
+                btnRepeat.className = isRepeatOne ? 'btn border-0 text-orange p-2' : 'btn border-0 text-white opacity-50 p-2';
+                btnRepeat.innerHTML = isRepeatOne ? '<i class="bi bi-repeat-1 fs-3"></i>' : '<i class="bi bi-repeat fs-3"></i>';
+            }
+        }
+
+        function nextSong(isAutoPlay = false) {
+            if(songsList.length === 0) return;
+            
+            if (isAutoPlay && isRepeatOne) {
+                audio.currentTime = 0;
+                audio.play();
+                return;
+            }
+
+            if (isShuffle && songsList.length > 1) {
+                let randomIdx = currentIdx;
+                while (randomIdx === currentIdx) {
+                    randomIdx = Math.floor(Math.random() * songsList.length);
+                }
+                currentIdx = randomIdx;
+            } else {
+                currentIdx = (currentIdx + 1) % songsList.length;
+            }
+            
+            loadSongData(currentIdx);
+            audio.play();
+        }
+
+        function prevSong() {
+            if(songsList.length === 0) return;
+            
+            if (audio.currentTime > 3) {
+                audio.currentTime = 0;
+                return;
+            }
+
+            currentIdx = (currentIdx - 1 + songsList.length) % songsList.length;
+            loadSongData(currentIdx);
+            audio.play();
+        }
+
+        audio.addEventListener('play', updateUI);
+        audio.addEventListener('pause', updateUI);
+        audio.addEventListener('ended', () => nextSong(true)); 
+        
+        audio.addEventListener('timeupdate', () => {
+            if (audio.duration) {
+                localStorage.setItem('tribu_music_time', audio.currentTime);
+                const progress = (audio.currentTime / audio.duration) * 100;
+                document.getElementById('progressBar').value = progress;
+                document.getElementById('currentTime').innerText = formatTime(audio.currentTime);
+                document.getElementById('totalTime').innerText = formatTime(audio.duration);
+            }
+        });
+
+        document.getElementById('progressBar').addEventListener('input', (e) => {
+            if(audio.duration) audio.currentTime = (e.target.value / 100) * audio.duration;
+        });
+
+        function formatTime(seconds) {
+            if(isNaN(seconds)) return "0:00";
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        // ==========================================
+        // EDITOR VISUAL Y GESTIÓN DE MÚSICA (SUPERUSUARIO)
+        // ==========================================
+        
+        async function quickUploadCover(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Al subir una foto desde el reproductor, SE APLICA COMO IMAGEN GLOBAL
+            const formData = new FormData();
+            formData.append('logo', file);
+
+            try {
+                const bigCover = document.getElementById('bigCover');
+                if(bigCover) bigCover.style.opacity = '0.5';
+                
+                const res = await fetch('/api/upload_default_logo', { method: 'POST', body: formData });
+                
+                if(!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || "Error del servidor al subir la imagen");
+                }
+                
+                // Forzamos al navegador a evitar la caché
+                const newLogoUrl = `/static/music/logo.png?t=${new Date().getTime()}`;
+                
+                if(bigCover) bigCover.src = newLogoUrl;
+                const miniCover = document.getElementById('miniCover');
+                if(miniCover) miniCover.src = newLogoUrl;
+                
+                // Actualizar miniaturas en la playlist
+                document.querySelectorAll('.playlist-item img').forEach(img => {
+                    img.src = newLogoUrl;
+                });
+
+                // Actualizar preview en el gestor avanzado
+                const adminPreview = document.getElementById('musicCoverPreviewImg');
+                if(adminPreview) adminPreview.src = newLogoUrl;
+                
+                alert("¡Logo global actualizado! Esta imagen será la portada fija para todas las canciones.");
+                
+            } catch (err) {
+                alert("Atención: " + err.message);
+            } finally {
+                const bigCover = document.getElementById('bigCover');
+                if(bigCover) bigCover.style.opacity = '1';
+                event.target.value = '';
+            }
+        }
+
+        const mCoverUpload = document.getElementById('musicCoverUpload');
+        const mCoverPreview = document.getElementById('musicCoverPreviewImg');
+        const mScale = document.getElementById('musicScaleSlider');
+        const mPosX = document.getElementById('musicPosXSlider');
+        const mPosY = document.getElementById('musicPosYSlider');
+
+        if(mScale && mPosX && mPosY) {
+            function updateMusicTransform() {
+                mCoverPreview.style.transform = `scale(${mScale.value}) translate(${mPosX.value}px, ${mPosY.value}px)`;
+            }
+            mScale.addEventListener('input', updateMusicTransform);
+            mPosX.addEventListener('input', updateMusicTransform);
+            mPosY.addEventListener('input', updateMusicTransform);
+
+            if(mCoverUpload) {
+                mCoverUpload.addEventListener('change', function(e) {
+                    if (e.target.files && e.target.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function(evt) {
+                            mCoverPreview.src = evt.target.result;
+                            mScale.value = 1; mPosX.value = 0; mPosY.value = 0; updateMusicTransform();
+                        }
+                        reader.readAsDataURL(e.target.files[0]);
+                    }
+                });
+            }
+        }
+
+        // Dibuja la transformación CSS en un Canvas real para extraer la imagen recortada
+        async function getCroppedMusicCoverBlob() {
+            if (!mCoverPreview || !mCoverPreview.src) return null;
+            // Si es la imagen por defecto, retorna null para no forzar la resubida innecesaria
+            if (mCoverPreview.src.includes('cover_1_logo.PNG')) return null;
+
+            const canvas = document.createElement('canvas');
+            const size = 400; // Resolución generada para la portada
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+
+            const scale = parseFloat(mScale.value);
+            const posX = parseFloat(mPosX.value);
+            const posY = parseFloat(mPosY.value);
+
+            // Fondo negro por defecto
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, size, size);
+
+            // Emular 'object-fit: cover'
+            const imgRatio = mCoverPreview.naturalWidth / mCoverPreview.naturalHeight;
+            let drawW = size;
+            let drawH = size;
+            if (imgRatio > 1) { drawW = size * imgRatio; } 
+            else { drawH = size / imgRatio; }
+
+            ctx.save();
+            ctx.translate(size/2, size/2);
+            ctx.scale(scale, scale);
+            ctx.translate(posX, posY);
+            ctx.drawImage(mCoverPreview, -drawW/2, -drawH/2, drawW, drawH);
+            ctx.restore();
+
+            return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+        }
+
+        async function applyCoverToSpecificSong(id) {
+            const blob = await getCroppedMusicCoverBlob();
+            if (!blob) { alert('Sube y ajusta una imagen en el editor de arriba primero.'); return; }
+
+            const headerEl = document.querySelector('#musicAdminModal .modal-title');
+            const originalHTML = headerEl.innerHTML;
+            headerEl.innerHTML = '<span class="spinner-border spinner-border-sm me-2 text-white"></span> Aplicando Portada...';
+
+            try {
+                const fd = new FormData();
+                // Añadir timestamp para evitar que el caché del navegador use la vieja
+                fd.append('cover', blob, `portada_${id}_${new Date().getTime()}.jpg`);
+                const res = await fetch(`/api/songs/${id}`, { method: 'PUT', body: fd });
+                
+                if (res.ok) {
+                    await fetchAndRenderSongs(); 
+                    
+                    // Actualizar el reproductor instantáneamente sin pausar la música si esa canción está puesta
+                    if (currentIdx !== -1 && songsList[currentIdx] && songsList[currentIdx].id === id) {
+                        const updatedSong = songsList[currentIdx];
+                        const safeCover = (updatedSong.cover === 'logo.png' || !updatedSong.cover) ? 'cover_1_logo.PNG' : updatedSong.cover;
+                        const coverUrl = `/static/music/${safeCover}?v=${new Date().getTime()}`;
+                        document.getElementById('miniCover').src = coverUrl;
+                        document.getElementById('bigCover').src = coverUrl;
+                    }
+                    alert('Portada aplicada a la canción exitosamente.');
+                } else {
+                    alert('Error al aplicar la portada.');
+                }
+            } catch (e) {
+                alert('Error de conexión.');
+            }
+            headerEl.innerHTML = originalHTML;
+        }
+
+        async function uploadNewSongModal() {
+            const audioInput = document.getElementById('musicAudioUpload');
+            if (!audioInput.files || !audioInput.files[0]) {
+                alert('Selecciona un archivo MP3 de tu dispositivo.'); return;
+            }
+
+            const formData = new FormData();
+            formData.append('audio', audioInput.files[0]);
+            
+            // Genera el título a partir del archivo
+            let cleanTitle = audioInput.files[0].name.replace('.mp3', '').replace(/_/g, ' ');
+            formData.append('title', cleanTitle);
+
+            const blob = await getCroppedMusicCoverBlob();
+            if (blob) formData.append('cover', blob, `portada_${new Date().getTime()}.jpg`);
+
+            const headerEl = document.querySelector('#musicAdminModal .modal-title');
+            const originalHTML = headerEl.innerHTML;
+            headerEl.innerHTML = '<span class="spinner-border spinner-border-sm me-2 text-white"></span> Procesando...';
+            
+            try {
+                const response = await fetch('/api/songs', { method: 'POST', body: formData });
+                if (response.ok) {
+                    alert('¡Canción y Portada subidas con éxito!');
+                    audioInput.value = '';
+                    await fetchAndRenderSongs();
+                } else {
+                    alert("Ocurrió un error al guardar el archivo.");
+                }
+            } catch (err) { alert("Problema de red al subir la canción."); }
+            
+            headerEl.innerHTML = originalHTML;
+        }
+
+        async function applyGlobalCover() {
+            if (songsList.length === 0) { alert('No hay canciones a las cuales aplicarles la portada.'); return; }
+            
+            const blob = await getCroppedMusicCoverBlob();
+            if (!blob) { alert('Debes seleccionar una imagen desde tu galería primero.'); return; }
+
+            if (!confirm('¿Aplicar esta misma imagen recortada a TODAS las canciones? Esta acción tomará unos segundos.')) return;
+
+            const headerEl = document.querySelector('#musicAdminModal .modal-title');
+            const originalHTML = headerEl.innerHTML;
+            headerEl.innerHTML = '<span class="spinner-border spinner-border-sm me-2 text-white"></span> Aplicando a Todas...';
+
+            try {
+                for (let song of songsList) {
+                    const fd = new FormData();
+                    fd.append('cover', blob, `portada_${song.id}_${new Date().getTime()}.jpg`);
+                    await fetch(`/api/songs/${song.id}`, { method: 'PUT', body: fd });
+                }
+                
+                // Además, guardamos esta imagen como el logo.png global para sincronizar todo
+                const logoFormData = new FormData();
+                logoFormData.append('logo', blob, 'logo.jpg');
+                await fetch('/api/upload_default_logo', { method: 'POST', body: logoFormData });
+
+                alert('¡Carátula maestra aplicada a todas tus canciones y al reproductor global!');
+                await fetchAndRenderSongs();
+                
+                // Forzar actualización visual general
+                const newLogoUrl = `/static/music/logo.png?t=${new Date().getTime()}`;
+                document.getElementById('miniCover').src = newLogoUrl;
+                document.getElementById('bigCover').src = newLogoUrl;
+                
+            } catch(e) { alert('Hubo problemas al aplicar a toda la lista.'); }
+            
+            headerEl.innerHTML = originalHTML;
+        }
+
+        async function editSong(id, currentTitle) {
+            const newTitle = prompt("Escribe el nuevo título para esta canción:", currentTitle);
+            if (!newTitle || newTitle === currentTitle) return;
+
+            const formData = new FormData();
+            formData.append('title', newTitle);
+            
+            try {
+                const res = await fetch(`/api/songs/${id}`, { method: 'PUT', body: formData });
+                if(res.ok) await fetchAndRenderSongs();
+            } catch (err) { alert("Error de conexión al renombrar."); }
+        }
+
+        async function deleteSong(id) {
+            if (!confirm("¿Estás seguro de que quieres borrar esta canción y su archivo permanentemente?")) return;
+            
+            try {
+                const res = await fetch(`/api/songs/${id}`, { method: 'DELETE' });
+                if(res.ok) {
+                    if(songsList[currentIdx] && songsList[currentIdx].id === id) {
+                        closeMiniPlayer(); 
+                    }
+                    await fetchAndRenderSongs();
+                } else {
+                    alert("Error al intentar borrar en el servidor.");
+                }
+            } catch (err) { alert("Error de conexión al borrar."); }
+        }
+
         function togglePasswordVisibility(inputId, iconElement) {
             const input = document.getElementById(inputId);
             if (input.type === 'password') {
                 input.type = 'text';
-                iconElement.classList.remove('bi-eye-slash');
-                iconElement.classList.add('bi-eye');
+                iconElement.classList.replace('bi-eye-slash', 'bi-eye');
                 iconElement.style.color = 'var(--primary-orange, #ff8c00)';
             } else {
                 input.type = 'password';
-                iconElement.classList.remove('bi-eye');
-                iconElement.classList.add('bi-eye-slash');
+                iconElement.classList.replace('bi-eye', 'bi-eye-slash');
                 iconElement.style.color = '#6c757d';
             }
         }
 
-        // --- LÓGICA DEL EDITOR VISUAL DE IMAGEN (Registro) ---
+        // Editor para el Avatar de Usuario (Registro)
         const avatarUpload = document.getElementById('avatarUpload');
         const avatarPreviewImg = document.getElementById('avatarPreviewImg');
         const scaleSlider = document.getElementById('scaleSlider');
@@ -439,27 +1303,18 @@
 
         if(scaleSlider && posXSlider && posYSlider) {
             function updateImageTransform() {
-                const scale = scaleSlider.value;
-                const posX = posXSlider.value;
-                const posY = posYSlider.value;
-                avatarPreviewImg.style.transform = `scale(${scale}) translate(${posX}px, ${posY}px)`;
+                avatarPreviewImg.style.transform = `scale(${scaleSlider.value}) translate(${posXSlider.value}px, ${posYSlider.value}px)`;
             }
-
             scaleSlider.addEventListener('input', updateImageTransform);
             posXSlider.addEventListener('input', updateImageTransform);
             posYSlider.addEventListener('input', updateImageTransform);
-
             if(avatarUpload) {
                 avatarUpload.addEventListener('change', function(e) {
                     if (e.target.files && e.target.files[0]) {
                         const reader = new FileReader();
-                        reader.onload = function(e) {
-                            avatarPreviewImg.src = e.target.result;
-                            // Resetear sliders al cargar nueva imagen
-                            scaleSlider.value = 1;
-                            posXSlider.value = 0;
-                            posYSlider.value = 0;
-                            updateImageTransform();
+                        reader.onload = function(evt) {
+                            avatarPreviewImg.src = evt.target.result;
+                            scaleSlider.value = 1; posXSlider.value = 0; posYSlider.value = 0; updateImageTransform();
                         }
                         reader.readAsDataURL(e.target.files[0]);
                     }
@@ -467,101 +1322,50 @@
             }
         }
 
-        // --- MANEJO DE FORMULARIOS CON FETCH Y FEEDBACK ---
-
         const showMessage = (containerId, text, type = 'danger') => {
             const container = document.getElementById(containerId);
             if(container) {
                 container.innerHTML = `
-                    <div class="alert alert-${type} modal-alert alert-dismissible fade show animate__animated animate__fadeInDown" role="alert" style="background: rgba(${type === 'danger' ? '220,53,69' : '25,135,84'}, 0.2); color: ${type === 'danger' ? '#842029' : '#0f5132'};">
+                    <div class="alert alert-${type} modal-alert alert-dismissible fade show" role="alert" style="background: rgba(${type === 'danger' ? '220,53,69' : '25,135,84'}, 0.2); color: ${type === 'danger' ? '#842029' : '#0f5132'};">
                         ${text}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>`;
             }
         };
 
-        // LOGIN SUBMIT
         document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('logEmail').value;
-            const password = document.getElementById('logPass').value;
-
             try {
                 const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: document.getElementById('logEmail').value, password: document.getElementById('logPass').value })
                 });
-
                 const result = await response.json();
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    showMessage('loginMessage', result.error || 'Error al iniciar sesión');
-                }
-            } catch (err) {
-                showMessage('loginMessage', 'Error de conexión con el servidor');
-            }
+                if (response.ok) window.location.reload();
+                else showMessage('loginMessage', result.error || 'Error al iniciar sesión');
+            } catch (err) { showMessage('loginMessage', 'Error de conexión'); }
         });
 
-        // REGISTER SUBMIT
         document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
             const pass = document.getElementById('regPass').value;
-            const verify = document.getElementById('regPassVerify').value;
-            if (pass !== verify) {
+            if (pass !== document.getElementById('regPassVerify').value) {
                 showMessage('registerMessage', 'Las contraseñas no coinciden');
                 return;
             }
-
             const userData = {
-                name: document.getElementById('regName').value,
-                last_name_1: document.getElementById('regLastName1').value,
-                last_name_2: document.getElementById('regLastName2').value,
-                email: document.getElementById('regEmail').value,
-                password: pass
+                name: document.getElementById('regName').value, last_name_1: document.getElementById('regLastName1').value,
+                last_name_2: document.getElementById('regLastName2').value, email: document.getElementById('regEmail').value, password: pass
             };
-
             try {
-                const response = await fetch('/api/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(userData)
-                });
-
+                const response = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData) });
                 const result = await response.json();
                 if (response.ok) {
                     showMessage('registerMessage', '¡Registro exitoso! Ya puedes iniciar sesión.', 'success');
                     document.getElementById('registerForm').reset();
-                    if(avatarPreviewImg) {
-                        avatarPreviewImg.src = "{{ url_for('static', filename='default.png') }}";
-                        if(scaleSlider) { scaleSlider.value = 1; posXSlider.value = 0; posYSlider.value = 0; updateImageTransform(); }
-                    }
-                } else {
-                    showMessage('registerMessage', result.error || 'Error al registrarse');
-                }
-            } catch (err) {
-                showMessage('registerMessage', 'Error de conexión con el servidor');
-            }
-        });
-
-        // PWA Install Logic
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            const btn = document.getElementById('btnInstallPwa');
-            if (btn) btn.classList.remove('d-none');
-        });
-        
-        document.getElementById('btnInstallPwa')?.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') document.getElementById('btnInstallPwa').classList.add('d-none');
-                deferredPrompt = null;
-            }
+                    if(avatarPreviewImg) { avatarPreviewImg.src = "{{ url_for('static', filename='default.png') }}"; scaleSlider.value = 1; posXSlider.value = 0; posYSlider.value = 0; updateImageTransform(); }
+                } else showMessage('registerMessage', result.error || 'Error al registrarse');
+            } catch (err) { showMessage('registerMessage', 'Error de conexión'); }
         });
     </script>
 </body>
