@@ -495,7 +495,16 @@ async function loadEvents() {
     try {
         const response = await fetch('/api/get_events');
         if (!response.ok) throw new Error("Server error");
-        allEvents = await response.json();
+        
+        const fetchedEvents = await response.json();
+        
+        // --- LA MAGIA: CONVERTIR EL PRECIO EN "PENDIENTE" AQUÍ MISMO ---
+        allEvents = fetchedEvents.map(ev => {
+            if (!ev.precio || ev.precio === '¢0' || ev.precio === '$0' || ev.precio == '0' || ev.precio == 0) {
+                ev.precio = 'PENDIENTE';
+            }
+            return ev;
+        });
         
         if (allEvents && allEvents.length > 0) {
             renderEvents(allEvents, false);
@@ -949,7 +958,13 @@ function loadEventsFromIndexedDB() {
         const getAll = store.getAll();
         getAll.onsuccess = () => {
             if (getAll.result && getAll.result.length > 0) {
-                allEvents = getAll.result;
+                // Al cargar Offline, también aseguramos que los 0 pasen a PENDIENTE
+                allEvents = getAll.result.map(ev => {
+                    if (!ev.precio || ev.precio === '¢0' || ev.precio === '$0' || ev.precio == '0' || ev.precio == 0) {
+                        ev.precio = 'PENDIENTE';
+                    }
+                    return ev;
+                });
                 renderEvents(allEvents, false);
             } else {
                 document.getElementById('eventosContainer').innerHTML = `<div class="col-12 text-center py-5">Sin conexión y sin datos locales.</div>`;

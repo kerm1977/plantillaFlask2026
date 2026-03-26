@@ -101,12 +101,12 @@
                     
                     <div class="col-6 col-md-3">
                         <label class="form-label fw-bold text-muted small mb-1">Precio</label>
-                        <input type="number" id="precio" name="precio" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                        <input type="number" id="precio" name="precio" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57" value="0">
                     </div>
 
                     <div class="col-6 col-md-3">
                         <label class="form-label fw-bold text-muted small mb-1">Reserva con</label>
-                        <input type="number" id="reserva" name="reserva" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+                        <input type="number" id="reserva" name="reserva" required class="form-control glass-input rounded-3" onkeypress="return event.charCode >= 48 && event.charCode <= 57" value="0">
                     </div>
                     
                     <div class="col-6 col-md-3">
@@ -145,24 +145,21 @@
                 <!-- Nacional -->
                 <div id="nationalFields" class="glass-table-container p-3 p-md-4 rounded-4 mb-4">
                     
-                    <!-- Encabezado con Interruptor (Toggle) de Seguridad -->
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-2">
-                        <h5 class="fw-bold mb-0 text-warning-custom">Logística y Fechas</h5>
-                        <div class="form-check form-switch d-flex align-items-center bg-white bg-opacity-50 px-3 py-2 rounded-pill shadow-sm border border-white" style="width: fit-content; margin: 0;">
-                            <input class="form-check-input m-0" type="checkbox" id="soloChatToggle" onchange="toggleSoloChat()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
-                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="soloChatToggle" style="cursor: pointer; padding-top: 1px;">
-                                <i class="bi bi-shield-lock-fill me-1"></i>Modo Seguro
+                    <!-- SWITCH: DÍA SEGURO -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2 border-bottom border-white border-opacity-50 pb-2">
+                        <h5 class="fw-bold mb-0 text-warning-custom">Fechas de Actividad</h5>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input m-0" type="checkbox" id="diaSeguroToggle" onchange="toggleDiaSeguro()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="diaSeguroToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Día Exacto
                             </label>
                         </div>
                     </div>
                     
-                    <div class="row g-3 mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-12 col-md-4">
                             <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
-                            <div class="normal-logistics">
-                                <input type="number" id="dias" name="dias" min="1" max="10" value="1" onchange="toggleDateInputs()" class="form-control glass-input rounded-3">
-                            </div>
-                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="Solo en el Chat" disabled>
+                            <input type="number" id="dias" name="dias" min="1" max="10" value="1" onchange="toggleDateInputs()" class="form-control glass-input rounded-3">
                         </div>
                         
                         <!-- FECHA ÚNICA (DIVIDIDA) -->
@@ -235,6 +232,17 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- SWITCH: LOGÍSTICA SEGURA -->
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 mt-4 gap-2 border-bottom border-white border-opacity-50 pb-2">
+                        <h5 class="fw-bold mb-0 text-warning-custom">Logística de Salida</h5>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input m-0" type="checkbox" id="logisticaSeguraToggle" onchange="toggleLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="logisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
+                            </label>
                         </div>
                     </div>
 
@@ -355,7 +363,7 @@
                     </div>
                 </div>
 
-                <!-- Incluye (Listado Completo Restaurado) -->
+                <!-- Incluye -->
                 <div class="mb-4 glass-table-container p-3 rounded-4 shadow-sm">
                     <h5 class="fw-bold text-warning-custom border-bottom border-secondary border-opacity-25 pb-2 mb-3">Incluye</h5>
                     <div class="row g-2 mb-3 text-muted small check-btn-wrapper">
@@ -454,9 +462,15 @@ document.addEventListener("DOMContentLoaded", () => {
         // 1. Recolectar todos los datos del formulario automáticamente usando "name"
         const formData = new FormData(this);
         
-        // 2. Adjuntar el valor correcto del switch "Modo Seguro"
-        const isSecure = document.getElementById('soloChatToggle').checked;
-        formData.set('solo_chat', isSecure);
+        // 2. Adjuntar los valores de seguridad independientes
+        const isSecureDia = document.getElementById('diaSeguroToggle').checked;
+        formData.set('solo_chat', isSecureDia);
+
+        const isSecureLog = document.getElementById('logisticaSeguraToggle').checked;
+        if (isSecureLog) {
+            const lugar = formData.get('lugarSalida');
+            formData.set('lugarSalida', 'SEGURO_' + lugar);
+        }
 
         // 3. Procesar los checkboxes de 'incluye'
         const incluyeArr = [];
@@ -480,18 +494,18 @@ document.addEventListener("DOMContentLoaded", () => {
             if (dias === 1) {
                 const y = document.getElementById('yearUnica').value;
                 const m = document.getElementById('monthUnica').value;
-                // Si es modo seguro, fuerza el día a '01' internamente
-                const d = isSecure ? '01' : pad(document.getElementById('dayUnica').value);
+                // Si es modo seguro (Día), fuerza el día a '01' internamente
+                const d = isSecureDia ? '01' : pad(document.getElementById('dayUnica').value);
                 formData.set('fechaUnica', `${y}-${m}-${d}`);
             } else {
                 const yI = document.getElementById('yearInicio').value;
                 const mI = document.getElementById('monthInicio').value;
-                const dI = isSecure ? '01' : pad(document.getElementById('dayInicio').value);
+                const dI = isSecureDia ? '01' : pad(document.getElementById('dayInicio').value);
                 formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
                 
                 const yR = document.getElementById('yearRegreso').value;
                 const mR = document.getElementById('monthRegreso').value;
-                const dR = isSecure ? '01' : pad(document.getElementById('dayRegreso').value);
+                const dR = isSecureDia ? '01' : pad(document.getElementById('dayRegreso').value);
                 formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
             }
         }
@@ -548,17 +562,20 @@ function toggleOtherDesc() {
     document.getElementById('otrosDescContainer').classList.toggle('d-none', !document.getElementById('checkOtros').checked);
 }
 
-// LOGICA MODO SEGURO: Oculta la logística normal Y el Input del DÍA exacto.
-function toggleSoloChat() {
-    const isSecure = document.getElementById('soloChatToggle').checked;
+// LOGICA MODO SEGURO PARA EL DÍA
+function toggleDiaSeguro() {
+    const isSecure = document.getElementById('diaSeguroToggle').checked;
     
-    // Ocultar campos de logística
-    document.querySelectorAll('.normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
-    document.querySelectorAll('.secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
-    
-    // Ocultar solo el Día en las fechas divididas
     document.querySelectorAll('.normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
     document.querySelectorAll('.secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+// LÓGICA MODO SEGURO PARA LA LOGÍSTICA
+function toggleLogisticaSegura() {
+    const isSecure = document.getElementById('logisticaSeguraToggle').checked;
+    
+    document.querySelectorAll('.normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
 }
 </script>
 {% endblock %}

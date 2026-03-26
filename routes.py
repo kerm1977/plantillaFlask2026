@@ -65,24 +65,37 @@ def get_events():
         if lugar_raw.startswith('SEGURO_'):
             logistica_segura = True
             lugar_real = lugar_raw.replace('SEGURO_', '')
+            # REGLA DE NEGOCIO: Ocultar Lugar y Hora si es privado y NO ES Superusuario
+            if logistica_segura and not is_super:   
+                destino_text = "Ver en chat"
+                hora_text = "Ver en chat"
+            else:
+                destino_text = lugar_real
+                hora_text = e.hora_salida
         else:
             lugar_real = lugar_raw
-            
-        # REGLA DE NEGOCIO: Ocultar Lugar y Hora si es privado y NO ES Superusuario
-        if logistica_segura and not is_super:   
-            destino_text = "Ver en chat"
-            hora_text = "Ver en chat"
-        else:
             destino_text = lugar_real
             hora_text = e.hora_salida
+                
+        # NUEVA REGLA PROTEGIDA: Si el precio es 0, texto, o está vacío, mostrar "PENDIENTE"
+        try:
+            precio_val = int(e.precio) if e.precio else 0
+        except (ValueError, TypeError):
+            precio_val = 0
             
+        if precio_val > 0:
+            moneda = e.moneda if e.moneda else ''
+            precio_mostrar = f"{moneda}{precio_val}"
+        else:
+            precio_mostrar = "PENDIENTE"
+                
         output.append({
             "id": e.id,
             "poster": f"/static/uploads/{e.poster}" if e.poster else "/static/default.png",
             "nombreLugar": e.nombre_lugar,
             "dificultad": e.dificultad,
             "actividad": e.actividad,
-            "precio": f"{e.moneda}{e.precio}",
+            "precio": precio_mostrar,
             "destino": destino_text,
             "hora_salida": hora_text or "Por definir",
             "logistica_segura": logistica_segura,
