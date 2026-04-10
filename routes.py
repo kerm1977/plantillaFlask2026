@@ -10,6 +10,13 @@ from werkzeug.utils import secure_filename
 
 bp = Blueprint('main', __name__)
 
+# --- FUNCIONES AUXILIARES DE SEGURIDAD ---
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+# -----------------------------------------
+
 @bp.route('/')
 def home():
     notifications = Notification.query.all()
@@ -17,77 +24,54 @@ def home():
 
 @bp.route('/profile')
 def profile():
-    """Ruta para visualizar el perfil del usuario logueado."""
     if 'user_id' not in session:
         return redirect(url_for('main.home'))
-    
     user = User.query.get(session['user_id'])
     if not user:
         session.clear()
         return redirect(url_for('main.home'))
-        
     return render_template('perfil.html', user=user)
 
 @bp.route('/dashboard')
 def dashboard():
-    """Ruta para el panel de administración exclusivo de Superusuarios."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
-        
     return render_template('dashboard.html')
 
 @bp.route('/eventos')
 def eventos():
-    """Ruta para la creación y gestión de eventos (Solo Superusuarios)."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
-        
     return render_template('eventos.html')
 
 @bp.route('/detalles_evento/<int:event_id>')
 def detalles_evento(event_id):
-    """Ruta para ver los detalles completos de un evento público."""
     evento = Event.query.get_or_404(event_id)
     return render_template('ver_evento.html', evento=evento)
 
 @bp.route('/api/get_events')
 def get_events():
-    """Obtiene los eventos de SQLite para mostrarlos en el Home"""
     events = Event.query.order_by(Event.created_at.desc()).all()
     is_super = session.get('role') == 'Superusuario'
     output = []
     
     for e in events:
-        lugar_raw = e.lugar_salida or ''
-        logistica_segura = False
-        
-        # Detectamos el sello invisible en la base de datos
-        if lugar_raw.startswith('SEGURO_'):
-            logistica_segura = True
-            lugar_real = lugar_raw.replace('SEGURO_', '')
-            # REGLA DE NEGOCIO: Ocultar Lugar y Hora si es privado y NO ES Superusuario
-            if logistica_segura and not is_super:   
-                destino_text = "Ver en chat"
-                hora_text = "Ver en chat"
-            else:
-                destino_text = lugar_real
-                hora_text = e.hora_salida
+        # LÓGICA DE NEGOCIO EN EL BACKEND (Donde debe estar)
+        # Si es logística segura y NO es admin, ocultamos datos
+        if e.logistica_segura and not is_super:   
+            destino_text = "Ver en chat"
+            hora_text = "Ver en chat"
         else:
-            lugar_real = lugar_raw
-            destino_text = lugar_real
+            destino_text = e.lugar_salida
             hora_text = e.hora_salida
                 
-        # NUEVA REGLA PROTEGIDA: Si el precio es 0, texto, o está vacío, mostrar "PENDIENTE"
+        # Calcular precio o devolver "PENDIENTE"
         try:
             precio_val = int(e.precio) if e.precio else 0
         except (ValueError, TypeError):
             precio_val = 0
             
-        if precio_val > 0:
-            moneda = e.moneda if e.moneda else ''
-            precio_mostrar = f"{moneda}{precio_val}"
-        else:
-            precio_mostrar = "PENDIENTE"
+        precio_mostrar = f"{e.moneda or ''}{precio_val}" if precio_val > 0 else "PENDIENTE"
                 
         output.append({
             "id": e.id,
@@ -98,56 +82,51 @@ def get_events():
             "precio": precio_mostrar,
             "destino": destino_text,
             "hora_salida": hora_text or "Por definir",
-            "logistica_segura": logistica_segura,
+            "logistica_segura": e.logistica_segura,
             "fecha": e.fecha_unica if e.dias == 1 else f"{e.fecha_inicio} al {e.fecha_regreso}",
-            "solo_chat": e.solo_chat, # Se mantiene para control frontend, pero la fecha siempre se renderiza
-            "capacidad": e.capacidad
+            "solo_chat": e.solo_chat, 
+            "capacidad": e.capacidad,
+            "is_sold_out": e.is_sold_out # Mandamos el booleano al frontend
         })
     return jsonify(output)
 
 @bp.route('/api/toggle_espacio/<int:event_id>', methods=['POST'])
 def toggle_espacio(event_id):
-    """Marca un evento como 'AGOTADO' o lo devuelve a su estado original."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
         
     evento = Event.query.get_or_404(event_id)
-    
-    if evento.capacidad and str(evento.capacidad).startswith('AGOTADO_'):
-        evento.capacidad = str(evento.capacidad).replace('AGOTADO_', '')
-    elif evento.capacidad == 'AGOTADO':
-        evento.capacidad = '14-17' 
-    else:
-        evento.capacidad = f"AGOTADO_{evento.capacidad}"
-        
+    # Ya no manipulamos strings, solo invertimos el booleano
+    evento.is_sold_out = not evento.is_sold_out
     db.session.commit()
-    return jsonify({"success": True})
+    return jsonify({"success": True, "is_sold_out": evento.is_sold_out})
 
 @bp.route('/api/make_public/<int:event_id>', methods=['POST'])
 def make_public(event_id):
-    """Remueve todas las restricciones de privacidad (Día y Logística) de un evento."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
         
     evento = Event.query.get_or_404(event_id)
-    
-    # Quitar el sello de seguridad en la base de datos
-    if evento.lugar_salida and str(evento.lugar_salida).startswith('SEGURO_'):
-        evento.lugar_salida = str(evento.lugar_salida).replace('SEGURO_', '')
-        
+    # Quitamos la privacidad limpiamente
+    evento.logistica_segura = False
+    evento.solo_chat = False
     db.session.commit()
     return jsonify({"success": True})
 
 @bp.route('/api/create_event', methods=['POST'])
 def create_event():
-    """Guarda un nuevo evento en SQLite con su imagen poster"""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
     
     try:
         file = request.files.get('poster')
         filename = "default_event.png"
+        
+        # Validación de seguridad: Extensión permitida
         if file and file.filename != '':
+            if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
+                return jsonify({"error": "Formato de imagen no permitido"}), 400
+                
             filename = secure_filename(f"event_{os.urandom(4).hex()}_{file.filename}")
             upload_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
             os.makedirs(upload_path, exist_ok=True)
@@ -167,6 +146,7 @@ def create_event():
             sinpe=request.form.get('sinpe'),
             cuenta=request.form.get('cuenta'),
             solo_chat=request.form.get('solo_chat') == 'true',
+            logistica_segura=request.form.get('logistica_segura') == 'true', # Nuevo booleano
             dias=int(request.form.get('dias', 1) if request.form.get('dias') else 1),
             fecha_unica=request.form.get('fechaUnica'),
             fecha_inicio=request.form.get('fechaInicio'),
@@ -182,12 +162,12 @@ def create_event():
         return jsonify({"success": True, "event_id": new_event.id})
     except Exception as e:
         db.session.rollback()
+        # En producción, usar logging en lugar de print
         print(f"Error grave al guardar evento: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno del servidor al crear el evento"}), 500
 
 @bp.route('/api/update_event/<int:event_id>', methods=['POST'])
 def update_event(event_id):
-    """Actualiza un evento existente en SQLite"""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
     
@@ -195,6 +175,9 @@ def update_event(event_id):
     try:
         file = request.files.get('poster')
         if file and file.filename != '':
+            if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
+                return jsonify({"error": "Formato de imagen no permitido"}), 400
+                
             filename = secure_filename(f"event_{os.urandom(4).hex()}_{file.filename}")
             upload_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
             os.makedirs(upload_path, exist_ok=True)
@@ -212,7 +195,11 @@ def update_event(event_id):
         evento.capacidad = request.form.get('capacidad', evento.capacidad)
         evento.sinpe = request.form.get('sinpe', evento.sinpe)
         evento.cuenta = request.form.get('cuenta', evento.cuenta)
+        
+        # Leemos los booleanos reales del form
         evento.solo_chat = request.form.get('solo_chat') == 'true'
+        evento.logistica_segura = request.form.get('logistica_segura') == 'true'
+        
         evento.dias = int(request.form.get('dias', evento.dias) if request.form.get('dias') else 1)
         evento.fecha_unica = request.form.get('fechaUnica', evento.fecha_unica)
         evento.fecha_inicio = request.form.get('fechaInicio', evento.fecha_inicio)
@@ -228,11 +215,10 @@ def update_event(event_id):
     except Exception as e:
         db.session.rollback()
         print(f"Error al actualizar evento: {e}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno del servidor al actualizar"}), 500
 
 @bp.route('/api/delete_event/<int:event_id>', methods=['DELETE'])
 def delete_event(event_id):
-    """Elimina un evento de SQLite permanentemente"""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
         
@@ -243,14 +229,13 @@ def delete_event(event_id):
         return jsonify({"success": True})
     except Exception as e:
         db.session.rollback()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error al eliminar evento"}), 500
 
 # ==========================================
 # RUTAS DE PWA (PROGRESIVE WEB APP)
 # ==========================================
 @bp.route('/manifest.json')
 def manifest():
-    """Genera el manifiesto con el MimeType estricto exigido por Chrome."""
     manifest_data = {
         "name": "Caminatas La Tribu",
         "short_name": "La Tribu",
@@ -276,7 +261,6 @@ def manifest():
 
 @bp.route('/sw.js')
 def sw():
-    """Expone el Service Worker en la raíz del sitio para que tenga permisos globales."""
     return send_from_directory('static', 'sw.js', mimetype='application/javascript')
 
 # ==========================================
@@ -325,7 +309,6 @@ def register():
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback() 
-        print(f"Error grave en registro: {e}") 
         return jsonify({'error': 'Error interno de base de datos al registrar'}), 500
 
 @bp.route('/api/update_profile', methods=['POST'])
@@ -358,6 +341,9 @@ def update_profile():
 
         avatar_file = request.files.get('avatar')
         if avatar_file and avatar_file.filename != '':
+            if not allowed_file(avatar_file.filename, ALLOWED_IMAGE_EXTENSIONS):
+                 return jsonify({"error": "Formato de imagen no permitido"}), 400
+                 
             filename = secure_filename(avatar_file.filename)
             filename = f"user_{user.id}_{filename}"
             static_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
@@ -371,46 +357,12 @@ def update_profile():
         
     except Exception as e:
         db.session.rollback()
-        print(f"Error al actualizar perfil: {e}")
         return jsonify({'error': 'Error interno al guardar los datos'}), 500
 
 @bp.route('/logout')
 def logout():
     session.clear()
     return redirect(url_for('main.home'))
-
-# ==========================================
-# RUTAS DEL REPRODUCTOR DE MÚSICA
-# ==========================================
-@bp.route('/reproductor')
-def reproductor():
-    """Ruta principal para cargar el reproductor de música de La Tribu"""
-    return render_template('music.html')
-
-@bp.route('/api/upload_default_logo', methods=['POST'])
-def upload_default_logo():
-    """Sube y sobrescribe manualmente la imagen logo.png predeterminada."""
-    # Permite a los usuarios con sesión subir la imagen
-    if 'user_id' not in session:
-        return jsonify({"error": "No autorizado. Inicia sesión para subir la imagen."}), 403
-
-    try:
-        file = request.files.get('logo')
-        if not file or file.filename == '':
-            return jsonify({"error": "No se seleccionó ninguna imagen"}), 400
-
-        # Ruta hacia /static/music/
-        upload_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'music')
-        os.makedirs(upload_path, exist_ok=True)
-        
-        # Forzamos a que se guarde con el nombre exacto 'logo.png', reemplazando el anterior
-        filepath = os.path.join(upload_path, 'logo.png')
-        file.save(filepath)
-
-        return jsonify({"success": True})
-    except Exception as e:
-        print(f"Error al subir logo.png: {e}")
-        return jsonify({"error": str(e)}), 500
 
 # ==========================================
 # RUTAS DE ADMINISTRACIÓN (DASHBOARD)
@@ -491,6 +443,9 @@ def admin_update_user(user_id):
         
     avatar_file = request.files.get('avatar')
     if avatar_file and avatar_file.filename != '':
+        if not allowed_file(avatar_file.filename, ALLOWED_IMAGE_EXTENSIONS):
+             return jsonify({"error": "Formato de imagen no permitido"}), 400
+             
         filename = secure_filename(avatar_file.filename)
         filename = f"user_{u.id}_{filename}"
         static_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')

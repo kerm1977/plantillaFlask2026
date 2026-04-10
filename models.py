@@ -17,7 +17,7 @@ class User(db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     status = db.Column(db.String(20), default='Activo') 
     
-    # Campos de Información Adicional (Sincronizados con routes.py)
+    # Campos de Información Adicional
     whatsapp = db.Column(db.String(20))
     facebook = db.Column(db.String(255))
     instagram = db.Column(db.String(255))
@@ -30,7 +30,7 @@ class User(db.Model):
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    poster = db.Column(db.String(255)) # Nombre del archivo en static/uploads
+    poster = db.Column(db.String(255)) 
     nombre_lugar = db.Column(db.String(200), nullable=False)
     dificultad = db.Column(db.String(50))
     actividad = db.Column(db.String(100))
@@ -40,18 +40,23 @@ class Event(db.Model):
     capacidad = db.Column(db.String(50))
     sinpe = db.Column(db.String(100))
     cuenta = db.Column(db.String(200))
-    solo_chat = db.Column(db.Boolean, default=False)
     
+    # --- NUEVOS CAMPOS BOOLEANOS (Reemplazan los hacks de strings) ---
+    solo_chat = db.Column(db.Boolean, default=False) # Día seguro
+    logistica_segura = db.Column(db.Boolean, default=False) # Ubicación/Hora oculta
+    is_sold_out = db.Column(db.Boolean, default=False) # Evento agotado
+    # ------------------------------------------------------------------
+
     # Logística
     dias = db.Column(db.Integer, default=1)
     fecha_unica = db.Column(db.String(50))
     fecha_inicio = db.Column(db.String(50))
     fecha_regreso = db.Column(db.String(50))
     hora_salida = db.Column(db.String(50))
-    lugar_salida = db.Column(db.String(200))
+    lugar_salida = db.Column(db.String(200)) # Ahora solo guarda el lugar real
     puntos_recogida = db.Column(db.Text)
     itinerario = db.Column(db.Text)
-    incluye = db.Column(db.Text) # Guardado como string separado por comas
+    incluye = db.Column(db.Text) 
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Notification(db.Model):
