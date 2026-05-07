@@ -1,5 +1,6 @@
 # ARCHIVO: music_bp.py
 import os
+import time  # <-- NUEVO: Importamos time para la lógica de caché
 from flask import Blueprint, request, jsonify, render_template, session
 from werkzeug.utils import secure_filename
 from db import db
@@ -14,6 +15,10 @@ MUSIC_FOLDER = os.path.join(basedir, 'static', 'music')
 # Asegura que la carpeta exista
 os.makedirs(MUSIC_FOLDER, exist_ok=True)
 
+# --- NUEVO: Variable global para controlar el escaneo ---
+LAST_SCAN_TIME = 0 
+# --------------------------------------------------------
+
 @music_bp.route('/reproductor')
 def render_player():
     """Renderiza la SPA del reproductor (Mantenido por si navegan directo)"""
@@ -21,37 +26,42 @@ def render_player():
 
 @music_bp.route('/api/songs', methods=['GET'])
 def get_songs():
-    """Obtiene la lista de canciones y auto-escanea archivos manuales"""
-    # --- NUEVO: Escaneo Automático de Archivos Subidos Manualmente ---
-    existing_songs = {s.filename for s in Song.query.all()}
+    """Obtiene la lista de canciones y auto-escanea archivos manuales optimizadamente"""
+    global LAST_SCAN_TIME
+    current_time = time.time()
     
-    try:
-        for file in os.listdir(MUSIC_FOLDER):
-            if file.endswith('.mp3') and file not in existing_songs:
-                base_name = os.path.splitext(file)[0]
-                cover_file = None
-                
-                # Buscar una imagen que coincida (con o sin prefijo 'cover_')
-                for ext in ['.png', '.jpg', '.jpeg', '.webp']:
-                    if os.path.exists(os.path.join(MUSIC_FOLDER, f"{base_name}{ext}")):
-                        cover_file = f"{base_name}{ext}"
-                        break
-                    elif os.path.exists(os.path.join(MUSIC_FOLDER, f"cover_{base_name}{ext}")):
-                        cover_file = f"cover_{base_name}{ext}"
-                        break
-                
-                # Insertar automáticamente en la Base de Datos
-                new_song = Song(
-                    title=base_name.replace('_', ' ').title(),
-                    filename=file,
-                    cover_filename=cover_file
-                )
-                db.session.add(new_song)
+    # --- OPTIMIZACIÓN: Solo escaneamos el disco duro cada 5 minutos (300 segundos) ---
+    if current_time - LAST_SCAN_TIME > 300:
+        existing_songs = {s.filename for s in Song.query.all()}
         
-        db.session.commit()
-    except Exception as e:
-        print(f"Error escaneando música: {e}")
-    # -----------------------------------------------------
+        try:
+            for file in os.listdir(MUSIC_FOLDER):
+                if file.endswith('.mp3') and file not in existing_songs:
+                    base_name = os.path.splitext(file)[0]
+                    cover_file = None
+                    
+                    # Buscar una imagen que coincida (con o sin prefijo 'cover_')
+                    for ext in ['.png', '.jpg', '.jpeg', '.webp']:
+                        if os.path.exists(os.path.join(MUSIC_FOLDER, f"{base_name}{ext}")):
+                            cover_file = f"{base_name}{ext}"
+                            break
+                        elif os.path.exists(os.path.join(MUSIC_FOLDER, f"cover_{base_name}{ext}")):
+                            cover_file = f"cover_{base_name}{ext}"
+                            break
+                    
+                    # Insertar automáticamente en la Base de Datos
+                    new_song = Song(
+                        title=base_name.replace('_', ' ').title(),
+                        filename=file,
+                        cover_filename=cover_file
+                    )
+                    db.session.add(new_song)
+            
+            db.session.commit()
+            LAST_SCAN_TIME = current_time  # Actualizamos el reloj después del escaneo
+        except Exception as e:
+            print(f"Error escaneando música: {e}")
+    # ---------------------------------------------------------------------------------
 
     songs = Song.query.order_by(Song.id.desc()).all()
     return jsonify([{

@@ -168,7 +168,8 @@
         transform: translate(-50%, -50%) rotate(-10deg);
         background: rgba(220, 53, 69, 0.95);
         color: white;
-        font-size: 1.5rem;
+        /* Clamp asegura que el texto se adapte desde un móvil pequeño hasta la PC, manteniéndose siempre al centro */
+        font-size: clamp(1rem, 4.5vw, 1.5rem);
         font-weight: 900;
         padding: 8px 25px;
         border: 3px solid white;
@@ -179,6 +180,7 @@
         box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         pointer-events: none;
         white-space: nowrap;
+        text-align: center;
     }
 
     /* Transición suave para la flecha de la nota colapsable */
@@ -410,9 +412,29 @@
     </div>
 </div>
 
+<!-- NUEVO: Modal Sin Espacios -->
+<div class="modal fade" id="soldOutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <div class="bg-secondary bg-opacity-10 text-secondary rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-lock-fill" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+            <div class="modal-body pb-0">
+                <h5 class="fw-bold text-dark mb-3">Acceso Restringido</h5>
+                <p class="text-secondary small mb-4" style="line-height: 1.5;">No se puede ver el contenido de las caminatas sin espacios.<br><br>Si desea conocer más sobre ellos comunícate al <strong class="text-dark">86227500</strong> o al <strong class="text-dark">86529837</strong>.</p>
+                <button type="button" class="btn btn-secondary fw-bold rounded-pill px-4 shadow-sm w-100 text-white py-2" data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Scripts de Lógica de Datos EXTERNOS -->
 <script>
-    // Variable global inyectada por Flask para que nuestro archivo home.js sepa si el usuario es Admin.
+    // Variables globales inyectadas por Flask para uso en home.js
     window.IS_SUPER_USER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
 </script>
 <!-- Referencia a nuestro nuevo archivo JavaScript limpio -->

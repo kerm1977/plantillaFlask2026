@@ -1,0 +1,347 @@
+<!-- Vista: calendario.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Librería para capturar el Flyer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+    /* Panel de herramientas adaptado a tu diseño Glassmorphism */
+    .editor-tools {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 1rem;
+    }
+
+    /* Contenedor responsivo para el lienzo gigante */
+    #flyer-wrapper {
+        width: 100%;
+        position: relative;
+        overflow: hidden;
+        border-radius: 1rem;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        background-color: var(--bg-darker);
+    }
+
+    /* El lienzo real de 1920x1080 */
+    #lienzo-16-9 {
+        width: 1920px;
+        height: 1080px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform-origin: top left;
+        background-color: var(--bg-dark);
+        overflow: hidden;
+        color: white;
+    }
+
+    /* Imagen de fondo manipulable por el editor */
+    #flyer-bg-img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 1;
+        transform-origin: center center;
+    }
+
+    /* Capa oscura para que el texto sea legible */
+    .overlay-oscuro {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 2;
+    }
+
+    /* Contenedor del contenido del calendario */
+    .calendario-contenido {
+        position: relative;
+        z-index: 3;
+        width: 100%;
+        height: 100%;
+        padding: 60px 80px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Estilo de las tarjetas de los meses en el Flyer */
+    .mes-card {
+        background: rgba(30, 30, 30, 0.7);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 140, 0, 0.3); /* Tu color naranja */
+        border-radius: 1rem;
+        padding: 1.5rem;
+        height: 100%;
+    }
+
+    .mes-titulo {
+        color: var(--primary-orange);
+        border-bottom: 2px solid var(--primary-orange);
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    .evento-item {
+        background: rgba(255, 255, 255, 0.05);
+        border-left: 4px solid var(--primary-orange);
+        padding: 10px 15px;
+        margin-bottom: 12px;
+        border-radius: 0 0.5rem 0.5rem 0;
+    }
+</style>
+
+<div class="container py-4 mb-5 pb-5">
+    <div class="row g-4">
+        
+        <!-- PANEL DE HERRAMIENTAS (EDITOR) -->
+        <div class="col-lg-4">
+            <div class="editor-tools p-4 shadow-sm h-100">
+                <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-sliders text-orange me-2"></i>Herramientas</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Categoría (Filtro)</label>
+                    <select id="filtroCategoria" class="form-select bg-white border-0 shadow-sm" onchange="renderizarCalendario()">
+                        <option value="Todas">Todas las Caminatas</option>
+                        <option value="Parques Nacionales">Parques Nacionales</option>
+                        <option value="Volcanes">Volcanes</option>
+                        <option value="Playas">Playas</option>
+                        <option value="Montaña">Montaña</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Título del Flyer</label>
+                    <input type="text" id="inputTitulo" class="form-control bg-white border-0 shadow-sm" value="CALENDARIO DE AVENTURAS" oninput="actualizarTextos()">
+                </div>
+
+                <hr class="my-4 opacity-25">
+
+                <!-- CONTROLES DE IMAGEN (Iguales a los que usas en el perfil/eventos) -->
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-image text-orange me-2"></i>Fondo del Flyer</h6>
+                
+                <div class="mb-3">
+                    <input type="file" id="bgImageUpload" class="form-control form-control-sm bg-white border-0 shadow-sm" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Escala</span> <span id="valScale">1.0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderScale" min="0.5" max="3" step="0.1" value="1">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Horizontal (X)</span> <span id="valX">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderX" min="-1000" max="1000" step="10" value="0">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Vertical (Y)</span> <span id="valY">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderY" min="-1000" max="1000" step="10" value="0">
+                </div>
+
+                <button onclick="descargarArte()" class="btn btn-primary w-100 fw-bold rounded-pill shadow-sm py-2">
+                    <i class="bi bi-download me-2"></i>Descargar 16:9
+                </button>
+            </div>
+        </div>
+
+        <!-- ÁREA DEL LIENZO -->
+        <div class="col-lg-8">
+            <div id="flyer-wrapper">
+                <div id="lienzo-16-9">
+                    <!-- Imagen de fondo controlada por el editor -->
+                    <img id="flyer-bg-img" src="{{ url_for('static', filename='default_bg.jpg') }}" onerror="this.src='https://images.unsplash.com/photo-1518182170546-076616fdfaaf?q=80&w=1920&auto=format&fit=crop'">
+                    <div class="overlay-oscuro"></div>
+
+                    <div class="calendario-contenido">
+                        <!-- Cabecera -->
+                        <div class="text-center mb-5">
+                            <h1 id="flyer-titulo" class="display-3 fw-black text-white text-uppercase" style="font-weight: 900; letter-spacing: 3px; text-shadow: 2px 4px 10px rgba(0,0,0,0.5);">
+                                CALENDARIO DE AVENTURAS
+                            </h1>
+                            <p id="flyer-subtitulo" class="fs-2 text-orange fw-bold mt-2" style="text-shadow: 1px 2px 5px rgba(0,0,0,0.5);">Todas las Caminatas</p>
+                        </div>
+
+                        <!-- Grilla de Meses (Inyectada por JS) -->
+                        <div id="grid-meses" class="row g-4 flex-grow-1">
+                            <!-- JS inserta las tarjetas aquí -->
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-4 text-center">
+                            <div class="d-inline-block px-5 py-3 rounded-pill" style="background: var(--primary-orange); color: var(--bg-darker);">
+                                <h3 class="fw-bold mb-0 m-0"><i class="bi bi-whatsapp me-2"></i>Reservas: 8622-7500 | www.latribu.top</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // 1. DATA: Aquí simulo los eventos. En tu entorno real, pásalos desde Flask a JSON.
+    // Ejemplo Jinja real: const eventosDB = {{ eventos | tojson | safe }};
+    const eventosDB = [
+        { mes: 'Mayo', dia: '15', nombre: 'Volcán Irazú', categoria: 'Volcanes', dificultad: 'Fácil' },
+        { mes: 'Mayo', dia: '28', nombre: 'P.N. Manuel Antonio', categoria: 'Parques Nacionales', dificultad: 'Medio' },
+        { mes: 'Junio', dia: '10', nombre: 'Corcovado Extremo', categoria: 'Parques Nacionales', dificultad: 'Avanzado' },
+        { mes: 'Junio', dia: '24', nombre: 'Volcán Arenal', categoria: 'Volcanes', dificultad: 'Medio' },
+        { mes: 'Julio', dia: '05', nombre: 'Playa Conchal', categoria: 'Playas', dificultad: 'Fácil' },
+        { mes: 'Julio', dia: '18', nombre: 'Cerro Chirripó', categoria: 'Montaña', dificultad: 'Experto' }
+    ];
+
+    // 2. LÓGICA DEL LIENZO Y ESCALA
+    const wrapper = document.getElementById('flyer-wrapper');
+    const lienzo = document.getElementById('lienzo-16-9');
+
+    function ajustarEscalaWrapper() {
+        // Obliga al wrapper a tener formato 16:9 basado en su ancho actual
+        const currentWidth = wrapper.clientWidth;
+        const targetHeight = (currentWidth * 9) / 16;
+        wrapper.style.height = targetHeight + 'px';
+
+        // Escala el lienzo interno (1920x1080) para que quepa en el wrapper
+        const scale = currentWidth / 1920;
+        lienzo.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', ajustarEscalaWrapper);
+
+    // 3. HERRAMIENTAS DEL EDITOR (IMAGEN)
+    const bgImg = document.getElementById('flyer-bg-img');
+    const sliderScale = document.getElementById('sliderScale');
+    const sliderX = document.getElementById('sliderX');
+    const sliderY = document.getElementById('sliderY');
+
+    function actualizarTransformacionFondo() {
+        const scale = sliderScale.value;
+        const x = sliderX.value;
+        const y = sliderY.value;
+        
+        document.getElementById('valScale').innerText = scale;
+        document.getElementById('valX').innerText = x + 'px';
+        document.getElementById('valY').innerText = y + 'px';
+
+        bgImg.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+
+    sliderScale.addEventListener('input', actualizarTransformacionFondo);
+    sliderX.addEventListener('input', actualizarTransformacionFondo);
+    sliderY.addEventListener('input', actualizarTransformacionFondo);
+
+    // Carga de imagen local
+    document.getElementById('bgImageUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                bgImg.src = event.target.result;
+                // Resetear sliders
+                sliderScale.value = 1; sliderX.value = 0; sliderY.value = 0;
+                actualizarTransformacionFondo();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 4. GENERACIÓN DE CONTENIDO
+    function actualizarTextos() {
+        document.getElementById('flyer-titulo').innerText = document.getElementById('inputTitulo').value;
+    }
+
+    function renderizarCalendario() {
+        const categoriaSeleccionada = document.getElementById('filtroCategoria').value;
+        document.getElementById('flyer-subtitulo').innerText = categoriaSeleccionada === 'Todas' ? 'Todas las Caminatas' : `Especial: ${categoriaSeleccionada}`;
+
+        // Filtrar
+        const filtrados = eventosDB.filter(ev => categoriaSeleccionada === 'Todas' || ev.categoria === categoriaSeleccionada);
+
+        // Agrupar por mes
+        const agrupados = {};
+        filtrados.forEach(ev => {
+            if (!agrupados[ev.mes]) agrupados[ev.mes] = [];
+            agrupados[ev.mes].push(ev);
+        });
+
+        // Limpiar y renderizar
+        const grid = document.getElementById('grid-meses');
+        grid.innerHTML = '';
+
+        // Definir tamaño de columnas según la cantidad de meses (max 4 por fila para que se vea bien)
+        const totalMeses = Object.keys(agrupados).length;
+        let colClass = 'col-4'; // Por defecto 3 meses por fila
+        if (totalMeses === 1) colClass = 'col-8 mx-auto';
+        if (totalMeses === 2) colClass = 'col-6';
+        if (totalMeses >= 4) colClass = 'col-3';
+
+        for (const [mes, eventos] of Object.entries(agrupados)) {
+            let eventosHTML = eventos.map(ev => `
+                <div class="evento-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">${ev.nombre}</h4>
+                        <small class="text-white-50"><i class="bi bi-geo-alt-fill text-orange"></i> ${ev.dificultad}</small>
+                    </div>
+                    <div class="bg-darker text-orange fw-bold rounded px-3 py-2 fs-4 border border-secondary">
+                        ${ev.dia}
+                    </div>
+                </div>
+            `).join('');
+
+            grid.innerHTML += `
+                <div class="${colClass}">
+                    <div class="mes-card shadow">
+                        <h2 class="mes-titulo">${mes}</h2>
+                        <div class="eventos-lista">
+                            ${eventosHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // 5. DESCARGA
+    function descargarArte() {
+        // Quitar escala temporalmente para capturar en calidad original 1920x1080
+        lienzo.style.transform = 'scale(1)';
+        
+        html2canvas(lienzo, { 
+            scale: 1,
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Calendario_LaTribu_${document.getElementById('filtroCategoria').value}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            // Restaurar escala responsiva
+            ajustarEscalaWrapper();
+        });
+    }
+
+    // Inicializar
+    actualizarTextos();
+    renderizarCalendario();
+    setTimeout(ajustarEscalaWrapper, 100); // Pequeño delay para asegurar carga del DOM
+</script>
+{% endblock %}

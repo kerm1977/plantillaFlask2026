@@ -36,4 +36,6 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Adaptamos el puerto para que escuche el .bat o use 5050 por defecto
+    port = int(os.environ.get('PORT', 5050))
+    app.run(debug=True, host='0.0.0.0', port=port)

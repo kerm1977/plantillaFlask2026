@@ -300,6 +300,102 @@
             -webkit-appearance: none;
             box-shadow: 0 0 10px rgba(0,0,0,0.5);
         }
+        
+        /* ========================================== */
+        /* ESTILOS PARA EL GENERADOR DE CALENDARIO    */
+        /* ========================================== */
+        .editor-tools {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 1rem;
+        }
+
+        #flyer-wrapper {
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            border-radius: 1rem;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            background-color: var(--bg-darker, #121212);
+        }
+
+        /* AHORA EL LIENZO ES DINÁMICO (NO TIENE DIMENSIONES FIJAS AQUÍ) */
+        #lienzo-arte {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform-origin: top left;
+            background-color: var(--bg-dark, #1e1e1e);
+            overflow: hidden;
+            color: white;
+            /* Las dimensiones se ajustan por Javascript al cambiar de formato */
+            width: 1920px;
+            height: 1080px;
+        }
+
+        #cal-flyer-bg-img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 1;
+            transform-origin: center center;
+        }
+
+        .overlay-oscuro {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* OPACIDAD Y BLUR AJUSTABLES BRUTALES */
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 2;
+        }
+
+        .calendario-contenido {
+            position: relative;
+            z-index: 3;
+            width: 100%;
+            height: 100%;
+            padding: 60px 80px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mes-card {
+            background: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 140, 0, 0.3);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            height: 100%;
+        }
+
+        .mes-titulo {
+            color: var(--primary-orange, #ff8c00);
+            border-bottom: 2px solid var(--primary-orange, #ff8c00);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .evento-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 4px solid var(--primary-orange, #ff8c00);
+            padding: 10px 15px;
+            margin-bottom: 12px;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
     </style>
 </head>
 <body>
@@ -339,10 +435,42 @@
     </button>
     {% endif %}
 
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
+    <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
-    <a href="/eventos" class="btn-global-add" title="Crear Evento">
-        <i class="bi bi-plus-lg fs-4"></i>
-    </a>
+    <div class="dropdown dropup">
+        <!-- El botón flotante ahora abre un menú desplegable (Dropup para que suba) -->
+        <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none;">
+            <i class="bi bi-tools fs-4"></i>
+        </a>
+        
+        <!-- Menú desplegable Glassmorphic -->
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mb-2 p-2" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border-radius: 1rem; right: 20px;">
+            <!-- Opción 1: Crear Caminata -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/eventos">
+                    <i class="bi bi-plus-circle text-orange me-2 fs-5"></i> Crear Caminata
+                </a>
+            </li>
+            
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 2: Generar Calendario 16:9 (AHORA ABRE EL MODAL) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" data-bs-toggle="modal" data-bs-target="#calendarioModal">
+                    <i class="bi bi-easel text-orange me-2 fs-5"></i> Arte de Calendario
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <style>
+        /* Elimina la flechita por defecto del dropdown en el botón flotante */
+        .btn-global-add.dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
     {% endif %}
 
     <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
@@ -480,6 +608,151 @@
             </div>
         </div>
     </div>
+    
+    <!-- ========================================== -->
+    <!-- MODAL GENERADOR DE CALENDARIO              -->
+    <!-- ========================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="modal fade" id="calendarioModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-modal shadow-lg border-0 bg-light">
+                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
+                    <h5 class="modal-title fw-bold text-dark w-100"><i class="bi bi-calendar3 text-orange me-2"></i>Generador de Calendario HD</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row g-4">
+                        <!-- PANEL DE HERRAMIENTAS (EDITOR) -->
+                        <div class="col-lg-4">
+                            <div class="editor-tools p-4 shadow-sm h-100 bg-white">
+                                <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-sliders text-orange me-2"></i>Configuración</h4>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small">Formato del Arte</label>
+                                    <select id="calFormatoArte" class="form-select bg-light border shadow-sm" onchange="cambiarFormatoArte()">
+                                        <option value="horizontal">Horizontal (16:9) - Pantallas/TV</option>
+                                        <option value="vertical">Vertical (9:16) - Celulares/Historias</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small">Categoría (Filtro)</label>
+                                    <select id="calFiltroCategoria" class="form-select bg-light border shadow-sm" onchange="renderizarCalendario()">
+                                        <option value="Todas">Todas las Actividades</option>
+                                        <option value="Recreativo">Recreativo</option>
+                                        <option value="Caminata">Caminata</option>
+                                        <option value="Principiantes">Principiantes</option>
+                                        <option value="Intermedios">Intermedios</option>
+                                        <option value="Avanzados">Avanzados</option>
+                                        <option value="Extremo">Extremo</option>
+                                        <option value="Parques Nacionales">Parques Nacionales</option>
+                                        <option value="Volcanes">Volcanes</option>
+                                        <option value="Playas">Playas</option>
+                                        <option value="Montaña">Montaña</option>
+                                        <option value="Internacional">Internacional</option>
+                                        <option value="Evento Especial">Evento Especial</option>
+                                        <option value="El Camino de Costa Rica">El Camino de Costa Rica</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small">Título del Flyer</label>
+                                    <input type="text" id="calInputTitulo" class="form-control bg-light border shadow-sm" value="CALENDARIO DE AVENTURAS" oninput="actualizarTextosCalendario()">
+                                </div>
+
+                                <hr class="my-4 opacity-25">
+
+                                <!-- CONTROLES DE IMAGEN -->
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-image text-orange me-2"></i>Diseño Visual</h6>
+                                
+                                <div class="mb-3">
+                                    <input type="file" id="calBgImageUpload" class="form-control form-control-sm bg-light border shadow-sm" accept="image/*">
+                                </div>
+
+                                <!-- CONTROL DE OSCURIDAD/BLUR BRUTAL -->
+                                <div class="mb-4">
+                                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                                        <span><i class="bi bi-circle-half me-1"></i>Oscuridad del Fondo</span> <span id="calValOscuridad">60%</span>
+                                    </label>
+                                    <input type="range" class="form-range" id="calSliderOscuridad" min="0" max="0.9" step="0.05" value="0.6" oninput="actualizarOscuridad()">
+                                </div>
+
+                                <div class="image-editor-controls">
+                                    <div class="mb-3">
+                                        <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                                            <span><i class="bi bi-zoom-in me-1"></i>Escala</span> <span id="calValScale">1.0</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="calSliderScale" min="0.5" max="3" step="0.1" value="1">
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                                            <span><i class="bi bi-arrows-move me-1"></i>Posición (X)</span> <span id="calValX">0</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="calSliderX" min="-1000" max="1000" step="10" value="0">
+                                    </div>
+                                    
+                                    <div class="mb-4">
+                                        <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                                            <span><i class="bi bi-arrows-vertical me-1"></i>Posición (Y)</span> <span id="calValY">0</span>
+                                        </label>
+                                        <input type="range" class="form-range" id="calSliderY" min="-1000" max="1000" step="10" value="0">
+                                    </div>
+                                </div>
+
+                                <button onclick="descargarArteCalendario()" class="btn btn-primary btn-orange w-100 fw-bold rounded-pill shadow-sm py-2">
+                                    <i class="bi bi-download me-2"></i>Descargar Arte HD
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ÁREA DEL LIENZO -->
+                        <div class="col-lg-8">
+                            <!-- Hint para el usuario -->
+                            <div class="alert alert-info rounded-pill text-center mb-3 py-2 shadow-sm border-0 bg-opacity-10 text-dark">
+                                <i class="bi bi-info-circle-fill me-2 text-orange"></i>
+                                <small>La descarga final siempre será en la mejor calidad dependiendo del formato elegido.</small>
+                            </div>
+
+                            <div id="flyer-wrapper">
+                                <!-- Lienzo Dinámico (Cambia de tamaño por JS) -->
+                                <div id="lienzo-arte">
+                                    <!-- Imagen de fondo controlada por el editor -->
+                                    <img id="cal-flyer-bg-img" src="{{ url_for('static', filename='default.png') }}" onerror="this.src='https://images.unsplash.com/photo-1518182170546-076616fdfaaf?q=80&w=1920&auto=format&fit=crop'">
+                                    
+                                    <!-- Capa con el BLUR brutal incorporado -->
+                                    <div class="overlay-oscuro"></div>
+
+                                    <div class="calendario-contenido">
+                                        <!-- Cabecera -->
+                                        <div class="text-center mb-5">
+                                            <h1 id="cal-flyer-titulo" class="display-3 fw-black text-white text-uppercase" style="font-weight: 900; letter-spacing: 3px; text-shadow: 2px 4px 10px rgba(0,0,0,0.8);">
+                                                CALENDARIO DE AVENTURAS
+                                            </h1>
+                                            <p id="cal-flyer-subtitulo" class="fs-2 text-orange fw-bold mt-2" style="text-shadow: 1px 2px 5px rgba(0,0,0,0.8);">Todas las Caminatas</p>
+                                        </div>
+
+                                        <!-- Grilla de Meses (Inyectada por JS) -->
+                                        <div id="cal-grid-meses" class="row g-4 flex-grow-1 align-content-start">
+                                            <!-- JS inserta las tarjetas aquí -->
+                                        </div>
+
+                                        <!-- Footer Institucional de La Tribu -->
+                                        <div class="mt-4 text-center">
+                                            <div class="d-inline-block px-5 py-3 rounded-pill shadow" style="background: var(--primary-orange, #ff8c00); color: #121212;">
+                                                <h3 class="fw-bold mb-0 m-0"><i class="bi bi-whatsapp me-2"></i>Reservas: 8622-7500 | www.latribu.top</h3>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- ========================================== -->
     <!-- REPRODUCTOR DE MÚSICA GLOBAL DE LA TRIBU   -->
@@ -678,6 +951,8 @@
     <!-- Scripts Locales y Lógica PWA -->
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
+    <!-- LIBRERIA PARA CAPTURAR EL CALENDARIO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
     
     <!-- SCRIPT DE MÚSICA Y FUNCIONES BASE -->
     <script>
@@ -1373,6 +1648,241 @@
                 } else showMessage('registerMessage', result.error || 'Error al registrarse');
             } catch (err) { showMessage('registerMessage', 'Error de conexión'); }
         });
+        
+        // ==========================================
+        // LÓGICA DEL GENERADOR DE CALENDARIO 16:9 y 9:16
+        // ==========================================
+        
+        let eventosDBCalendario = [];
+
+        async function cargarEventosCalendario() {
+            try {
+                const response = await fetch('/api/get_events');
+                const eventosRaw = await response.json();
+
+                const meses_es = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+                eventosDBCalendario = eventosRaw.map(ev => {
+                    let fechaCorta = ev.fecha ? ev.fecha.split(' ')[0] : '';
+                    let mesTxt = "S/M";
+                    let diaTxt = "--";
+                    let ms = 0;
+                    
+                    if (fechaCorta && fechaCorta.includes('-')) {
+                        let partes = fechaCorta.split('-'); 
+                        let d = new Date(partes[0], partes[1] - 1, partes[2]);
+                        mesTxt = meses_es[d.getMonth()];
+                        diaTxt = d.getDate().toString();
+                        ms = d.getTime();
+                    }
+
+                    return {
+                        mes: mesTxt,
+                        dia: diaTxt,
+                        nombre: ev.nombreLugar,
+                        categoria: ev.actividad || 'Caminata',
+                        dificultad: ev.dificultad || 'Moderada',
+                        _timestamp: ms
+                    };
+                });
+
+                eventosDBCalendario.sort((a, b) => a._timestamp - b._timestamp);
+                renderizarCalendario();
+            } catch(e) {
+                console.error("Error al cargar caminatas:", e);
+            }
+        }
+
+        const calWrapper = document.getElementById('flyer-wrapper');
+        const calLienzo = document.getElementById('lienzo-arte');
+
+        function ajustarEscalaWrapperCalendario() {
+            if(!calWrapper || !calLienzo) return;
+            const currentWidth = calWrapper.clientWidth;
+            if(currentWidth === 0) return; 
+            
+            const formato = document.getElementById('calFormatoArte').value;
+            
+            // Determinar dimensiones base según formato
+            const baseWidth = formato === 'horizontal' ? 1920 : 1080;
+            const baseHeight = formato === 'horizontal' ? 1080 : 1920;
+
+            // Actualizar dimensiones reales del lienzo oculto
+            calLienzo.style.width = baseWidth + 'px';
+            calLienzo.style.height = baseHeight + 'px';
+
+            // Calcular alto del wrapper en pantalla
+            const ratio = baseHeight / baseWidth;
+            const targetHeight = currentWidth * ratio;
+            calWrapper.style.height = targetHeight + 'px';
+
+            // Escalar para que encaje visualmente
+            const scale = currentWidth / baseWidth;
+            calLienzo.style.transform = `scale(${scale})`;
+        }
+        
+        window.addEventListener('resize', ajustarEscalaWrapperCalendario);
+        
+        document.getElementById('calendarioModal')?.addEventListener('shown.bs.modal', function () {
+            ajustarEscalaWrapperCalendario();
+            cargarEventosCalendario();
+        });
+
+        // Al cambiar Formato: reajusta y re-dibuja el grid
+        function cambiarFormatoArte() {
+            ajustarEscalaWrapperCalendario();
+            renderizarCalendario();
+        }
+
+        // Lógica para la Oscuridad/Blur del fondo
+        function actualizarOscuridad() {
+            const val = document.getElementById('calSliderOscuridad').value;
+            document.getElementById('calValOscuridad').innerText = Math.round(val * 100) + '%';
+            const overlay = document.querySelector('.overlay-oscuro');
+            if(overlay) overlay.style.backgroundColor = `rgba(0, 0, 0, ${val})`;
+        }
+
+        const calBgImg = document.getElementById('cal-flyer-bg-img');
+        const calSliderScale = document.getElementById('calSliderScale');
+        const calSliderX = document.getElementById('calSliderX');
+        const calSliderY = document.getElementById('calSliderY');
+
+        if(calSliderScale && calSliderX && calSliderY) {
+            function actualizarTransformacionFondoCalendario() {
+                const scale = calSliderScale.value;
+                const x = calSliderX.value;
+                const y = calSliderY.value;
+                
+                document.getElementById('calValScale').innerText = scale;
+                document.getElementById('calValX').innerText = x + 'px';
+                document.getElementById('calValY').innerText = y + 'px';
+
+                calBgImg.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+            }
+
+            calSliderScale.addEventListener('input', actualizarTransformacionFondoCalendario);
+            calSliderX.addEventListener('input', actualizarTransformacionFondoCalendario);
+            calSliderY.addEventListener('input', actualizarTransformacionFondoCalendario);
+
+            document.getElementById('calBgImageUpload')?.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        calBgImg.src = event.target.result;
+                        calSliderScale.value = 1; calSliderX.value = 0; calSliderY.value = 0;
+                        actualizarTransformacionFondoCalendario();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function actualizarTextosCalendario() {
+            const tituloEl = document.getElementById('cal-flyer-titulo');
+            const inputEl = document.getElementById('calInputTitulo');
+            if(tituloEl && inputEl) {
+                tituloEl.innerText = inputEl.value;
+            }
+        }
+
+        function renderizarCalendario() {
+            const filtroEl = document.getElementById('calFiltroCategoria');
+            const subTituloEl = document.getElementById('cal-flyer-subtitulo');
+            const grid = document.getElementById('cal-grid-meses');
+            const formato = document.getElementById('calFormatoArte').value;
+            
+            if(!filtroEl || !subTituloEl || !grid) return;
+            
+            const categoriaSeleccionada = filtroEl.value;
+            subTituloEl.innerText = categoriaSeleccionada === 'Todas' ? 'Todas las Caminatas' : `Especial: ${categoriaSeleccionada}`;
+
+            const filtrados = eventosDBCalendario.filter(ev => categoriaSeleccionada === 'Todas' || ev.categoria === categoriaSeleccionada);
+
+            const agrupados = {};
+            filtrados.forEach(ev => {
+                if (!agrupados[ev.mes]) agrupados[ev.mes] = [];
+                agrupados[ev.mes].push(ev);
+            });
+
+            grid.innerHTML = '';
+
+            const totalMeses = Object.keys(agrupados).length;
+            let colClass = 'col-4'; 
+            
+            if(formato === 'horizontal') {
+                if (totalMeses === 1) colClass = 'col-6 mx-auto';
+                if (totalMeses === 2) colClass = 'col-6';
+                if (totalMeses >= 4) colClass = 'col-3';
+            } else {
+                // Formato Vertical (Celular 9:16)
+                if (totalMeses <= 2) colClass = 'col-12';
+                else colClass = 'col-6'; // Máximo 2 columnas para móviles
+            }
+
+            for (const [mes, eventos] of Object.entries(agrupados)) {
+                let eventosHTML = eventos.map(ev => `
+                    <div class="evento-item d-flex justify-content-between align-items-center shadow-sm">
+                        <div class="pe-2">
+                            <h4 class="fw-bold mb-0 text-white" style="font-size: ${formato === 'vertical' ? '1.2rem' : '1.5rem'};">${ev.nombre}</h4>
+                            <small class="text-white-50"><i class="bi bi-geo-alt-fill text-orange"></i> Dificultad: ${ev.dificultad}</small>
+                        </div>
+                        <div class="bg-darker text-orange fw-bold rounded px-3 py-2 border border-secondary shadow-sm" style="font-size: ${formato === 'vertical' ? '1.2rem' : '1.5rem'};">
+                            ${ev.dia}
+                        </div>
+                    </div>
+                `).join('');
+
+                grid.innerHTML += `
+                    <div class="${colClass}">
+                        <div class="mes-card shadow-lg h-100">
+                            <h2 class="mes-titulo">${mes}</h2>
+                            <div class="eventos-lista">
+                                ${eventosHTML}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function descargarArteCalendario() {
+            if(typeof html2canvas === 'undefined') {
+                alert("La librería de captura aún está cargando. Por favor, intenta de nuevo en unos segundos.");
+                return;
+            }
+            
+            calLienzo.style.transform = 'scale(1)';
+            
+            const btnDescarga = document.querySelector('#calendarioModal .btn-primary');
+            const btnOriginalText = btnDescarga.innerHTML;
+            btnDescarga.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando Alta Resolución...';
+            btnDescarga.disabled = true;
+            
+            html2canvas(calLienzo, { 
+                scale: 1,
+                useCORS: true,
+                backgroundColor: null,
+                logging: false
+            }).then(canvas => {
+                const link = document.createElement('a');
+                const fechaTxt = new Date().toISOString().slice(0,10);
+                const formato = document.getElementById('calFormatoArte').value;
+                link.download = `Arte_${formato}_${document.getElementById('calFiltroCategoria').value}_${fechaTxt}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+                
+                ajustarEscalaWrapperCalendario();
+                btnDescarga.innerHTML = btnOriginalText;
+                btnDescarga.disabled = false;
+            }).catch(err => {
+                console.error("Error capturando lienzo:", err);
+                alert("Ocurrió un error al generar la imagen. Asegúrate de usar imágenes de fondo sin restricciones CORS.");
+                ajustarEscalaWrapperCalendario();
+                btnDescarga.innerHTML = btnOriginalText;
+                btnDescarga.disabled = false;
+            });
+        }
     </script>
 </body>
 </html>

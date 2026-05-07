@@ -32,6 +32,51 @@ def profile():
         return redirect(url_for('main.home'))
     return render_template('perfil.html', user=user)
 
+@bp.route('/calendario')
+def calendario():
+    # Protegemos la ruta para que solo Superusuarios puedan acceder
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    
+    # Obtener todos los eventos ordenados por fecha
+    eventos_db = Event.query.order_by(Event.fecha_inicio).all()
+    
+    meses_es = {
+        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
+        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
+        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
+    }
+    
+    eventos_procesados = []
+    for ev in eventos_db:
+        if getattr(ev, 'fecha_inicio', None):
+            fecha_dt = ev.fecha_inicio
+            
+            # Blindaje: Por si la fecha viene como string desde SQLite
+            if isinstance(fecha_dt, str):
+                try:
+                    fecha_dt = datetime.strptime(fecha_dt, '%Y-%m-%d').date()
+                except ValueError:
+                    try:
+                        fecha_dt = datetime.strptime(fecha_dt, '%d/%m/%Y').date()
+                    except ValueError:
+                        continue # Si el formato es totalmente ilegible, lo omite sin crashear
+            
+            # Extracción segura de mes y día
+            mes_num = getattr(fecha_dt, 'month', 1)
+            dia_num = getattr(fecha_dt, 'day', 1)
+            
+            eventos_procesados.append({
+                'mes': meses_es.get(mes_num, 'S/M'),
+                'dia': str(dia_num),
+                'nombre': getattr(ev, 'nombre_lugar', 'Caminata'),
+                'categoria': getattr(ev, 'actividad', 'Caminata') or 'Caminata',
+                'dificultad': getattr(ev, 'dificultad', 'Moderada') or 'Moderada'
+            })
+    
+    # Pasamos los eventos ya procesados al HTML sin errores de Json
+    return render_template('calendario.html', eventos=eventos_procesados)
+
 @bp.route('/dashboard')
 def dashboard():
     if 'user_id' not in session or session.get('role') != 'Superusuario':
@@ -282,8 +327,8 @@ def login():
 def register():
     data = request.json
     if User.query.filter_by(email=data.get('email').lower()).first():
-         return jsonify({'error': 'Email ya registrado'}), 400
-         
+        return jsonify({'error': 'Email ya registrado'}), 400
+        
     try:
         new_user = User(
             name=data.get('name'),
@@ -342,8 +387,8 @@ def update_profile():
         avatar_file = request.files.get('avatar')
         if avatar_file and avatar_file.filename != '':
             if not allowed_file(avatar_file.filename, ALLOWED_IMAGE_EXTENSIONS):
-                 return jsonify({"error": "Formato de imagen no permitido"}), 400
-                 
+                return jsonify({"error": "Formato de imagen no permitido"}), 400
+                
             filename = secure_filename(avatar_file.filename)
             filename = f"user_{user.id}_{filename}"
             static_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')
@@ -444,8 +489,8 @@ def admin_update_user(user_id):
     avatar_file = request.files.get('avatar')
     if avatar_file and avatar_file.filename != '':
         if not allowed_file(avatar_file.filename, ALLOWED_IMAGE_EXTENSIONS):
-             return jsonify({"error": "Formato de imagen no permitido"}), 400
-             
+            return jsonify({"error": "Formato de imagen no permitido"}), 400
+            
         filename = secure_filename(avatar_file.filename)
         filename = f"user_{u.id}_{filename}"
         static_folder = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'uploads')

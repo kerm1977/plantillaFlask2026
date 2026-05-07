@@ -2,162 +2,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<style>
-    /* Estilos del Póster */
-    .event-poster {
-        width: 100%;
-        border-radius: 1.5rem;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        object-fit: cover;
-        aspect-ratio: 9/16;
-        max-height: 550px;
-    }
-    
-    .badge-dificultad {
-        font-size: 0.85rem;
-        letter-spacing: 1px;
-        padding: 0.6rem 1.2rem;
-        backdrop-filter: blur(5px);
-    }
-
-    /* Banner de Precio */
-    .price-banner {
-        background: linear-gradient(135deg, rgba(255,140,0,0.15) 0%, rgba(255,140,0,0.05) 100%);
-        border: 1px solid rgba(255,140,0,0.2);
-        border-radius: 1.2rem;
-        padding: 1.5rem;
-    }
-
-    /* Lista de Detalles (Logística y Pagos fluida) */
-    .detail-item {
-        display: flex;
-        align-items: flex-start;
-        margin-bottom: 1.5rem;
-    }
-    .detail-icon {
-        width: 45px;
-        height: 45px;
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--primary-orange, #ff8c00);
-        font-size: 1.3rem;
-        flex-shrink: 0;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-right: 1.2rem;
-    }
-    .detail-text p {
-        margin-bottom: 0.2rem;
-        color: #495057;
-        line-height: 1.4;
-    }
-
-    /* Sección Incluye */
-    .incluye-pill {
-        background: rgba(255, 255, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        color: #555;
-        font-weight: 600;
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        font-size: 0.85rem;
-        display: inline-flex;
-        align-items: center;
-        margin: 0.3rem 0.3rem 0 0;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-    }
-    .incluye-pill i {
-        color: var(--primary-orange, #ff8c00);
-    }
-
-    /* Sección Itinerario */
-    .itinerario-block {
-        border-left: 4px solid var(--primary-orange, #ff8c00);
-        padding-left: 1.5rem;
-        margin-top: 0.5rem;
-        white-space: pre-wrap;
-        line-height: 1.7;
-        color: #495057;
-        font-size: 0.95rem;
-    }
-
-    /* Estilos Especiales para Exportar a PNG */
-    .exporting-mode {
-        background: white !important;
-        backdrop-filter: none !important;
-        -webkit-backdrop-filter: none !important;
-        border: 2px solid #eee !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-    }
-    .exporting-mode .detail-icon, .exporting-mode .incluye-pill {
-        background: #f8f9fa !important;
-        border-color: #dee2e6 !important;
-    }
-
-    /* Estilos Modal de Edición */
-    .check-btn-wrapper input[type="checkbox"]:checked + label {
-        background-color: #ff8c00;
-        color: white !important;
-        border-color: #ff8c00 !important;
-    }
-    .check-btn-wrapper label {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.8) !important;
-        color: #495057;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-    .check-btn-wrapper label:hover {
-        background: rgba(255, 255, 255, 0.8);
-    }
-
-    /* Estilos para inputs de fecha pequeños en Modo Seguro */
-    .date-split input, .date-split select {
-        padding-left: 0.25rem;
-        padding-right: 0.25rem;
-        text-align: center;
-        font-weight: bold;
-    }
-
-    /* Estilos para "Sin Espacio" (Agotado) */
-    .sold-out-card {
-        filter: grayscale(85%);
-        opacity: 0.85;
-        background: rgba(220, 220, 220, 0.4) !important;
-    }
-    .sold-out-overlay {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotate(-10deg);
-        background: rgba(220, 53, 69, 0.95);
-        color: white;
-        font-size: 2rem;
-        font-weight: 900;
-        padding: 10px 30px;
-        border: 4px solid white;
-        border-radius: 10px;
-        z-index: 15;
-        letter-spacing: 2px;
-        text-transform: uppercase;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        pointer-events: none;
-        white-space: nowrap;
-    }
-</style>
-
-<!-- Procesamiento Jinja: Variables Lógicas de Seguridad Absoluta -->
+<!-- LÓGICA JINJA PARA SEGURIDAD Y FORMATO -->
+{% set is_super = session.get('role') == 'Superusuario' %}
 {% set is_logistica_segura = evento.lugar_salida and evento.lugar_salida.startswith('SEGURO_') %}
-{% set is_private = evento.solo_chat or is_logistica_segura %}
+{% set is_private = evento.solo_chat or is_logistica_segura or evento.logistica_segura %}
 {% set lugar_real = evento.lugar_salida|replace('SEGURO_', '') if is_logistica_segura else evento.lugar_salida %}
-{% set is_sold_out = evento.capacidad and evento.capacidad.startswith('AGOTADO') %}
+{% set is_sold_out = evento.is_sold_out or (evento.capacidad and evento.capacidad.startswith('AGOTADO')) %}
 {% set is_super_user = session.get('role') == 'Superusuario' %}
 
-<!-- Procesamiento Jinja: Formato de Fecha Hermosa "XX de Mes del Año" -->
+{% if is_private and not is_super %}
+    {% set dest_text = "📍 Info exclusiva en el Chat" %}
+    {% set time_text = "⏰ Info exclusiva en el Chat" %}
+{% else %}
+    {% set dest_text = lugar_real or 'Por definir' %}
+    {% set time_text = evento.hora_salida or 'Por definir' %}
+{% endif %}
+
+{% set precio_val = evento.precio | default(0, true) | int %}
+{% set precio_mostrar = evento.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+
+<!-- Formato de Fecha Hermosa "XX de Mes del Año" -->
 {% set meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"] %}
 
 {% set fecha_str = evento.fecha_unica %}
@@ -189,230 +53,669 @@
     {% endif %}
 {% endif %}
 
-<div class="row justify-content-center animate__animated animate__fadeIn">
-    <div class="col-lg-11 col-xl-10">
-        
-        <!-- Tarjeta Principal Glassmorphic (Clase Condicional para Sin Espacio) -->
-        <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-5 mb-5 position-relative border-0 shadow-lg {{ 'sold-out-card' if is_sold_out else '' }}">
-            
-            <!-- Botón Rápido de Superusuario para Alternar Sin Espacio -->
-            {% if is_super_user %}
-            <div class="position-absolute top-0 start-0 m-3 hide-on-export d-flex gap-2" style="z-index: 20;">
-                <button class="btn {{ 'btn-success' if is_sold_out else 'btn-danger' }} shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" onclick="toggleEspacio({{ evento.id }})" title="{{ 'Habilitar Espacio' if is_sold_out else 'Marcar Sin Espacio' }}">
-                    <i class="bi {{ 'bi-check-lg' if is_sold_out else 'bi-x-lg' }} fs-5"></i>
-                </button>
-                <button class="btn btn-dark shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;" data-bs-toggle="modal" data-bs-target="#deleteEventModal" title="Eliminar Publicación">
-                    <i class="bi bi-trash-fill fs-5 text-white"></i>
-                </button>
-            </div>
-            {% endif %}
+{% set date_display = fecha_formateada if evento.dias == 1 else inicio_formateada ~ ' al ' ~ regreso_formateada %}
 
+<style>
+    /* Estilos del Póster */
+    .event-poster {
+        width: 100%;
+        border-radius: 1.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        object-fit: cover;
+        aspect-ratio: 9/16;
+        max-height: 480px; /* Reducido un poco */
+    }
+    
+    .badge-dificultad {
+        font-size: 0.75rem;
+        letter-spacing: 1px;
+        padding: 0.5rem 1rem;
+        backdrop-filter: blur(5px);
+    }
+
+    /* Banner de Precio */
+    .price-banner {
+        background: linear-gradient(135deg, rgba(255,140,0,0.15) 0%, rgba(255,140,0,0.05) 100%);
+        border: 1px solid rgba(255,140,0,0.2);
+        border-radius: 1rem;
+        padding: 1.2rem;
+    }
+
+    /* Lista de Detalles */
+    .detail-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.2rem; /* Reducido */
+    }
+    .detail-icon {
+        width: 38px; /* Reducido */
+        height: 38px; /* Reducido */
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-orange, #ff8c00);
+        font-size: 1.1rem; /* Reducido */
+        flex-shrink: 0;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        margin-right: 1rem;
+    }
+    .detail-text p {
+        margin-bottom: 0.2rem;
+        color: #495057;
+        line-height: 1.3;
+        font-size: 0.95rem; /* Letra más pequeña */
+    }
+
+    .incluye-pill {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        color: #555;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 50px;
+        font-size: 0.8rem; /* Reducido */
+        display: inline-flex;
+        align-items: center;
+        margin: 0.25rem 0.25rem 0 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+    .exporting-mode {
+        background: white !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+        border: 2px solid #eee !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+    }
+    .exporting-mode .detail-icon, .exporting-mode .incluye-pill {
+        background: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+
+    .sold-out-card {
+        filter: grayscale(85%);
+        opacity: 0.85;
+        background: rgba(220, 220, 220, 0.4) !important;
+    }
+    .sold-out-overlay {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-10deg);
+        background: rgba(220, 53, 69, 0.95);
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 900;
+        padding: 8px 25px;
+        border: 4px solid white;
+        border-radius: 10px;
+        z-index: 15;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        pointer-events: none;
+        white-space: nowrap;
+    }
+
+    /* NUEVOS ESTILOS ROBUSTOS PARA CHECKBOXES INCLUYE (MODAL DE EDICIÓN) */
+    .btn-check-custom {
+        display: none !important;
+    }
+    .lbl-check-custom {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        color: #495057 !important;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        cursor: pointer;
+        user-select: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .lbl-check-custom:hover {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .btn-check-custom:checked + .lbl-check-custom {
+        background-color: #ff8c00 !important;
+        color: white !important;
+        border-color: #ff8c00 !important;
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3) !important;
+    }
+
+    /* --- ESTILOS DEL EDITOR DE FLYER (SOLO SUPERUSUARIOS) --- */
+    {% if is_super_user %}
+    .flyer-preview-wrapper {
+        width: 100%;
+        height: 350px; 
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.05);
+        border: 1px dashed rgba(255, 140, 0, 0.4);
+        border-radius: 1.5rem;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    
+    @media (min-width: 992px) {
+        .flyer-preview-wrapper {
+            height: 380px; 
+        }
+    }
+
+    .flyer-capture-area {
+        position: relative;
+        width: 360px;
+        height: 640px; 
+        background-color: #000;
+        flex-shrink: 0;
+        transform-origin: center center;
+        border-radius: 1.5rem; 
+        overflow: hidden;
+    }
+
+    .flyer-bg-container {
+        position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+        width: 100%; height: 100%;
+    }
+
+    .flyer-bg-img {
+        width: 100%; height: 100%; object-fit: cover; transform-origin: center center;
+    }
+
+    .flyer-glass-overlay {
+        position: absolute; 
+        bottom: 20px; 
+        left: 0; right: 0; margin: 0 auto; 
+        width: 90%; 
+        border: 1px solid rgba(255, 255, 255, 0.25); 
+        border-radius: 1.2rem; padding: 1.5rem;
+        color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.6); 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+        transform-origin: center center;
+        --text-scale: 1;
+    }
+
+    .flyer-badge {
+        background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+        color: white; padding: 4px 10px; border-radius: 50px; 
+        font-weight: 700; text-transform: uppercase;
+        font-size: calc(0.7rem * var(--text-scale));
+    }
+
+    .editor-control-label { font-size: 0.75rem; font-weight: 700; color: #495057; text-transform: uppercase; margin-bottom: 2px; }
+    
+    .form-switch .form-check-input {
+        width: 2.2rem;
+        height: 1.1rem;
+        cursor: pointer;
+    }
+
+    .transition-chevron { transition: transform 0.3s ease; }
+    [data-bs-toggle="collapse"][aria-expanded="true"] .transition-chevron { transform: rotate(180deg); }
+    {% endif %}
+</style>
+
+<div class="container animate__animated animate__fadeIn pb-5 pt-3">
+    
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
             <!-- Botón Volver -->
-            <div class="mb-4 hide-on-export d-flex justify-content-end justify-content-md-start">
-                <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; width: fit-content;">
-                    <i class="bi bi-arrow-left me-2"></i>Volver
+            <div class="mb-4 d-flex justify-content-start hide-on-export">
+                <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; font-size: 0.9rem;">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Eventos
                 </a>
             </div>
 
             <div class="row g-4 g-lg-5">
                 
-                <!-- COLUMNA IZQUIERDA: Póster y CTA Principal -->
-                <div class="col-12 col-md-5 col-lg-4 d-flex flex-column align-items-center">
-                    <div class="position-relative w-100" style="max-width: 350px;">
-                        <!-- Rótulo de Sin Espacio (Agotado) -->
-                        {% if is_sold_out %}
-                            <div class="sold-out-overlay">SIN ESPACIO</div>
+                <!-- COLUMNA IZQUIERDA: Póster e Info. -->
+                <div class="col-12 {% if is_super_user %}col-lg-7{% else %}col-lg-8 mx-auto{% endif %}">
+                    <!-- Tarjeta Principal -->
+                    <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-4 mb-4 position-relative border-0 shadow-lg {{ 'sold-out-card' if is_sold_out else '' }}">
+                        
+                        <div class="row g-4 mb-4">
+                            <div class="col-12 col-md-5 d-flex flex-column align-items-center">
+                                <div class="position-relative w-100" style="max-width: 320px;">
+                                    {% if is_sold_out %}
+                                        <div class="sold-out-overlay" style="font-size: 1.1rem; padding: 4px 12px;">SIN ESPACIO</div>
+                                    {% endif %}
+
+                                    {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+                                    <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
+                                    
+                                    {% set badge_class = 'bg-success' %}
+                                    {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
+                                    {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
+                                    <span class="position-absolute top-0 end-0 badge rounded-pill {{ badge_class }} m-2 border border-2 border-white shadow-sm badge-dificultad text-uppercase">
+                                        {{ evento.dificultad }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-7">
+                                <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 text-uppercase fw-bold shadow-sm" style="font-size: 0.75rem;">{{ evento.actividad }}</span>
+                                <h1 class="fw-bold text-dark h3 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
+                                
+                                <div class="price-banner d-flex flex-column gap-2 mb-3">
+                                    <div>
+                                        <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Inversión Total</span>
+                                        <span class="fw-bold text-orange" style="font-size: 1.6rem; line-height: 1;">
+                                            {% if precio_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="border-top border-secondary border-opacity-25 pt-2 mt-1">
+                                        <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Reserva tu espacio con</span>
+                                        <span class="fw-bold text-dark fs-5">
+                                            {% set r_val = evento.reserva|int if evento.reserva else 0 %}
+                                            {% if r_val > 0 %}{{ evento.moneda }}{{ evento.reserva }}{% else %}PENDIENTE{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {% if is_sold_out and not is_super_user %}
+                                <button class="btn btn-secondary w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export disabled">
+                                    <i class="bi bi-x-circle me-2"></i>Sin Espacio
+                                </button>
+                                {% else %}
+                                <button class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export" onclick="reservarPorWhatsApp()">
+                                    <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
+                                </button>
+                                {% endif %}
+
+                                <!-- ALERTA ZONA ALTO RIESGO PÚBLICA -->
+                                {% if evento.zona_alto_riesgo %}
+                                <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-50 rounded-4 p-3 mt-4 mb-0 d-flex align-items-center hide-on-export shadow-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger fs-1 me-3"></i>
+                                    <div>
+                                        <h6 class="fw-bold text-danger mb-1" style="letter-spacing: 0.5px;">ZONA DE ALTO RIESGO</h6>
+                                        <p class="mb-0 text-danger small opacity-100 fw-bold" style="line-height: 1.3;">Alta exigencia técnica o terreno peligroso. Evalúa tu condición física responsablemente.</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary opacity-25 mb-3">
+
+                        <!-- Detalles Logísticos -->
+                        <h6 class="fw-bold text-warning-custom mb-3"><i class="bi bi-journal-text me-2"></i>Información Logística</h6>
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Fecha de la Actividad</h6>
+                                <p class="mb-0 fs-6 text-dark fw-bold">
+                                    {% if evento.dias > 1 %}
+                                        Del {{ inicio_formateada }} al {{ regreso_formateada }}
+                                    {% else %}
+                                        <i class="bi bi-calendar-check text-orange me-1"></i> {{ fecha_formateada }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Punto de Salida y Hora</h6>
+                                {% if is_private and not is_super_user %}
+                                    <p class="text-danger fw-bold fs-6 mt-1 mb-0"><i class="bi bi-shield-lock-fill me-2"></i>¡Información en el chat!</p>
+                                {% else %}
+                                    <p class="mb-1 text-dark"><strong>Lugar:</strong> {{ lugar_real }} 
+                                    {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
+                                    </p>
+                                    <p class="mb-1 text-dark"><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}
+                                    {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
+                                    </p>
+                                    {% if evento.puntos_recogida %}
+                                        <p class="small text-secondary mt-1 mb-0"><i class="bi bi-bus-front text-orange me-1"></i><strong>Pasamos a recoger en:</strong> {{ evento.puntos_recogida }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Cupos y Métodos de Pago</h6>
+                                <p class="mb-1"><strong>Capacidad:</strong> {{ evento.capacidad|replace('AGOTADO_', '') }} max.</p>
+                                {% if evento.sinpe %}
+                                    <p class="mb-1"><strong><i class="bi bi-phone text-orange me-1"></i>SINPE:</strong> {{ evento.sinpe }}</p>
+                                {% endif %}
+                                {% if evento.cuenta and evento.cuenta != 'Ninguna' %}
+                                    <p class="mb-0"><strong><i class="bi bi-bank text-orange me-1"></i>Cuenta:</strong> {{ evento.cuenta }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if evento.incluye %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-bag-check-fill text-orange me-2"></i>El evento incluye:</h6>
+                            <div class="d-flex flex-wrap">
+                                {% for item in evento.incluye.split(',') %}
+                                    {% if item.strip() %}
+                                        <span class="incluye-pill"><i class="bi bi-check2-circle me-2"></i>{{ item.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
                         {% endif %}
 
-                        {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
-                        <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
-                        
-                        <!-- Etiqueta de Dificultad -->
-                        {% set badge_class = 'bg-success' %}
-                        {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
-                        {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
-                        <span class="position-absolute top-0 end-0 badge rounded-pill {{ badge_class }} m-3 border border-2 border-white shadow-sm badge-dificultad text-uppercase">
-                            {{ evento.dificultad }}
-                        </span>
-                    </div>
+                        {% if evento.itinerario %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-card-text text-orange me-2"></i>Itinerario Especial</h6>
+                            <div class="border-left border-4 border-orange ps-3 mt-2 text-secondary" style="white-space: pre-wrap; font-size: 0.85rem;">
+                                {{ evento.itinerario }}
+                            </div>
+                        </div>
+                        {% endif %}
 
-                    <!-- Botón Principal de Reserva Condicional -->
-                    {% if is_sold_out and not is_super_user %}
-                    <button class="btn btn-secondary w-100 rounded-pill py-3 fw-bold shadow-sm mt-4 fs-5 hide-on-export disabled" style="max-width: 350px;">
-                        <i class="bi bi-x-circle me-2"></i>Sin Espacio
-                    </button>
-                    {% else %}
-                    <button class="btn btn-success w-100 rounded-pill py-3 fw-bold shadow-sm mt-4 fs-5 hide-on-export" onclick="reservarPorWhatsApp()" style="max-width: 350px;">
-                        <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
-                    </button>
-                    {% endif %}
+                        <div class="share-section mt-4 pt-3 border-top border-secondary border-opacity-25 hide-on-export">
+                            <h6 class="fw-bold text-secondary mb-3 text-center text-md-start" style="font-size: 0.85rem;">Invita a tus amigos y comparte la aventura:</h6>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-2 fw-bold d-flex align-items-center" style="color: #495057; border: 1px solid #ced4da; font-size: 0.85rem;" onclick="shareNative()">
+                                    <i class="bi bi-share-fill text-primary me-2"></i>Compartir
+                                </button>
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-2 fw-bold d-flex align-items-center" style="color: #198754; border: 1px solid #198754; font-size: 0.85rem;" onclick="shareToFriendWhatsApp()">
+                                    <i class="bi bi-whatsapp me-2"></i>Enviar Link
+                                </button>
+                                <button id="btnExportPNG" class="btn btn-orange shadow-sm rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center ms-md-auto" style="font-size: 0.85rem;" onclick="exportToPNG()">
+                                    <i class="bi bi-image me-2"></i>Descargar Info Larga
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ZONA DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
+                        {% if is_super_user %}
+                        <hr class="border-danger opacity-25 mt-4 mb-3 hide-on-export">
+                        <div class="admin-section hide-on-export">
+                            <h6 class="fw-bold text-danger mb-2 text-center text-md-start" style="font-size: 0.85rem;"><i class="bi bi-exclamation-octagon-fill me-2"></i>Zona de Administración:</h6>
+                            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="color: #ff8c00; border: 1px solid #ff8c00; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#editEventModal">
+                                    <i class="bi bi-pencil-square me-2"></i> Editar Evento
+                                </button>
+                                <button class="btn btn-danger shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
+                                    <i class="bi bi-trash-fill me-2"></i> Eliminar Evento
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
                 </div>
-                
-                <!-- COLUMNA DERECHA: Información Organizada -->
-                <div class="col-12 col-md-7 col-lg-8">
-                    
-                    <!-- 1. Cabecera y Título -->
-                    <div class="mb-4">
-                        <span class="badge bg-dark rounded-pill px-3 mb-2 text-uppercase fw-bold shadow-sm">{{ evento.actividad }}</span>
-                        <h1 class="fw-bold text-dark display-5 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
-                        
-                        <div class="price-banner d-flex flex-wrap align-items-center justify-content-between gap-3">
-                            <div>
-                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Inversión Total</span>
-                                <span class="fw-bold text-orange" style="font-size: 2.2rem; line-height: 1;">
-                                    {% set p_val = evento.precio|int if evento.precio else 0 %}
-                                    {% if p_val > 0 %}
-                                        {{ evento.moneda }}{{ evento.precio }}
-                                    {% else %}
-                                        PENDIENTE
-                                    {% endif %}
-                                </span>
-                            </div>
-                            <div class="text-start text-md-end border-start border-secondary border-opacity-25 ps-0 ps-md-4 pt-3 pt-md-0 w-100 w-md-auto" style="border-left-width: 2px !important;">
-                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.75rem; letter-spacing: 1px;">Reserva tu espacio con</span>
-                                <span class="fw-bold text-dark fs-3">
-                                    {% set r_val = evento.reserva|int if evento.reserva else 0 %}
-                                    {% if r_val > 0 %}
-                                        {{ evento.moneda }}{{ evento.reserva }}
-                                    {% else %}
-                                        PENDIENTE
-                                    {% endif %}
-                                </span>
+
+                <!-- COLUMNA DERECHA: EDITOR DE FLYER 9:16 (SOLO SUPERUSUARIOS) -->
+                {% if is_super_user %}
+                <div class="col-12 col-lg-5">
+                    <div class="glass-panel p-3 p-md-4 rounded-4 shadow-sm border border-white border-opacity-50 sticky-lg-top" style="top: 20px;">
+                        <h4 class="fw-bold text-dark mb-2 d-flex align-items-center h5">
+                            <i class="bi bi-magic text-orange me-2"></i>Generador de Flyer
+                        </h4>
+                        <p class="text-secondary small mb-3" style="font-size: 0.8rem;">Diseña un póster perfecto eligiendo qué elementos quieres mostrar.</p>
+
+                        <!-- CONTENEDOR ENVOLTURA PARA ESCALAR PREVIEW -->
+                        <div id="flyerPreviewContainer">
+                            <div id="flyerPreviewWrapper" class="flyer-preview-wrapper mb-3 shadow">
+                                
+                                <!-- ÁREA DE CAPTURA DEL FLYER FÍSICA (Base = 360x640 siempre) -->
+                                <div id="flyerCaptureArea" class="flyer-capture-area">
+                                    <!-- Capa 1: Imagen Base -->
+                                    <div class="flyer-bg-container" style="z-index: 0;">
+                                        <img id="flyerBgImg" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                                    </div>
+
+                                    <!-- Capa 2: Clon de la Imagen para el Efecto Blur -->
+                                    <div id="flyerBgBlurContainer" class="flyer-bg-container" style="z-index: 1;">
+                                        <img id="flyerBgImgClone" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                                    </div>
+
+                                    <!-- Capa 3: Textos y Overlay Oscuro -->
+                                    <div id="flyerOverlay" class="flyer-glass-overlay" style="z-index: 2;">
+                                        
+                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                            <span class="flyer-badge">{{ evento.actividad }}</span>
+                                            <div>
+                                                {% if evento.zona_alto_riesgo %}
+                                                <span class="flyer-badge bg-dark border-danger text-danger me-1"><i class="bi bi-exclamation-triangle-fill"></i> ALTO RIESGO</span>
+                                                {% endif %}
+                                                <span id="fl_dificultad" class="flyer-badge bg-danger border-0">{{ evento.dificultad }}</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <h2 class="fw-bold mb-2" style="font-size: calc(1.4rem * var(--text-scale)); line-height: 1.15; letter-spacing: -0.5px;">{{ evento.nombre_lugar }}</h2>
+                                        
+                                        <div id="fl_fecha" class="mb-1 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                                            <i class="bi bi-calendar-event me-1"></i><strong>Fecha:</strong> {{ date_display }}
+                                        </div>
+                                        <div id="fl_salida" class="mb-2 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                                            <i class="bi bi-geo-alt me-1"></i><strong>Salida:</strong> {{ dest_text }} ({{ time_text }})
+                                        </div>
+
+                                        <div class="row g-2 mt-2 pt-2 border-top border-white border-opacity-25">
+                                            <div class="col-6" id="fl_inversion">
+                                                <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Inversión Total</small>
+                                                <span class="fw-bold" style="color: #ffc107; font-size: calc(1.2rem * var(--text-scale));">{{ precio_mostrar }}</span>
+                                            </div>
+                                            <div class="col-6" id="fl_reserva">
+                                                <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Reserva tu espacio</small>
+                                                <span class="fw-bold" style="font-size: calc(1.2rem * var(--text-scale));">
+                                                    {% set r_val = evento.reserva|int if evento.reserva else 0 %}
+                                                    {% if r_val > 0 %}{{ evento.moneda }}{{ evento.reserva }}{% else %}PENDIENTE{% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div id="fl_capacidad" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Capacidad del evento</small>
+                                            <span class="fw-bold" style="font-size: calc(0.75rem * var(--text-scale));"><i class="bi bi-people-fill me-1"></i> {{ evento.capacidad|replace('AGOTADO_', '') }} personas max.</span>
+                                        </div>
+
+                                        <div id="fl_pagos" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Métodos de Pago</small>
+                                            <div style="font-size: calc(0.7rem * var(--text-scale)); line-height: 1.3;">
+                                                {% if evento.sinpe %}<strong>SINPE:</strong> {{ evento.sinpe }}<br>{% endif %}
+                                                {% if evento.cuenta and evento.cuenta != 'Ninguna' %}<strong>Cuenta:</strong> {{ evento.cuenta }}{% endif %}
+                                            </div>
+                                        </div>
+
+                                        {% if evento.incluye %}
+                                        <div id="fl_incluye" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Lo que incluye</small>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                {% for item in evento.incluye.split(',') %}
+                                                    {% if item.strip() %}
+                                                        <span class="badge border border-white border-opacity-50 text-white shadow-sm" style="font-size: calc(0.55rem * var(--text-scale)); background: rgba(255,255,255,0.15);">{{ item.strip() }}</span>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                        {% endif %}
+
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <hr class="border-secondary opacity-25 my-4">
+                        <!-- 1. ACORDEÓN: ELEMENTOS A MOSTRAR (COLAPSADO) -->
+                        <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseElementos" role="button" aria-expanded="false" aria-controls="collapseElementos">
+                                <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-list-check me-2"></i>Elementos a Mostrar</h6>
+                                <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                            </div>
+                            <div class="collapse" id="collapseElementos">
+                                <div class="pt-3 border-top border-white mt-2">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_inversion" data-target="fl_inversion" checked>
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_inversion">Inversión Total</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_reserva" data-target="fl_reserva" checked>
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_reserva">Reserva con</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_fecha" data-target="fl_fecha" checked>
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_fecha">Fecha Actividad</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_salida" data-target="fl_salida" checked>
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_salida">Salida y Hora</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_capacidad" data-target="fl_capacidad">
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_capacidad">Capacidad</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_dificultad" data-target="fl_dificultad" checked>
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_dificultad">Dificultad</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_pagos" data-target="fl_pagos">
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_pagos">Métodos Pago</label>
+                                            </div>
+                                        </div>
+                                        {% if evento.incluye %}
+                                        <div class="col-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_incluye" data-target="fl_incluye">
+                                                <label class="form-check-label small fw-bold text-secondary" for="t_incluye">Lo que incluye</label>
+                                            </div>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- 2. Lista de Detalles (Logística y Pagos) -->
-                    <div class="row">
-                        <div class="col-12">
+                        <!-- 2. ACORDEÓN: AJUSTES DE FONDO (COLAPSADO) -->
+                        <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseFondo" role="button" aria-expanded="false" aria-controls="collapseFondo">
+                                <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-image me-2"></i>Ajustes de Fondo</h6>
+                                <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                            </div>
+                            <div class="collapse" id="collapseFondo">
+                                <div class="pt-3 border-top border-white mt-2">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Zoom Fondo <span class="float-end text-orange" id="val_flyerScale">0%</span></label>
+                                            <input type="range" class="form-range" id="flyerScale" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Rotar (Grados) <span class="float-end text-orange" id="val_flyerRot">0°</span></label>
+                                            <input type="range" class="form-range" id="flyerRot" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Mover X (Horiz) <span class="float-end text-orange" id="val_flyerPosX">0%</span></label>
+                                            <input type="range" class="form-range" id="flyerPosX" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Mover Y (Vert) <span class="float-end text-orange" id="val_flyerPosY">0%</span></label>
+                                            <input type="range" class="form-range" id="flyerPosY" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Desenfoque (Blur) <span class="float-end text-orange" id="val_flyerBlur">0%</span></label>
+                                            <input type="range" class="form-range" id="flyerBlur" min="-100" max="100" step="1" value="-100">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Brillo/Opacidad <span class="float-end text-orange" id="val_flyerOpacity">0%</span></label>
+                                            <input type="range" class="form-range" id="flyerOpacity" min="-100" max="100" step="1" value="100">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                             
-                            <!-- Ítem: Fecha (SIEMPRE VISIBLE Y FORMATEADO) -->
-                            <div class="detail-item">
-                                <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
-                                <div class="detail-text">
-                                    <h6 class="fw-bold text-dark mb-1">Fecha de la Actividad</h6>
-                                    <p class="mb-0 fs-5 text-dark fw-bold">
-                                        {% if evento.dias > 1 %}
-                                            Del {{ inicio_formateada }} al {{ regreso_formateada }}
-                                        {% else %}
-                                            <i class="bi bi-calendar-check text-orange me-1"></i> {{ fecha_formateada }}
-                                        {% endif %}
-                                    </p>
+                        <!-- 3. ACORDEÓN: AJUSTES DE TEXTO INFORMATIVO (COLAPSADO) -->
+                        <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
+                            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseTexto" role="button" aria-expanded="false" aria-controls="collapseTexto">
+                                <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-textarea-t me-2"></i>Ajustes del Texto</h6>
+                                <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                            </div>
+                            <div class="collapse" id="collapseTexto">
+                                <div class="pt-3 border-top border-white mt-2">
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Tamaño Caja <span class="float-end text-orange" id="val_overlayScale">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayScale" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Ancho (%) <span class="float-end text-orange" id="val_overlayWidth">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayWidth" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Mover Caja (X) <span class="float-end text-orange" id="val_overlayPosX">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayPosX" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Mover Caja (Y) <span class="float-end text-orange" id="val_overlayPosY">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayPosY" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Fondo Cristal <span class="float-end text-orange" id="val_overlayBlur">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayBlur" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                        <div class="col-6">
+                                            <label class="form-label editor-control-label w-100">Oscuridad Fondo <span class="float-end text-orange" id="val_overlayOpacity">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayOpacity" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
+                                    <!-- AUMENTO DE TEXTO INDIVIDUAL -->
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-12">
+                                            <label class="form-label editor-control-label w-100">Aumentar Letras <span class="float-end text-orange" id="val_overlayFontSize">0%</span></label>
+                                            <input type="range" class="form-range" id="overlayFontSize" min="-100" max="100" step="1" value="0">
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-
-                            <!-- Ítem: Punto de Salida y Hora (ESTRICTAMENTE BLOQUEADO SI ES PRIVADO) -->
-                            <div class="detail-item">
-                                <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
-                                <div class="detail-text">
-                                    <h6 class="fw-bold text-dark mb-1">Punto de Salida y Hora</h6>
-                                    
-                                    <!-- SI ES PRIVADO Y EL USUARIO ES NORMAL: BLOQUEAR -->
-                                    {% if is_private and not is_super_user %}
-                                        <p class="text-danger fw-bold fs-5 mt-2 mb-0"><i class="bi bi-shield-lock-fill me-2"></i>¡Información en el chat!</p>
-                                    
-                                    <!-- SI ES PÚBLICO O EL USUARIO ES EL DIOS (SUPERUSUARIO) -->
-                                    {% else %}
-                                        <p class="mb-1 text-dark fs-5"><strong>Lugar:</strong> {{ lugar_real }} 
-                                        {% if is_private and is_super_user %}
-                                            <span class="badge bg-danger rounded-pill ms-2" style="font-size:0.65rem; vertical-align: middle;">Oculto</span>
-                                        {% endif %}
-                                        </p>
-                                        <p class="mb-1 text-dark fs-5"><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}
-                                        {% if is_private and is_super_user %}
-                                            <span class="badge bg-danger rounded-pill ms-2" style="font-size:0.65rem; vertical-align: middle;">Oculto</span>
-                                        {% endif %}
-                                        </p>
-                                        {% if evento.puntos_recogida %}
-                                            <p class="small text-secondary mt-2 mb-0"><i class="bi bi-bus-front text-orange me-1"></i><strong>Pasamos a recoger en:</strong> {{ evento.puntos_recogida }}</p>
-                                        {% endif %}
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <!-- Ítem: Capacidad y Cuentas -->
-                            <div class="detail-item">
-                                <div class="detail-icon"><i class="bi bi-credit-card"></i></div>
-                                <div class="detail-text">
-                                    <h6 class="fw-bold text-dark mb-1">Cupos y Métodos de Pago</h6>
-                                    <p><strong>Capacidad del evento:</strong> {{ evento.capacidad|replace('AGOTADO_', '') }} personas max.</p>
-                                    {% if evento.sinpe %}
-                                        <p class="mt-2 mb-1"><strong><i class="bi bi-phone text-orange me-1"></i>SINPE Móvil:</strong> {{ evento.sinpe }}</p>
-                                    {% endif %}
-                                    {% if evento.cuenta and evento.cuenta != 'Ninguna' %}
-                                        <p class="mb-0"><strong><i class="bi bi-bank text-orange me-1"></i>Cuenta Bancaria:</strong> {{ evento.cuenta }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-
                         </div>
+
+                        <!-- BOTÓN EXPORTAR FLYER (RESPONSIVE) -->
+                        <button id="btnExportFlyer" class="btn btn-orange w-100 rounded-pill fw-bold shadow mt-3 py-2 py-md-3 fs-6 fs-md-5 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-download me-2 fs-5 fs-md-4"></i>
+                            <span class="d-none d-md-inline">Descargar Flyer HD (9:16)</span>
+                            <span class="d-inline d-md-none">Flyer HD 9:16</span>
+                        </button>
+
                     </div>
-
-                    <!-- 3. Sección: ¿Qué Incluye? -->
-                    {% if evento.incluye %}
-                    <hr class="border-secondary opacity-25 my-4">
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-bag-check-fill text-orange me-2 fs-5"></i>El evento incluye:</h6>
-                        <div class="d-flex flex-wrap">
-                            {% for item in evento.incluye.split(',') %}
-                                {% if item.strip() %}
-                                    <span class="incluye-pill"><i class="bi bi-check2-circle me-2 fs-6"></i>{{ item.strip() }}</span>
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- 4. Sección: Itinerario -->
-                    {% if evento.itinerario %}
-                    <hr class="border-secondary opacity-25 my-4">
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-text text-orange me-2 fs-5"></i>Itinerario y Detalles Especiales</h6>
-                        <div class="itinerario-block">
-                            {{ evento.itinerario }}
-                        </div>
-                    </div>
-                    {% endif %}
-
-                    <!-- BOTONES DE COMPARTIR Y EXPORTAR -->
-                    <div class="share-section mt-5 pt-4 border-top border-secondary border-opacity-25 hide-on-export">
-                        <h6 class="fw-bold text-secondary mb-3 text-center text-md-start">Invita a tus amigos y comparte la aventura:</h6>
-                        <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
-                            
-                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="color: #495057; border: 1px solid #ced4da;" onclick="shareNative()">
-                                <i class="bi bi-share-fill text-primary me-2 fs-5"></i>Compartir
-                            </button>
-
-                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center" style="color: #198754; border: 1px solid #198754;" onclick="shareToFriendWhatsApp()">
-                                <i class="bi bi-whatsapp me-2 fs-5"></i>Enviar Link
-                            </button>
-
-                            <button id="btnExportPNG" class="btn btn-orange shadow-sm rounded-pill px-4 py-2 fw-bold text-white d-flex align-items-center ms-md-auto" onclick="exportToPNG()">
-                                <i class="bi bi-image me-2 fs-5"></i>Descargar Póster
-                            </button>
-
-                        </div>
-                    </div>
-
-                    <!-- ZONA DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
-                    {% if session.get('role') == 'Superusuario' %}
-                    <hr class="border-danger opacity-25 mt-5 mb-4 hide-on-export">
-                    <div class="admin-section hide-on-export">
-                        <h6 class="fw-bold text-danger mb-3 text-center text-md-start"><i class="bi bi-exclamation-octagon-fill me-2"></i>Zona de Alto Riesgo:</h6>
-                        <div class="d-flex flex-column flex-sm-row justify-content-between gap-3">
-                            <button class="btn bg-white shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="color: #ff8c00; border: 2px solid #ff8c00;" data-bs-toggle="modal" data-bs-target="#editEventModal">
-                                <i class="bi bi-pencil-square me-2 fs-5"></i> Editar Evento
-                            </button>
-                            <button class="btn btn-danger shadow-sm rounded-pill px-4 py-2 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
-                                <i class="bi bi-trash-fill me-2 fs-5"></i> Eliminar Evento
-                            </button>
-                        </div>
-                    </div>
-                    {% endif %}
-
                 </div>
+                {% endif %}
+                <!-- Fin Columna Derecha Exclusiva de Superusuarios -->
+
             </div>
         </div>
     </div>
@@ -422,6 +725,7 @@
 <!-- MODALES DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
 <!-- ============================================== -->
 
+{% if is_super_user %}
 <div class="modal fade" id="deleteEventModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
@@ -568,6 +872,19 @@
                                 <option {% if evento.cuenta == 'Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158' %}selected{% endif %}>Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</option>
                             </select>
                         </div>
+
+                        <!-- NUEVO SWITCH: ZONA DE ALTO RIESGO (MODAL DE EDICIÓN) -->
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch m-0 border border-danger border-opacity-50 rounded-3 p-3 d-flex justify-content-between align-items-center" style="background: rgba(220, 53, 69, 0.05);">
+                                <div>
+                                    <label class="form-check-label fw-bold text-danger mb-0 d-block" for="editAltoRiesgoToggle" style="cursor: pointer; font-size: 1.05rem;">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Marcar como "Zona de Alto Riesgo"
+                                    </label>
+                                    <small class="text-danger opacity-75">Agrega una alerta visual obligatoria sobre la dificultad técnica del terreno.</small>
+                                </div>
+                                <input class="form-check-input m-0 shadow-sm" type="checkbox" id="editAltoRiesgoToggle" style="width: 3rem; height: 1.5rem; cursor: pointer;" {% if evento.zona_alto_riesgo %}checked{% endif %}>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Nacional -->
@@ -590,7 +907,7 @@
                                 <input type="number" id="editDias" name="dias" min="1" max="10" value="{{ evento.dias }}" onchange="toggleEditDateInputs()" class="form-control glass-input rounded-3">
                             </div>
                             
-                            <!-- FECHA ÚNICA -->
+                            <!-- FECHA ÚNICA (DIVIDIDA) -->
                             <div id="editSingleDateGroup" class="col-12 col-md-8">
                                 <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
                                 <div class="row g-1 date-split">
@@ -624,7 +941,7 @@
                                                 <input type="number" id="e_dayInicio" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
                                             </div>
                                             <div class="col-3 edit-secure-day d-none">
-                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.7rem;">
+                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
                                             </div>
                                             <div class="col-5">
                                                 <select id="e_monthInicio" class="form-select glass-input rounded-3">
@@ -645,7 +962,7 @@
                                                 <input type="number" id="e_dayRegreso" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
                                             </div>
                                             <div class="col-3 edit-secure-day d-none">
-                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.7rem;">
+                                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
                                             </div>
                                             <div class="col-5">
                                                 <select id="e_monthRegreso" class="form-select glass-input rounded-3">
@@ -667,7 +984,7 @@
                         <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 mt-4 gap-2 border-bottom border-white border-opacity-50 pb-2">
                             <h5 class="fw-bold mb-0 text-orange">Logística de Salida</h5>
                             <div class="form-check form-switch m-0">
-                                <input class="form-check-input m-0" type="checkbox" id="editLogisticaSeguraToggle" onchange="toggleEditLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if is_logistica_segura %}checked{% endif %}>
+                                <input class="form-check-input m-0" type="checkbox" id="editLogisticaSeguraToggle" onchange="toggleEditLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;" {% if is_logistica_segura or evento.logistica_segura %}checked{% endif %}>
                                 <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="editLogisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
                                     <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
                                 </label>
@@ -690,6 +1007,7 @@
                                         <option value="Parque de Tres Ríos - Cruz Roja" {% if lugar_real == 'Parque de Tres Ríos - Cruz Roja' %}selected{% endif %}>Parque de Tres Ríos - Cruz Roja</option>
                                         <option value="Parque de Tres Ríos - Letras" {% if lugar_real == 'Parque de Tres Ríos - Letras' %}selected{% endif %}>Parque de Tres Ríos - Letras</option>
                                         <option value="San José" {% if lugar_real == 'San José' %}selected{% endif %}>San José (Sabana)</option>
+                                        <option value="{{ lugar_real }}" {% if lugar_real not in ['Parque de Tres Ríos - Escuela', 'Parque de Tres Ríos - Cruz Roja', 'Parque de Tres Ríos - Letras', 'San José'] %}selected{% endif %}>{{ lugar_real }}</option>
                                     </select>
                                 </div>
                                 <input type="text" class="form-control glass-input rounded-3 edit-secure-logistics d-none fw-bold text-danger bg-light" value="📍 Privado en chat" disabled>
@@ -722,37 +1040,119 @@
                         </div>
                     </div>
 
-                    <!-- Incluye (RESTAURADO COMPLETO) -->
+                    <!-- Incluye (NUEVOS BOTONES BLINDADOS) -->
                     <div class="mb-4 p-3 rounded-4 shadow-sm" style="background: rgba(255, 255, 255, 0.4); border: 1px solid rgba(255, 255, 255, 0.4);">
                         <h5 class="fw-bold text-orange border-bottom border-secondary border-opacity-25 pb-2 mb-3">Incluye</h5>
+                        
+                        {% set incluye_list = evento.incluye.split(',') | map('trim') | list if evento and evento.incluye else [] %}
+                        {% set predefined_includes = ['Transporte', 'Lancha', 'Desayuno', 'Café', 'Almuerzo', 'Refrigerio', 'Cena', 'Guías', 'Pasaporte', 'Entrada', 'Reconocimiento', 'Rifas', 'Estadía', 'Ducha', 'Servicios Sanitarios', 'Impuestos', 'Tiquetes Aereos', 'Zona de Camping', 'Póliza de Viajero', 'Taxi/Uber/Otro', 'Acarreo', 'Guías Certificados'] %}
+                        
+                        {% set ns = namespace(has_otros=false, custom_desc='') %}
+                        {% for item in incluye_list %}
+                            {% if item not in predefined_includes and item != '' %}
+                                {% set ns.has_otros = true %}
+                                {% set ns.custom_desc = item %}
+                            {% endif %}
+                        {% endfor %}
+
                         <div class="row g-2 mb-3 text-muted small check-btn-wrapper" id="editIncluyeWrapper">
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc1" name="incluye_check" value="Transporte" class="d-none"><label for="e_inc1" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Transporte</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc2" name="incluye_check" value="Lancha" class="d-none"><label for="e_inc2" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Lancha</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc3" name="incluye_check" value="Desayuno" class="d-none"><label for="e_inc3" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Desayuno</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc4" name="incluye_check" value="Café" class="d-none"><label for="e_inc4" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Café</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc5" name="incluye_check" value="Almuerzo" class="d-none"><label for="e_inc5" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Almuerzo</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc6" name="incluye_check" value="Refrigerio" class="d-none"><label for="e_inc6" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Refrigerio</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc7" name="incluye_check" value="Cena" class="d-none"><label for="e_inc7" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Cena</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc8" name="incluye_check" value="Guías" class="d-none"><label for="e_inc8" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Guías</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc9" name="incluye_check" value="Pasaporte" class="d-none"><label for="e_inc9" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Pasaporte</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc10" name="incluye_check" value="Entrada" class="d-none"><label for="e_inc10" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Entrada</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc11" name="incluye_check" value="Reconocimiento" class="d-none"><label for="e_inc11" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Reconocimiento</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc12" name="incluye_check" value="Rifas" class="d-none"><label for="e_inc12" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Rifas</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc13" name="incluye_check" value="Estadía" class="d-none"><label for="e_inc13" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Estadía</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc14" name="incluye_check" value="Ducha" class="d-none"><label for="e_inc14" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Ducha</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc15" name="incluye_check" value="Servicios Sanitarios" class="d-none"><label for="e_inc15" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Serv. Sanitarios</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc16" name="incluye_check" value="Impuestos" class="d-none"><label for="e_inc16" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Impuestos</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc17" name="incluye_check" value="Tiquetes Aereos" class="d-none"><label for="e_inc17" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Tiquetes Aéreos</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc18" name="incluye_check" value="Zona de Camping" class="d-none"><label for="e_inc18" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Zona Camping</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc19" name="incluye_check" value="Póliza de Viajero" class="d-none"><label for="e_inc19" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Póliza Viajero</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc20" name="incluye_check" value="Taxi/Uber/Otro" class="d-none"><label for="e_inc20" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Taxi/Uber/Otro</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc21" name="incluye_check" value="Acarreo" class="d-none"><label for="e_inc21" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Acarreo</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_inc22" name="incluye_check" value="Guías Certificados" class="d-none"><label for="e_inc22" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Guías Certif.</label></div>
-                            <div class="col-6 col-md-3"><input type="checkbox" id="e_checkOtros" name="incluye_check" value="Otros" class="d-none" onchange="toggleEditOtherDesc()"><label for="e_checkOtros" class="rounded px-2 py-1 d-block text-center mb-0 text-truncate" style="cursor:pointer">Otros</label></div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc1" name="incluye_check" value="Transporte" class="btn-check-custom" {% if 'Transporte' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc1" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Transporte</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc2" name="incluye_check" value="Lancha" class="btn-check-custom" {% if 'Lancha' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc2" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Lancha</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc3" name="incluye_check" value="Desayuno" class="btn-check-custom" {% if 'Desayuno' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc3" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Desayuno</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc4" name="incluye_check" value="Café" class="btn-check-custom" {% if 'Café' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc4" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Café</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc5" name="incluye_check" value="Almuerzo" class="btn-check-custom" {% if 'Almuerzo' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc5" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Almuerzo</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc6" name="incluye_check" value="Refrigerio" class="btn-check-custom" {% if 'Refrigerio' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc6" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Refrigerio</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc7" name="incluye_check" value="Cena" class="btn-check-custom" {% if 'Cena' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc7" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Cena</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc8" name="incluye_check" value="Guías" class="btn-check-custom" {% if 'Guías' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc8" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Guías</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc9" name="incluye_check" value="Pasaporte" class="btn-check-custom" {% if 'Pasaporte' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc9" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Pasaporte</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc10" name="incluye_check" value="Entrada" class="btn-check-custom" {% if 'Entrada' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc10" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Entrada</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc11" name="incluye_check" value="Reconocimiento" class="btn-check-custom" {% if 'Reconocimiento' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc11" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Reconocimiento</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc12" name="incluye_check" value="Rifas" class="btn-check-custom" {% if 'Rifas' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc12" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Rifas</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc13" name="incluye_check" value="Estadía" class="btn-check-custom" {% if 'Estadía' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc13" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Estadía</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc14" name="incluye_check" value="Ducha" class="btn-check-custom" {% if 'Ducha' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc14" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Ducha</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc15" name="incluye_check" value="Servicios Sanitarios" class="btn-check-custom" {% if 'Servicios Sanitarios' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc15" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Serv. Sanitarios</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc16" name="incluye_check" value="Impuestos" class="btn-check-custom" {% if 'Impuestos' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc16" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Impuestos</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc17" name="incluye_check" value="Tiquetes Aereos" class="btn-check-custom" {% if 'Tiquetes Aereos' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc17" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Tiquetes Aéreos</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc18" name="incluye_check" value="Zona de Camping" class="btn-check-custom" {% if 'Zona de Camping' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc18" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Zona Camping</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc19" name="incluye_check" value="Póliza de Viajero" class="btn-check-custom" {% if 'Póliza de Viajero' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc19" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Póliza Viajero</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc20" name="incluye_check" value="Taxi/Uber/Otro" class="btn-check-custom" {% if 'Taxi/Uber/Otro' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc20" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Taxi/Uber/Otro</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc21" name="incluye_check" value="Acarreo" class="btn-check-custom" {% if 'Acarreo' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc21" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Acarreo</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_inc22" name="incluye_check" value="Guías Certificados" class="btn-check-custom" {% if 'Guías Certificados' in incluye_list %}checked{% endif %}>
+                                <label for="e_inc22" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Guías Certif.</label>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <input type="checkbox" id="e_checkOtros" name="incluye_check" value="Otros" class="btn-check-custom" onchange="toggleEditOtherDesc()" {% if ns.has_otros %}checked{% endif %}>
+                                <label for="e_checkOtros" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Otros</label>
+                            </div>
                         </div>
-                        <div id="editOtrosDescContainer" class="d-none mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm">
+                        
+                        <div id="editOtrosDescContainer" class="mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm {% if not ns.has_otros %}d-none{% endif %}">
                             <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
-                            <input type="text" id="editOtrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
+                            <input type="text" id="editOtrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye..." value="{{ ns.custom_desc }}">
                         </div>
                     </div>
 
@@ -771,18 +1171,283 @@
         </div>
     </div>
 </div>
+{% endif %}
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- IMPORTACIÓN LIBRERÍA DE RENDERIZADO EXTREMO -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // ==========================================
+    // 1. LÓGICA DEL EDITOR DE FLYER (SOLO SUPERUSUARIOS)
+    // ==========================================
+    {% if is_super_user %}
+    
+    const FLYER_STORE_KEY = 'flyer_prefs_{{ evento.id }}';
+    const toggleSwitches = document.querySelectorAll('.flyer-toggle');
+    
+    const img = document.getElementById('flyerBgImg');
+    const imgClone = document.getElementById('flyerBgImgClone');
+    const blurContainer = document.getElementById('flyerBgBlurContainer');
+    const overlay = document.getElementById('flyerOverlay');
+
+    // Escala Responsiva de la Vista Previa
+    function scalePreview() {
+        const wrapper = document.getElementById('flyerPreviewWrapper');
+        const area = document.getElementById('flyerCaptureArea');
+        if(!wrapper || !area) return;
+        
+        const scale = Math.min((wrapper.clientWidth - 20) / 360, (wrapper.clientHeight - 20) / 640);
+        area.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', scalePreview);
+    scalePreview(); // Escalar al inicio
+    
+    // Controles Fondo
+    const scScale = document.getElementById('flyerScale');
+    const scRot = document.getElementById('flyerRot');
+    const scX = document.getElementById('flyerPosX');
+    const scY = document.getElementById('flyerPosY');
+    const scBlur = document.getElementById('flyerBlur');
+    const scOp = document.getElementById('flyerOpacity');
+
+    // Controles Texto
+    const ovScale = document.getElementById('overlayScale');
+    const ovWidth = document.getElementById('overlayWidth');
+    const ovX = document.getElementById('overlayPosX');
+    const ovY = document.getElementById('overlayPosY');
+    const ovBlur = document.getElementById('overlayBlur');
+    const ovOp = document.getElementById('overlayOpacity');
+    const ovFontSize = document.getElementById('overlayFontSize');
+
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) : 0;
+    }
+    function setLabel(id, text) {
+        const label = document.getElementById('val_' + id);
+        if(label) label.innerText = text;
+    }
+
+    function loadFlyerState() {
+        try {
+            const saved = localStorage.getItem(FLYER_STORE_KEY);
+            if (!saved) return;
+            const state = JSON.parse(saved);
+            
+            if(state.bgScale !== undefined) scScale.value = state.bgScale;
+            if(state.bgRot !== undefined) scRot.value = state.bgRot;
+            if(state.bgX !== undefined) scX.value = state.bgX;
+            if(state.bgY !== undefined) scY.value = state.bgY;
+            if(state.bgBlur !== undefined) scBlur.value = state.bgBlur;
+            if(state.bgOp !== undefined) scOp.value = state.bgOp;
+            
+            if(state.ovScale !== undefined) ovScale.value = state.ovScale;
+            if(state.ovWidth !== undefined) ovWidth.value = state.ovWidth;
+            if(state.ovX !== undefined) ovX.value = state.ovX;
+            if(state.ovY !== undefined) ovY.value = state.ovY;
+            if(state.ovBlur !== undefined) ovBlur.value = state.ovBlur;
+            if(state.ovOp !== undefined) ovOp.value = state.ovOp;
+            if(state.ovFontSize !== undefined && ovFontSize) ovFontSize.value = state.ovFontSize;
+
+            if(state.toggles) {
+                toggleSwitches.forEach(t => {
+                    if(state.toggles[t.id] !== undefined) t.checked = state.toggles[t.id];
+                });
+            }
+        } catch(e) { console.error("Error cargando caché", e); }
+    }
+
+    function saveFlyerState() {
+        const state = {
+            bgScale: getVal('flyerScale'), bgRot: getVal('flyerRot'), 
+            bgX: getVal('flyerPosX'), bgY: getVal('flyerPosY'),
+            bgBlur: getVal('flyerBlur'), bgOp: getVal('flyerOpacity'),
+            ovScale: getVal('overlayScale'), ovWidth: getVal('overlayWidth'), 
+            ovX: getVal('overlayPosX'), ovY: getVal('overlayPosY'),
+            ovBlur: getVal('overlayBlur'), ovOp: getVal('overlayOpacity'),
+            ovFontSize: getVal('overlayFontSize'),
+            toggles: {}
+        };
+        toggleSwitches.forEach(t => { state.toggles[t.id] = t.checked; });
+        localStorage.setItem(FLYER_STORE_KEY, JSON.stringify(state));
+    }
+
+    function syncBlurMask() {
+        const captureArea = document.getElementById('flyerCaptureArea');
+        if(!captureArea || !overlay || !blurContainer) return;
+
+        // Blur Real: -100% = 0px, 0% = 15px, 100% = 30px
+        const currentOvBlur = Math.max(0, 15 + (getVal('overlayBlur') * 0.15));
+        if (currentOvBlur === 0) {
+            blurContainer.style.display = 'none';
+            return;
+        } else {
+            blurContainer.style.display = 'block';
+        }
+
+        const cBox = captureArea.getBoundingClientRect();
+        const oBox = overlay.getBoundingClientRect();
+        const globalScale = cBox.width / 360; 
+
+        const top = Math.max(0, (oBox.top - cBox.top) / globalScale);
+        const left = Math.max(0, (oBox.left - cBox.left) / globalScale);
+        const right = Math.max(0, (cBox.right - oBox.right) / globalScale);
+        const bottom = Math.max(0, (cBox.bottom - oBox.bottom) / globalScale);
+
+        const tScale = Math.max(0.1, 1 + (getVal('overlayScale') / 100));
+        const radius = 1.0 * 16 * tScale; 
+
+        const clipPathVal = `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius}px)`;
+        blurContainer.style.clipPath = clipPathVal;
+        blurContainer.style.webkitClipPath = clipPathVal;
+    }
+
+    function updateFlyer() {
+        // --- MAPEOS DE VALORES PORCENTUALES ---
+        const vBgScale = getVal('flyerScale');
+        const bgScaleReal = Math.max(0.1, 1 + (vBgScale / 100));
+        setLabel('flyerScale', vBgScale > 0 ? '+' + vBgScale + '%' : vBgScale + '%');
+
+        const vBgRot = getVal('flyerRot');
+        const bgRotReal = vBgRot * 1.8; 
+        setLabel('flyerRot', Math.round(bgRotReal) + '°');
+
+        const bgXReal = getVal('flyerPosX'); setLabel('flyerPosX', bgXReal > 0 ? '+' + bgXReal + '%' : bgXReal + '%');
+        const bgYReal = getVal('flyerPosY'); setLabel('flyerPosY', bgYReal > 0 ? '+' + bgYReal + '%' : bgYReal + '%');
+
+        const vBgBlur = getVal('flyerBlur');
+        const bgBlurReal = Math.max(0, 15 + (vBgBlur * 0.15)); 
+        setLabel('flyerBlur', vBgBlur > 0 ? '+' + vBgBlur + '%' : vBgBlur + '%');
+
+        const vBgOp = getVal('flyerOpacity');
+        const bgOpReal = Math.max(0, Math.min(1, 0.5 + (vBgOp * 0.005)));
+        setLabel('flyerOpacity', vBgOp > 0 ? '+' + vBgOp + '%' : vBgOp + '%');
+
+        const vOvScale = getVal('overlayScale');
+        const ovScaleReal = Math.max(0.1, 1 + (vOvScale / 100));
+        setLabel('overlayScale', vOvScale > 0 ? '+' + vOvScale + '%' : vOvScale + '%');
+
+        const vOvWidth = getVal('overlayWidth');
+        const ovWidthReal = vOvWidth < 0 ? 90 - (Math.abs(vOvWidth)/100 * 40) : Math.min(100, 90 + (vOvWidth/100 * 10));
+        setLabel('overlayWidth', vOvWidth > 0 ? '+' + vOvWidth + '%' : vOvWidth + '%');
+
+        const vOvX = getVal('overlayPosX');
+        const ovXReal = vOvX * 1.5; 
+        setLabel('overlayPosX', vOvX > 0 ? '+' + vOvX + '%' : vOvX + '%');
+
+        const vOvY = getVal('overlayPosY');
+        const ovYReal = vOvY * 2.5; 
+        setLabel('overlayPosY', vOvY > 0 ? '+' + vOvY + '%' : vOvY + '%');
+
+        const vOvBlur = getVal('overlayBlur');
+        const ovBlurReal = Math.max(0, 15 + (vOvBlur * 0.15)); 
+        setLabel('overlayBlur', vOvBlur > 0 ? '+' + vOvBlur + '%' : vOvBlur + '%');
+
+        const vOvOp = getVal('overlayOpacity');
+        const ovOpReal = Math.max(0, Math.min(0.95, 0.4 + (vOvOp * 0.005)));
+        setLabel('overlayOpacity', vOvOp > 0 ? '+' + vOvOp + '%' : vOvOp + '%');
+
+        const vOvFontSize = getVal('overlayFontSize');
+        const ovFontSizeReal = Math.max(0.5, 1 + (vOvFontSize / 100));
+        setLabel('overlayFontSize', vOvFontSize > 0 ? '+' + vOvFontSize + '%' : vOvFontSize + '%');
+
+        // --- APLICACIÓN ---
+        if (img) {
+            const tf = `translate(${bgXReal}%, ${bgYReal}%) scale(${bgScaleReal}) rotate(${bgRotReal}deg)`;
+            img.style.transform = tf;
+            img.style.filter = `blur(${bgBlurReal}px) opacity(${bgOpReal})`;
+            
+            if(imgClone) {
+                imgClone.style.transform = tf;
+                imgClone.style.filter = `blur(${bgBlurReal + ovBlurReal}px) opacity(${bgOpReal})`;
+            }
+        }
+        
+        if (overlay) {
+            overlay.style.width = `${ovWidthReal}%`;
+            overlay.style.transform = `translate(${ovXReal}px, ${ovYReal}px) scale(${ovScaleReal})`;
+            overlay.style.backgroundColor = `rgba(0, 0, 0, ${ovOpReal})`;
+            overlay.style.setProperty('--text-scale', ovFontSizeReal);
+            
+            syncBlurMask();
+        }
+        saveFlyerState();
+    }
+
+    loadFlyerState();
+
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const targetElement = document.getElementById(this.getAttribute('data-target'));
+            if (targetElement) {
+                if (this.checked) targetElement.classList.remove('d-none');
+                else targetElement.classList.add('d-none');
+            }
+            setTimeout(updateFlyer, 50); 
+        });
+        toggle.dispatchEvent(new Event('change'));
+    });
+
+    [scScale, scX, scY, scRot, scBlur, scOp, ovScale, ovWidth, ovX, ovY, ovBlur, ovOp, ovFontSize].forEach(el => {
+        if(el) el.addEventListener('input', updateFlyer);
+    });
+
+    updateFlyer();
+
+    // Botón Exportar Flyer 9:16
+    const btnExportFlyer = document.getElementById('btnExportFlyer');
+    if (btnExportFlyer) {
+        btnExportFlyer.addEventListener('click', async function() {
+            if (typeof htmlToImage === 'undefined') {
+                alert("La librería de exportación no se ha cargado. Verifica tu conexión a internet.");
+                return;
+            }
+
+            const captureArea = document.getElementById('flyerCaptureArea');
+            const originalText = this.innerHTML;
+            
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando Alta Resolución...';
+            this.disabled = true;
+
+            try {
+                const currentTransform = captureArea.style.transform;
+                captureArea.style.transform = 'none';
+
+                const dataUrl = await htmlToImage.toPng(captureArea, { 
+                    pixelRatio: 4,
+                    backgroundColor: 'transparent',
+                    style: { transform: 'none' } 
+                });
+                
+                captureArea.style.transform = currentTransform;
+
+                const link = document.createElement('a');
+                const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                link.download = `Flyer_${safeName}.png`;
+                link.href = dataUrl;
+                link.click();
+            } catch(e) {
+                console.error(e);
+                alert("Error al generar el flyer. Intenta de nuevo.");
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
+        });
+    }
+
+    // ==========================================
+    // 2. LÓGICA DE EDICIÓN DEL EVENTO
+    // ==========================================
         toggleEditActividad();
         toggleEditDateInputs();
         toggleEditDiaSeguro();
         toggleEditLogisticaSegura();
         
         const setDateFields = (dateStr, dId, mId, yId) => {
-            if(!dateStr) return;
+            if(!dateStr || dateStr === "None") return;
             const pts = dateStr.split('-');
             if(pts.length === 3) {
                 document.getElementById(yId).value = pts[0];
@@ -825,225 +1490,234 @@
                 }
             });
         }
-    });
 
-    async function toggleEspacio(eventId) {
-        try {
-            const response = await fetch(`/api/toggle_espacio/${eventId}`, { method: 'POST' });
-            const result = await response.json();
-            if (response.ok && result.success) {
-                window.location.reload(); 
+        document.getElementById('editEventForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            const isSecureDia = document.getElementById('editDiaSeguroToggle').checked;
+            formData.set('solo_chat', isSecureDia);
+
+            const isSecureLog = document.getElementById('editLogisticaSeguraToggle').checked;
+            formData.set('logistica_segura', isSecureLog);
+            
+            // NUEVO: Guardar selección de zona de alto riesgo
+            const isAltoRiesgo = document.getElementById('editAltoRiesgoToggle') ? document.getElementById('editAltoRiesgoToggle').checked : false;
+            formData.set('zona_alto_riesgo', isAltoRiesgo);
+
+            const incluyeArr = [];
+            document.querySelectorAll('#editIncluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
+                if(cb.value === "Otros") {
+                    const desc = document.getElementById('editOtrosDescripcion').value;
+                    if(desc) incluyeArr.push(desc);
+                } else {
+                    incluyeArr.push(cb.value);
+                }
+            });
+            formData.set('incluye', incluyeArr.join(', '));
+
+            const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0'+v : v)); };
+            
+            if (document.getElementById('editActividad').value === 'Internacional') {
+                formData.set('fechaUnica', document.getElementById('editFechaIda') ? document.getElementById('editFechaIda').value : '');
             } else {
-                alert(result.error || "No se pudo cambiar el estado del evento.");
+                const dias = parseInt(document.getElementById('editDias').value) || 1;
+                if (dias === 1) {
+                    const y = document.getElementById('e_yearUnica').value;
+                    const m = document.getElementById('e_monthUnica').value;
+                    const d = isSecureDia ? '01' : pad(document.getElementById('e_dayUnica').value);
+                    formData.set('fechaUnica', `${y}-${m}-${d}`);
+                } else {
+                    const yI = document.getElementById('e_yearInicio').value;
+                    const mI = document.getElementById('e_monthInicio').value;
+                    const dI = isSecureDia ? '01' : pad(document.getElementById('e_dayInicio').value);
+                    formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
+                    
+                    const yR = document.getElementById('e_yearRegreso').value;
+                    const mR = document.getElementById('e_monthRegreso').value;
+                    const dR = isSecureDia ? '01' : pad(document.getElementById('e_dayRegreso').value);
+                    formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
+                }
             }
-        } catch(err) {
-            alert("Error de conexión al intentar guardar la disponibilidad.");
-        }
-    }
 
-    function toggleEditActividad() {
-        const act = document.getElementById('editActividad').value;
-        document.getElementById('editNationalFields').classList.toggle('d-none', act === 'Internacional');
-        document.getElementById('editInternationalFields').classList.toggle('d-none', act !== 'Internacional');
-    }
-
-    function toggleEditDateInputs() {
-        const dias = parseInt(document.getElementById('editDias').value) || 1;
-        document.getElementById('editSingleDateGroup').classList.toggle('d-none', dias > 1);
-        document.getElementById('editRangeDateGroup').classList.toggle('d-none', dias <= 1);
-    }
-
-    function toggleEditDiaSeguro() {
-        const isSecure = document.getElementById('editDiaSeguroToggle').checked;
-        document.querySelectorAll('.edit-normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
-        document.querySelectorAll('.edit-secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
-    }
-
-    function toggleEditLogisticaSegura() {
-        const isSecure = document.getElementById('editLogisticaSeguraToggle').checked;
-        document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
-        document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
-    }
-
-    function toggleEditOtherDesc() {
-        document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
-    }
-
-    document.getElementById('editEventForm')?.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        
-        const isSecureDia = document.getElementById('editDiaSeguroToggle').checked;
-        formData.set('solo_chat', isSecureDia);
-
-        const isSecureLog = document.getElementById('editLogisticaSeguraToggle').checked;
-        if (isSecureLog) {
-            const lugar = formData.get('lugarSalida');
-            formData.set('lugarSalida', 'SEGURO_' + lugar);
-        }
-
-        const incluyeArr = [];
-        document.querySelectorAll('#editIncluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
-            if(cb.value === "Otros") {
-                const desc = document.getElementById('editOtrosDescripcion').value;
-                if(desc) incluyeArr.push(desc);
-            } else {
-                incluyeArr.push(cb.value);
+            try {
+                const response = await fetch('/api/update_event/{{ evento.id }}', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    window.location.reload(); 
+                } else {
+                    alert("Error al actualizar: " + (result.error || "Desconocido"));
+                }
+            } catch (err) { 
+                alert("Error de conexión al intentar actualizar el evento."); 
             }
         });
-        formData.set('incluye', incluyeArr.join(', '));
+    {% endif %}
+});
 
-        const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0'+v : v)); };
-        
-        if (document.getElementById('editActividad').value === 'Internacional') {
-            formData.set('fechaUnica', document.getElementById('editFechaIda') ? document.getElementById('editFechaIda').value : '');
-        } else {
-            const dias = parseInt(document.getElementById('editDias').value) || 1;
-            if (dias === 1) {
-                const y = document.getElementById('e_yearUnica').value;
-                const m = document.getElementById('e_monthUnica').value;
-                const d = isSecureDia ? '01' : pad(document.getElementById('e_dayUnica').value);
-                formData.set('fechaUnica', `${y}-${m}-${d}`);
-            } else {
-                const yI = document.getElementById('e_yearInicio').value;
-                const mI = document.getElementById('e_monthInicio').value;
-                const dI = isSecureDia ? '01' : pad(document.getElementById('e_dayInicio').value);
-                formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
-                
-                const yR = document.getElementById('e_yearRegreso').value;
-                const mR = document.getElementById('e_monthRegreso').value;
-                const dR = isSecureDia ? '01' : pad(document.getElementById('e_dayRegreso').value);
-                formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
-            }
-        }
+// FUNCIONES GLOBALES PARA EL MODO EDICIÓN 
+{% if is_super_user %}
+function toggleEditActividad() {
+    const act = document.getElementById('editActividad').value;
+    document.getElementById('editNationalFields').classList.toggle('d-none', act === 'Internacional');
+    document.getElementById('editInternationalFields').classList.toggle('d-none', act !== 'Internacional');
+}
 
-        try {
-            const response = await fetch('/api/update_event/{{ evento.id }}', { method: 'POST', body: formData });
-            const result = await response.json();
-            
-            if (response.ok && result.success) {
-                window.location.reload(); 
-            } else {
-                alert("Error al actualizar: " + (result.error || "Desconocido"));
-            }
-        } catch (err) { 
-            alert("Error de conexión al intentar actualizar el evento."); 
-        }
-    });
+function toggleEditDateInputs() {
+    const dias = parseInt(document.getElementById('editDias').value) || 1;
+    document.getElementById('editSingleDateGroup').classList.toggle('d-none', dias > 1);
+    document.getElementById('editRangeDateGroup').classList.toggle('d-none', dias <= 1);
+}
 
-    let deleteClicks = 0;
-    function processDeleteEvento(eventId) {
-        const btn = document.getElementById('btnConfirmDelete');
-        deleteClicks++;
-        
-        if (deleteClicks === 1) {
-            btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
-            btn.classList.replace('btn-danger', 'btn-warning');
-            btn.classList.replace('text-white', 'text-dark');
-        } else if (deleteClicks === 2) {
-            btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
-            btn.classList.replace('btn-warning', 'btn-dark');
-            btn.classList.add('text-white');
-        } else {
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
-            btn.disabled = true;
-            ejecutarBorradoReal(eventId);
-        }
-        
-        setTimeout(() => {
-            if (deleteClicks > 0 && deleteClicks < 3) {
-                deleteClicks = 0;
-                btn.innerHTML = 'Sí, eliminar evento';
-                btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
-            }
-        }, 4000);
+function toggleEditDiaSeguro() {
+    const isSecure = document.getElementById('editDiaSeguroToggle').checked;
+    document.querySelectorAll('.edit-normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.edit-secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+function toggleEditLogisticaSegura() {
+    const isSecure = document.getElementById('editLogisticaSeguraToggle').checked;
+    document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+function toggleEditOtherDesc() {
+    document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
+}
+
+let deleteClicks = 0;
+function processDeleteEvento(eventId) {
+    const btn = document.getElementById('btnConfirmDelete');
+    deleteClicks++;
+    
+    if (deleteClicks === 1) {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
+        btn.classList.replace('btn-danger', 'btn-warning');
+        btn.classList.replace('text-white', 'text-dark');
+    } else if (deleteClicks === 2) {
+        btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
+        btn.classList.replace('btn-warning', 'btn-dark');
+        btn.classList.add('text-white');
+    } else {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
+        btn.disabled = true;
+        ejecutarBorradoReal(eventId);
     }
+    
+    setTimeout(() => {
+        if (deleteClicks > 0 && deleteClicks < 3) {
+            deleteClicks = 0;
+            btn.innerHTML = 'Sí, eliminar evento';
+            btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
+        }
+    }, 4000);
+}
 
-    async function ejecutarBorradoReal(eventId) {
-        try {
-            const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
-            const result = await response.json();
+async function ejecutarBorradoReal(eventId) {
+    try {
+        const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            try {
+                const request = indexedDB.open("EventosLocalDB", 3);
+                request.onsuccess = (e) => { e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId); };
+            } catch(e) {}
             
-            if (response.ok && result.success) {
-                try {
-                    const request = indexedDB.open("EventosLocalDB", 3);
-                    request.onsuccess = (e) => { e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId); };
-                } catch(e) {}
-                
-                const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
-                if(deleteModal) deleteModal.hide();
-                new bootstrap.Modal(document.getElementById('successDeleteModal')).show();
-                setTimeout(() => { window.location.href = '/'; }, 2000);
-            } else {
-                alert("Error al eliminar el evento.");
-                document.getElementById('btnConfirmDelete').disabled = false;
-            }
-        } catch (err) {
-            alert("Error de conexión al intentar eliminar el evento.");
+            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+            if(deleteModal) deleteModal.hide();
+            new bootstrap.Modal(document.getElementById('successDeleteModal')).show();
+            setTimeout(() => { window.location.href = '/'; }, 2000);
+        } else {
+            alert("Error al eliminar el evento.");
             document.getElementById('btnConfirmDelete').disabled = false;
         }
+    } catch (err) {
+        alert("Error de conexión al intentar eliminar el evento.");
+        document.getElementById('btnConfirmDelete').disabled = false;
+    }
+}
+{% endif %}
+
+// ==========================================
+// 3. FUNCIONES DE COMPARTIR Y EXPORTAR INFO LARGA (PÚBLICAS)
+// ==========================================
+window.exportToPNG = async function() {
+    if (typeof htmlToImage === 'undefined') {
+        alert("La librería de exportación no se ha cargado correctamente.");
+        return;
     }
 
-    function reservarPorWhatsApp() {
-        const nombreEvento = "{{ evento.nombre_lugar }}";
-        const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
-        const sinpeString = "{{ evento.sinpe }}";
-        let numeroAdmin = "50686529837"; 
-        if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
-        if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; 
-        const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
-        window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
-    }
+    const cardToExport = document.getElementById('eventCardToExport');
+    const btnExport = document.getElementById('btnExportPNG');
+    const originalHtml = btnExport.innerHTML;
+    
+    btnExport.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
+    btnExport.disabled = true;
+    
+    const elementsToHide = document.querySelectorAll('.hide-on-export');
+    elementsToHide.forEach(el => el.style.display = 'none');
+    cardToExport.classList.add('exporting-mode');
 
-    function shareToFriendWhatsApp() {
-        const nombreEvento = "{{ evento.nombre_lugar }}";
-        const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
-        let fecha = "{{ fecha_formateada }}";
-        {% if evento.dias > 1 %} fecha = "{{ inicio_formateada }} al {{ regreso_formateada }}"; {% endif %}
-        const url = window.location.href;
-        const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
-        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+    try {
+        const dataUrl = await htmlToImage.toPng(cardToExport, { 
+            pixelRatio: 2, 
+            backgroundColor: '#ffffff',
+            style: { margin: '0', borderRadius: '0', boxShadow: 'none', transform: 'none' } 
+        });
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+        link.download = `InfoLarga_${safeName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error(error);
+        alert('Ocurrió un problema al generar la imagen detallada.');
+    } finally {
+        elementsToHide.forEach(el => el.style.display = '');
+        cardToExport.classList.remove('exporting-mode');
+        btnExport.innerHTML = originalHtml;
+        btnExport.disabled = false;
     }
+};
 
-    async function shareNative() {
-        const nombreEvento = "{{ evento.nombre_lugar }}";
-        const url = window.location.href;
-        const shareData = { title: `Aventura en ${nombreEvento}`, text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`, url: url };
-        if (navigator.share) {
-            try { await navigator.share(shareData); } catch (err) {}
-        } else {
-            alert('Tu navegador no soporta compartir nativo. Copia este enlace para compartir el evento:\n' + url);
-        }
+function reservarPorWhatsApp() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
+    const sinpeString = "{{ evento.sinpe or '' }}";
+    
+    let numeroAdmin = "50686529837"; 
+    if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
+    if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; 
+    
+    const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
+    window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+function shareToFriendWhatsApp() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
+    let fecha = "{{ fecha_formateada }}";
+    {% if evento.dias > 1 %} fecha = "{{ inicio_formateada }} al {{ regreso_formateada }}"; {% endif %}
+    
+    const url = window.location.href;
+    const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+async function shareNative() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const url = window.location.href;
+    const shareData = { title: `Aventura en ${nombreEvento}`, text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`, url: url };
+    
+    if (navigator.share) {
+        try { await navigator.share(shareData); } catch (err) {}
+    } else {
+        alert('Tu navegador no soporta compartir nativo. Copia este enlace para compartir el evento:\n' + url);
     }
-
-    async function exportToPNG() {
-        const cardToExport = document.getElementById('eventCardToExport');
-        const btnExport = document.getElementById('btnExportPNG');
-        const originalHtml = btnExport.innerHTML;
-        btnExport.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
-        btnExport.disabled = true;
-        const elementsToHide = document.querySelectorAll('.hide-on-export');
-        elementsToHide.forEach(el => el.style.display = 'none');
-        cardToExport.classList.add('exporting-mode');
-
-        try {
-            const canvas = await html2canvas(cardToExport, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-            const imgData = canvas.toDataURL('image/png');
-            const link = document.createElement('a');
-            link.href = imgData;
-            const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
-            link.download = `Aventura_${safeName}.png`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (error) {
-            alert('Ocurrió un problema al generar la imagen. Intenta de nuevo.');
-        } finally {
-            elementsToHide.forEach(el => el.style.display = '');
-            cardToExport.classList.remove('exporting-mode');
-            btnExport.innerHTML = originalHtml;
-            btnExport.disabled = false;
-        }
-    }
+}
 </script>
 {% endblock %}

@@ -50,6 +50,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 });
 
+// NUEVO: Función para mostrar el modal de "Sin Espacio"
+function showSoldOutModal() {
+    const modalEl = document.getElementById('soldOutModal');
+    if (modalEl) {
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+}
+
 // NUEVO Y REFORZADO: Detectar si el usuario regresó con el botón "Atrás" en todos los navegadores
 window.addEventListener('pageshow', (event) => {
     // Detecta BFCache (Safari/iOS) o navegación histórica estándar
@@ -456,6 +465,11 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
         const cardClass = isSoldOut ? 'sold-out-card' : '';
         const overlay = isSoldOut ? '<div class="sold-out-overlay">SIN ESPACIO</div>' : '';
         
+        // LÓGICA DE CLICK: Activa el Modal si está agotado y no es admin
+        const cardAction = (isSoldOut && !isSuperUser) 
+            ? `showSoldOutModal()` 
+            : `window.location.href='/detalles_evento/${ev.id}'`;
+
         const superUserBtns = isSuperUser ? `
             <div class="position-absolute top-0 start-0 m-2 d-flex gap-2" style="z-index: 20;">
                 <button class="btn btn-sm ${isSoldOut ? 'btn-success' : 'btn-danger'} shadow-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 35px; height: 35px;" onclick="event.stopPropagation(); toggleEspacio(${ev.id})" title="${isSoldOut ? 'Habilitar Espacio' : 'Marcar Sin Espacio'}">
@@ -477,7 +491,7 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
         if (currentViewMode === 'grid') {
             container.innerHTML += `
                 <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn month-item-${currentMonthId} ${visibilityClass}">
-                    <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm ${cardClass}" onclick="${!isSoldOut || isSuperUser ? `window.location.href='/detalles_evento/${ev.id}'` : ''}" style="cursor: ${isSoldOut && !isSuperUser ? 'not-allowed' : 'pointer'}; position: relative;">
+                    <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm ${cardClass}" onclick="${cardAction}" style="cursor: pointer; position: relative;">
                         
                         ${superUserBtns}
                         <div class="event-img-container border-bottom border-white border-2 position-relative">
@@ -517,7 +531,7 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
         } else {
             container.innerHTML += `
                 <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp month-item-${currentMonthId} ${visibilityClass}">
-                    <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50 ${cardClass}" onclick="${!isSoldOut || isSuperUser ? `window.location.href='/detalles_evento/${ev.id}'` : ''}" style="cursor: ${isSoldOut && !isSuperUser ? 'not-allowed' : 'pointer'}; position: relative; overflow: hidden;">
+                    <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50 ${cardClass}" onclick="${cardAction}" style="cursor: pointer; position: relative; overflow: hidden;">
                         ${superUserBtns}
                         ${overlay}
 
@@ -549,6 +563,7 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
                         </div>
                         
                         ${btnHacerPublico}
+                        <div class="mt-2"></div>
                     </div>
                 </div>
             `;
