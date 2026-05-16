@@ -1,4 +1,4 @@
-<!-- Vista: home.html -->
+<!-- Archivo: templates/home.html -->
 {% extends "base.html" %}
 
 {% block content %}
@@ -209,9 +209,100 @@
         .col-xxs-6 .p-3 { padding: 0.75rem !important; }
         .col-xxs-6 .btn { font-size: 0.8rem; padding: 0.4rem 1rem; }
     }
+
+    /* ======================================================== */
+    /* ESTILOS NUEVOS: BUSCADOR DE PIN Y TARJETA MÉDICA         */
+    /* ======================================================== */
+    .pin-search-bar {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        border: 2px solid #ff8c00;
+        border-radius: 50px;
+        padding: 8px 15px;
+        box-shadow: 0 10px 25px rgba(255, 140, 0, 0.15);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    .pin-search-bar:focus-within {
+        box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
+        transform: scale(1.02);
+    }
+    .pin-input {
+        border: none;
+        background: transparent;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #000;
+        text-transform: uppercase;
+        width: 100%;
+        outline: none;
+    }
+    .pin-input::placeholder {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .id-card {
+        background: #ffffff;
+        border-radius: 15px;
+        border: 3px solid #1a2a40;
+        position: relative;
+        overflow: hidden;
+    }
+    .id-card-header {
+        background: #1a2a40;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        border-bottom: 4px solid #ff8c00;
+    }
+    .pin-badge {
+        background: #ff8c00;
+        color: #fff;
+        font-weight: 900;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
+    .data-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 0px;
+    }
+    .data-value {
+        font-size: 1.2rem;
+        color: #000;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
 </style>
 
 <div class="container animate__animated animate__fadeIn">
+
+    <!-- BUSCADOR DE PIN MÉDICO (Visible para todos) -->
+    <div class="row justify-content-center mb-4 mt-2">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="text-center mb-2">
+                <p class="text-dark fw-bold mb-1"><i class="bi bi-shield-plus text-orange"></i> Credencial Médica La Tribu</p>
+            </div>
+            <div class="pin-search-bar">
+                <i class="bi bi-person-vcard-fill text-orange fs-3 mx-2"></i>
+                <!-- CORRECCIÓN DE PLACEHOLDER -->
+                <input type="text" id="publicPinInput" class="pin-input ms-2" placeholder="PIN" autocomplete="off">
+                <button class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" style="background-color: #ff8c00; color: white; border: none;" onclick="buscarPinPublico()">
+                    Buscar
+                </button>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-muted fw-bold">Si ya te inscribiste, digita tu PIN para descargar tu tarjeta de emergencia.</small>
+            </div>
+        </div>
+    </div>
     
     <!-- NOTIFICACIONES -->
     {% if notifications %}
@@ -412,7 +503,7 @@
     </div>
 </div>
 
-<!-- NUEVO: Modal Sin Espacios -->
+<!-- Modal Sin Espacios -->
 <div class="modal fade" id="soldOutModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
@@ -431,6 +522,152 @@
         </div>
     </div>
 </div>
+
+<!-- MODAL DE LA TARJETA MÉDICA PUBLICA -->
+<div class="modal fade" id="publicHikerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; background: #f8f9fa;">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 px-4 pb-4">
+                
+                <!-- ÁREA A EXPORTAR A PNG -->
+                <div id="tarjetaExportablePublica" class="id-card shadow-sm mb-4 mt-2">
+                    <div class="id-card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-black text-white"><i class="bi bi-shield-plus text-orange"></i> LA TRIBU MED-ID</h4>
+                        <span class="pin-badge" id="publicModalPin">PIN-AQUÍ</span>
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p class="data-label">Nombre Completo</p>
+                                <p class="data-value fs-3 text-orange" id="publicModalNombre">Cargando...</p>
+                                
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <p class="data-label">Cédula</p>
+                                        <p class="data-value" id="publicModalCedula">...</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="data-label">Teléfono</p>
+                                        <p class="data-value" id="publicModalTelefono">...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center d-flex flex-column justify-content-center align-items-center border-start">
+                                <p class="data-label">Grupo Sanguíneo</p>
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-black shadow" style="width: 80px; height: 80px; font-size: 2rem;" id="publicModalSangre">
+                                    O+
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-3 border-2">
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p class="data-label text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Alergias</p>
+                                <p class="data-value fs-5" id="publicModalAlergias">...</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="data-label text-danger"><i class="bi bi-heart-pulse-fill"></i> Enfermedades</p>
+                                <p class="data-value fs-5" id="publicModalEnfermedades">...</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-light p-3 rounded border border-warning mt-2">
+                            <p class="data-label text-primary"><i class="bi bi-telephone-fill"></i> Contacto de Emergencia</p>
+                            <p class="data-value mb-0 fs-5" id="publicModalEmergencia">...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- FIN ÁREA A EXPORTAR -->
+
+                <!-- BOTONES DE ACCIÓN PUBLICOS -->
+                <div class="text-center">
+                    <button class="btn btn-success fw-bold px-5 py-3 rounded-pill shadow-lg fs-5 mb-2 w-100" style="max-width: 300px;" onclick="descargarTarjetaPublica()">
+                        <i class="bi bi-cloud-arrow-down-fill me-2"></i> Descargar mi Tarjeta en Imagen
+                    </button>
+                    <!-- NUEVO BOTÓN DE EDICIÓN (HOME) -->
+                    <a id="publicBtnEditHiker" href="#" class="btn btn-outline-warning fw-bold px-5 py-2 rounded-pill shadow-sm fs-6 d-block mx-auto" style="max-width: 300px;">
+                        <i class="bi bi-pencil-square me-2"></i> Actualizar mis datos
+                    </a>
+                    <p class="text-muted small mt-3 fw-bold">Guarda esta imagen en tu celular. Te será útil en áreas sin internet.</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- LÓGICA DEL BUSCADOR DE PIN Y TARJETA PUBLICA -->
+<script>
+    async function buscarPinPublico() {
+        const pinInput = document.getElementById('publicPinInput');
+        const pin = pinInput.value.trim().toUpperCase();
+        
+        if(!pin) {
+            alert("Por favor, ingresa tu PIN.");
+            return;
+        }
+
+        const btn = pinInput.nextElementSibling;
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/hiker/pin/${pin}`);
+            const hiker = await res.json();
+
+            if(hiker.found) {
+                // Llenar los datos de la tarjeta pública
+                document.getElementById('publicModalPin').innerText = `PIN: ${pin}`;
+                document.getElementById('publicModalNombre').innerText = hiker.nombre_completo;
+                document.getElementById('publicModalCedula').innerText = hiker.cedula;
+                document.getElementById('publicModalTelefono').innerText = hiker.telefono;
+                document.getElementById('publicModalSangre').innerText = hiker.tipo_sangre;
+                document.getElementById('publicModalAlergias').innerText = hiker.alergias || 'Ninguna';
+                document.getElementById('publicModalEnfermedades').innerText = hiker.enfermedades_cronicas || 'Ninguna';
+                document.getElementById('publicModalEmergencia').innerText = `${hiker.contacto_emergencia_nombre} - ${hiker.contacto_emergencia_telefono}`;
+
+                // NUEVO: Enlazar el botón de edición con el PIN de este caminante
+                document.getElementById('publicBtnEditHiker').href = `/editar_caminante/${pin}`;
+
+                // Mostrar el Modal
+                new bootstrap.Modal(document.getElementById('publicHikerModal')).show();
+                pinInput.value = ''; // Limpiar el input
+            } else {
+                alert("PIN incorrecto o no encontrado. Por favor, verifica e intenta nuevamente.");
+            }
+        } catch (e) {
+            alert("Error de conexión. Revisa tu internet.");
+        } finally {
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }
+    }
+
+    function descargarTarjetaPublica() {
+        const elemento = document.getElementById('tarjetaExportablePublica');
+        const nombre = document.getElementById('publicModalNombre').innerText.replace(/\s+/g, '_');
+        
+        html2canvas(elemento, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `MedID_LaTribu_${nombre}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // Buscar con Enter
+    document.getElementById('publicPinInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            buscarPinPublico();
+        }
+    });
+</script>
 
 <!-- Scripts de Lógica de Datos EXTERNOS -->
 <script>

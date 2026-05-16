@@ -1,11 +1,12 @@
-# routes.py
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response
-from models import User, Notification, Event
+from models import User, Notification, Event, Hiker, EventRegistration
 from users import hash_password, check_password
 from db import db
 from datetime import datetime
 import os
 import json
+import re
+from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
 bp = Blueprint('main', __name__)
@@ -354,7 +355,7 @@ def register():
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback() 
-        return jsonify({'error': 'Error interno de base de datos al registrar'}), 500
+        return jsonify({'error': str(e)}), 500
 
 @bp.route('/api/update_profile', methods=['POST'])
 def update_profile():
@@ -500,3 +501,287 @@ def admin_update_user(user_id):
 
     db.session.commit()
     return jsonify({'success': True})
+
+
+# ==========================================
+# SISTEMA CRM E INSCRIPCIONES (LA TRIBU)
+# ==========================================
+
+@bp.route('/inscripcion/<path:identifier>')
+def inscripcion_evento(identifier):
+    """
+    Ruta pública para el formulario de inscripción a un evento.
+    Soporta identificadores numéricos (/inscripcion/20) y slugs amigables (/inscripcion/caminata-isla-venado-20).
+    """
+    import re # Importamos 're' aquí por si no está en la parte superior de tu archivo routes.py
+    
+    if identifier.isdigit():
+        # Si el link es antiguo y solo tiene el número (ej: /inscripcion/20)
+        evento = Event.query.get_or_404(int(identifier))
+    else:
+        # Si es un link nuevo con texto, buscamos el ID al final (ej: caminata-isla-venado-20 -> extrae el 20)
+        match = re.search(r'-(\d+)$', identifier)
+        if match:
+            evento_id = int(match.group(1))
+            evento = Event.query.get_or_404(evento_id)
+        else:
+            # Fallback de seguridad: si el link no tiene número al final por alguna razón, 
+            # intenta buscar el evento por el nombre aproximado.
+            nombre_real = identifier.replace('-', ' ')
+            evento = Event.query.filter(Event.nombre_lugar.ilike(f"%{nombre_real}%")).order_by(Event.id.desc()).first_or_404()
+            
+    return render_template('formulario_inscripcion.html', evento=evento)
+
+@bp.route('/editar_caminante/<identifier>')
+def editar_caminante(identifier):
+    """
+    Abre el formulario en modo 'edición' usando la cédula (CRM) o el PIN (Usuario).
+    """
+    # Intentamos buscar primero por cédula
+    hiker = Hiker.query.filter_by(cedula=identifier).first()
+    
+    # Si no aparece, intentamos buscar por PIN
+    if not hiker:
+        hiker = Hiker.query.filter_by(pin_secreto=identifier).first()
+        
+    if not hiker:
+        # Si de ninguna forma existe, lo mandamos al inicio
+        return redirect(url_for('main.home'))
+        
+    return render_template('editar_caminante.html', hiker=hiker)
+
+@bp.route('/api/hiker/check/<cedula>')
+def check_hiker(cedula):
+    # API Silenciosa para autocompletar formularios si el caminante ya existe
+    try:
+        hiker = Hiker.query.filter_by(cedula=cedula).first()
+        if hiker:
+            # Shield para fecha_nacimiento física
+            f_nac_str = ""
+            try:
+                if hasattr(hiker, 'fecha_nacimiento') and hiker.fecha_nacimiento:
+                    f_nac_str = hiker.fecha_nacimiento.strftime('%Y-%m-%d')
+            except:
+                f_nac_str = ""
+
+            return jsonify({
+                'found': True,
+                'nombre_completo': hiker.nombre_completo,
+                'telefono': hiker.telefono,
+                'fecha_nacimiento': f_nac_str,
+                'tipo_sangre': hiker.tipo_sangre,
+                'alergias': hiker.alergias,
+                'enfermedades_cronicas': hiker.enfermedades_cronicas,
+                'contacto_emergencia_nombre': hiker.contacto_emergencia_nombre,
+                'contacto_emergencia_telefono': hiker.contacto_emergencia_telefono
+            })
+    except:
+        pass
+    return jsonify({'found': False})
+
+@bp.route('/api/hiker/register', methods=['POST'])
+def register_hiker():
+    data = request.get_json()
+    
+    try:
+        cedula = data.get('cedula', '').strip()
+        event_id = data.get('event_id')
+        
+        if not cedula:
+            return jsonify({'success': False, 'error': 'La cédula es obligatoria'}), 400
+
+        # 1. ESCUDO ANTI-DUPLICADOS (Buscamos si la cédula ya existe)
+        hiker = Hiker.query.filter_by(cedula=cedula).first()
+        
+        if not hiker:
+            # Si NO existe, creamos un nuevo caminante
+            hiker = Hiker(cedula=cedula)
+            db.session.add(hiker)
+        
+        # 2. ACTUALIZAMOS SIEMPRE SU INFORMACIÓN
+        hiker.nombre_completo = data.get('nombre_completo', hiker.nombre_completo)
+        hiker.telefono = data.get('telefono', hiker.telefono)
+        hiker.tipo_sangre = data.get('tipo_sangre', hiker.tipo_sangre)
+        hiker.alergias = data.get('alergias', hiker.alergias)
+        hiker.enfermedades_cronicas = data.get('enfermedades_cronicas', hiker.enfermedades_cronicas)
+        hiker.contacto_emergencia_nombre = data.get('contacto_emergencia_nombre', hiker.contacto_emergencia_nombre)
+        hiker.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono', hiker.contacto_emergencia_telefono)
+        
+        # INTEGRACIÓN SEGURA FECHA NACIMIENTO
+        f_nac = data.get('fecha_nacimiento')
+        if f_nac:
+            try:
+                # Solo intentamos guardar si la columna existe en el objeto
+                hiker.fecha_nacimiento = datetime.strptime(f_nac, '%Y-%m-%d').date()
+            except:
+                pass
+
+        # Generar PIN si es nuevo
+        if not hiker.pin_secreto:
+            import random, string
+            hiker.pin_secreto = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            
+        db.session.commit()
+
+        # 3. REGISTRO AL EVENTO
+        if event_id:
+            inscripcion_existente = EventRegistration.query.filter_by(event_id=event_id, hiker_id=hiker.id).first()
+            if not inscripcion_existente:
+                nueva_inscripcion = EventRegistration(event_id=event_id, hiker_id=hiker.id)
+                db.session.add(nueva_inscripcion)
+                db.session.commit()
+
+        return jsonify({'success': True, 'pin': hiker.pin_secreto})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error registrando caminante: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@bp.route('/agenda')
+def agenda():
+    # Solo visible para el Superusuario (Directorio global de la Tribu)
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    return render_template('agenda.html')
+
+@bp.route('/api/admin/fix_database')
+def fix_database():
+    """
+    Ruta de emergencia para inyectar la columna faltante en producción 
+    sin consola, sin apagar el servidor y sin perder datos.
+    """
+    if session.get('role') != 'Superusuario':
+        return "Acceso denegado. Debes iniciar sesión como administrador.", 403
+    try:
+        db.session.execute(text("ALTER TABLE hiker ADD COLUMN fecha_nacimiento DATE"))
+        db.session.commit()
+        return "<h1>✅ Base de datos actualizada con éxito.</h1><p>La columna 'fecha_nacimiento' fue agregada a tus 10,000 registros de forma segura. Ya puedes ir al formulario y registrar caminantes sin error.</p><a href='/'>Volver al inicio</a>"
+    except Exception as e:
+        db.session.rollback()
+        return f"<h1>⚠️ Resultado</h1><p>{str(e)}</p><p><b>Si el error de arriba dice 'duplicate column name', significa que la columna ya se agregó correctamente y tu base de datos está perfecta.</b></p><a href='/'>Volver al inicio</a>"
+
+@bp.route('/api/admin/hikers')
+def admin_get_hikers():
+    """
+    Ruta para el Directorio CRM con protección contra fallos físicos de la DB.
+    Si la columna fecha_nacimiento falta, el API sigue enviando los 10,000 registros
+    omitiendo solo ese dato, evitando el error de JSON en el CRM.
+    """
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        # Intentamos obtener los caminantes. 
+        hikers = Hiker.query.all()
+        output = []
+        for h in hikers:
+            # Escudo de lectura para la columna conflictiva
+            f_nac = ""
+            try:
+                if hasattr(h, 'fecha_nacimiento') and h.fecha_nacimiento:
+                    f_nac = h.fecha_nacimiento.strftime('%Y-%m-%d')
+            except:
+                f_nac = ""
+
+            output.append({
+                'id': h.id,
+                'cedula': h.cedula,
+                'nombre_completo': h.nombre_completo,
+                'telefono': h.telefono,
+                'tipo_sangre': h.tipo_sangre,
+                'fecha_nacimiento': f_nac, 
+                'alergias': h.alergias,
+                'enfermedades_cronicas': getattr(h, 'enfermedades_cronicas', ""),
+                'contacto_emergencia_nombre': h.contacto_emergencia_nombre,
+                'contacto_emergencia_telefono': h.contacto_emergencia_telefono,
+                'pin_secreto': h.pin_secreto
+            })
+        return jsonify(output)
+        
+    except Exception as e:
+        # SI LA CONSULTA ORM FALLA TOTALMENTE (SELECT fallido por columna faltante)
+        # Lanzamos un salvavidas manual para rescatar los 10,000 registros
+        if "no such column: hiker.fecha_nacimiento" in str(e):
+            print("EJECUTANDO SALVAVIDAS: Columna fecha_nacimiento no encontrada físicamente.")
+            # Consulta SQL pura sin la columna problemática
+            sql = text("SELECT id, cedula, nombre_completo, telefono, tipo_sangre, alergias, enfermedades_cronicas, contacto_emergencia_nombre, contacto_emergencia_telefono, pin_secreto FROM hiker")
+            result = db.session.execute(sql)
+            output = []
+            for row in result:
+                output.append({
+                    'id': row[0], 'cedula': row[1], 'nombre_completo': row[2], 'telefono': row[3],
+                    'tipo_sangre': row[4], 'fecha_nacimiento': "", 'alergias': row[5],
+                    'enfermedades_cronicas': row[6], 'contacto_emergencia_nombre': row[7],
+                    'contacto_emergencia_telefono': row[8], 'pin_secreto': row[9]
+                })
+            return jsonify(output)
+        
+        # Si es otro error distinto, devolvemos JSON de error para no romper el frontend
+        return jsonify({'error': f"Error crítico en Base de Datos: {str(e)}"}), 500
+
+@bp.route('/api/admin/delete_hiker/<int:hiker_id>', methods=['DELETE'])
+def admin_delete_hiker(hiker_id):
+    """
+    Elimina a un caminante blindado contra errores físicos de base de datos.
+    Si falla la carga del objeto por la columna faltante, ejecuta SQL puro.
+    """
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    
+    try:
+        # 1. Intentamos el camino normal (ORM)
+        try:
+            hiker = Hiker.query.get(hiker_id)
+            if hiker:
+                # Borramos inscripciones primero para no violar llaves foráneas
+                EventRegistration.query.filter_by(hiker_id=hiker_id).delete()
+                db.session.delete(hiker)
+                db.session.commit()
+                return jsonify({'success': True})
+        except Exception as e_orm:
+            # Si el ORM falla (probablemente por columna fecha_nacimiento no encontrada)
+            if "no such column" in str(e_orm):
+                print(f"Salvavidas de borrado activado para ID {hiker_id}")
+                # 2. Camino de emergencia: SQL Puro
+                db.session.rollback() # Limpiamos la sesión fallida
+                
+                # Borramos inscripciones con SQL
+                db.session.execute(text("DELETE FROM event_registration WHERE hiker_id = :id"), {'id': hiker_id})
+                # Borramos al caminante con SQL
+                db.session.execute(text("DELETE FROM hiker WHERE id = :id"), {'id': hiker_id})
+                
+                db.session.commit()
+                return jsonify({'success': True})
+            else:
+                raise e_orm # Si es otro error, lo lanzamos al catch externo
+
+        return jsonify({'error': 'Caminante no encontrado'}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"ERROR CRÍTICO AL BORRAR: {str(e)}")
+        # Siempre devolvemos JSON para evitar el error de parsing en el frontend
+        return jsonify({'error': f"Error al eliminar: {str(e)}"}), 500
+
+@bp.route('/api/hiker/pin/<pin>')
+def get_hiker_by_pin(pin):
+    hiker = Hiker.query.filter_by(pin_secreto=pin).first()
+    if hiker:
+        f_nac = ""
+        try:
+            if h.fecha_nacimiento: f_nac = h.fecha_nacimiento.strftime('%Y-%m-%d')
+        except: pass
+        return jsonify({
+            'found': True,
+            'nombre_completo': hiker.nombre_completo,
+            'cedula': hiker.cedula,
+            'telefono': hiker.telefono,
+            'tipo_sangre': hiker.tipo_sangre,
+            'fecha_nacimiento': f_nac, 
+            'alergias': hiker.alergias,
+            'enfermedades_cronicas': hiker.enfermedades_cronicas,
+            'contacto_emergencia_nombre': hiker.contacto_emergencia_nombre,
+            'contacto_emergencia_telefono': hiker.contacto_emergencia_telefono
+        })
+    return jsonify({'found': False})

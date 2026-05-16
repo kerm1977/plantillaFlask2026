@@ -41,19 +41,16 @@ class Event(db.Model):
     sinpe = db.Column(db.String(100))
     cuenta = db.Column(db.String(200))
     
-    # --- NUEVOS CAMPOS BOOLEANOS (Reemplazan los hacks de strings) ---
-    solo_chat = db.Column(db.Boolean, default=False) # Día seguro
-    logistica_segura = db.Column(db.Boolean, default=False) # Ubicación/Hora oculta
-    is_sold_out = db.Column(db.Boolean, default=False) # Evento agotado
-    # ------------------------------------------------------------------
+    solo_chat = db.Column(db.Boolean, default=False)
+    logistica_segura = db.Column(db.Boolean, default=False)
+    is_sold_out = db.Column(db.Boolean, default=False)
 
-    # Logística
     dias = db.Column(db.Integer, default=1)
     fecha_unica = db.Column(db.String(50))
     fecha_inicio = db.Column(db.String(50))
     fecha_regreso = db.Column(db.String(50))
     hora_salida = db.Column(db.String(50))
-    lugar_salida = db.Column(db.String(200)) # Ahora solo guarda el lugar real
+    lugar_salida = db.Column(db.String(200))
     puntos_recogida = db.Column(db.Text)
     itinerario = db.Column(db.Text)
     incluye = db.Column(db.Text) 
@@ -67,7 +64,6 @@ class Notification(db.Model):
     type_notif = db.Column(db.String(50)) 
     message = db.Column(db.Text)
 
-
 class Song(db.Model):
     __tablename__ = 'songs'
     
@@ -75,3 +71,24 @@ class Song(db.Model):
     title = db.Column(db.String(255), nullable=False)
     filename = db.Column(db.String(255), nullable=False)
     cover_filename = db.Column(db.String(255), default='logo.png')
+
+class Hiker(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    cedula = db.Column(db.String(50), unique=True, nullable=False)
+    nombre_completo = db.Column(db.String(200), nullable=False)
+    telefono = db.Column(db.String(20))
+    tipo_sangre = db.Column(db.String(10))
+    fecha_nacimiento = db.Column(db.Date) 
+    alergias = db.Column(db.Text)
+    enfermedades_cronicas = db.Column(db.Text)
+    contacto_emergencia_nombre = db.Column(db.String(200))
+    contacto_emergencia_telefono = db.Column(db.String(20))
+    pin_secreto = db.Column(db.String(20), unique=True) 
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class EventRegistration(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+    hiker_id = db.Column(db.Integer, db.ForeignKey('hiker.id'), nullable=False)
+    estado_pago = db.Column(db.String(50), default='Pendiente')
+    fecha_inscripcion = db.Column(db.DateTime, default=datetime.utcnow)
