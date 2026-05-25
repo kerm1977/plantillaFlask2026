@@ -1,100 +1,90 @@
 // static/sw.js
-// Versión de la caché.
-const CACHE_NAME = 'la-tribu-pwa-cache-v4.0';
+const CACHE_NAME = 'la-tribu-pwa-v5.0';
 
-// Archivos esenciales mínimos para arrancar el modo Offline y validar la PWA
-const urlsToCache = [
+// Archivos esenciales que se cachean en la instalación para funcionar offline
+const PRECACHE_URLS = [
     '/',
-    '/manifest.json'
+    '/manifest.json',
+    '/static/logo.png',
+    '/static/css/bootstrap.css',
+    '/static/css/bootstrap-icons.css',
+    '/static/css/global.css',
+    '/static/css/base.css',
+    '/static/css/main.css',
+    '/static/css/fonts/bootstrap-icons.woff2',
+    '/static/js/bootstrap.bundle.min.js',
+    '/static/js/validaciones.js',
+    '/static/js/setup_global.js',
+    '/static/js/auth_ui.js',
+    '/static/js/home.js',
+    '/static/js/calendario_motor.js',
+    '/static/js/calendario_export.js'
 ];
 
-// Evento 'install': Se dispara cuando el Service Worker se instala.
+// INSTALL: precachear todos los estáticos esenciales
 self.addEventListener('install', (event) => {
-    console.log('[Service Worker] Instalando y forzando activación...');
-    // Forzar al nuevo Service Worker a activarse inmediatamente.
     self.skipWaiting();
-    
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('[Service Worker] Cacheando archivos esenciales');
-                // Usamos allSettled para que no falle si falta algún archivo
-                return Promise.allSettled(
-                    urlsToCache.map(url => cache.add(url).catch(err => console.warn(`Fallo al cachear: ${url}`, err)))
-                );
-            })
-    );
-});
-
-// Evento 'activate': Se limpia la basura vieja y toma el control
-self.addEventListener('activate', (event) => {
-    console.log('[Service Worker] Activando...');
-    // Toma el control de las páginas abiertas para que funcione de inmediato.
-    event.waitUntil(self.clients.claim());
-
-    event.waitUntil(
-        caches.keys().then((cacheNames) => {
-            return Promise.all(
-                cacheNames.map((cacheName) => {
-                    if (cacheName !== CACHE_NAME) {
-                        console.log('[Service Worker] Eliminando caché antigua:', cacheName);
-                        return caches.delete(cacheName);
-                    }
-                })
+        caches.open(CACHE_NAME).then((cache) => {
+            return Promise.allSettled(
+                PRECACHE_URLS.map(url =>
+                    cache.add(url).catch(err => console.warn('[SW] No se pudo cachear:', url, err))
+                )
             );
         })
     );
 });
 
-// Evento 'fetch': Intercepta todas las solicitudes de red.
+// ACTIVATE: eliminar cachés viejas
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        Promise.all([
+            self.clients.claim(),
+            caches.keys().then(keys =>
+                Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+            )
+        ])
+    );
+});
+
+// FETCH: Cache-first para estáticos, Network-first para páginas/API
 self.addEventListener('fetch', (event) => {
-    // Solo procesar solicitudes GET.
     if (event.request.method !== 'GET') return;
 
-    const requestUrl = new URL(event.request.url);
+    const url = new URL(event.request.url);
 
-    // ESTRATEGIA 1: CACHE FIRST (Caché primero, luego red)
-    // Usamos esto para recursos estáticos (Imágenes, CSS, JS, Íconos).
-    // Esto es lo que Chrome exige para validar rápidamente la PWA.
-    if (requestUrl.pathname.startsWith('/static/')) {
+    // Ignorar peticiones de extensiones del navegador
+    if (!url.protocol.startsWith('http')) return;
+
+    // ESTRATEGIA: Cache-first para recursos estáticos
+    if (url.pathname.startsWith('/static/')) {
         event.respondWith(
-            caches.match(event.request).then((cachedResponse) => {
-                if (cachedResponse) {
-                    return cachedResponse;
-                }
-                return fetch(event.request).then((networkResponse) => {
-                    if (networkResponse && networkResponse.status === 200) {
-                        const responseToCache = networkResponse.clone();
-                        caches.open(CACHE_NAME).then((cache) => {
-                            cache.put(event.request, responseToCache);
-                        });
+            caches.match(event.request).then(cached => {
+                if (cached) return cached;
+                return fetch(event.request).then(response => {
+                    if (response && response.status === 200) {
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
                     }
-                    return networkResponse;
-                }).catch(() => {
-                    console.warn('[SW] Recurso estático no disponible offline');
-                });
+                    return response;
+                }).catch(() => caches.match(event.request));
             })
         );
-    } 
-    // ESTRATEGIA 2: NETWORK FIRST (Red primero, respaldo de Caché)
-    // Usamos esto para la página principal y la API. 
-    // Asegura que los usuarios SIEMPRE vean los eventos nuevos si tienen internet.
-    else {
-        event.respondWith(
-            fetch(event.request).then((networkResponse) => {
-                // Guardamos en caché la respuesta fresca
-                if (networkResponse && networkResponse.status === 200) {
-                    const responseToCache = networkResponse.clone();
-                    caches.open(CACHE_NAME).then((cache) => {
-                        cache.put(event.request, responseToCache);
-                    });
-                }
-                return networkResponse;
-            }).catch(() => {
-                // Si falla la red (Modo Offline real), buscamos en caché
-                console.log('[SW] Sin conexión, sirviendo desde caché:', event.request.url);
-                return caches.match(event.request);
-            })
-        );
+        return;
     }
+
+    // ESTRATEGIA: Network-first para páginas HTML y API
+    event.respondWith(
+        fetch(event.request).then(response => {
+            if (response && response.status === 200) {
+                caches.open(CACHE_NAME).then(cache => cache.put(event.request, response.clone()));
+            }
+            return response;
+        }).catch(() => {
+            return caches.match(event.request).then(cached => {
+                if (cached) return cached;
+                // Fallback offline: devolver la página principal cacheada
+                return caches.match('/');
+            });
+        })
+    );
 });

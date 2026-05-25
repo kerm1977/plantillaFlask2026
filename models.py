@@ -54,6 +54,9 @@ class Event(db.Model):
     puntos_recogida = db.Column(db.Text)
     itinerario = db.Column(db.Text)
     incluye = db.Column(db.Text) 
+    gpx_filename = db.Column(db.String(255))
+    gpx_password = db.Column(db.String(50))
+    organicmaps_url = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Notification(db.Model):
@@ -64,13 +67,11 @@ class Notification(db.Model):
     type_notif = db.Column(db.String(50)) 
     message = db.Column(db.Text)
 
-class Song(db.Model):
-    __tablename__ = 'songs'
-    
+class SiteContent(db.Model):
+    __tablename__ = 'site_content'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    filename = db.Column(db.String(255), nullable=False)
-    cover_filename = db.Column(db.String(255), default='logo.png')
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=False)
 
 class Hiker(db.Model):
     id = db.Column(db.Integer, primary_key=True)

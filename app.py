@@ -2,9 +2,8 @@
 import os
 from flask import Flask
 from db import db, configure_db_uri
-from routes import bp
+from routes import bp, inject_site_content
 from users import inject_superusers
-from music_bp import music_bp  # <-- IMPORTANTE: Importamos el blueprint de música
 
 import models  # <-- ESTA LÍNEA ES CRÍTICA: Obliga a leer los modelos antes de crear la BD
 
@@ -21,7 +20,6 @@ def create_app():
     
     # Registrar las rutas
     app.register_blueprint(bp)
-    app.register_blueprint(music_bp) # <-- NUEVO: Registramos el blueprint de música
 
 
     # Crear tablas e inyectar usuarios dentro del contexto de la aplicación
@@ -31,6 +29,8 @@ def create_app():
         
         # Inyecta automáticamente los superusuarios
         inject_superusers()
+        # Inyecta el contenido por defecto del sitio si no existe
+        inject_site_content()
 
     return app
 

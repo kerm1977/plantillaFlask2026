@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response
-from models import User, Notification, Event, Hiker, EventRegistration
+from models import User, Notification, Event, Hiker, EventRegistration, SiteContent
 from users import hash_password, check_password
 from db import db
 from datetime import datetime
 import os
 import json
 import re
+import secrets
+import string
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
 
@@ -278,6 +280,206 @@ def delete_event(event_id):
         return jsonify({"error": "Error al eliminar evento"}), 500
 
 # ==========================================
+# RUTAS REPRODUCTOR DE MÚSICA
+# ==========================================
+MUSICA_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'musica')
+MUSICA_METADATA_FILE = os.path.join(MUSICA_FOLDER, 'metadata.json')
+ALLOWED_AUDIO = {'mp3', 'ogg', 'wav', 'flac', 'm4a', 'aac'}
+
+def _load_musica_meta():
+    if os.path.exists(MUSICA_METADATA_FILE):
+        with open(MUSICA_METADATA_FILE, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    return {}
+
+def _save_musica_meta(data):
+    os.makedirs(MUSICA_FOLDER, exist_ok=True)
+    with open(MUSICA_METADATA_FILE, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+def _safe_musica_name(name):
+    return '/' not in name and '\\' not in name and '..' not in name
+
+@bp.route('/api/musica')
+def list_musica():
+    if not os.path.exists(MUSICA_FOLDER):
+        return jsonify([])
+    meta = _load_musica_meta()
+    songs = []
+    for fname in sorted(os.listdir(MUSICA_FOLDER)):
+        ext = fname.rsplit('.', 1)[-1].lower() if '.' in fname else ''
+        if ext in ALLOWED_AUDIO:
+            songs.append({
+                'filename': fname,
+                'display_name': meta.get(fname, os.path.splitext(fname)[0]),
+                'url': '/static/musica/' + fname
+            })
+    return jsonify(songs)
+
+@bp.route('/api/musica/rename', methods=['POST'])
+def rename_musica():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    payload = request.get_json() or {}
+    filename = payload.get('filename', '')
+    new_name = payload.get('new_name', '').strip()
+    if not new_name or not _safe_musica_name(filename):
+        return jsonify({'error': 'Datos inválidos'}), 400
+    meta = _load_musica_meta()
+    meta[filename] = new_name
+    _save_musica_meta(meta)
+    return jsonify({'ok': True})
+
+@bp.route('/api/musica/delete', methods=['POST'])
+def delete_musica():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    payload = request.get_json() or {}
+    filename = payload.get('filename', '')
+    if not _safe_musica_name(filename):
+        return jsonify({'error': 'Nombre inválido'}), 400
+    path = os.path.join(MUSICA_FOLDER, filename)
+    if os.path.exists(path) and os.path.isfile(path):
+        os.remove(path)
+    meta = _load_musica_meta()
+    meta.pop(filename, None)
+    _save_musica_meta(meta)
+    return jsonify({'ok': True})
+
+# ==========================================
+# RUTAS GPX POR EVENTO
+# ==========================================
+GPX_FOLDER = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'static', 'gpx')
+
+@bp.route('/api/evento/<int:event_id>/gpx', methods=['POST'])
+def upload_gpx(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    evento = Event.query.get_or_404(event_id)
+    if 'gpx_file' not in request.files:
+        return jsonify({'error': 'No se envió archivo'}), 400
+    gpx_file = request.files['gpx_file']
+    if not gpx_file.filename.lower().endswith('.gpx'):
+        return jsonify({'error': 'Solo se permiten archivos .gpx'}), 400
+    os.makedirs(GPX_FOLDER, exist_ok=True)
+    filename = secure_filename(f"evento_{event_id}_{gpx_file.filename}")
+    gpx_file.save(os.path.join(GPX_FOLDER, filename))
+    evento.gpx_filename = filename
+    db.session.commit()
+    return jsonify({'ok': True, 'filename': filename})
+
+@bp.route('/api/evento/<int:event_id>/gpx', methods=['DELETE'])
+def delete_gpx(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    evento = Event.query.get_or_404(event_id)
+    if evento.gpx_filename:
+        path = os.path.join(GPX_FOLDER, evento.gpx_filename)
+        if os.path.exists(path):
+            os.remove(path)
+        evento.gpx_filename = None
+        evento.gpx_password = None
+        db.session.commit()
+    return jsonify({'ok': True})
+
+@bp.route('/api/evento/<int:event_id>/gpx/password', methods=['POST'])
+def set_gpx_password(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    evento = Event.query.get_or_404(event_id)
+    payload = request.get_json() or {}
+    pwd = payload.get('password', '').strip()
+    if not pwd:
+        chars = string.ascii_uppercase + string.digits
+        pwd = ''.join(secrets.choice(chars) for _ in range(6))
+    evento.gpx_password = pwd
+    db.session.commit()
+    return jsonify({'ok': True, 'password': pwd})
+
+@bp.route('/api/evento/<int:event_id>/gpx/download')
+def download_gpx(event_id):
+    evento = Event.query.get_or_404(event_id)
+    if not evento.gpx_filename:
+        return jsonify({'error': 'No hay GPX para este evento'}), 404
+    if evento.gpx_password:
+        clave = request.args.get('clave', '')
+        if clave.strip().upper() != evento.gpx_password.strip().upper():
+            return jsonify({'error': 'Contraseña incorrecta'}), 403
+    return send_from_directory(GPX_FOLDER, evento.gpx_filename, as_attachment=True)
+
+@bp.route('/api/evento/<int:event_id>/organicmaps', methods=['POST'])
+def set_organicmaps(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    evento = Event.query.get_or_404(event_id)
+    payload = request.get_json() or {}
+    evento.organicmaps_url = payload.get('url', '').strip()
+    db.session.commit()
+    return jsonify({'ok': True})
+
+# ==========================================
+# CONTENIDO EDITABLE DEL SITIO
+# ==========================================
+DEFAULT_SITE_CONTENT = {
+    'quienes_somos': (
+        "En San Diego de la Unión de Cartago, nace en el mes de Octubre, un grupo de senderismo llamado "
+        "la tribu de los libres y hace referencia a las tribus en general que siempre han sido los guardianes "
+        "y amantes de la naturaleza.\n\n"
+        "Lleva como base la filosofía Ubuntu, proveniente de las tribus sudafricanas y que significa:\n\n"
+        "“Soy porque tú eres. Eres porque somos.”\n\n"
+        "Pero Ubuntu, ni su significado, se refieren a ningún dogma político, ni religión, sino... "
+        "Se trata de una ética mundial que se enfoca en la lealtad propia y con los demás, englobando el "
+        "sentido de la vida visto con ojos de lealtad, estabilidad emocional y hermandad que se resume en que:\n\n"
+        "“Tenemos la responsabilidad sobre los demás, especialmente sobre los vulnerables, y el medio ambiente.”\n\n"
+        "La vida de la tribu, es la voluntad de vivir la solidaridad entre iguales. Por eso, la tribu hiking "
+        "hace énfasis a uno de sus lemas que lleva desde sus inicios:\n\n"
+        "“Esta es una historia escrita, con el cariño y el corazón de sus miembros”"
+    ),
+    'mision': (
+        "Ser el grupo de senderismo de referencia en Costa Rica, promoviendo la naturaleza, la hermandad "
+        "y la filosofía Ubuntu entre sus miembros y comunidades."
+    ),
+    'vision': (
+        "Inspirar a cada persona a reconectar con la naturaleza y con los demás, forjando lazos de lealtad, "
+        "solidaridad y respeto mutuo en cada caminata, pero promoviendo la participación activa y sincera "
+        "de esta bonita actividad."
+    ),
+    'valores': (
+        "Hermandad: Creemos en la fuerza del grupo y en que cada miembro es esencial para el todo.\n"
+        "Ubuntu: “Soy porque tú eres. Eres porque somos.” Es nuestra guía de vida.\n"
+        "Respeto a la naturaleza: Somos guardianes del entorno que recorremos.\n"
+        "Solidaridad: Tenemos la responsabilidad sobre los demás, especialmente sobre los vulnerables y el medio ambiente."
+    )
+}
+
+def inject_site_content():
+    for key, value in DEFAULT_SITE_CONTENT.items():
+        if not SiteContent.query.filter_by(key=key).first():
+            db.session.add(SiteContent(key=key, value=value))
+    db.session.commit()
+
+@bp.route('/api/about', methods=['GET'])
+def get_about():
+    rows = SiteContent.query.filter(SiteContent.key.in_(DEFAULT_SITE_CONTENT.keys())).all()
+    data = {row.key: row.value for row in rows}
+    return jsonify(data)
+
+@bp.route('/api/about', methods=['POST'])
+def update_about():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    payload = request.get_json()
+    for key in DEFAULT_SITE_CONTENT.keys():
+        if key in payload:
+            row = SiteContent.query.filter_by(key=key).first()
+            if row:
+                row.value = payload[key]
+            else:
+                db.session.add(SiteContent(key=key, value=payload[key]))
+    db.session.commit()
+    return jsonify({'ok': True})
+
+# ==========================================
 # RUTAS DE PWA (PROGRESIVE WEB APP)
 # ==========================================
 @bp.route('/manifest.json')
@@ -285,21 +487,34 @@ def manifest():
     manifest_data = {
         "name": "Caminatas La Tribu",
         "short_name": "La Tribu",
+        "description": "Gestión de caminatas, eventos y comunidad de La Tribu de Los Libres.",
+        "lang": "es",
         "start_url": "/",
+        "scope": "/",
         "display": "standalone",
-        "background_color": "#ffffff",
+        "orientation": "portrait",
+        "background_color": "#ffe0bd",
         "theme_color": "#ff8c00",
+        "categories": ["sports", "social", "lifestyle"],
         "icons": [
             {
-                "src": "/static/uploads/icons/icon-192x192.jpg",
+                "src": "/static/logo.png",
                 "sizes": "192x192",
-                "type": "image/jpeg"
+                "type": "image/png",
+                "purpose": "any"
             },
             {
-                "src": "/static/uploads/icons/icon-512x512.jpg",
+                "src": "/static/logo.png",
                 "sizes": "512x512",
-                "type": "image/jpeg",
+                "type": "image/png",
                 "purpose": "any maskable"
+            }
+        ],
+        "shortcuts": [
+            {
+                "name": "Inicio",
+                "url": "/",
+                "icons": [{"src": "/static/logo.png", "sizes": "96x96"}]
             }
         ]
     }

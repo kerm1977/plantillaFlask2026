@@ -348,8 +348,13 @@
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#prayerModal" title="Oración de La Tribu">
                         <i class="bi bi-stars fs-5"></i>
                     </button>
-                    <!-- ICONO AÑADIDO PARA IR AL REPRODUCTOR DE MÚSICA GLOBAL -->
-                    <button type="button" class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" title="Reproductor de Música" onclick="openBigPlayer()">
+                    <button id="btnInstallPWA" class="btn btn-orange rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 d-none" style="width: 42px; height: 42px;" onclick="installPWA()" title="Instalar App">
+                        <i class="bi bi-download fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#aboutModal" title="Quiénes Somos">
+                        <i class="bi bi-info-circle fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" id="btnOpenPlayer" onclick="openMusicPlayer()" title="Reproductor de Música">
                         <i class="bi bi-music-note-beamed fs-5"></i>
                     </button>
                 </div>
@@ -676,5 +681,512 @@
 </script>
 <!-- Referencia a nuestro nuevo archivo JavaScript limpio -->
 <script src="{{ url_for('static', filename='js/home.js') }}"></script>
+
+<!-- ============================================ -->
+<!-- MODAL: QUIÉNES SOMOS                        -->
+<!-- ============================================ -->
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; background: linear-gradient(135deg, #fff9f2 0%, #ffffff 100%);">
+            
+            <!-- Header -->
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="/static/logo.png" alt="Logo" style="width:48px;height:48px;object-fit:cover;border-radius:50%;">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-0">Quiénes Somos</h5>
+                        <small class="text-orange fw-bold">La Tribu de Los Libres</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-2 align-items-center">
+                    {% if session.get('role') == 'Superusuario' %}
+                    <button id="btnEditAbout" class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="toggleEditAbout()">
+                        <i class="bi bi-pencil-fill me-1"></i>Editar
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body px-4 py-3">
+
+                <!-- Quiénes somos: texto intro -->
+                <div id="view-quienes_somos" class="mb-4 text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                <div id="edit-quienes_somos" class="mb-4 d-none">
+                    <label class="fw-bold text-secondary small mb-1">Quiénes Somos</label>
+                    <textarea class="form-control" rows="10" style="font-size:0.9rem;"></textarea>
+                </div>
+
+                <!-- Acordeón colapsable: Misión, Visión, Valores -->
+                <div class="accordion accordion-flush rounded-3 overflow-hidden border" id="aboutAccordion">
+
+                    <!-- Misión -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMision" style="background: #fff9f2;">
+                                <i class="bi bi-bullseye me-2 text-orange"></i> Misión
+                            </button>
+                        </h2>
+                        <div id="collapseMision" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-mision" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-mision" class="d-none">
+                                    <textarea class="form-control" rows="4" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visión -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVision" style="background: #fff9f2;">
+                                <i class="bi bi-eye-fill me-2 text-orange"></i> Visión
+                            </button>
+                        </h2>
+                        <div id="collapseVision" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-vision" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-vision" class="d-none">
+                                    <textarea class="form-control" rows="4" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Valores -->
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseValores" style="background: #fff9f2;">
+                                <i class="bi bi-heart-fill me-2 text-orange"></i> Valores y Principios
+                            </button>
+                        </h2>
+                        <div id="collapseValores" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-valores" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-valores" class="d-none">
+                                    <textarea class="form-control" rows="6" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /accordion -->
+
+                <!-- Botón Guardar (solo en modo edición) -->
+                {% if session.get('role') == 'Superusuario' %}
+                <div id="aboutSaveBar" class="d-none mt-4 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-secondary rounded-pill px-4" onclick="toggleEditAbout()">Cancelar</button>
+                    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="saveAbout()">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Guardar
+                    </button>
+                </div>
+                {% endif %}
+
+            </div><!-- /modal-body -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const ABOUT_KEYS = ['quienes_somos', 'mision', 'vision', 'valores'];
+    let _aboutData = {};
+    let _editingAbout = false;
+
+    document.getElementById('aboutModal').addEventListener('show.bs.modal', () => {
+        if (Object.keys(_aboutData).length) return;
+        fetch('/api/about')
+            .then(r => r.json())
+            .then(data => {
+                _aboutData = data;
+                ABOUT_KEYS.forEach(key => {
+                    const viewEl = document.getElementById('view-' + key);
+                    const textarea = document.querySelector('#edit-' + key + ' textarea');
+                    if (viewEl) viewEl.textContent = data[key] || '';
+                    if (textarea) textarea.value = data[key] || '';
+                });
+            });
+    });
+
+    function toggleEditAbout() {
+        _editingAbout = !_editingAbout;
+        ABOUT_KEYS.forEach(key => {
+            document.getElementById('view-' + key).classList.toggle('d-none', _editingAbout);
+            document.getElementById('edit-' + key).classList.toggle('d-none', !_editingAbout);
+        });
+        const saveBar = document.getElementById('aboutSaveBar');
+        if (saveBar) saveBar.classList.toggle('d-none', !_editingAbout);
+        const btn = document.getElementById('btnEditAbout');
+        if (btn) btn.innerHTML = _editingAbout
+            ? '<i class="bi bi-x-lg me-1"></i>Cancelar'
+            : '<i class="bi bi-pencil-fill me-1"></i>Editar';
+        if (!_editingAbout) {
+            ABOUT_KEYS.forEach(key => {
+                const textarea = document.querySelector('#edit-' + key + ' textarea');
+                if (textarea) textarea.value = _aboutData[key] || '';
+            });
+        }
+    }
+
+    function saveAbout() {
+        const payload = {};
+        ABOUT_KEYS.forEach(key => {
+            const textarea = document.querySelector('#edit-' + key + ' textarea');
+            if (textarea) payload[key] = textarea.value;
+        });
+        fetch('/api/about', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(res => {
+            if (res.ok) {
+                _aboutData = payload;
+                ABOUT_KEYS.forEach(key => {
+                    const viewEl = document.getElementById('view-' + key);
+                    if (viewEl) viewEl.textContent = payload[key];
+                });
+                _editingAbout = true;
+                toggleEditAbout();
+            }
+        }).catch(() => alert('Error al guardar'));
+    }
+</script>
+
+<!-- ============================================================ -->
+<!-- REPRODUCTOR DE MÚSICA - MODAL                              -->
+<!-- ============================================================ -->
+<div class="modal fade" id="musicPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:440px;">
+    <div class="modal-content border-0 shadow-lg text-white" style="background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:1.25rem; overflow:hidden;">
+
+      <!-- HEADER -->
+      <div class="modal-header border-0 px-4 pt-4 pb-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-music-note-beamed text-orange fs-5"></i>
+          <span class="fw-bold fs-6">Canciones de La Tribu</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- REPRODUCTOR ACTUAL -->
+      <div class="px-4 pb-3">
+        <!-- Nombre de canción actual -->
+        <div class="text-center mb-3">
+          <div id="mpCurrentName" class="fw-bold text-white" style="font-size:1rem; min-height:1.4rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            — Sin canción —
+          </div>
+          <div id="mpIndexInfo" class="text-secondary" style="font-size:0.75rem;"></div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="mb-2">
+          <input type="range" id="mpProgress" min="0" max="100" value="0"
+                 class="form-range w-100" style="accent-color:#ff8c00; height:4px;"
+                 oninput="seekTo(this.value)">
+          <div class="d-flex justify-content-between" style="font-size:0.72rem; color:#aaa; margin-top:-2px;">
+            <span id="mpCurrentTime">0:00</span>
+            <span id="mpDuration">0:00</span>
+          </div>
+        </div>
+
+        <!-- Controles principales -->
+        <div class="d-flex align-items-center justify-content-center gap-3 mt-1">
+          <button class="btn p-0 text-white" style="font-size:1.6rem; opacity:0.85;" onclick="mpPrev()" title="Anterior">
+            <i class="bi bi-skip-start-fill"></i>
+          </button>
+          <button id="mpPlayBtn" class="btn p-0" style="font-size:2.4rem; color:#ff8c00;" onclick="mpTogglePlay()" title="Play/Pausa">
+            <i class="bi bi-play-circle-fill"></i>
+          </button>
+          <button class="btn p-0 text-white" style="font-size:1.6rem; opacity:0.85;" onclick="mpNext()" title="Siguiente">
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+          <button class="btn p-0 text-danger" style="font-size:1.4rem; opacity:0.85;" onclick="mpStop()" title="Detener">
+            <i class="bi bi-stop-fill"></i>
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-secondary opacity-25 my-0 mx-3">
+
+      <!-- LISTA DE CANCIONES -->
+      <div class="modal-body px-3 py-2" style="max-height:340px; overflow-y:auto;">
+        <div id="mpSongList">
+          <div class="text-secondary text-center py-4 small">Cargando canciones...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MINI-PLAYER VERTICAL (barra derecha)                        -->
+<!-- ============================================================ -->
+<div id="miniPlayerBar"
+     style="position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:1055; display:none; transition:opacity .3s;">
+  <div class="d-flex flex-column align-items-center gap-2 py-3 px-2 shadow-lg"
+       style="background:rgba(15,20,50,0.92); backdrop-filter:blur(16px); border-radius:1rem 0 0 1rem;
+              border:1px solid rgba(255,255,255,0.12); border-right:none; width:52px;">
+    <!-- Nombre rotado -->
+    <div id="miniSongName"
+         style="writing-mode:vertical-rl; text-orientation:mixed; font-size:0.65rem; color:#ff8c00;
+                max-height:110px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                font-weight:bold; letter-spacing:0.03em; cursor:pointer;"
+         onclick="openMusicPlayer()" title="Abrir reproductor"></div>
+    <!-- Controles -->
+    <button onclick="mpPrev()" class="btn p-0" style="color:#ccc; font-size:1.2rem; line-height:1;" title="Anterior">
+      <i class="bi bi-skip-start-fill"></i>
+    </button>
+    <button id="miniPlayBtn" onclick="mpTogglePlay()" class="btn p-0" style="color:#ff8c00; font-size:1.5rem; line-height:1;" title="Play/Pausa">
+      <i class="bi bi-play-circle-fill"></i>
+    </button>
+    <button onclick="mpNext()" class="btn p-0" style="color:#ccc; font-size:1.2rem; line-height:1;" title="Siguiente">
+      <i class="bi bi-skip-end-fill"></i>
+    </button>
+    <button onclick="mpStop()" class="btn p-0" style="color:#dc3545; font-size:1.1rem; line-height:1;" title="Detener">
+      <i class="bi bi-stop-fill"></i>
+    </button>
+  </div>
+</div>
+
+<!-- MODAL PARA RENOMBRAR CANCIÓN -->
+<div class="modal fade" id="renameModal" tabindex="-1" data-bs-backdrop="false" style="z-index:1070;">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow-lg" style="background:#1a1a2e; color:white; border-radius:1rem;">
+      <div class="modal-header border-0 pb-1">
+        <span class="fw-bold"><i class="bi bi-pencil-fill text-orange me-2"></i>Renombrar canción</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-1">
+        <input type="text" id="renameInput" class="form-control bg-dark text-white border-secondary rounded-pill px-3"
+               placeholder="Nuevo nombre" style="font-size:0.9rem;">
+        <input type="hidden" id="renameFilename">
+        <input type="hidden" id="renameIndex">
+      </div>
+      <div class="modal-footer border-0 pt-0 gap-2">
+        <button class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-orange btn-sm rounded-pill px-4 fw-bold" onclick="confirmRename()">
+          <i class="bi bi-check2 me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIO ELEMENT -->
+<audio id="mpAudio" preload="auto"></audio>
+
+<script>
+// ================================================================
+// REPRODUCTOR DE MÚSICA - LA TRIBU
+// ================================================================
+const IS_MUSIC_SUPER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+
+const MP = {
+    songs: [],
+    currentIndex: -1,
+    isPlaying: false,
+    audio: document.getElementById('mpAudio')
+};
+
+// Wires audio events
+MP.audio.addEventListener('timeupdate', () => {
+    if (!MP.audio.duration) return;
+    const pct = (MP.audio.currentTime / MP.audio.duration) * 100;
+    const prog = document.getElementById('mpProgress');
+    if (prog) prog.value = pct;
+    document.getElementById('mpCurrentTime').textContent = fmtTime(MP.audio.currentTime);
+});
+MP.audio.addEventListener('loadedmetadata', () => {
+    document.getElementById('mpDuration').textContent = fmtTime(MP.audio.duration);
+});
+MP.audio.addEventListener('ended', () => { mpNext(); });
+MP.audio.addEventListener('play', () => { mpUpdatePlayBtns(true); });
+MP.audio.addEventListener('pause', () => { mpUpdatePlayBtns(false); });
+
+function fmtTime(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+// Abrir modal y cargar lista
+async function openMusicPlayer() {
+    const modal = new bootstrap.Modal(document.getElementById('musicPlayerModal'));
+    modal.show();
+    if (!MP.songs.length) await mpLoadSongs();
+}
+
+async function mpLoadSongs() {
+    const res = await fetch('/api/musica');
+    MP.songs = await res.json();
+    mpRenderList();
+}
+
+function mpRenderList() {
+    const container = document.getElementById('mpSongList');
+    if (!MP.songs.length) {
+        container.innerHTML = '<p class="text-secondary text-center py-3 small">No hay canciones en la carpeta</p>';
+        return;
+    }
+    container.innerHTML = MP.songs.map((s, i) => {
+        const isActive = i === MP.currentIndex;
+        const bg = isActive ? 'rgba(255,140,0,0.18)' : 'transparent';
+        const nameColor = isActive ? '#ff8c00' : '#ddd';
+        const iconClass = isActive && MP.isPlaying ? 'bi-soundwave text-orange' : 'bi-music-note';
+        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row"
+                     style="cursor:pointer; background:${bg}; border:1px solid ${isActive ? 'rgba(255,140,0,0.3)' : 'transparent'}; transition:all .15s;"
+                     onmouseenter="this.style.background='rgba(255,255,255,0.07)'"
+                     onmouseleave="this.style.background='${bg}'"
+                     onclick="mpPlay(${i})">
+            <span class="text-secondary" style="font-size:0.7rem; min-width:22px; text-align:right;">${i + 1}</span>
+            <i class="bi ${iconClass}" style="font-size:0.85rem; min-width:16px;"></i>
+            <span id="mpName-${i}" class="flex-grow-1 fw-${isActive ? 'bold' : 'normal'}"
+                  style="font-size:0.85rem; color:${nameColor}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                  title="${s.display_name}">${s.display_name}</span>
+            <a href="${s.url}" download="${s.display_name}.mp3"
+               class="btn p-0 px-1" style="color:#56b4e9; font-size:0.78rem;" title="Descargar"
+               onclick="event.stopPropagation()">
+                <i class="bi bi-download"></i>
+            </a>
+            ${IS_MUSIC_SUPER ? `
+            <button class="btn p-0 px-1" style="color:#888; font-size:0.78rem;" title="Renombrar"
+                    onclick="event.stopPropagation(); mpStartRename(${i})">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="btn p-0 px-1" style="color:#dc3545; font-size:0.78rem;" title="Eliminar"
+                    onclick="event.stopPropagation(); mpDeleteSong(${i})">
+                <i class="bi bi-trash-fill"></i>
+            </button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function mpPlay(index) {
+    if (index < 0 || index >= MP.songs.length) return;
+    MP.currentIndex = index;
+    const song = MP.songs[index];
+    MP.audio.src = song.url;
+    MP.audio.load();
+    MP.audio.play().then(() => {
+        MP.isPlaying = true;
+        mpUpdateUI();
+        mpShowMiniPlayer();
+    }).catch(() => {});
+}
+
+function mpTogglePlay() {
+    if (MP.currentIndex < 0 && MP.songs.length) { mpPlay(0); return; }
+    if (MP.audio.paused) {
+        MP.audio.play();
+        MP.isPlaying = true;
+    } else {
+        MP.audio.pause();
+        MP.isPlaying = false;
+    }
+    mpUpdateUI();
+}
+
+function mpPrev() {
+    if (!MP.songs.length) return;
+    const idx = MP.currentIndex <= 0 ? MP.songs.length - 1 : MP.currentIndex - 1;
+    mpPlay(idx);
+}
+
+function mpNext() {
+    if (!MP.songs.length) return;
+    const idx = MP.currentIndex >= MP.songs.length - 1 ? 0 : MP.currentIndex + 1;
+    mpPlay(idx);
+}
+
+function mpStop() {
+    MP.audio.pause();
+    MP.audio.currentTime = 0;
+    MP.isPlaying = false;
+    mpUpdateUI();
+    mpHideMiniPlayer();
+}
+
+function seekTo(val) {
+    if (MP.audio.duration) MP.audio.currentTime = (val / 100) * MP.audio.duration;
+}
+
+function mpUpdatePlayBtns(playing) {
+    MP.isPlaying = playing;
+    const icon = playing ? 'bi-pause-circle-fill' : 'bi-play-circle-fill';
+    const btn = document.getElementById('mpPlayBtn');
+    const mini = document.getElementById('miniPlayBtn');
+    if (btn) btn.innerHTML = `<i class="bi ${icon}"></i>`;
+    if (mini) mini.innerHTML = `<i class="bi ${icon}"></i>`;
+}
+
+function mpUpdateUI() {
+    const song = MP.currentIndex >= 0 ? MP.songs[MP.currentIndex] : null;
+    // Modal
+    document.getElementById('mpCurrentName').textContent = song ? song.display_name : '— Sin canción —';
+    document.getElementById('mpIndexInfo').textContent = song ? `${MP.currentIndex + 1} / ${MP.songs.length}` : '';
+    // Mini
+    const mini = document.getElementById('miniSongName');
+    if (mini) mini.textContent = song ? song.display_name : '';
+    mpRenderList();
+}
+
+function mpShowMiniPlayer() {
+    const bar = document.getElementById('miniPlayerBar');
+    if (bar) { bar.style.display = 'block'; }
+}
+
+function mpHideMiniPlayer() {
+    const bar = document.getElementById('miniPlayerBar');
+    if (bar) { bar.style.display = 'none'; }
+}
+
+// Rename
+function mpStartRename(index) {
+    const song = MP.songs[index];
+    document.getElementById('renameInput').value = song.display_name;
+    document.getElementById('renameFilename').value = song.filename;
+    document.getElementById('renameIndex').value = index;
+    // Close main modal temporarily, open rename modal
+    const renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+    renameModal.show();
+}
+
+async function confirmRename() {
+    const filename = document.getElementById('renameFilename').value;
+    const newName = document.getElementById('renameInput').value.trim();
+    const index = parseInt(document.getElementById('renameIndex').value);
+    if (!newName) return;
+    const res = await fetch('/api/musica/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, new_name: newName })
+    });
+    const data = await res.json();
+    if (data.ok) {
+        MP.songs[index].display_name = newName;
+        bootstrap.Modal.getInstance(document.getElementById('renameModal')).hide();
+        mpUpdateUI();
+    }
+}
+
+// Delete
+async function mpDeleteSong(index) {
+    const song = MP.songs[index];
+    if (!confirm(`¿Eliminar "${song.display_name}"?`)) return;
+    const res = await fetch('/api/musica/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename: song.filename })
+    });
+    const data = await res.json();
+    if (data.ok) {
+        if (index === MP.currentIndex) mpStop();
+        else if (index < MP.currentIndex) MP.currentIndex--;
+        MP.songs.splice(index, 1);
+        mpUpdateUI();
+    }
+}
+</script>
 
 {% endblock %}

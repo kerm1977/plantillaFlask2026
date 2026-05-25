@@ -6,6 +6,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     
     <title>Caminatas La Tribu</title>
+
+    <!-- PWA: Manifest y metadatos -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8c00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="La Tribu">
+    <link rel="apple-touch-icon" href="/static/logo.png">
     
     <!-- SIN CDNs: Carga directa de Bootstrap Local -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
@@ -613,199 +622,6 @@
     </script>
     {% endif %}
 
-    <!-- ========================================== -->
-    <!-- REPRODUCTOR DE MÚSICA GLOBAL DE LA TRIBU   -->
-    <!-- ========================================== -->
-
-    <!-- Reproductor de Audio Oculto con pre-carga automática para evitar bloqueos -->
-    <audio id="globalAudioPlayer" preload="auto"></audio>
-
-    <!-- Mini Player (Flotante y Glassmorphic). Se usa 'd-none' nativo para garantizar el control JavaScript -->
-    <div id="miniPlayer" class="miniplayer-glass text-white rounded-pill px-3 py-2 align-items-center gap-2 d-none" style="position: fixed; left: 50%; transform: translateX(-50%); z-index: 1040; width: 90%; max-width: 400px;">
-        <img id="miniCover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="rounded-circle border border-white border-opacity-25" width="45" height="45" style="object-fit: cover; cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#reproductorGlobal">
-        
-        <div class="flex-grow-1 text-truncate pe-2" style="cursor: pointer;" data-bs-toggle="offcanvas" data-bs-target="#reproductorGlobal">
-            <h6 id="miniTitle" class="mb-0 text-truncate fw-bold text-orange" style="font-size: 0.95rem;">Cargando...</h6>
-            <small class="text-white text-opacity-75" style="font-size: 0.7rem;">MÚSICA ORIGINAL DE LA TRIBU</small>
-        </div>
-        
-        <button class="btn btn-sm text-white p-0 rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;" onclick="togglePlayPause()">
-            <i id="miniPlayIcon" class="bi bi-play-fill fs-3"></i>
-        </button>
-        <button class="btn btn-sm text-white p-0 rounded-circle ms-1" style="width: 32px; height: 32px;" onclick="nextSong()">
-            <i class="bi bi-skip-forward-fill fs-4"></i>
-        </button>
-        
-        <!-- Botón para Cerrar Miniplayer y BORRAR su estado -->
-        <button class="btn btn-sm text-white text-opacity-50 p-0 ms-2" onclick="closeMiniPlayer()" title="Cerrar">
-            <i class="bi bi-x-circle-fill fs-5"></i>
-        </button>
-    </div>
-
-    <!-- Offcanvas: Reproductor Grande 100% Pantalla (Moderno) -->
-    <div class="offcanvas offcanvas-bottom offcanvas-glass text-white shadow-lg border-0" tabindex="-1" id="reproductorGlobal" style="height: 100dvh; border-radius: 0;">
-        
-        <!-- HEADER: Píldora de arrastre y Botón Minimizar estilo nativo -->
-        <div class="offcanvas-header flex-column border-0 pb-0 pt-3 px-4">
-            <div class="drag-indicator mb-3"></div>
-            <div class="d-flex justify-content-between align-items-center w-100">
-                <button type="button" class="btn text-white opacity-75 border-0 p-0" data-bs-dismiss="offcanvas" aria-label="Close">
-                    <i class="bi bi-chevron-down fs-1"></i>
-                </button>
-                <span class="text-white opacity-75 small fw-bold text-uppercase" style="letter-spacing: 2px; font-size: 0.75rem;">MÚSICA ORIGINAL DE LA TRIBU</span>
-                <div style="width: 32px;"></div> <!-- Espaciador fantasma para centrar el texto -->
-            </div>
-        </div>
-        
-        <!-- BODY: Con overflow-y-auto para que TODO el contenido se deslice fluidamente -->
-        <div class="offcanvas-body d-flex flex-column align-items-center justify-content-start pt-4 px-4 overflow-y-auto player-scroll pb-5">
-            
-            <!-- Imagen que Gira -->
-            <div class="position-relative mb-5" title="Clic para cambiar la portada global">
-                {% if session.get('user_id') %}
-                <label for="quick-cover-upload" class="d-block m-0" style="cursor: pointer;">
-                {% endif %}
-
-                    <img id="bigCover" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="rounded-circle shadow-lg cover-img-hover cover-spin" style="width: 140px; height: 140px; object-fit: cover;">
-                    
-                {% if session.get('user_id') %}
-                    <div class="position-absolute bottom-0 start-50 translate-middle-x bg-primary text-white px-3 py-1 rounded-pill pointer-events-none shadow" style="opacity: 0.85; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
-                        <i class="bi bi-camera-fill me-1"></i>Cambiar Logo
-                    </div>
-                </label>
-                <input type="file" id="quick-cover-upload" accept="image/*" class="d-none" onchange="quickUploadCover(event)">
-                {% endif %}
-            </div>
-
-            <!-- Títulos alineados a la izquierda -->
-            <div class="w-100 d-flex flex-column align-items-start mb-4">
-                <h3 id="bigTitle" class="fw-bold mb-1 w-100 text-truncate text-white">Selecciona una pista</h3>
-                <h6 class="text-orange mb-0 fw-bold">La Tribu</h6>
-            </div>
-
-            <!-- Barra de Progreso -->
-            <div class="w-100 mb-4 flex-shrink-0">
-                <input type="range" id="progressBar" class="form-range glass-range" value="0" step="1" min="0" max="100">
-                <div class="d-flex justify-content-between text-white text-opacity-75 small fw-bold mt-2" style="font-size: 0.8rem;">
-                    <span id="currentTime">0:00</span>
-                    <span id="totalTime">0:00</span>
-                </div>
-            </div>
-
-            <!-- Controles Principales -->
-            <div class="d-flex align-items-center justify-content-between w-100 mb-5 px-2">
-                <!-- Botón Shuffle -->
-                <button class="btn border-0 text-white opacity-50 p-2" id="btnShuffle" onclick="toggleShuffle()" title="Aleatorio">
-                    <i class="bi bi-shuffle fs-3"></i>
-                </button>
-                
-                <div class="d-flex align-items-center justify-content-center gap-3">
-                    <button class="btn btn-outline-light btn-circle-player-sm border-0 opacity-75" onclick="prevSong()">
-                        <i class="bi bi-skip-backward-fill fs-3"></i>
-                    </button>
-                    <button class="btn btn-orange btn-circle-player shadow-lg" onclick="togglePlayPause()">
-                        <i id="bigPlayIcon" class="bi bi-play-fill" style="font-size: 2.5rem;"></i>
-                    </button>
-                    <button class="btn btn-outline-light btn-circle-player-sm border-0 opacity-75" onclick="nextSong()">
-                        <i class="bi bi-skip-forward-fill fs-3"></i>
-                    </button>
-                </div>
-
-                <!-- Botón Repeat 1 -->
-                <button class="btn border-0 text-white opacity-50 p-2" id="btnRepeat" onclick="toggleRepeat()" title="Repetir Canción">
-                    <i class="bi bi-repeat fs-3"></i>
-                </button>
-            </div>
-
-            <!-- SECCIÓN LISTA DE REPRODUCCIÓN Y GESTIÓN -->
-            <div class="w-100 mt-2 d-flex flex-column bg-dark bg-opacity-25 rounded-4 p-3 border border-white border-opacity-10 shadow-sm" style="flex: 0 0 auto;">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold text-white mb-0"><i class="bi bi-music-note-list me-2 text-orange"></i>Canciones</h6>
-                    
-                    <!-- Lógica condicional de permisos Jinja para Superusuario -->
-                    {% if session.get('role') == 'Superusuario' %}
-                    <button class="btn btn-sm btn-outline-light rounded-pill fw-bold px-3 d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#musicAdminModal">
-                        <i class="bi bi-gear-fill me-1"></i> Gestionar
-                    </button>
-                    {% endif %}
-                </div>
-                
-                <div id="playlistContainer" class="d-flex flex-column gap-2 pe-2">
-                    <!-- Las canciones se inyectan aquí con JavaScript -->
-                </div>
-
-                <!-- Contador Total de Canciones -->
-                <div id="totalSongsCount" class="text-center text-white opacity-50 small mt-3 fw-bold pb-2">
-                    Cargando canciones...
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- MODAL DE GESTIÓN DE MÚSICA (SUPERUSUARIO)  -->
-    <!-- ========================================== -->
-    {% if session.get('role') == 'Superusuario' %}
-    <div class="modal fade" id="musicAdminModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content glass-modal shadow-lg border-0 bg-dark text-white">
-                <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
-                    <h5 class="modal-title fw-bold text-orange w-100 text-center"><i class="bi bi-music-note-list me-2"></i>Gestor de Música</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4 pb-4 pt-4 text-center">
-                    
-                    <!-- Sección Portada y Editor -->
-                    <h6 class="fw-bold text-white opacity-75 mb-3">Portada de Canciones</h6>
-                    <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4 bg-dark bg-opacity-50 w-100">
-                        <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-secondary shadow-sm mb-2" style="width: 160px; height: 160px;">
-                            <img id="musicCoverPreviewImg" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Cover" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.1s ease; transform-origin: center;">
-                        </div>
-                        <br>
-                        <label for="musicCoverUpload" class="btn btn-sm btn-outline-light rounded-pill px-3 shadow-sm mb-3" style="cursor: pointer;">
-                            <i class="bi bi-camera-fill me-1"></i> Cambiar Portada
-                        </label>
-                        <input type="file" id="musicCoverUpload" class="d-none" accept="image/*">
-                        
-                        <!-- Controles de Edición -->
-                        <div class="image-editor-controls text-start bg-black bg-opacity-25 p-3 rounded-3">
-                            <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
-                            <input type="range" class="form-range glass-range mb-2" id="musicScaleSlider" min="1" max="4" step="0.05" value="1">
-                            
-                            <div class="row g-3">
-                                <div class="col-6">
-                                    <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
-                                    <input type="range" class="form-range glass-range" id="musicPosXSlider" min="-150" max="150" step="1" value="0">
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label text-white opacity-75 fw-bold mb-1" style="font-size: 0.75rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
-                                    <input type="range" class="form-range glass-range" id="musicPosYSlider" min="-150" max="150" step="1" value="0">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <button type="button" class="btn btn-info w-100 rounded-pill mt-3 mb-4 fw-bold shadow-sm" onclick="applyGlobalCover()">
-                        <i class="bi bi-images me-1"></i> Aplicar Portada a Todas
-                    </button>
-
-                    <hr class="border-secondary opacity-50 mb-4">
-
-                    <!-- Sección Subir Audio -->
-                    <h6 class="fw-bold text-white opacity-75 mb-3 mt-2">Agregar Nueva Canción</h6>
-                    <div class="input-group mb-3 shadow-sm">
-                        <span class="input-group-text bg-dark border-secondary text-orange"><i class="bi bi-file-music-fill"></i></span>
-                        <input type="file" id="musicAudioUpload" class="form-control bg-dark text-white border-secondary" accept=".mp3">
-                    </div>
-                    <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold shadow-sm py-2" onclick="uploadNewSongModal()">
-                        <i class="bi bi-cloud-upload-fill me-1"></i> Subir MP3 con esta Portada
-                    </button>
-
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 
     <!-- ========================================== -->
     <!-- ZONA DE SCRIPTS DEL SISTEMA                -->
@@ -826,11 +642,46 @@
     <!-- MÓDULOS DE APLICACIÓN (Carga modularizada en el orden correcto) -->
     <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
     <script src="{{ url_for('static', filename='js/setup_global.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/reproductor_core.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/music_admin.js') }}"></script>
     <script src="{{ url_for('static', filename='js/auth_ui.js') }}"></script>
     <script src="{{ url_for('static', filename='js/calendario_motor.js') }}"></script>
     <script src="{{ url_for('static', filename='js/calendario_export.js') }}"></script>
 
+    <!-- PWA: Registro del Service Worker e instalación -->
+    <script>
+        // Registro del Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(reg => console.log('[PWA] SW registrado:', reg.scope))
+                    .catch(err => console.warn('[PWA] SW falló:', err));
+            });
+        }
+
+        // Capturar evento de instalación para el botón
+        window.deferredPWAPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            window.deferredPWAPrompt = e;
+            // Mostrar el botón de instalación donde exista
+            const btn = document.getElementById('btnInstallPWA');
+            if (btn) btn.classList.remove('d-none');
+        });
+
+        window.addEventListener('appinstalled', () => {
+            window.deferredPWAPrompt = null;
+            const btn = document.getElementById('btnInstallPWA');
+            if (btn) btn.classList.add('d-none');
+        });
+
+        function installPWA() {
+            if (!window.deferredPWAPrompt) return;
+            window.deferredPWAPrompt.prompt();
+            window.deferredPWAPrompt.userChoice.then(choice => {
+                window.deferredPWAPrompt = null;
+                const btn = document.getElementById('btnInstallPWA');
+                if (btn) btn.classList.add('d-none');
+            });
+        }
+    </script>
 </body>
 </html>

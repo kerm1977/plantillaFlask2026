@@ -11,25 +11,27 @@ def migrate_database():
     nuevas_columnas = [
         ("logistica_segura", "BOOLEAN", "0"),
         ("is_sold_out", "BOOLEAN", "0"),
-        ("solo_chat", "BOOLEAN", "0") # Por si esta tampoco existía en tu versión local
+        ("solo_chat", "BOOLEAN", "0"),
+        ("gpx_filename", "TEXT", "NULL"),
+        ("gpx_password", "TEXT", "NULL"),
+        ("organicmaps_url", "TEXT", "NULL"),
     ]
 
     for columna, tipo, default in nuevas_columnas:
         try:
             # Comando SQL puro para añadir la columna respetando los datos actuales
             cursor.execute(f"ALTER TABLE event ADD COLUMN {columna} {tipo} DEFAULT {default}")
-            print(f"✅ Columna '{columna}' añadida con éxito a la tabla event.")
+            print(f"[OK] Columna '{columna}' anyadida con exito a la tabla event.")
         except sqlite3.OperationalError as e:
-            # Si la columna ya existe, SQLite tirará este error, lo ignoramos de forma segura
             if "duplicate column name" in str(e).lower():
-                print(f"⚠️ La columna '{columna}' ya existía. Omitiendo...")
+                print(f"[--] La columna '{columna}' ya existia. Omitiendo...")
             else:
-                print(f"❌ Error con '{columna}': {e}")
+                print(f"[ERROR] Error con '{columna}': {e}")
 
     # Guardamos los cambios y cerramos
     conn.commit()
     conn.close()
-    print("¡Actualización completada! Ya puedes arrancar Flask normalmente.")
+    print("Actualizacion completada. Ya puedes arrancar Flask normalmente.")
 
 if __name__ == '__main__':
     migrate_database()
