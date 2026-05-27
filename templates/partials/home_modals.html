@@ -216,7 +216,7 @@
         <div class="modal-content border-0 rounded-5 glass-panel p-3">
             <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
                 <div style="font-size:3rem;">🎂</div>
-                <h4 class="fw-bold text-orange mt-1 mb-0">¡Feliz Cumpleaños!</h4>
+                <h4 class="fw-bold text-dark mt-1 mb-0">¡Feliz Cumpleaños!</h4>
                 <p class="text-secondary small mb-0">Hoy celebramos a quienes cumplen años</p>
             </div>
             <div class="modal-body pt-3 pb-2">
@@ -259,10 +259,20 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 <script>
 (function() {
     const BDAY_KEY = 'birthdayDismissed';
     const today = new Date().toISOString().slice(0, 10);
+
+    function launchConfetti() {
+        const end = Date.now() + 2500;
+        (function frame() {
+            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'] });
+            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'] });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
 
     function closeBirthdayModal() {
         if (document.getElementById('birthdayNoShow').checked) {
@@ -275,7 +285,9 @@
     document.addEventListener('DOMContentLoaded', function() {
         if (localStorage.getItem(BDAY_KEY) === today) return;
         setTimeout(function() {
-            new bootstrap.Modal(document.getElementById('birthdayModal')).show();
+            const modal = new bootstrap.Modal(document.getElementById('birthdayModal'));
+            document.getElementById('birthdayModal').addEventListener('shown.bs.modal', launchConfetti, { once: true });
+            modal.show();
         }, 1200);
     });
 })();
