@@ -36,22 +36,18 @@ a:hover { color: var(--primary-hover); }
     background-color: var(--primary-orange) !important; border-color: var(--primary-orange) !important; color: #000 !important;
 }
 
-/* Números de rifa en móvil: glassmorphic + texto naranja */
+/* Números de rifa en móvil: fondo warning + texto blanco */
 @media (max-width: 767px) {
     .number-btn {
         font-size: 1.15em;
-        background: rgba(30, 30, 30, 0.45);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        color: var(--primary-orange) !important;
-        border: 1px solid rgba(255, 140, 0, 0.5);
-        font-weight: 600;
+        background-color: #ffc107 !important;
+        border-color: #e0a800 !important;
+        color: #fff !important;
+        font-weight: 700;
     }
     .number-btn.btn-primary,
     .number-btn:active {
-        background: rgba(255, 140, 0, 0.85) !important;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background-color: var(--primary-orange) !important;
         border-color: var(--primary-orange) !important;
         color: #fff !important;
     }
