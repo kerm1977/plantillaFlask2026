@@ -266,8 +266,8 @@
     function launchConfetti() {
         const end = Date.now() + 2500;
         (function frame() {
-            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'] });
-            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'] });
+            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'], zIndex: 9999 });
+            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'], zIndex: 9999 });
             if (Date.now() < end) requestAnimationFrame(frame);
         }());
     }
