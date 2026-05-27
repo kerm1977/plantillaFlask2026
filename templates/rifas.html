@@ -77,14 +77,15 @@
                             <i class="bi bi-x-circle me-1"></i>Agotado
                         </button>
                         {% endif %}
-                        {% if rifa.winning_numbers %}
+                        {% if rifa.winners_info %}
                         <div class="mt-2 p-2 rounded-4 text-center" style="background:rgba(255,193,7,0.15);border:1px solid rgba(255,193,7,0.4);">
-                            <small class="fw-bold text-warning-emphasis"><i class="bi bi-trophy-fill me-1"></i>Número(s) ganador(es):</small>
-                            <div class="d-flex flex-wrap gap-1 justify-content-center mt-1">
-                                {% for num in rifa.winning_numbers %}
-                                <span class="badge rounded-pill fs-5 fw-bold" style="background:#ffc107;color:#000;">{{ num }}</span>
-                                {% endfor %}
+                            <small class="fw-bold text-warning-emphasis"><i class="bi bi-trophy-fill me-1"></i>Ganador(es):</small>
+                            {% for w in rifa.winners_info %}
+                            <div class="mt-1">
+                                <span class="badge rounded-pill fw-bold fs-5" style="background:#ffc107;color:#000;">{{ w.number }}</span>
+                                <span class="fw-bold small ms-1">{{ w.name }}</span>
                             </div>
+                            {% endfor %}
                         </div>
                         {% endif %}
                         {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}

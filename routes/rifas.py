@@ -62,6 +62,11 @@ def list_rifas():
         except:
             winners = []
         
+        winners_info = []
+        for num in winners:
+            sel = RaffleSelection.query.filter_by(raffle_id=r.id, number=num, is_canceled=False).first()
+            winners_info.append({'number': num, 'name': sel.customer_name if sel else 'Sin asignar'})
+        
         raffle_data.append({
             'id': r.id,
             'raffle_number': r.raffle_number,
@@ -73,6 +78,7 @@ def list_rifas():
             'raffle_time': r.raffle_time,
             'image_filename': r.image_filename,
             'winning_numbers': winners,
+            'winners_info': winners_info,
             'total_sold': total_sold,
             'total_available': 100 - total_sold
         })
@@ -117,9 +123,12 @@ def rifa_detalle(raffle_id):
     except:
         winners = []
     
+    number_to_name = {s.number: s.customer_name for s in selections}
+    winners_info = [{'number': num, 'name': number_to_name.get(num, 'Sin asignar')} for num in winners]
+    
     return render_template('rifa_detalle.html', rifa=rifa, available_numbers=available_numbers, 
                          selected_numbers=selected_numbers, winners=winners,
-                         grouped_selections=grouped_selections)
+                         winners_info=winners_info, grouped_selections=grouped_selections)
 
 
 @bp.route('/api/rifas/<int:raffle_id>/select-multiple', methods=['POST'])
