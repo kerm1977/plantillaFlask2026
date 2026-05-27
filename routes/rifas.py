@@ -154,22 +154,37 @@ def select_multiple_numbers(raffle_id):
         existing_nums = [s.number for s in existing_numbers]
         return jsonify({'error': f'Números ya seleccionados: {", ".join(existing_nums)}'}), 400
     
-    # Crear selecciones
+    # Crear o reutilizar selecciones (UPDATE si fue cancelada, INSERT si es nueva)
     try:
         created_selections = []
         for number in numbers:
-            selection = RaffleSelection(
-                raffle_id=raffle_id,
-                number=number,
-                customer_name=customer_name,
-                customer_phone=customer_phone,
-                customer_cedula=customer_cedula,
-                pin=pin,
-                selection_password='',
-                payment_method='No especificado'
-            )
-            db.session.add(selection)
-            created_selections.append(selection)
+            canceled_row = RaffleSelection.query.filter_by(
+                raffle_id=raffle_id, number=number, is_canceled=True
+            ).first()
+            
+            if canceled_row:
+                canceled_row.customer_name = customer_name
+                canceled_row.customer_phone = customer_phone
+                canceled_row.customer_cedula = customer_cedula
+                canceled_row.pin = pin
+                canceled_row.selection_password = ''
+                canceled_row.payment_method = 'No especificado'
+                canceled_row.is_canceled = False
+                canceled_row.created_at = datetime.utcnow()
+                created_selections.append(canceled_row)
+            else:
+                selection = RaffleSelection(
+                    raffle_id=raffle_id,
+                    number=number,
+                    customer_name=customer_name,
+                    customer_phone=customer_phone,
+                    customer_cedula=customer_cedula,
+                    pin=pin,
+                    selection_password='',
+                    payment_method='No especificado'
+                )
+                db.session.add(selection)
+                created_selections.append(selection)
         
         db.session.commit()
         return jsonify({'ok': True, 'count': len(created_selections), 'selection_ids': [s.id for s in created_selections]})

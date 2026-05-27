@@ -108,7 +108,7 @@
             </div>
             
             <div class="d-flex gap-2 justify-content-center">
-                <button onclick="openUserDataModal()" class="btn btn-orange rounded-pill px-4 fw-bold" id="selectBtn">
+                <button onclick="openUserDataModal()" class="btn btn-orange rounded-pill px-4 fw-bold d-none d-md-inline-flex" id="selectBtn">
                     <i class="bi bi-check-lg me-1"></i>Seleccionar
                 </button>
                 <button onclick="openClearModal()" class="btn btn-outline-secondary rounded-pill px-4" id="clearBtn">
@@ -224,24 +224,9 @@ let selectedNumbers = [];
 let acTimeout = null;
 let userDataModal, clearModal;
 
-// Cargar selecciones guardadas del localStorage
+// Limpiar localStorage al cargar para empezar siempre desde cero
 document.addEventListener('DOMContentLoaded', function() {
-    const savedData = localStorage.getItem('raffleSelection_{{ rifa.id }}');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        selectedNumbers = data.numbers || [];
-        
-        // Restaurar UI
-        selectedNumbers.forEach(num => {
-            const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
-            if (btn) {
-                btn.classList.remove('btn-outline-primary');
-                btn.classList.add('btn-primary');
-            }
-        });
-        
-        updateSelectionPanel();
-    }
+    localStorage.removeItem('raffleSelection_{{ rifa.id }}');
     
     // Autocomplete para modal
     const modalCedulaInput = document.getElementById('modalCedula');
