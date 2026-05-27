@@ -138,9 +138,14 @@
                                        title="Enviar por WhatsApp">
                                         <i class="bi bi-whatsapp"></i>
                                     </a>
-                                    <button onclick="openClearModalCard('{{ data.phone }}')" class="btn btn-sm btn-outline-danger rounded-pill" title="Liberar Números">
+                                    <button onclick="openClearModalCard('{{ data.phone }}')" class="btn btn-sm btn-outline-danger rounded-pill" title="Liberar con PIN">
                                         <i class="bi bi-x-circle"></i>
                                     </button>
+                                    {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
+                                    <button onclick="superClearNumbers('{{ data.phone }}')" class="btn btn-sm btn-danger rounded-pill ms-1" title="Eliminar (Admin)">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
