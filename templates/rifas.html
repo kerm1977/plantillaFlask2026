@@ -82,6 +82,16 @@
                                 class="btn btn-warning-orange w-100 rounded-pill py-2 fw-bold mt-2">
                             <i class="bi bi-trophy me-1"></i>Anunciar Ganador
                         </button>
+                        {% if rifa.winning_numbers %}
+                        <div class="mt-2 text-center">
+                            <small class="text-secondary fw-semibold">Número(s) ganador(es):</small>
+                            <div class="d-flex flex-wrap gap-1 justify-content-center mt-1">
+                                {% for num in rifa.winning_numbers %}
+                                <span class="badge rounded-pill fs-6" style="background:#ffc107;color:#000;">&#127942; {{ num }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
                         {% endif %}
                     </div>
                 </div>
@@ -191,11 +201,21 @@ function buscarGanador() {
 function enviarFelicitaciones() {
     if (!winnerData) return;
     const select = document.getElementById('winnerRaffleSelect');
+    const raffleId = select.value;
     const raffleName = select.options[select.selectedIndex].dataset.name;
     const number = document.getElementById('winnerNumber').value.trim().padStart(2, '0');
     const phone = winnerData.winner.phone.replace(/\D/g, '');
-    const msg = `🎉 ¡Felicitaciones ${winnerData.winner.name}! 🏆\n\nHas ganado la rifa *${raffleName}* con el número *${number}*.\n\n¡Eres el ganador! Por favor contáctanos para coordinar la entrega de tu premio. 🎁`;
+    const msg = `\uD83C\uDF89 \u00a1Felicitaciones ${winnerData.winner.name}! \uD83C\uDFC6\n\nHas ganado la rifa *${raffleName}* con el n\u00famero *${number}*.\n\n\u00a1Eres el ganador! Por favor cont\u00e1ctanos para coordinar la entrega de tu premio. \uD83C\uDF81`;
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+    // Guardar número ganador en BD y recargar para mostrar en el card
+    fetch(`/admin/rifas/${raffleId}/ganadores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winners: [number] })
+    }).then(() => {
+        if (winnerModal) winnerModal.hide();
+        setTimeout(() => location.reload(), 800);
+    });
 }
 </script>
 {% endblock %}
