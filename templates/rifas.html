@@ -17,6 +17,62 @@
             </div>
         </div>
         
+        {% if session.get('role') == 'Superusuario' %}
+        <div class="rounded-4 p-3 mb-4" style="background:rgba(255,140,0,0.07);border:1px solid rgba(255,140,0,0.2);">
+            <div class="fw-bold text-orange mb-3"><i class="bi bi-bar-chart-fill me-2"></i>Análisis General de Rifas</div>
+            <div class="row g-3">
+                <!-- Contador de rifas -->
+                <div class="col-6 col-md-3">
+                    <div class="rounded-4 p-3 text-center h-100" style="background:rgba(255,255,255,0.6);border:1px solid rgba(255,140,0,0.15);">
+                        <div style="font-size:1.8rem;font-weight:900;color:#ff8c00;">{{ stats.total_rifas }}</div>
+                        <small class="text-secondary fw-semibold">Total Rifas</small>
+                        <div class="mt-1 d-flex justify-content-center gap-2 flex-wrap">
+                            <span class="badge rounded-pill bg-success">{{ stats.activas }} activas</span>
+                            <span class="badge rounded-pill bg-secondary">{{ stats.cerradas }} cerradas</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Meta total -->
+                <div class="col-6 col-md-3">
+                    <div class="rounded-4 p-3 text-center h-100" style="background:rgba(255,255,255,0.6);border:1px solid rgba(255,140,0,0.15);">
+                        <div style="font-size:1.4rem;font-weight:900;color:#1a1a1a;">₡{{ '{:,.0f}'.format(stats.meta) }}</div>
+                        <small class="text-secondary fw-semibold">Meta Total</small>
+                        <div class="mt-1"><small class="text-muted">100 × precio × rifas</small></div>
+                    </div>
+                </div>
+                <!-- Recaudado -->
+                <div class="col-6 col-md-3">
+                    <div class="rounded-4 p-3 text-center h-100" style="background:rgba(40,167,69,0.08);border:1px solid rgba(40,167,69,0.2);">
+                        <div style="font-size:1.4rem;font-weight:900;color:#198754;">₡{{ '{:,.0f}'.format(stats.recaudado) }}</div>
+                        <small class="text-secondary fw-semibold">Recaudado</small>
+                        <div class="mt-1"><small class="text-success fw-bold">{{ stats.porcentaje }}% de la meta</small></div>
+                    </div>
+                </div>
+                <!-- Pendiente -->
+                <div class="col-6 col-md-3">
+                    <div class="rounded-4 p-3 text-center h-100" style="background:rgba(220,53,69,0.07);border:1px solid rgba(220,53,69,0.15);">
+                        <div style="font-size:1.4rem;font-weight:900;color:#dc3545;">₡{{ '{:,.0f}'.format(stats.pendiente) }}</div>
+                        <small class="text-secondary fw-semibold">Por Recaudar</small>
+                        <div class="mt-1"><small class="text-muted">{{ 100 - stats.porcentaje }}% restante</small></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Barra de progreso global -->
+            <div class="mt-3">
+                <div class="d-flex justify-content-between small mb-1">
+                    <span class="text-muted">₡0</span>
+                    <span class="fw-bold text-orange">{{ stats.porcentaje }}% recaudado</span>
+                    <span class="text-muted">₡{{ '{:,.0f}'.format(stats.meta) }}</span>
+                </div>
+                <div class="progress" style="height:12px;border-radius:8px;background:rgba(0,0,0,0.08);">
+                    <div class="progress-bar" role="progressbar"
+                         style="width:{{ stats.porcentaje }}%;border-radius:8px;background:linear-gradient(90deg,#ff8c00,#ffc107);">
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         {% if not rifas %}
         <div class="text-center text-muted py-5">
             <i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay rifas disponibles en este momento.

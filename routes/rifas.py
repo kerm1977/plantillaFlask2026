@@ -50,6 +50,28 @@ def search_hikers():
 @bp.route('/rifas')
 def list_rifas():
     """Vista pública de rifas disponibles."""
+    # ── Estadísticas globales (todas las rifas, no solo activas) ──
+    all_rifas = Raffle.query.all()
+    stats_total_rifas  = len(all_rifas)
+    stats_activas      = sum(1 for r in all_rifas if r.is_active)
+    stats_cerradas     = stats_total_rifas - stats_activas
+    stats_meta         = 0
+    stats_recaudado    = 0
+    for r in all_rifas:
+        stats_meta += 100 * r.price
+        vendidos = RaffleSelection.query.filter_by(raffle_id=r.id, is_canceled=False).count()
+        stats_recaudado += vendidos * r.price
+    stats_porcentaje = round(stats_recaudado / stats_meta * 100, 1) if stats_meta > 0 else 0
+    stats = {
+        'total_rifas':  stats_total_rifas,
+        'activas':      stats_activas,
+        'cerradas':     stats_cerradas,
+        'meta':         stats_meta,
+        'recaudado':    stats_recaudado,
+        'pendiente':    stats_meta - stats_recaudado,
+        'porcentaje':   stats_porcentaje,
+    }
+
     rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.desc()).all()
     
     raffle_data = []
@@ -83,7 +105,7 @@ def list_rifas():
             'total_available': 100 - total_sold
         })
     
-    return render_template('rifas.html', rifas=raffle_data)
+    return render_template('rifas.html', rifas=raffle_data, stats=stats)
 
 
 @bp.route('/rifas/<int:raffle_id>')
