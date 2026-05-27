@@ -36,27 +36,28 @@ a:hover { color: var(--primary-hover); }
     background-color: var(--primary-orange) !important; border-color: var(--primary-orange) !important; color: #000 !important;
 }
 
-/* Números de rifa en móvil: glassmorphic warning + texto blanco */
+/* Números de rifa: glassmorphic warning en todas las vistas */
+.number-btn {
+    background: rgba(255, 193, 7, 0.55) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border: 1px solid rgba(255, 193, 7, 0.7) !important;
+    color: #fff !important;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.25);
+}
+.number-btn.btn-primary,
+.number-btn:active {
+    background: rgba(255, 140, 0, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+    -webkit-backdrop-filter: blur(10px) !important;
+    border-color: var(--primary-orange) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 10px rgba(255, 140, 0, 0.45);
+}
+/* Móvil: ligeramente más grandes */
 @media (max-width: 767px) {
-    .number-btn {
-        font-size: 1.15em;
-        background: rgba(255, 193, 7, 0.55) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(255, 193, 7, 0.7) !important;
-        color: #fff !important;
-        font-weight: 700;
-        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.25);
-    }
-    .number-btn.btn-primary,
-    .number-btn:active {
-        background: rgba(255, 140, 0, 0.8) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
-        border-color: var(--primary-orange) !important;
-        color: #fff !important;
-        box-shadow: 0 2px 10px rgba(255, 140, 0, 0.45);
-    }
+    .number-btn { font-size: 1.15em; }
 }
 
 /* Modales */
