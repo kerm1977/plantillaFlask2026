@@ -221,23 +221,21 @@
             </div>
             <div class="modal-body pt-3 pb-2">
                 {% for hiker in birthday_hikers %}
-                <div class="d-flex align-items-center justify-content-between rounded-4 p-3 mb-2"
+                {% set partes = hiker.nombre_completo.split(' ') %}
+                {% set primer_nombre = partes[0] %}
+                {% set apellidos = partes[1:] | join(' ') %}
+                <div class="rounded-4 p-3 mb-2 text-center"
                      style="background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.4);">
-                    <div>
-                        <div class="fw-bold">🎉 {{ hiker.nombre_completo }}</div>
-                        {% if hiker.fecha_nacimiento %}
-                        <small class="text-secondary">
-                            {{ hiker.fecha_nacimiento.strftime('%d de %B') }}
-                            {% if hiker.fecha_nacimiento.year %}
-                            · {{ (2026 - hiker.fecha_nacimiento.year)|int }} años
-                            {% endif %}
-                        </small>
+                    <div class="mb-2">
+                        <div class="fw-black" style="font-size:2rem;line-height:1.1;">🎉 {{ primer_nombre }}</div>
+                        {% if apellidos %}
+                        <div class="fw-semibold text-secondary" style="font-size:1rem;">{{ apellidos }}</div>
                         {% endif %}
                     </div>
                     {% if hiker.telefono %}
                     <a href="https://wa.me/506{{ hiker.telefono | replace(' ','') | replace('-','') }}?text={{ ('🎂 ¡Feliz Cumpleaños ' + hiker.nombre_completo + '! 🎉 Que tengas un día lleno de alegría. Con cariño, La Tribu 🏔️') | urlencode }}"
                        target="_blank"
-                       class="btn btn-success btn-sm rounded-pill ms-2 flex-shrink-0">
+                       class="btn btn-success btn-sm rounded-pill px-4">
                         <i class="bi bi-whatsapp me-1"></i>Felicitar
                     </a>
                     {% endif %}
