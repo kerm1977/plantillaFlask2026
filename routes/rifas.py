@@ -155,24 +155,27 @@ def select_multiple_numbers(raffle_id):
         return jsonify({'error': f'Números ya seleccionados: {", ".join(existing_nums)}'}), 400
     
     # Crear selecciones
-    created_selections = []
-    for number in numbers:
-        selection = RaffleSelection(
-            raffle_id=raffle_id,
-            number=number,
-            customer_name=customer_name,
-            customer_phone=customer_phone,
-            customer_cedula=customer_cedula,
-            pin=pin,
-            selection_password='',
-            payment_method='No especificado'
-        )
-        db.session.add(selection)
-        created_selections.append(selection)
-    
-    db.session.commit()
-    
-    return jsonify({'ok': True, 'count': len(created_selections), 'selection_ids': [s.id for s in created_selections]})
+    try:
+        created_selections = []
+        for number in numbers:
+            selection = RaffleSelection(
+                raffle_id=raffle_id,
+                number=number,
+                customer_name=customer_name,
+                customer_phone=customer_phone,
+                customer_cedula=customer_cedula,
+                pin=pin,
+                selection_password='',
+                payment_method='No especificado'
+            )
+            db.session.add(selection)
+            created_selections.append(selection)
+        
+        db.session.commit()
+        return jsonify({'ok': True, 'count': len(created_selections), 'selection_ids': [s.id for s in created_selections]})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': f'Error al guardar: {str(e)}'}), 500
 
 
 @bp.route('/api/rifas/<int:raffle_id>/release-numbers', methods=['POST'])
