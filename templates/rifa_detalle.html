@@ -12,7 +12,8 @@
                 <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.image_filename) }}" 
                      class="rounded-4 w-100" style="max-height: 400px; object-fit: cover;" alt="{{ rifa.name }}">
                 
-                <!-- Barra de progreso -->
+                <!-- Barra de progreso (solo superusuarios) -->
+                {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
                 {% set total_collected = selected_numbers|length * rifa.price %}
                 {% set total_goal = 100 * rifa.price %}
                 {% set progress_pct = (selected_numbers|length / 100 * 100) | int %}
@@ -26,6 +27,7 @@
                     </div>
                     <small class="text-muted">{{ selected_numbers|length }} de 100 números vendidos ({{ progress_pct }}%)</small>
                 </div>
+                {% endif %}
             </div>
             
             <div class="col-12 col-md-7">
