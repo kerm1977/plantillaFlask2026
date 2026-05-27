@@ -600,3 +600,26 @@ def ver_selecciones(raffle_id):
         winners = []
     
     return render_template('rifa_selecciones.html', rifa=rifa, selecciones=selecciones, winners=winners)
+
+
+@bp.route('/api/rifas/<int:raffle_id>/find-winner/<string:number>', methods=['GET'])
+def find_winner(raffle_id, number):
+    """API para buscar quién tiene un número específico en una rifa."""
+    user = User.query.get(session.get('user_id'))
+    if not user or user.email not in ['kenth1977@gmail.com', 'lthikingcr@gmail.com']:
+        return jsonify({'error': 'No autorizado'}), 403
+
+    num = number.zfill(2)
+    selection = RaffleSelection.query.filter_by(
+        raffle_id=raffle_id,
+        number=num,
+        is_canceled=False
+    ).first()
+
+    if selection:
+        return jsonify({'winner': {
+            'name': selection.customer_name,
+            'phone': selection.customer_phone,
+            'cedula': selection.customer_cedula or ''
+        }})
+    return jsonify({'winner': None})

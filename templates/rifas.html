@@ -77,6 +77,12 @@
                             <i class="bi bi-x-circle me-1"></i>Agotado
                         </button>
                         {% endif %}
+                        {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
+                        <button onclick="openWinnerModal({{ rifa.id }}, '{{ rifa.name|e }}', event)"
+                                class="btn btn-warning-orange w-100 rounded-pill py-2 fw-bold mt-2">
+                            <i class="bi bi-trophy me-1"></i>Anunciar Ganador
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -85,4 +91,111 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Modal: Anunciar Ganador -->
+<div class="modal fade" id="winnerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-orange"><i class="bi bi-trophy me-2"></i>Anunciar Ganador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Rifa</label>
+                    <select id="winnerRaffleSelect" class="form-select rounded-pill" onchange="resetWinnerSearch()">
+                        {% for r in rifas %}
+                        <option value="{{ r.id }}" data-name="{{ r.name|e }}">{{ r.name }} (#{{ r.raffle_number }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Número Ganador (00-99)</label>
+                    <div class="d-flex gap-2">
+                        <input type="text" id="winnerNumber" class="form-control rounded-pill"
+                               placeholder="Ej: 07" maxlength="2" oninput="resetWinnerSearch()">
+                        <button class="btn btn-orange rounded-pill px-4 flex-shrink-0" onclick="buscarGanador()">
+                            <i class="bi bi-search me-1"></i>Buscar
+                        </button>
+                    </div>
+                </div>
+                <div id="winnerResult" class="d-none">
+                    <div class="rounded-4 p-3 mb-2" style="background: rgba(255,140,0,0.12); border: 1px solid rgba(255,140,0,0.3);">
+                        <h6 class="fw-bold text-orange mb-1"><i class="bi bi-person-check me-1"></i>¡Ganador encontrado!</h6>
+                        <p class="mb-1 fw-bold fs-5" id="winnerName"></p>
+                        <p class="mb-0 text-secondary small" id="winnerPhone"></p>
+                    </div>
+                </div>
+                <div id="winnerNotFound" class="d-none">
+                    <div class="alert alert-warning rounded-4 border-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Número no encontrado o sin asignar.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-success rounded-pill d-none" id="sendCongratBtn" onclick="enviarFelicitaciones()">
+                    <i class="bi bi-whatsapp me-1"></i>Enviar Felicitaciones
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let winnerModal;
+let winnerData = null;
+
+function openWinnerModal(raffleId, raffleName, event) {
+    event.stopPropagation();
+    if (!winnerModal) winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+    document.getElementById('winnerRaffleSelect').value = raffleId;
+    document.getElementById('winnerNumber').value = '';
+    resetWinnerSearch();
+    winnerModal.show();
+}
+
+function resetWinnerSearch() {
+    winnerData = null;
+    document.getElementById('winnerResult').classList.add('d-none');
+    document.getElementById('winnerNotFound').classList.add('d-none');
+    document.getElementById('sendCongratBtn').classList.add('d-none');
+}
+
+function buscarGanador() {
+    const raffleId = document.getElementById('winnerRaffleSelect').value;
+    const raw = document.getElementById('winnerNumber').value.trim();
+    const number = raw.padStart(2, '0');
+    if (!raw) { alert('Ingresa el número ganador'); return; }
+
+    fetch(`/api/rifas/${raffleId}/find-winner/${number}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.winner) {
+                winnerData = data;
+                document.getElementById('winnerName').textContent = data.winner.name;
+                document.getElementById('winnerPhone').textContent = 'Tel: ' + data.winner.phone;
+                document.getElementById('winnerResult').classList.remove('d-none');
+                document.getElementById('winnerNotFound').classList.add('d-none');
+                document.getElementById('sendCongratBtn').classList.remove('d-none');
+            } else {
+                winnerData = null;
+                document.getElementById('winnerResult').classList.add('d-none');
+                document.getElementById('winnerNotFound').classList.remove('d-none');
+                document.getElementById('sendCongratBtn').classList.add('d-none');
+            }
+        })
+        .catch(() => alert('Error al buscar el ganador'));
+}
+
+function enviarFelicitaciones() {
+    if (!winnerData) return;
+    const select = document.getElementById('winnerRaffleSelect');
+    const raffleName = select.options[select.selectedIndex].dataset.name;
+    const number = document.getElementById('winnerNumber').value.trim().padStart(2, '0');
+    const phone = winnerData.winner.phone.replace(/\D/g, '');
+    const msg = `🎉 ¡Felicitaciones ${winnerData.winner.name}! 🏆\n\nHas ganado la rifa *${raffleName}* con el número *${number}*.\n\n¡Eres el ganador! Por favor contáctanos para coordinar la entrega de tu premio. 🎁`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+</script>
 {% endblock %}
