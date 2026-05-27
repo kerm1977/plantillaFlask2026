@@ -1,0 +1,472 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="glass-panel rounded-5 p-4">
+        <a href="{{ url_for('main.list_rifas') }}" class="btn btn-outline-secondary rounded-pill mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver a Rifas
+        </a>
+        
+        <div class="row g-4">
+            <div class="col-12 col-md-5">
+                <img src="{{ url_for('static', filename='uploads/rifas/' + rifa.image_filename) }}" 
+                     class="rounded-4 w-100" style="max-height: 400px; object-fit: cover;" alt="{{ rifa.name }}">
+                
+                <!-- Barra de progreso -->
+                {% set total_collected = selected_numbers|length * rifa.price %}
+                {% set total_goal = 100 * rifa.price %}
+                {% set progress_pct = (selected_numbers|length / 100 * 100) | int %}
+                <div class="mt-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold text-orange">₡{{ total_collected }}</span>
+                        <span class="text-muted">₡{{ total_goal }}</span>
+                    </div>
+                    <div class="progress" style="height: 10px; border-radius: 10px;">
+                        <div class="progress-bar bg-orange" style="width: {{ progress_pct }}%; border-radius: 10px;"></div>
+                    </div>
+                    <small class="text-muted">{{ selected_numbers|length }} de 100 números vendidos ({{ progress_pct }}%)</small>
+                </div>
+            </div>
+            
+            <div class="col-12 col-md-7">
+                <h2 class="fw-bold text-orange mb-2">{{ rifa.name }}</h2>
+                <div class="d-flex gap-2 mb-3 align-items-center">
+                    <span class="badge rounded-pill" style="background: #ff8c0020; color: #ff8c00; border: 1px solid #ff8c0040;">
+                        #{{ rifa.raffle_number }}
+                    </span>
+                    <span class="badge bg-success rounded-pill">
+                        {{ selected_numbers|length }}/100 vendidos
+                    </span>
+                    <button onclick="shareRaffle()" class="btn btn-sm btn-outline-orange rounded-pill ms-auto" title="Compartir">
+                        <i class="bi bi-share me-1"></i>Compartir
+                    </button>
+                </div>
+                
+                <p class="text-secondary mb-3">{{ rifa.detail }}</p>
+                
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <small class="text-secondary d-block">Precio</small>
+                        <span class="fw-bold text-orange fs-4">₡{{ rifa.price }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-secondary d-block">Premio</small>
+                        <span class="fw-bold text-dark fs-4">{{ rifa.prize }}</span>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-secondary d-block">Fecha</small>
+                        <span class="fw-bold">{{ rifa.raffle_date.strftime('%d/%m/%Y') }}</span>
+                    </div>
+                    {% if rifa.raffle_time %}
+                    <div class="col-6">
+                        <small class="text-secondary d-block">Hora</small>
+                        <span class="fw-bold">{{ rifa.raffle_time }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if rifa.sinpe_name_default and rifa.sinpe_phone_default %}
+                <div class="alert alert-info rounded-3 mb-4">
+                    <small><strong>SINPE para pago:</strong></small><br>
+                    <span class="fw-bold">{{ rifa.sinpe_name_default }}</span><br>
+                    <span class="fw-bold">{{ rifa.sinpe_phone_default }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <hr class="my-4" style="border-color: rgba(0,0,0,0.1) !important;">
+        
+        <h4 class="fw-bold mb-3">Selecciona tu Número</h4>
+        
+        <div class="row g-2" id="numbersGrid">
+            {% for num in available_numbers %}
+            <div class="col-2 col-md-1">
+                <button class="btn btn-outline-primary rounded-pill w-100 py-2 number-btn" 
+                        data-number="{{ num }}" onclick="toggleNumber('{{ num }}')">
+                    {{ num }}
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Panel de selección inline -->
+        <div id="selectionPanel" class="mt-4 p-4 rounded-4 d-none" style="background: rgba(255,140,0,0.1);">
+            <h6 class="fw-bold mb-3"><i class="bi bi-cart-plus me-2"></i>Mis Números</h6>
+            
+            <div id="selectedNumbersDisplay" class="mb-3">
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="text-muted small">No has seleccionado números</span>
+                </div>
+            </div>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fw-bold">Total:</span>
+                <span class="fw-bold text-orange fs-4">₡<span id="totalPrice">0</span></span>
+            </div>
+            
+            <div class="d-flex gap-2 justify-content-center">
+                <button onclick="openUserDataModal()" class="btn btn-orange rounded-pill px-4 fw-bold" id="selectBtn">
+                    <i class="bi bi-check-lg me-1"></i>Seleccionar
+                </button>
+                <button onclick="openClearModal()" class="btn btn-outline-secondary rounded-pill px-4" id="clearBtn">
+                    <i class="bi bi-x-circle me-1"></i>Limpiar Números
+                </button>
+            </div>
+        </div>
+        
+        {% if grouped_selections %}
+        <div class="mt-4">
+            <h5 class="fw-bold text-secondary mb-3">Números ya seleccionados:</h5>
+            <div class="row g-3">
+                {% for phone, data in grouped_selections.items() %}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <div class="card border-0 rounded-4 shadow-sm h-100">
+                        <div class="card-body">
+                            <h6 class="fw-bold text-orange mb-2"><i class="bi bi-person-circle me-1"></i>{{ data.name }}</h6>
+                            <div class="d-flex flex-wrap gap-1 mb-2">
+                                {% for num in data.numbers %}
+                                <span class="badge bg-primary rounded-pill">{{ num }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">Total: <span class="text-orange">₡{{ data.total }}</span></span>
+                                <div>
+                                    <a href="https://wa.me/{{ data.phone | replace('+', '') }}?text={{ rifa.name }} - Números: {{ data.numbers|join(', ') }} - Total: ₡{{ data.total }}" 
+                                       target="_blank" 
+                                       class="btn btn-sm btn-outline-success rounded-pill me-1"
+                                       title="Enviar por WhatsApp">
+                                        <i class="bi bi-whatsapp"></i>
+                                    </a>
+                                    <button onclick="openClearModalCard('{{ data.phone }}')" class="btn btn-sm btn-outline-danger rounded-pill" title="Liberar Números">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal: Datos del usuario -->
+<div class="modal fade" id="userDataModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-orange"><i class="bi bi-person-plus me-2"></i>Tus Datos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Nombre o Cédula</label>
+                    <input type="text" id="modalCedula" class="form-control rounded-pill" placeholder="Escribe nombre o cédula..." autocomplete="off">
+                    <div id="modalAutocompleteResults" class="list-group position-absolute w-100 mt-1 rounded-3" style="max-height:150px;overflow-y:auto;z-index:1100;display:none;"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Teléfono</label>
+                    <input type="text" id="modalPhone" class="form-control rounded-pill" placeholder="Tu teléfono">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">PIN (4 caracteres)</label>
+                    <input type="text" id="modalPin" class="form-control rounded-pill" placeholder="Ej: A1B2" maxlength="4" pattern="[A-Za-z0-9]{4}">
+                    <small class="text-secondary" style="font-size:0.75rem;">El pin protege tus números</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-orange rounded-pill" onclick="confirmUserData()"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Liberar números -->
+<div class="modal fade" id="clearModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-shield-lock me-2"></i>Liberar Números</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small">Ingresa teléfono y PIN para liberar.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Teléfono</label>
+                    <input type="text" id="clearPhone" class="form-control rounded-pill" placeholder="Tu teléfono">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">PIN (4 caracteres)</label>
+                    <input type="text" id="clearPin" class="form-control rounded-pill" placeholder="Tu PIN" maxlength="4">
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-danger rounded-pill" onclick="confirmClearNumbers()"><i class="bi bi-trash me-1"></i>Liberar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let selectedNumbers = [];
+let acTimeout = null;
+let userDataModal, clearModal;
+
+// Cargar selecciones guardadas del localStorage
+document.addEventListener('DOMContentLoaded', function() {
+    const savedData = localStorage.getItem('raffleSelection_{{ rifa.id }}');
+    if (savedData) {
+        const data = JSON.parse(savedData);
+        selectedNumbers = data.numbers || [];
+        
+        // Restaurar UI
+        selectedNumbers.forEach(num => {
+            const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
+            if (btn) {
+                btn.classList.remove('btn-outline-primary');
+                btn.classList.add('btn-primary');
+            }
+        });
+        
+        updateSelectionPanel();
+    }
+    
+    // Autocomplete para modal
+    const modalCedulaInput = document.getElementById('modalCedula');
+    if (modalCedulaInput) {
+        modalCedulaInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            const resultsDiv = document.getElementById('modalAutocompleteResults');
+            
+            if (acTimeout) clearTimeout(acTimeout);
+            
+            if (query.length < 2) {
+                resultsDiv.style.display = 'none';
+                return;
+            }
+            
+            acTimeout = setTimeout(() => {
+                fetch(`/api/hikers/search?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.hikers && data.hikers.length > 0) {
+                            resultsDiv.innerHTML = data.hikers.map(h => 
+                                `<a href="#" class="list-group-item list-group-item-action" 
+                                   onclick="selectHiker('${h.cedula}', '${h.nombre_completo}', '${h.telefono || ''}')"
+                                   data-cedula="${h.cedula}">
+                                   <strong>${h.nombre_completo}</strong> <small class="text-muted">(${h.cedula})</small>
+                                 </a>`
+                            ).join('');
+                            resultsDiv.style.display = 'block';
+                        } else {
+                            resultsDiv.style.display = 'none';
+                        }
+                    });
+            }, 300);
+        });
+    }
+});
+
+function saveToLocalStorage() {
+    localStorage.setItem('raffleSelection_{{ rifa.id }}', JSON.stringify({
+        numbers: selectedNumbers,
+        timestamp: new Date().toISOString()
+    }));
+}
+
+function clearLocalStorage() {
+    localStorage.removeItem('raffleSelection_{{ rifa.id }}');
+}
+
+function selectHiker(cedula, nombre, telefono) {
+    document.getElementById('modalCedula').value = nombre + ' (' + cedula + ')';
+    if (telefono) document.getElementById('modalPhone').value = telefono;
+    document.getElementById('modalAutocompleteResults').style.display = 'none';
+}
+
+function toggleNumber(num) {
+    const index = selectedNumbers.indexOf(num);
+    const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
+    
+    if (index > -1) {
+        selectedNumbers.splice(index, 1);
+        btn.classList.remove('btn-primary');
+        btn.classList.add('btn-outline-primary');
+    } else {
+        selectedNumbers.push(num);
+        btn.classList.remove('btn-outline-primary');
+        btn.classList.add('btn-primary');
+    }
+    
+    saveToLocalStorage();
+    updateSelectionPanel();
+}
+
+function updateSelectionPanel() {
+    const panel = document.getElementById('selectionPanel');
+    const displayDiv = document.getElementById('selectedNumbersDisplay');
+    const totalSpan = document.getElementById('totalPrice');
+    
+    if (selectedNumbers.length === 0) {
+        panel.classList.add('d-none');
+        return;
+    }
+    
+    panel.classList.remove('d-none');
+    displayDiv.innerHTML = selectedNumbers.map(num => 
+        `<span class="badge bg-primary rounded-pill">${num}</span>`
+    ).join('');
+    
+    totalSpan.textContent = selectedNumbers.length * {{ rifa.price }};
+}
+
+// Abrir modal de datos de usuario
+function openUserDataModal() {
+    if (selectedNumbers.length === 0) {
+        alert('Primero selecciona números');
+        return;
+    }
+    
+    if (!userDataModal) {
+        userDataModal = new bootstrap.Modal(document.getElementById('userDataModal'));
+    }
+    
+    document.getElementById('modalCedula').value = '';
+    document.getElementById('modalPhone').value = '';
+    document.getElementById('modalPin').value = '';
+    document.getElementById('modalAutocompleteResults').style.display = 'none';
+    
+    userDataModal.show();
+}
+
+// Confirmar datos y guardar en BD
+function confirmUserData() {
+    const cedula = document.getElementById('modalCedula').value.trim();
+    const phone = document.getElementById('modalPhone').value.trim();
+    const pin = document.getElementById('modalPin').value.trim();
+    
+    if (!cedula || !phone || !pin) {
+        alert('Por favor completa todos los campos');
+        return;
+    }
+    
+    if (pin.length !== 4 || !/^[A-Za-z0-9]{4}$/.test(pin)) {
+        alert('El PIN debe tener exactamente 4 caracteres alfanuméricos (Ej: A1B2)');
+        return;
+    }
+    
+    fetch(`/api/rifas/{{ rifa.id }}/select-multiple`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            numbers: selectedNumbers,
+            customer_name: cedula,
+            customer_phone: phone,
+            customer_cedula: cedula,
+            pin: pin
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            userDataModal.hide();
+            alert(`¡${selectedNumbers.length} números seleccionados exitosamente!`);
+            clearLocalStorage();
+            window.location.reload();
+        } else {
+            alert(data.error || 'Error al seleccionar');
+        }
+    });
+}
+
+// Abrir modal de limpiar números (desde panel)
+function openClearModal() {
+    if (selectedNumbers.length === 0) {
+        alert('No hay números seleccionados');
+        return;
+    }
+    openClearModalCard('');
+}
+
+// Abrir modal de limpiar números (desde card, con phone pre-llenado)
+function openClearModalCard(phone) {
+    if (!clearModal) {
+        clearModal = new bootstrap.Modal(document.getElementById('clearModal'));
+    }
+    document.getElementById('clearPhone').value = phone || '';
+    document.getElementById('clearPin').value = '';
+    clearModal.show();
+}
+
+// Confirmar liberación de números
+function confirmClearNumbers() {
+    const phone = document.getElementById('clearPhone').value.trim();
+    const pin = document.getElementById('clearPin').value.trim();
+    
+    if (!phone || !pin) {
+        alert('Ingresa tu teléfono y PIN');
+        return;
+    }
+    
+    // Buscar selecciones con ese phone+pin y liberarlas
+    fetch(`/api/rifas/{{ rifa.id }}/release-numbers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone, pin: pin })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            clearModal.hide();
+            alert(`¡${data.count} números liberados exitosamente!`);
+            clearLocalStorage();
+            window.location.reload();
+        } else {
+            alert(data.error || 'Error al liberar números');
+        }
+    });
+}
+
+// Función para móvil (barra inferior)
+function toggleMobileSelection() {
+    openUserDataModal();
+}
+
+// Superadmin: liberar números sin PIN
+function superClearNumbers(phone) {
+    if (!confirm('¿Liberar todos los números de este cliente?')) return;
+    
+    fetch(`/api/rifas/{{ rifa.id }}/admin-release`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phone })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            alert(`¡${data.count} números liberados!`);
+            window.location.reload();
+        } else {
+            alert(data.error || 'Error');
+        }
+    });
+}
+
+// Compartir rifa
+function shareRaffle() {
+    const url = window.location.href;
+    if (navigator.share) {
+        navigator.share({ title: '{{ rifa.name }}', url: url });
+    } else {
+        navigator.clipboard.writeText(url).then(() => {
+            alert('¡Enlace copiado!');
+        });
+    }
+}
+</script>
+{% endblock %}
