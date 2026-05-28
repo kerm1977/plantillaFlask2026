@@ -254,10 +254,10 @@ function toggleAudio() {
     else { _audio.play(); _audioPlaying = true; if (t) t.textContent = 'Sonando'; }
 }
 function compartirEvento() {
-    const url = window.location.href;
+    const url = 'https://www.latribu.top' + window.location.pathname;
     const title = {{ pub.nombre | tojson }};
     if (navigator.share) { navigator.share({ title, url }); }
-    else { navigator.clipboard?.writeText(url).then(() => alert('¡Enlace copiado!')); }
+    else { navigator.clipboard?.writeText(url).then(() => alert('¡Enlace copiado: ' + url)); }
 }
 </script>
 {% endblock %}
