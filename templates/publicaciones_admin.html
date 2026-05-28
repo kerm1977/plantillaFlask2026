@@ -134,7 +134,7 @@
               <select class="form-select form-select-sm" id="pubRifaUrl">
                 <option value="">-- Sin rifa --</option>
                 {% for r in rifas %}
-                <option value="/rifa/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
+                <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
                 {% endfor %}
               </select>
             </div>

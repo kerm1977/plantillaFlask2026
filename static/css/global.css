@@ -1,3 +1,11 @@
+@font-face {
+    font-family: 'Ronda';
+    src: url('../css/fonts/Ronda.woff2') format('woff2');
+    font-weight: 400 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --bg-dark: #1e1e1e;
     --bg-darker: #121212;
