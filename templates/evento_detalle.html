@@ -72,9 +72,6 @@
          style="width:clamp(320px,38vw,450px);height:clamp(320px,38vw,450px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
     {% endif %}
     <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end mb-3">
-      <a href="https://www.latribu.top" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
-        <i class="bi bi-arrow-left me-1"></i>Volver
-      </a>
       {% if pub.audio_filename %}
       <button onclick="toggleAudio()" id="audioBtn" class="btn btn-sm rounded-pill px-3"
               style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
@@ -94,6 +91,21 @@
     </div>
   </div>
 </div>
+
+<!-- BOTÓN FLOTANTE VOLVER ══════════════════════════════════════════════ -->
+<a href="https://www.latribu.top"
+   style="position:fixed;bottom:calc(var(--nav-mobile-height,70px) - 15px);left:20px;
+          width:50px;height:50px;border-radius:50%;
+          background:rgba(80,80,80,0.75);backdrop-filter:blur(5px);
+          color:#fff;border:1px solid rgba(255,255,255,0.25);
+          box-shadow:0 4px 15px rgba(0,0,0,0.2);z-index:1045;
+          display:flex;justify-content:center;align-items:center;
+          transition:all 0.3s ease;text-decoration:none;"
+   title="Volver"
+   onmouseover="this.style.background='rgba(50,50,50,0.95)';this.style.transform='scale(1.05)'"
+   onmouseout="this.style.background='rgba(80,80,80,0.75)';this.style.transform='scale(1)'">
+  <i class="bi bi-arrow-left fs-4"></i>
+</a>
 
 <!-- ══ NOMBRE + BADGE ════════════════════════════════════════════════════ -->
 <div class="container-lg px-3 px-md-4 pt-3 text-center">
