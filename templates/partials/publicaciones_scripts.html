@@ -37,6 +37,7 @@ function _resetForm() {
     document.getElementById('pubTipo').value = '';
     document.getElementById('pubAudio').value = '';
     document.getElementById('pubRifaUrl').value = '';
+    document.getElementById('pubRifaUrl2').value = '';
     document.getElementById('pubSinpe').value = '';
     document.getElementById('pubCuenta').value = '';
     document.getElementById('pubLogo').value = '';
@@ -68,6 +69,7 @@ async function editEvento(id) {
     document.getElementById('pubAudio').value        = d.audio_filename || '';
     document.getElementById('pubTipo').value         = d.tipo_evento || '';
     document.getElementById('pubRifaUrl').value      = d.rifa_url || '';
+    document.getElementById('pubRifaUrl2').value     = d.rifa_url_2 || '';
     document.getElementById('pubLugar').value        = d.lugar || '';
     document.getElementById('pubPuntoSalida').value  = d.punto_salida || '';
     document.getElementById('pubHora').value         = d.hora_encuentro || '';
@@ -122,6 +124,7 @@ async function submitEvento() {
     fd.append('audio_filename',  document.getElementById('pubAudio').value);
     fd.append('tipo_evento',     document.getElementById('pubTipo').value);
     fd.append('rifa_url',        document.getElementById('pubRifaUrl').value);
+    fd.append('rifa_url_2',      document.getElementById('pubRifaUrl2').value);
     fd.append('lugar',           document.getElementById('pubLugar').value);
     fd.append('punto_salida',    document.getElementById('pubPuntoSalida').value);
     fd.append('hora_encuentro',  document.getElementById('pubHora').value);

@@ -163,13 +163,26 @@
               </span>
               <span class="fw-bold" style="color:#444;">Datos de la Rifa</span>
             </div>
-            <label class="form-label fw-semibold small text-muted">Rifa activa (URL/ID)</label>
-            <select class="form-select form-select-sm" id="pubRifaUrl">
-              <option value="">-- Sin rifa --</option>
-              {% for r in rifas %}
-              <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
-              {% endfor %}
-            </select>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Primera Rifa</label>
+                <select class="form-select form-select-sm" id="pubRifaUrl">
+                  <option value="">-- Sin rifa --</option>
+                  {% for r in rifas %}
+                  <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Segunda Rifa <span class="text-muted fw-normal">(opcional)</span></label>
+                <select class="form-select form-select-sm" id="pubRifaUrl2">
+                  <option value="">-- Sin segunda rifa --</option>
+                  {% for r in rifas %}
+                  <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
           </div>
 
           <!-- ③ TIPO ESPECÍFICO: CAMINATA -->

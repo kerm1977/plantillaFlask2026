@@ -210,6 +210,7 @@ class Publicacion(db.Model):
     descripcion     = db.Column(db.Text)
     tipo_evento     = db.Column(db.String(50))          # Caminata | Taller | Rifa
     rifa_url        = db.Column(db.String(500))
+    rifa_url_2      = db.Column(db.String(500))
     lugar           = db.Column(db.String(200))
     punto_salida    = db.Column(db.String(200))
     hora_encuentro  = db.Column(db.String(50))

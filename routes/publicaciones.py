@@ -34,7 +34,8 @@ def _pub_dict(p):
         'fecha_inicio': p.fecha_inicio.strftime('%Y-%m-%d') if p.fecha_inicio else '',
         'fecha_fin': p.fecha_fin.strftime('%Y-%m-%d') if p.fecha_fin else '',
         'descripcion': p.descripcion or '', 'tipo_evento': p.tipo_evento or '',
-        'rifa_url': p.rifa_url or '', 'lugar': p.lugar or '',
+        'rifa_url': p.rifa_url or '', 'rifa_url_2': p.rifa_url_2 or '',
+        'lugar': p.lugar or '',
         'punto_salida': p.punto_salida or '', 'hora_encuentro': p.hora_encuentro or '',
         'recomendaciones': p.recomendaciones or '', 'desc_caminata': p.desc_caminata or '',
         'direccion': p.direccion or '', 'url_externa': p.url_externa or '',
@@ -70,7 +71,8 @@ def api_pub_create():
         nombre=f['nombre'].strip(), fecha_inicio=fi,
         fecha_fin=datetime.strptime(f['fecha_fin'], '%Y-%m-%d').date() if f.get('fecha_fin') else None,
         descripcion=f.get('descripcion', ''), tipo_evento=f.get('tipo_evento', ''),
-        rifa_url=f.get('rifa_url', ''), lugar=f.get('lugar', ''),
+        rifa_url=f.get('rifa_url', ''), rifa_url_2=f.get('rifa_url_2', ''),
+        lugar=f.get('lugar', ''),
         punto_salida=f.get('punto_salida', ''), hora_encuentro=f.get('hora_encuentro', ''),
         recomendaciones=f.get('recomendaciones', ''), desc_caminata=f.get('desc_caminata', ''),
         direccion=f.get('direccion', ''), url_externa=f.get('url_externa', ''),
@@ -100,7 +102,8 @@ def api_pub_update(pid):
     for field in ['nombre', 'descripcion', 'tipo_evento', 'rifa_url', 'lugar', 'punto_salida',
                   'hora_encuentro', 'recomendaciones', 'desc_caminata', 'direccion',
                   'url_externa', 'mostrar', 'sinpe_info', 'cuenta_info', 'audio_filename',
-                  'telefono', 'whatsapp', 'facebook', 'instagram', 'tiktok', 'youtube']:
+                  'telefono', 'whatsapp', 'facebook', 'instagram', 'tiktok', 'youtube',
+                  'rifa_url_2']:
         if f.get(field) is not None:
             setattr(p, field, f.get(field))
     if f.get('fecha_inicio'):

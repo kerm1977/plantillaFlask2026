@@ -57,12 +57,13 @@ def _migrate_publicacion():
         cursor.execute("PRAGMA table_info(publicacion)")
         existing_cols = {row[1] for row in cursor.fetchall()}
         migrations = [
-            ("telefono",  "VARCHAR(50)"),
-            ("whatsapp",  "VARCHAR(50)"),
-            ("facebook",  "VARCHAR(300)"),
-            ("instagram", "VARCHAR(300)"),
-            ("tiktok",    "VARCHAR(300)"),
-            ("youtube",   "VARCHAR(300)"),
+            ("telefono",   "VARCHAR(50)"),
+            ("whatsapp",   "VARCHAR(50)"),
+            ("facebook",   "VARCHAR(300)"),
+            ("instagram",  "VARCHAR(300)"),
+            ("tiktok",     "VARCHAR(300)"),
+            ("youtube",    "VARCHAR(300)"),
+            ("rifa_url_2", "VARCHAR(500)"),
         ]
         for col, definition in migrations:
             if col not in existing_cols:
