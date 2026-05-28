@@ -2,155 +2,255 @@
 {% block title %}{{ pub.nombre }}{% endblock %}
 
 {% block content %}
-{% set show = mostrar %}
+{# show_all = true si mostrar está vacío (muestra todo por defecto) #}
+{% set show_all = not mostrar %}
 
 {% if pub.audio_filename %}
 <audio id="bgAudio" src="{{ url_for('static', filename='musica/' + pub.audio_filename) }}" loop preload="auto"></audio>
 {% endif %}
 
-<div class="container mt-4 mb-5">
-  <!-- FLYER HERO -->
-  {% if pub.flyer_filename and 'flyer' in show %}
-  <div class="rounded-5 overflow-hidden mb-4 shadow-lg position-relative" style="max-height:420px;">
-    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
-         class="w-100" style="object-fit:cover;max-height:420px;" alt="{{ pub.nombre }}">
-    {% if pub.logo_filename and 'logo' in show %}
-    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-         class="position-absolute bottom-0 start-0 m-3 rounded-circle border border-3 border-white shadow"
-         style="width:72px;height:72px;object-fit:cover;" alt="logo">
-    {% endif %}
-  </div>
-  {% endif %}
-
-  <div class="glass-panel rounded-5 p-4">
-
-    <!-- Header: logo + título -->
-    <div class="d-flex align-items-center gap-3 mb-3">
-      {% if pub.logo_filename and 'logo' in show and pub.flyer_filename not in [None,''] %}
+<!-- ══ HERO: FLYER A PANTALLA COMPLETA ══════════════════════════════════════ -->
+{% if pub.flyer_filename %}
+<div class="position-relative w-100" style="height:70vh;min-height:380px;max-height:680px;overflow:hidden;">
+  <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
+       class="w-100 h-100" style="object-fit:cover;object-position:center top;" alt="{{ pub.nombre }}">
+  <!-- Gradiente inferior -->
+  <div class="position-absolute bottom-0 start-0 end-0"
+       style="background:linear-gradient(transparent 0%,rgba(0,0,0,0.75) 100%);height:55%;"></div>
+  <!-- Título + logo overlaid -->
+  <div class="position-absolute bottom-0 start-0 w-100 px-3 px-md-5 pb-4">
+    <div class="d-flex align-items-end gap-3">
+      {% if pub.logo_filename %}
       <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-           class="rounded-circle border" style="width:56px;height:56px;object-fit:cover;flex-shrink:0;" alt="logo">
+           class="rounded-circle border border-3 border-white shadow flex-shrink-0"
+           style="width:80px;height:80px;object-fit:cover;" alt="logo">
       {% endif %}
       <div>
-        <h2 class="fw-bold text-orange mb-0">{{ pub.nombre }}</h2>
-        {% if pub.tipo_evento and 'tipo' in show %}
-        <span class="badge rounded-pill" style="background:rgba(255,140,0,0.15);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+        <h1 class="fw-bold text-white mb-1" style="text-shadow:0 2px 8px rgba(0,0,0,0.5);font-size:clamp(1.5rem,4vw,2.8rem);">
+          {{ pub.nombre }}
+        </h1>
+        {% if pub.tipo_evento and (show_all or 'tipo' in mostrar) %}
+        <span class="badge rounded-pill fw-semibold px-3 py-1"
+              style="background:rgba(255,140,0,0.85);color:#fff;font-size:0.85rem;">
           {{ pub.tipo_evento }}
         </span>
         {% endif %}
       </div>
-      {% if pub.audio_filename %}
-      <button class="btn btn-sm rounded-pill ms-auto px-3" id="audioBtn"
-              style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);"
-              onclick="toggleAudio()" title="Reproducir/Pausar audio">
-        <i class="bi bi-music-note-beamed me-1"></i>Audio
-      </button>
-      {% endif %}
     </div>
-
-    <!-- FECHAS -->
-    {% if 'fecha' in show %}
-    <div class="d-flex gap-3 mb-3 flex-wrap">
-      <div class="p-2 rounded-3" style="background:rgba(255,140,0,0.07);">
-        <small class="text-muted d-block">Fecha</small>
-        <span class="fw-bold">{{ pub.fecha_inicio.strftime('%d/%m/%Y') }}</span>
-        {% if pub.fecha_fin %}
-        <span class="text-muted"> al </span>
-        <span class="fw-bold">{{ pub.fecha_fin.strftime('%d/%m/%Y') }}</span>
-        {% endif %}
-      </div>
-      {% if pub.hora_encuentro and 'hora' in show %}
-      <div class="p-2 rounded-3" style="background:rgba(255,140,0,0.07);">
-        <small class="text-muted d-block">Hora de encuentro</small>
-        <span class="fw-bold"><i class="bi bi-clock me-1"></i>{{ pub.hora_encuentro }}</span>
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- DESCRIPCIÓN -->
-    {% if pub.descripcion and 'descripcion' in show %}
-    <p class="text-secondary mb-3">{{ pub.descripcion }}</p>
-    {% endif %}
-
-    <!-- CAMINATA FIELDS -->
-    {% if pub.tipo_evento == 'Caminata' %}
-      {% if pub.lugar and 'lugar' in show %}
-      <div class="mb-2"><i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Lugar:</strong> {{ pub.lugar }}</div>
-      {% endif %}
-      {% if pub.punto_salida and 'lugar' in show %}
-      <div class="mb-2"><i class="bi bi-pin-map-fill text-orange me-2"></i><strong>Punto de salida:</strong> {{ pub.punto_salida }}</div>
-      {% endif %}
-      {% if pub.recomendaciones and 'recomendaciones' in show %}
-      <div class="mb-3 p-3 rounded-4" style="background:rgba(25,135,84,0.07);border:1px solid rgba(25,135,84,0.15);">
-        <div class="fw-semibold text-success mb-1"><i class="bi bi-lightbulb me-1"></i>Recomendaciones</div>
-        <p class="small mb-0">{{ pub.recomendaciones }}</p>
-      </div>
-      {% endif %}
-      {% if pub.desc_caminata and 'desc_caminata' in show %}
-      <p class="small text-secondary mb-3">{{ pub.desc_caminata }}</p>
-      {% endif %}
-    {% endif %}
-
-    <!-- RIFA LINK -->
-    {% if pub.tipo_evento == 'Rifa' and pub.rifa_url and 'rifa' in show %}
-    <a href="{{ pub.rifa_url }}" class="btn btn-orange rounded-pill px-4 mb-3">
-      <i class="bi bi-ticket-perforated me-2"></i>Ver Rifa
+  </div>
+  <!-- Botones flotantes top-right -->
+  <div class="position-absolute top-0 end-0 p-3 d-flex gap-2">
+    <a href="{{ url_for('main.eventos_publicos') }}"
+       class="btn btn-sm rounded-pill px-3 fw-semibold"
+       style="background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+      <i class="bi bi-arrow-left me-1"></i>Volver
     </a>
+    {% if pub.audio_filename %}
+    <button onclick="toggleAudio()" id="audioBtn"
+            class="btn btn-sm rounded-pill px-3 fw-semibold"
+            style="background:rgba(255,255,255,0.2);backdrop-filter:blur(8px);color:#fff;border:1px solid rgba(255,255,255,0.3);">
+      <i class="bi bi-music-note-beamed me-1"></i><span id="audioBtnTxt">♪ Sonido</span>
+    </button>
     {% endif %}
+    <button onclick="compartirEvento()"
+            class="btn btn-sm rounded-pill px-3 fw-semibold"
+            style="background:rgba(255,140,0,0.85);backdrop-filter:blur(8px);color:#fff;border:none;">
+      <i class="bi bi-share me-1"></i>Compartir
+    </button>
+  </div>
+</div>
 
-    <!-- DIRECCIÓN Y URL -->
-    {% if pub.direccion and 'direccion' in show %}
-    <div class="mb-2"><i class="bi bi-house-fill text-orange me-2"></i><strong>Dirección:</strong> {{ pub.direccion }}</div>
+{% else %}
+<!-- Sin flyer: header de página simple -->
+<div class="w-100 py-5 px-3 px-md-5" style="background:linear-gradient(135deg,rgba(255,140,0,0.12),rgba(255,193,7,0.08));">
+  <div class="container-lg d-flex align-items-center gap-4 flex-wrap">
+    {% if pub.logo_filename %}
+    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
+         class="rounded-circle border shadow" style="width:90px;height:90px;object-fit:cover;flex-shrink:0;" alt="logo">
     {% endif %}
-    {% if pub.url_externa and 'url' in show %}
-    <div class="mb-3">
-      <a href="{{ pub.url_externa }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
-        <i class="bi bi-link-45deg me-1"></i>Más información
+    <div class="flex-grow-1">
+      <h1 class="fw-bold text-orange mb-1">{{ pub.nombre }}</h1>
+      {% if pub.tipo_evento and (show_all or 'tipo' in mostrar) %}
+      <span class="badge rounded-pill" style="background:rgba(255,140,0,0.15);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+        {{ pub.tipo_evento }}
+      </span>
+      {% endif %}
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+        <i class="bi bi-arrow-left me-1"></i>Volver
       </a>
-    </div>
-    {% endif %}
-
-    <!-- SINPE / CUENTA -->
-    {% if (pub.sinpe_info and 'sinpe' in show) or (pub.cuenta_info and 'cuenta' in show) %}
-    <div class="p-3 rounded-4 mb-3" style="background:rgba(13,110,253,0.06);border:1px solid rgba(13,110,253,0.15);">
-      <div class="fw-bold mb-2"><i class="bi bi-credit-card-fill me-2 text-primary"></i>Información de pago</div>
-      {% if pub.sinpe_info and 'sinpe' in show %}
-      <div class="small mb-1"><span class="text-muted">SINPE:</span> <strong>{{ pub.sinpe_info }}</strong></div>
-      {% endif %}
-      {% if pub.cuenta_info and 'cuenta' in show %}
-      <div class="small"><span class="text-muted">Cuenta:</span> <strong>{{ pub.cuenta_info }}</strong></div>
-      {% endif %}
-    </div>
-    {% endif %}
-
-    <!-- COMPARTIR -->
-    <div class="d-flex gap-2 pt-2">
-      <button onclick="compartirEvento()" class="btn btn-outline-orange rounded-pill px-4">
-        <i class="bi bi-share me-2"></i>Compartir
+      {% if pub.audio_filename %}
+      <button onclick="toggleAudio()" class="btn btn-sm rounded-pill px-3"
+              style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+        <i class="bi bi-music-note-beamed me-1"></i>Sonido
       </button>
-      <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill px-3">
-        <i class="bi bi-arrow-left me-1"></i>Eventos
-      </a>
+      {% endif %}
+      <button onclick="compartirEvento()" class="btn btn-orange rounded-pill btn-sm px-3">
+        <i class="bi bi-share me-1"></i>Compartir
+      </button>
     </div>
   </div>
 </div>
+{% endif %}
+
+<!-- ══ CONTENIDO PRINCIPAL ═══════════════════════════════════════════════════ -->
+<div class="container-lg px-3 px-md-4 py-4 mb-5">
+
+  <!-- FECHAS -->
+  {% if show_all or 'fecha' in mostrar %}
+  <div class="d-flex flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-2 px-4 py-3 rounded-4 shadow-sm"
+         style="background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.2);">
+      <i class="bi bi-calendar3 fs-4 text-orange"></i>
+      <div>
+        <small class="text-muted d-block" style="font-size:0.72rem;">FECHA</small>
+        <span class="fw-bold">{{ pub.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+        {% if pub.fecha_fin %}
+        <span class="text-muted mx-1">→</span>
+        <span class="fw-bold">{{ pub.fecha_fin.strftime('%d/%m/%Y') }}</span>
+        {% endif %}
+      </div>
+    </div>
+    {% if pub.hora_encuentro and (show_all or 'hora' in mostrar) %}
+    <div class="d-flex align-items-center gap-2 px-4 py-3 rounded-4 shadow-sm"
+         style="background:rgba(255,140,0,0.08);border:1px solid rgba(255,140,0,0.2);">
+      <i class="bi bi-clock fs-4 text-orange"></i>
+      <div>
+        <small class="text-muted d-block" style="font-size:0.72rem;">HORA</small>
+        <span class="fw-bold">{{ pub.hora_encuentro }}</span>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <div class="col-12 col-lg-8">
+
+      <!-- DESCRIPCIÓN -->
+      {% if pub.descripcion and (show_all or 'descripcion' in mostrar) %}
+      <p class="fs-5 text-secondary mb-4" style="line-height:1.8;">{{ pub.descripcion }}</p>
+      {% endif %}
+
+      <!-- CAMINATA -->
+      {% if pub.tipo_evento == 'Caminata' %}
+        {% if (pub.lugar or pub.punto_salida) and (show_all or 'lugar' in mostrar) %}
+        <div class="mb-4 p-4 rounded-4 shadow-sm" style="background:rgba(13,110,253,0.05);border:1px solid rgba(13,110,253,0.12);">
+          <h5 class="fw-bold mb-3"><i class="bi bi-map-fill text-primary me-2"></i>Ubicación</h5>
+          {% if pub.lugar %}
+          <div class="d-flex gap-2 mb-2">
+            <i class="bi bi-geo-alt-fill text-orange mt-1 flex-shrink-0"></i>
+            <div><small class="text-muted d-block">Lugar</small><span class="fw-semibold">{{ pub.lugar }}</span></div>
+          </div>
+          {% endif %}
+          {% if pub.punto_salida %}
+          <div class="d-flex gap-2">
+            <i class="bi bi-pin-map-fill text-orange mt-1 flex-shrink-0"></i>
+            <div><small class="text-muted d-block">Punto de salida</small><span class="fw-semibold">{{ pub.punto_salida }}</span></div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if pub.recomendaciones and (show_all or 'recomendaciones' in mostrar) %}
+        <div class="mb-4 p-4 rounded-4 shadow-sm" style="background:rgba(25,135,84,0.06);border:1px solid rgba(25,135,84,0.15);">
+          <h5 class="fw-bold mb-2 text-success"><i class="bi bi-lightbulb-fill me-2"></i>Recomendaciones</h5>
+          <p class="mb-0" style="white-space:pre-line;">{{ pub.recomendaciones }}</p>
+        </div>
+        {% endif %}
+
+        {% if pub.desc_caminata and (show_all or 'desc_caminata' in mostrar) %}
+        <p class="text-secondary mb-4" style="line-height:1.8;white-space:pre-line;">{{ pub.desc_caminata }}</p>
+        {% endif %}
+      {% endif %}
+
+      <!-- RIFA -->
+      {% if pub.tipo_evento == 'Rifa' and pub.rifa_url and (show_all or 'rifa' in mostrar) %}
+      <a href="{{ pub.rifa_url }}" class="btn btn-orange rounded-pill px-5 py-2 fw-bold fs-5 mb-4 shadow">
+        <i class="bi bi-ticket-perforated me-2"></i>Ir a la Rifa
+      </a>
+      {% endif %}
+
+      <!-- DIRECCIÓN -->
+      {% if pub.direccion and (show_all or 'direccion' in mostrar) %}
+      <div class="d-flex gap-2 mb-3">
+        <i class="bi bi-house-fill text-orange fs-5 mt-1 flex-shrink-0"></i>
+        <div><small class="text-muted d-block">Dirección</small><span class="fw-semibold">{{ pub.direccion }}</span></div>
+      </div>
+      {% endif %}
+
+      <!-- URL -->
+      {% if pub.url_externa and (show_all or 'url' in mostrar) %}
+      <div class="mb-4">
+        <a href="{{ pub.url_externa }}" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+          <i class="bi bi-box-arrow-up-right me-2"></i>Más información
+        </a>
+      </div>
+      {% endif %}
+
+    </div><!-- /col-lg-8 -->
+
+    <!-- SIDEBAR PAGO -->
+    <div class="col-12 col-lg-4">
+      {% if (pub.sinpe_info and (show_all or 'sinpe' in mostrar)) or (pub.cuenta_info and (show_all or 'cuenta' in mostrar)) %}
+      <div class="p-4 rounded-4 shadow-sm sticky-top" style="top:80px;background:rgba(13,110,253,0.06);border:1px solid rgba(13,110,253,0.15);">
+        <h5 class="fw-bold mb-3"><i class="bi bi-credit-card-fill text-primary me-2"></i>Información de pago</h5>
+        {% if pub.sinpe_info and (show_all or 'sinpe' in mostrar) %}
+        <div class="mb-3">
+          <small class="text-muted d-block mb-1">SINPE Móvil</small>
+          <div class="fw-bold fs-5 text-dark">{{ pub.sinpe_info }}</div>
+        </div>
+        {% endif %}
+        {% if pub.cuenta_info and (show_all or 'cuenta' in mostrar) %}
+        <div>
+          <small class="text-muted d-block mb-1">Cuenta bancaria</small>
+          <div class="fw-semibold text-dark" style="font-size:0.9rem;word-break:break-all;">{{ pub.cuenta_info }}</div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+  </div><!-- /row -->
+
+  <!-- COMPARTIR (bottom) -->
+  <div class="mt-4 pt-3 border-top d-flex gap-3 align-items-center flex-wrap">
+    <button onclick="compartirEvento()" class="btn btn-orange rounded-pill px-4 fw-semibold">
+      <i class="bi bi-share me-2"></i>Compartir este evento
+    </button>
+    <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-arrow-left me-1"></i>Ver todos los eventos
+    </a>
+  </div>
+
+</div><!-- /container-lg -->
 
 <script>
 let _audioPlaying = false;
 const _audio = document.getElementById('bgAudio');
 if (_audio) {
-    _audio.play().then(() => { _audioPlaying = true; }).catch(() => {});
+    _audio.play().then(() => {
+        _audioPlaying = true;
+        const t = document.getElementById('audioBtnTxt');
+        if (t) t.textContent = '♪ Sonando';
+    }).catch(() => {});
 }
 function toggleAudio() {
     if (!_audio) return;
-    if (_audioPlaying) { _audio.pause(); _audioPlaying = false; }
-    else { _audio.play(); _audioPlaying = true; }
+    const t = document.getElementById('audioBtnTxt');
+    if (_audioPlaying) {
+        _audio.pause(); _audioPlaying = false;
+        if (t) t.textContent = '♪ Sonido';
+    } else {
+        _audio.play(); _audioPlaying = true;
+        if (t) t.textContent = '♪ Sonando';
+    }
 }
 function compartirEvento() {
     const url = window.location.href;
     const title = {{ pub.nombre | tojson }};
     if (navigator.share) { navigator.share({ title, url }); }
-    else { navigator.clipboard?.writeText(url); alert('¡Enlace copiado!'); }
+    else { navigator.clipboard?.writeText(url).then(() => alert('¡Enlace copiado!')); }
 }
 </script>
 {% endblock %}
