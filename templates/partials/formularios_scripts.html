@@ -349,7 +349,7 @@ async function viewResponses(formId) {
         document.getElementById('responsesTable').innerHTML = '<p class="text-muted text-center py-4">Sin respuestas aún.</p>';
     } else {
         const hasScore = data.responses.some(r => r.score !== null && r.score !== undefined);
-        let headers = '<th style="width:32px">#</th><th>Nombre</th><th class="text-nowrap">Fecha</th>';
+        let headers = '<th style="width:32px">#</th><th>Nombre</th>';
         if (hasScore) headers += '<th>Nota</th>';
         headers += '<th class="text-center">Acciones</th>';
 
@@ -358,8 +358,7 @@ async function viewResponses(formId) {
                 <td>
                     <span class="text-primary fw-semibold" style="cursor:pointer;" onclick="viewResponseDetail(${i})" title="Ver detalle">${r.nombre_completo || '—'}</span>
                     ${r.email ? `<br><small class="text-muted">${r.email}</small>` : ''}
-                </td>
-                <td class="text-nowrap text-muted small">${r.submitted_at}</td>`;
+                </td>`;
             if (hasScore) {
                 row += `<td><span class="badge rounded-pill ${r.score >= 70 ? 'bg-success' : 'bg-danger'}">${r.score !== null ? r.score + '%' : '—'}</span></td>`;
             }
@@ -419,12 +418,31 @@ function editResponseAdmin(index) {
             <input type="tel" class="form-control form-control-sm" id="erTelefono" value="${r.telefono || ''}"></div>
     </div><hr class="my-2">`;
     data.fields.forEach(f => {
-        let val = r.answers[String(f.id)];
-        if (Array.isArray(val)) val = val.join(', ');
-        val = val || '';
-        html += `<div class="mb-2">
-            <label class="fw-semibold small text-muted">${f.label}</label>
-            <input type="text" class="form-control form-control-sm" data-field-id="${f.id}" value="${String(val).replace(/"/g, '&quot;')}">
+        const rawVal = r.answers[String(f.id)];
+        let fieldHtml = '';
+        if (f.field_type === 'radio' && f.options && f.options.length) {
+            const currentVal = Array.isArray(rawVal) ? rawVal[0] : (rawVal || '');
+            const opts = f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_er_${f.id}" data-field-id="${f.id}" value="${o}" ${currentVal === o ? 'checked' : ''}>
+                    <label class="form-check-label small">${o}</label>
+                </div>`).join('');
+            fieldHtml = opts;
+        } else if (f.field_type === 'checkbox' && f.options && f.options.length) {
+            const currentVals = Array.isArray(rawVal) ? rawVal : (rawVal ? [rawVal] : []);
+            const opts = f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="field_er_${f.id}" data-field-id="${f.id}" value="${o}" ${currentVals.includes(o) ? 'checked' : ''}>
+                    <label class="form-check-label small">${o}</label>
+                </div>`).join('');
+            fieldHtml = opts;
+        } else {
+            const textVal = Array.isArray(rawVal) ? rawVal.join(', ') : (rawVal || '');
+            fieldHtml = `<input type="text" class="form-control form-control-sm" data-field-id="${f.id}" value="${String(textVal).replace(/"/g, '&quot;')}">` ;
+        }
+        html += `<div class="mb-3 p-2 rounded-3" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+            <label class="fw-semibold small text-muted d-block mb-1">${f.label}</label>
+            ${fieldHtml}
         </div>`;
     });
     document.getElementById('editResponseBody').innerHTML = html;
@@ -435,8 +453,21 @@ async function saveEditedResponse() {
     const ctx = window._editingResponse;
     if (!ctx) return;
     const answers = {};
-    document.querySelectorAll('#editResponseBody [data-field-id]').forEach(input => {
-        answers[input.dataset.fieldId] = input.value;
+    const fieldIds = new Set();
+    document.querySelectorAll('#editResponseBody [data-field-id]').forEach(el => fieldIds.add(el.dataset.fieldId));
+    fieldIds.forEach(fid => {
+        const inputs = document.querySelectorAll(`#editResponseBody [data-field-id="${fid}"]`);
+        if (!inputs.length) return;
+        const t = inputs[0].type;
+        if (t === 'radio') {
+            const checked = document.querySelector(`#editResponseBody [data-field-id="${fid}"]:checked`);
+            answers[fid] = checked ? checked.value : '';
+        } else if (t === 'checkbox') {
+            const checked = document.querySelectorAll(`#editResponseBody [data-field-id="${fid}"]:checked`);
+            answers[fid] = Array.from(checked).map(c => c.value);
+        } else {
+            answers[fid] = inputs[0].value;
+        }
     });
     const res = await fetch(`/api/forms/admin/responses/${ctx.id}`, {
         method: 'PUT',

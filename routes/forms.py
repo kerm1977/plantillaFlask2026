@@ -370,7 +370,8 @@ def api_get_responses(form_id):
             row['answers'][str(f.id)] = val
         output.append(row)
 
-    fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type} for f in fields]
+    fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type,
+                    'options': json.loads(f.options) if f.options else []} for f in fields]
     return jsonify({'fields': fields_info, 'responses': output})
 
 
@@ -575,7 +576,7 @@ def api_admin_update_response(response_id):
     fields = FormField.query.filter_by(form_id=resp.form_id).order_by(FormField.order).all()
     for field in fields:
         answer_value = answers_data.get(str(field.id), '')
-        val = str(answer_value)
+        val = json.dumps(answer_value, ensure_ascii=False) if isinstance(answer_value, list) else str(answer_value)
         if field.id in existing:
             existing[field.id].value = val
         else:
