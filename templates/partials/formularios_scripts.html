@@ -402,7 +402,9 @@ function viewResponseDetail(index) {
     });
     document.getElementById('responseDetailBody').innerHTML = html;
     document.getElementById('responseDetailName').textContent = r.nombre_completo || 'Detalle';
-    new bootstrap.Modal(document.getElementById('responseDetailModal')).show();
+    const rdModal = document.getElementById('responseDetailModal');
+    if (rdModal.parentElement !== document.body) document.body.appendChild(rdModal);
+    new bootstrap.Modal(rdModal).show();
 }
 
 function editResponseAdmin(index) {
@@ -446,7 +448,9 @@ function editResponseAdmin(index) {
         </div>`;
     });
     document.getElementById('editResponseBody').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('editResponseModal')).show();
+    const erModal = document.getElementById('editResponseModal');
+    if (erModal.parentElement !== document.body) document.body.appendChild(erModal);
+    new bootstrap.Modal(erModal).show();
 }
 
 async function saveEditedResponse() {
