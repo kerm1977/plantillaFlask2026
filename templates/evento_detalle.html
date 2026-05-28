@@ -5,7 +5,7 @@
 {% set show_all = not mostrar %}
 
 {% if pub.audio_filename %}
-<audio id="bgAudio" src="{{ url_for('static', filename='musica/' + pub.audio_filename) }}" loop preload="auto"></audio>
+<audio id="bgAudio" src="{{ url_for('static', filename='musica/' + pub.audio_filename) }}" preload="auto"></audio>
 {% endif %}
 
 <style>
@@ -71,7 +71,7 @@
     <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
          style="width:clamp(320px,38vw,450px);height:clamp(320px,38vw,450px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
     {% endif %}
-    <div class="d-flex gap-2 justify-content-end mb-3">
+    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end mb-3">
       <a href="https://www.latribu.top" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
         <i class="bi bi-arrow-left me-1"></i>Volver
       </a>
