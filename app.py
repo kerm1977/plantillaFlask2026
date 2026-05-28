@@ -63,7 +63,8 @@ def _migrate_publicacion():
             ("instagram",  "VARCHAR(300)"),
             ("tiktok",     "VARCHAR(300)"),
             ("youtube",    "VARCHAR(300)"),
-            ("rifa_url_2", "VARCHAR(500)"),
+            ("rifa_url_2",          "VARCHAR(500)"),
+            ("colaborar_detalle",   "VARCHAR(300) DEFAULT 'Apoyo Sueños de Vida'"),
         ]
         for col, definition in migrations:
             if col not in existing_cols:

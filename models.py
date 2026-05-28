@@ -219,8 +219,9 @@ class Publicacion(db.Model):
     direccion       = db.Column(db.String(255))
     url_externa     = db.Column(db.String(500))
     mostrar         = db.Column(db.Text, default='[]')  # JSON list of visible fields
-    sinpe_info      = db.Column(db.String(300))
-    cuenta_info     = db.Column(db.String(400))
+    sinpe_info         = db.Column(db.String(300))
+    cuenta_info        = db.Column(db.String(400))
+    colaborar_detalle  = db.Column(db.String(300), default='Apoyo Sueños de Vida')
     telefono        = db.Column(db.String(50))
     whatsapp        = db.Column(db.String(50))
     facebook        = db.Column(db.String(300))

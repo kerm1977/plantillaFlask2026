@@ -44,6 +44,24 @@
   .ev-chip small { font-size: 0.65rem; color: #999; text-transform: uppercase; letter-spacing: .04em; display: block; }
   .ev-chip span  { font-weight: 700; color: #000; font-size: 0.95rem; }
   .ev-section    { font-family: 'Ronda', system-ui, sans-serif; }
+
+  /* Shimmer glow del flyer */
+  @keyframes flyerGlow {
+    0%   { box-shadow: 0 0 18px 4px rgba(255,140,0,0.35), 0 0 40px 8px rgba(255,193,7,0.15); }
+    33%  { box-shadow: 0 0 22px 6px rgba(255,180,0,0.45), 0 0 50px 10px rgba(255,220,100,0.2); }
+    66%  { box-shadow: 0 0 18px 4px rgba(255,100,0,0.3),  0 0 38px 8px rgba(255,160,50,0.18); }
+    100% { box-shadow: 0 0 18px 4px rgba(255,140,0,0.35), 0 0 40px 8px rgba(255,193,7,0.15); }
+  }
+  .flyer-shimmer {
+    border-radius: 1.4rem;
+    overflow: hidden;
+    cursor: zoom-in;
+    animation: flyerGlow 3.5s ease-in-out infinite;
+    border: 2px solid rgba(255,160,0,0.25);
+    transition: transform 0.25s ease;
+  }
+  .flyer-shimmer:hover { transform: scale(1.012); }
+  .flyer-shimmer img   { border-radius: 1.35rem; display:block; width:100%; height:auto; }
 </style>
 
 <!-- ══ HEADER: LOGO SIEMPRE VISIBLE ══════════════════════════════════════ -->
@@ -61,6 +79,13 @@
       <button onclick="toggleAudio()" id="audioBtn" class="btn btn-sm rounded-pill px-3"
               style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
         <i class="bi bi-music-note-beamed me-1"></i><span id="audioBtnTxt">Sonido</span>
+      </button>
+      {% endif %}
+      {% if session.get('role') == 'Superusuario' %}
+      <button onclick="editEvento({{ pub.id }})" class="btn btn-sm rounded-pill px-3"
+              style="background:rgba(255,140,0,0.15);color:#cc6e00;border:1px solid rgba(255,140,0,0.4);"
+              title="Editar evento">
+        <i class="bi bi-pencil-fill me-1"></i>Editar
       </button>
       {% endif %}
       <button onclick="compartirEvento()" class="btn btn-orange rounded-pill btn-sm px-3">
@@ -262,10 +287,12 @@
 
   <!-- FLYER COMPLETO — fuera del row, siempre debajo de todo el contenido -->
   {% if pub.flyer_filename %}
-  <div class="mt-4 rounded-4 overflow-hidden" style="border:1px solid rgba(0,0,0,0.08);max-width:520px;margin-left:auto;margin-right:auto;">
-    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
-         class="w-100 d-block" style="height:auto;" alt="{{ pub.nombre }}">
+  {% set flyer_url = url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) %}
+  <div class="mt-4 flyer-shimmer" style="max-width:520px;margin-left:auto;margin-right:auto;"
+       onclick="document.getElementById('flyerModal').querySelector('img').src='{{ flyer_url }}'; new bootstrap.Modal(document.getElementById('flyerModal')).show();">
+    <img src="{{ flyer_url }}" alt="{{ pub.nombre }}">
   </div>
+  <p class="text-center mt-2 small text-muted"><i class="bi bi-zoom-in me-1"></i>Toca el flyer para verlo completo</p>
   {% endif %}
 
   <div class="mt-4 pt-3 border-top d-flex gap-3 align-items-center flex-wrap">
@@ -319,13 +346,56 @@
         <div class="rounded-4 p-3 text-center" style="background:rgba(255,140,0,0.07);border:1px dashed rgba(255,140,0,0.4);">
           <i class="bi bi-info-circle text-orange me-1"></i>
           <span class="small fw-semibold text-orange">Recuerda colocar en el detalle:</span><br>
-          <span class="fw-bold" style="font-size:1.05rem;color:#cc6e00;">Apoyo Sueños de Vida</span>
+          <span class="fw-bold" id="colaborarDetalleText" style="font-size:1.05rem;color:#cc6e00;">
+            {{ pub.colaborar_detalle or 'Apoyo Sueños de Vida' }}
+          </span>
+          {% if session.get('role') == 'Superusuario' %}
+          <div class="mt-2">
+            <button class="btn btn-sm rounded-pill px-3"
+                    style="background:rgba(255,140,0,0.15);color:#cc6e00;border:1px solid rgba(255,140,0,0.3);font-size:0.78rem;"
+                    onclick="toggleEditDetalle()">
+              <i class="bi bi-pencil-fill me-1"></i>Editar detalle
+            </button>
+          </div>
+          <div id="editDetalleBox" class="mt-2 d-none">
+            <input type="text" id="editDetalleInput" class="form-control form-control-sm rounded-pill text-center fw-bold"
+                   style="color:#cc6e00;border-color:rgba(255,140,0,0.4);"
+                   value="{{ pub.colaborar_detalle or 'Apoyo Sueños de Vida' }}"
+                   maxlength="200">
+            <div class="d-flex gap-2 justify-content-center mt-2">
+              <button class="btn btn-orange btn-sm rounded-pill px-3 fw-semibold" onclick="saveDetalle({{ pub.id }})">
+                <i class="bi bi-check2 me-1"></i>Guardar
+              </button>
+              <button class="btn btn-sm rounded-pill px-3" onclick="toggleEditDetalle()"
+                      style="background:rgba(0,0,0,0.06);color:#666;">
+                Cancelar
+              </button>
+            </div>
+          </div>
+          {% endif %}
         </div>
 
       </div>
     </div>
   </div>
 </div>
+
+<!-- ══ MODAL VER FLYER ════════════════════════════════════════════════════ -->
+<div class="modal fade" id="flyerModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 bg-transparent shadow-none">
+      <div class="modal-body p-2 text-center position-relative">
+        <button type="button" class="btn-close btn-close-white position-absolute top-0 end-0 m-2"
+                data-bs-dismiss="modal" style="z-index:10;background-color:rgba(0,0,0,0.5);border-radius:50%;padding:.5rem;"></button>
+        <img src="" alt="Flyer" class="rounded-4 img-fluid shadow-lg" style="max-height:90vh;width:auto;">
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if session.get('role') == 'Superusuario' %}
+{% include 'partials/pub_edit_modal.html' %}
+{% endif %}
 
 <script>
 let _audioPlaying = false;
@@ -342,6 +412,22 @@ function toggleAudio() {
     const t = document.getElementById('audioBtnTxt');
     if (_audioPlaying) { _audio.pause(); _audioPlaying = false; if (t) t.textContent = 'Sonido'; }
     else { _audio.play(); _audioPlaying = true; if (t) t.textContent = 'Sonando'; }
+}
+function toggleEditDetalle() {
+    const box = document.getElementById('editDetalleBox');
+    if (box) box.classList.toggle('d-none');
+}
+async function saveDetalle(pubId) {
+    const val = document.getElementById('editDetalleInput').value.trim();
+    if (!val) return;
+    const fd = new FormData();
+    fd.append('colaborar_detalle', val);
+    const res = await fetch(`/api/publicaciones/${pubId}`, { method: 'PUT', body: fd });
+    const d = await res.json();
+    if (d.ok) {
+        document.getElementById('colaborarDetalleText').textContent = val;
+        toggleEditDetalle();
+    } else { alert(d.error || 'Error al guardar'); }
 }
 function compartirEvento() {
     const url = 'https://www.latribu.top' + window.location.pathname;

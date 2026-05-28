@@ -41,6 +41,7 @@ def _pub_dict(p):
         'direccion': p.direccion or '', 'url_externa': p.url_externa or '',
         'mostrar': p.mostrar or '[]', 'sinpe_info': p.sinpe_info or '',
         'cuenta_info': p.cuenta_info or '',
+        'colaborar_detalle': p.colaborar_detalle or 'Apoyo Sueños de Vida',
         'telefono': p.telefono or '', 'whatsapp': p.whatsapp or '',
         'facebook': p.facebook or '', 'instagram': p.instagram or '',
         'tiktok': p.tiktok or '', 'youtube': p.youtube or '',
@@ -78,6 +79,7 @@ def api_pub_create():
         direccion=f.get('direccion', ''), url_externa=f.get('url_externa', ''),
         mostrar=f.get('mostrar', '[]'), sinpe_info=f.get('sinpe_info', ''),
         cuenta_info=f.get('cuenta_info', ''), audio_filename=f.get('audio_filename', ''),
+        colaborar_detalle=f.get('colaborar_detalle', 'Apoyo Sueños de Vida'),
         telefono=f.get('telefono', ''), whatsapp=f.get('whatsapp', ''),
         facebook=f.get('facebook', ''), instagram=f.get('instagram', ''),
         tiktok=f.get('tiktok', ''), youtube=f.get('youtube', ''),
@@ -103,7 +105,7 @@ def api_pub_update(pid):
                   'hora_encuentro', 'recomendaciones', 'desc_caminata', 'direccion',
                   'url_externa', 'mostrar', 'sinpe_info', 'cuenta_info', 'audio_filename',
                   'telefono', 'whatsapp', 'facebook', 'instagram', 'tiktok', 'youtube',
-                  'rifa_url_2']:
+                  'rifa_url_2', 'colaborar_detalle']:
         if f.get(field) is not None:
             setattr(p, field, f.get(field))
     if f.get('fecha_inicio'):

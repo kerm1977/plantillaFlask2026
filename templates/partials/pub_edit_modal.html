@@ -1,0 +1,291 @@
+{# Modal de edición de eventos — reutilizable en admin y evento_detalle (solo superusuario) #}
+{% set _rifas    = rifas     if rifas     is defined else [] %}
+{% set _mp3files = mp3_files if mp3_files is defined else [] %}
+
+<div class="modal fade" id="pubModal" tabindex="-1" style="z-index:1060;">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content border-0 rounded-5" style="background:#f8f9fa;">
+      <div class="modal-header border-0 rounded-top-5 px-4 pt-4 pb-3"
+           style="background:linear-gradient(135deg,#ff8c00,#ffb347);">
+        <div>
+          <h5 class="modal-title fw-bold text-white mb-0" id="pubModalTitle">
+            <i class="bi bi-calendar-plus me-2"></i>Nuevo Evento
+          </h5>
+          <small class="text-white opacity-75">Completa los campos del evento</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 py-3">
+        <div id="pubFormMsg"></div>
+        <form id="pubForm" enctype="multipart/form-data">
+          <input type="hidden" id="pubId">
+
+          <!-- ① IMÁGENES -->
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(255,140,0,0.12);">
+                <i class="bi bi-images text-orange fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Imágenes</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold small text-muted">Logo del beneficiado</label>
+                <input type="file" class="form-control form-control-sm" id="pubLogo" name="logo" accept="image/*" onchange="previewImg(this,'prevLogo')">
+                <img id="prevLogo" class="mt-2 rounded-3 d-none w-100" style="max-height:120px;object-fit:cover;">
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold small text-muted">Flyer del evento</label>
+                <input type="file" class="form-control form-control-sm" id="pubFlyer" name="flyer" accept="image/*" onchange="previewImg(this,'prevFlyer')">
+                <img id="prevFlyer" class="mt-2 rounded-3 d-none w-100" style="max-height:120px;object-fit:cover;">
+              </div>
+            </div>
+          </div>
+
+          <!-- ② INFO BÁSICA -->
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(13,110,253,0.1);">
+                <i class="bi bi-info-circle-fill text-primary fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Información básica</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Nombre del Evento <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="pubNombre" placeholder="Nombre del evento..." required>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label fw-semibold small text-muted">Tipo de Evento</label>
+                <select class="form-select form-select-sm" id="pubTipo" onchange="toggleTipoFields()">
+                  <option value="">-- Seleccionar --</option>
+                  <option value="Caminata">🥾 Caminata</option>
+                  <option value="Taller">📚 Taller</option>
+                  <option value="Rifa">🎟️ Rifa</option>
+                </select>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label fw-semibold small text-muted">Fecha del Evento <span class="text-danger">*</span></label>
+                <input type="date" class="form-control form-control-sm" id="pubFechaInicio" required>
+              </div>
+              <div class="col-6 col-md-4">
+                <label class="form-label fw-semibold small text-muted">Fecha Final</label>
+                <input type="date" class="form-control form-control-sm" id="pubFechaFin">
+              </div>
+              <div class="col-12 col-md-8">
+                <label class="form-label fw-semibold small text-muted">Audio de fondo</label>
+                <select class="form-select form-select-sm" id="pubAudio">
+                  <option value="">-- Sin audio --</option>
+                  {% for mp3 in _mp3files %}
+                  <option value="{{ mp3 }}">{{ mp3 }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Descripción del evento</label>
+                <textarea class="form-control form-control-sm" id="pubDesc" rows="3" placeholder="Describe el evento..."></textarea>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Dirección</label>
+                <input type="text" class="form-control form-control-sm" id="pubDireccion" placeholder="Dirección del evento">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">URL externa</label>
+                <input type="url" class="form-control form-control-sm" id="pubUrl" placeholder="https://...">
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ RIFA -->
+          <div class="rounded-4 p-3 mb-3 d-none" id="fieldsRifa" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(255,193,7,0.15);">
+                <i class="bi bi-ticket-perforated-fill text-warning fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Datos de la Rifa</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Primera Rifa</label>
+                <select class="form-select form-select-sm" id="pubRifaUrl">
+                  <option value="">-- Sin rifa --</option>
+                  {% for r in _rifas %}
+                  <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Segunda Rifa <span class="fw-normal text-muted">(opcional)</span></label>
+                <select class="form-select form-select-sm" id="pubRifaUrl2">
+                  <option value="">-- Sin segunda rifa --</option>
+                  {% for r in _rifas %}
+                  <option value="/rifas/{{ r.id }}">{{ r.name }} ({{ r.raffle_date.strftime('%d/%m/%Y') }})</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ③ CAMINATA -->
+          <div class="rounded-4 p-3 mb-3 d-none" id="fieldsCaminata" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(25,135,84,0.1);">
+                <i class="bi bi-map-fill text-success fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Datos de la Caminata</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Lugar de la caminata</label>
+                <input type="text" class="form-control form-control-sm" id="pubLugar">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Punto de salida</label>
+                <input type="text" class="form-control form-control-sm" id="pubPuntoSalida">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label fw-semibold small text-muted">Hora de encuentro</label>
+                <input type="time" class="form-control form-control-sm" id="pubHora">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Recomendaciones</label>
+                <textarea class="form-control form-control-sm" id="pubRecomendaciones" rows="2"></textarea>
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Descripción de la caminata</label>
+                <textarea class="form-control form-control-sm" id="pubDescCaminata" rows="2"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- ④ VISIBILIDAD -->
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(108,117,125,0.1);">
+                <i class="bi bi-eye-fill text-secondary fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Campos visibles públicamente</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2" id="mostrarChecks">
+              {% set opts = [('logo','Logo'),('flyer','Flyer'),('fecha','Fechas'),
+                             ('descripcion','Descripción'),('tipo','Tipo'),('lugar','Lugar'),
+                             ('hora','Hora'),('recomendaciones','Recomendaciones'),
+                             ('desc_caminata','Desc. caminata'),('rifa','Rifa'),
+                             ('direccion','Dirección'),('url','URL'),('sinpe','SINPE'),('cuenta','Cuenta')] %}
+              {% for val, lbl in opts %}
+              <div class="form-check form-check-inline m-0 px-2 py-1 rounded-pill"
+                   style="background:rgba(255,140,0,0.07);border:1px solid rgba(255,140,0,0.18);">
+                <input class="form-check-input" type="checkbox" id="m_{{ val }}" value="{{ val }}" checked>
+                <label class="form-check-label small fw-semibold" for="m_{{ val }}">{{ lbl }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- ⑤ PAGO -->
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(13,110,253,0.1);">
+                <i class="bi bi-credit-card-fill text-primary fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Información de pago</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Seleccionar SINPE</label>
+                <select class="form-select form-select-sm" id="pubSinpe">
+                  <option value="">-- No incluir SINPE --</option>
+                  <option value="86529837 - Jenny Ceciliano Cordoba">86529837 - Jenny Ceciliano Cordoba</option>
+                  <option value="87984232 - Jenny Ceciliano Cordoba">87984232 - Jenny Ceciliano Cordoba</option>
+                  <option value="86227500 - Kenneth Ruiz Matamoros">86227500 - Kenneth Ruiz Matamoros</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Seleccionar CUENTA</label>
+                <select class="form-select form-select-sm" id="pubCuenta">
+                  <option value="">-- No incluir Cuenta --</option>
+                  <option value="Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103">Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103</option>
+                  <option value="Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163">Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163</option>
+                  <option value="Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778">Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778</option>
+                  <option value="Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793">Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793</option>
+                  <option value="Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158">Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</option>
+                </select>
+              </div>
+              <div class="col-12 mt-1">
+                <label class="form-label fw-semibold small text-muted">
+                  <i class="bi bi-tag-fill text-orange me-1"></i>Detalle del pago
+                  <span class="fw-normal text-muted">(texto del modal "Solo Colaborar")</span>
+                </label>
+                <input type="text" class="form-control form-control-sm" id="pubColaborarDetalle"
+                       placeholder="Apoyo Sueños de Vida" maxlength="200">
+              </div>
+            </div>
+          </div>
+
+          <!-- ⑥ REDES SOCIALES -->
+          <div class="rounded-4 p-3 mb-1" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(111,66,193,0.1);">
+                <i class="bi bi-share-fill fs-5" style="color:#6f42c1;"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Contacto y Redes Sociales</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Teléfono</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-telephone-fill text-orange"></i></span>
+                  <input type="tel" class="form-control" id="pubTelefono" placeholder="8888-7777">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">WhatsApp</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-whatsapp text-success"></i></span>
+                  <input type="tel" class="form-control" id="pubWhatsapp" placeholder="50688887777">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Facebook</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-facebook text-primary"></i></span>
+                  <input type="url" class="form-control" id="pubFacebook" placeholder="https://facebook.com/...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Instagram</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="color:#E1306C;"><i class="bi bi-instagram"></i></span>
+                  <input type="url" class="form-control" id="pubInstagram" placeholder="https://instagram.com/...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">TikTok</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-tiktok"></i></span>
+                  <input type="url" class="form-control" id="pubTiktok" placeholder="https://tiktok.com/@...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">YouTube</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="color:#FF0000;"><i class="bi bi-youtube"></i></span>
+                  <input type="url" class="form-control" id="pubYoutube" placeholder="https://youtube.com/...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>
+      <div class="modal-footer border-0 px-4 pb-4 pt-2" style="background:#f8f9fa;">
+        <button class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-orange rounded-pill px-5 fw-bold" onclick="submitEvento()">
+          <i class="bi bi-check2-circle me-2"></i><span id="pubSubmitTxt">Guardar Evento</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'partials/publicaciones_scripts.html' %}

@@ -29,7 +29,8 @@ function toggleTipoFields() {
 function _resetForm() {
     ['pubNombre','pubDesc','pubDireccion','pubUrl','pubLugar','pubPuntoSalida',
      'pubHora','pubRecomendaciones','pubDescCaminata',
-     'pubTelefono','pubWhatsapp','pubFacebook','pubInstagram','pubTiktok','pubYoutube'].forEach(id => {
+     'pubTelefono','pubWhatsapp','pubFacebook','pubInstagram','pubTiktok','pubYoutube',
+     'pubColaborarDetalle'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('pubFechaInicio').value = '';
@@ -79,6 +80,7 @@ async function editEvento(id) {
     document.getElementById('pubUrl').value          = d.url_externa || '';
     document.getElementById('pubSinpe').value        = d.sinpe_info || '';
     document.getElementById('pubCuenta').value       = d.cuenta_info || '';
+    document.getElementById('pubColaborarDetalle').value = d.colaborar_detalle || '';
     document.getElementById('pubTelefono').value     = d.telefono || '';
     document.getElementById('pubWhatsapp').value     = d.whatsapp || '';
     document.getElementById('pubFacebook').value     = d.facebook || '';
@@ -134,7 +136,8 @@ async function submitEvento() {
     fd.append('url_externa',     document.getElementById('pubUrl').value);
     fd.append('sinpe_info',      document.getElementById('pubSinpe').value);
     fd.append('cuenta_info',     document.getElementById('pubCuenta').value);
-    fd.append('telefono',        document.getElementById('pubTelefono').value);
+    fd.append('colaborar_detalle', document.getElementById('pubColaborarDetalle').value);
+    fd.append('telefono',          document.getElementById('pubTelefono').value);
     fd.append('whatsapp',        document.getElementById('pubWhatsapp').value);
     fd.append('facebook',        document.getElementById('pubFacebook').value);
     fd.append('instagram',       document.getElementById('pubInstagram').value);
