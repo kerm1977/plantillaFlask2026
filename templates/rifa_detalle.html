@@ -101,7 +101,7 @@
         
         <h4 class="fw-bold mb-3">Selecciona tu Número</h4>
         
-        <div class="d-flex flex-wrap gap-2 justify-content-center" id="numbersGrid" style="padding:0.5rem 0;">
+        <div id="numbersGrid">
             {% for num in available_numbers %}
             <button class="number-btn"
                     data-number="{{ num }}" onclick="toggleNumber('{{ num }}')">
@@ -125,12 +125,15 @@
                 <span class="fw-bold text-orange fs-4">₡<span id="totalPrice">0</span></span>
             </div>
             
-            <div class="d-flex gap-2 justify-content-center">
+            <div class="d-flex gap-2 justify-content-center flex-wrap">
                 <button onclick="openUserDataModal()" class="btn btn-orange rounded-pill px-4 fw-bold d-none d-md-inline-flex" id="selectBtn">
                     <i class="bi bi-check-lg me-1"></i>Seleccionar
                 </button>
+                <button onclick="deseleccionarNumeros()" class="btn btn-outline-dark rounded-pill px-4" id="deselBtn">
+                    <i class="bi bi-eraser me-1"></i>Deseleccionar
+                </button>
                 <button onclick="openClearModal()" class="btn btn-outline-secondary rounded-pill px-4" id="clearBtn">
-                    <i class="bi bi-x-circle me-1"></i>Limpiar Números
+                    <i class="bi bi-lock me-1"></i>Liberar Números
                 </button>
             </div>
         </div>
@@ -239,14 +242,14 @@
 
 <style>
 .number-btn {
-    width: 3rem;
-    height: 3rem;
+    width: 3.15rem;
+    height: 3.15rem;
     border-radius: 50%;
-    border: 2px solid #0d6efd;
+    border: 2px solid #212529;
     background: transparent;
-    color: #0d6efd;
+    color: #212529;
     font-weight: 700;
-    font-size: 0.82rem;
+    font-size: 0.86rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -255,15 +258,24 @@
     transition: background .15s, transform .15s;
     flex-shrink: 0;
     line-height: 1;
+    box-sizing: border-box;
 }
 .number-btn:hover {
-    background: rgba(13,110,253,0.12);
+    background: rgba(33,37,41,0.1);
     transform: scale(1.1);
 }
 .number-btn.btn-primary {
-    background: #0d6efd;
-    color: #fff;
-    border-color: #0d6efd;
+    background: #212529 !important;
+    color: #fff !important;
+    border-color: #212529 !important;
+    transform: scale(1.05);
+}
+#numbersGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 3.15rem);
+    gap: 0.5rem;
+    justify-content: center;
+    padding: 0.5rem 0;
 }
 </style>
 
@@ -339,6 +351,16 @@ function selectHiker(cedula, nombre, telefono) {
     document.getElementById('modalAutocompleteResults').style.display = 'none';
 }
 
+function deseleccionarNumeros() {
+    selectedNumbers.forEach(num => {
+        const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
+        if (btn) btn.classList.remove('btn-primary');
+    });
+    selectedNumbers = [];
+    clearLocalStorage();
+    updateSelectionPanel();
+}
+
 function toggleNumber(num) {
     const index = selectedNumbers.indexOf(num);
     const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
@@ -346,10 +368,8 @@ function toggleNumber(num) {
     if (index > -1) {
         selectedNumbers.splice(index, 1);
         btn.classList.remove('btn-primary');
-        btn.classList.add('btn-outline-primary');
     } else {
         selectedNumbers.push(num);
-        btn.classList.remove('btn-outline-primary');
         btn.classList.add('btn-primary');
     }
     
