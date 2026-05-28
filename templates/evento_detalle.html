@@ -232,7 +232,7 @@
     <!-- SIDEBAR PAGO -->
     <div class="col-12 col-lg-4">
       {% if (pub.sinpe_info and (show_all or 'sinpe' in mostrar)) or (pub.cuenta_info and (show_all or 'cuenta' in mostrar)) %}
-      <div class="p-4 rounded-4 sticky-top" style="top:80px;background:rgba(13,110,253,0.06);border:1px solid rgba(13,110,253,0.15);">
+      <div class="p-4 rounded-4" style="background:rgba(13,110,253,0.06);border:1px solid rgba(13,110,253,0.15);">
         <h5 class="fw-bold mb-3"><i class="bi bi-credit-card-fill text-primary me-2"></i>Información de pago</h5>
         {% if pub.sinpe_info and (show_all or 'sinpe' in mostrar) %}
         {% set sp = pub.sinpe_info.split(' - ') %}
@@ -257,15 +257,16 @@
       </div>
       {% endif %}
 
-      <!-- FLYER completo debajo de información de pago -->
-      {% if pub.flyer_filename %}
-      <div class="mt-4 rounded-4 overflow-hidden" style="border:1px solid rgba(0,0,0,0.08);">
-        <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
-             class="w-100 d-block" style="height:auto;" alt="{{ pub.nombre }}">
-      </div>
-      {% endif %}
     </div>
   </div>
+
+  <!-- FLYER COMPLETO — fuera del row, siempre debajo de todo el contenido -->
+  {% if pub.flyer_filename %}
+  <div class="mt-4 rounded-4 overflow-hidden" style="border:1px solid rgba(0,0,0,0.08);max-width:520px;margin-left:auto;margin-right:auto;">
+    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
+         class="w-100 d-block" style="height:auto;" alt="{{ pub.nombre }}">
+  </div>
+  {% endif %}
 
   <div class="mt-4 pt-3 border-top d-flex gap-3 align-items-center flex-wrap">
     <button onclick="compartirEvento()" class="btn btn-orange rounded-pill px-4 fw-semibold">
@@ -282,12 +283,12 @@
   <div class="modal-dialog modal-dialog-centered modal-md">
     <div class="modal-content border-0 rounded-5" style="background:#f8fffe;">
       <div class="modal-header border-0 rounded-top-5 px-4 pt-4 pb-3"
-           style="background:linear-gradient(135deg,#198754,#20c997);">
+           style="background:linear-gradient(135deg,#ff8c00,#ffb347);">
         <div>
           <h5 class="modal-title fw-bold text-white mb-0">
             <i class="bi bi-heart-fill me-2"></i>Solo Colaborar
           </h5>
-          <small class="text-white opacity-75">Coloca en detalle: <strong>Apoyo Sueños de Vida</strong></small>
+          <small class="text-white opacity-85">Coloca en detalle: <strong>Apoyo Sueños de Vida</strong></small>
         </div>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
       </div>
@@ -306,7 +307,7 @@
 
         {% if pub.cuenta_info %}
         {% set cp = pub.cuenta_info.split(' - ') %}
-        <div class="p-3 rounded-4 mb-3" style="background:rgba(25,135,84,0.07);border:1.5px solid rgba(25,135,84,0.25);">
+        <div class="p-3 rounded-4 mb-3" style="background:rgba(13,110,253,0.06);border:1.5px solid rgba(13,110,253,0.22);">
           <small class="text-muted d-block mb-1 fw-bold" style="font-size:0.68rem;letter-spacing:.07em;">CUENTA BANCARIA</small>
           <div class="fw-semibold mb-1" style="font-size:0.95rem;color:#000;">{{ cp[0] }}</div>
           {% if cp|length > 1 %}
@@ -315,10 +316,10 @@
         </div>
         {% endif %}
 
-        <div class="rounded-4 p-3 text-center" style="background:rgba(25,135,84,0.06);border:1px dashed rgba(25,135,84,0.3);">
-          <i class="bi bi-info-circle text-success me-1"></i>
-          <span class="small fw-semibold text-success">Recuerda colocar en el detalle:</span><br>
-          <span class="fw-bold" style="font-size:1.05rem;color:#0d6832;">Apoyo Sueños de Vida</span>
+        <div class="rounded-4 p-3 text-center" style="background:rgba(255,140,0,0.07);border:1px dashed rgba(255,140,0,0.4);">
+          <i class="bi bi-info-circle text-orange me-1"></i>
+          <span class="small fw-semibold text-orange">Recuerda colocar en el detalle:</span><br>
+          <span class="fw-bold" style="font-size:1.05rem;color:#cc6e00;">Apoyo Sueños de Vida</span>
         </div>
 
       </div>
