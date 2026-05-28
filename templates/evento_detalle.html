@@ -275,6 +275,14 @@
         {% endif %}
       </div>
       {% endif %}
+
+      <!-- FLYER debajo de información de pago -->
+      {% if pub.flyer_filename %}
+      <div class="mt-4 rounded-4 overflow-hidden" style="border:1px solid rgba(0,0,0,0.08);">
+        <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
+             class="w-100 d-block" style="object-fit:cover;max-height:520px;" alt="{{ pub.nombre }}">
+      </div>
+      {% endif %}
     </div>
   </div>
 
