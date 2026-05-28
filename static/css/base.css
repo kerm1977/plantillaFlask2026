@@ -91,7 +91,7 @@ body {
 /* Botón Global Volver */
 .btn-global-back {
     position: fixed;
-    bottom: calc(var(--nav-mobile-height, 70px) + 85px);
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
     left: 20px;
     width: 50px;
     height: 50px;
