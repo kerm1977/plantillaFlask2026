@@ -78,12 +78,12 @@
   <div class="position-absolute start-50 bottom-0"
        style="transform:translate(-50%, 50%);z-index:5;">
     <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-         style="width:120px;height:120px;object-fit:cover;border-radius:50%;" alt="logo">
+         style="width:clamp(150px,22vw,220px);height:clamp(150px,22vw,220px);object-fit:cover;border-radius:50%;" alt="logo">
   </div>
   {% endif %}
 </div>
 <!-- Espacio para que el logo no tape el contenido -->
-{% if pub.logo_filename %}<div style="height:68px;"></div>{% endif %}
+{% if pub.logo_filename %}<div style="height:calc(clamp(150px,22vw,220px) * 0.52);"></div>{% endif %}
 
 {% else %}
 <!-- ══ SIN FLYER: header minimalista ══════════════════════════════════════ -->
@@ -91,7 +91,7 @@
   <div class="container-lg text-center">
     {% if pub.logo_filename %}
     <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-         style="width:120px;height:120px;object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
+         style="width:clamp(150px,22vw,220px);height:clamp(150px,22vw,220px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
     {% endif %}
     <div class="d-flex gap-2 justify-content-end mb-3">
       <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
