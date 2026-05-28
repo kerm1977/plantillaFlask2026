@@ -54,7 +54,7 @@
 
   <!-- Botones flotantes top-right -->
   <div class="position-absolute top-0 end-0 p-3 d-flex gap-2 flex-wrap justify-content-end">
-    <a href="{{ url_for('main.eventos_publicos') }}"
+    <a href="https://www.latribu.top"
        class="btn btn-sm rounded-pill px-3 fw-semibold"
        style="background:rgba(0,0,0,0.35);backdrop-filter:blur(6px);color:#fff;border:1px solid rgba(255,255,255,0.25);">
       <i class="bi bi-arrow-left me-1"></i>Volver
@@ -78,12 +78,12 @@
   <div class="position-absolute start-50 bottom-0"
        style="transform:translate(-50%, 50%);z-index:5;">
     <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-         style="width:clamp(150px,22vw,220px);height:clamp(150px,22vw,220px);object-fit:cover;border-radius:50%;" alt="logo">
+         style="width:clamp(320px,38vw,450px);height:clamp(320px,38vw,450px);object-fit:cover;border-radius:50%;" alt="logo">
   </div>
   {% endif %}
 </div>
 <!-- Espacio para que el logo no tape el contenido -->
-{% if pub.logo_filename %}<div style="height:calc(clamp(150px,22vw,220px) * 0.52);"></div>{% endif %}
+{% if pub.logo_filename %}<div style="height:calc(clamp(320px,38vw,450px) / 2);"></div>{% endif %}
 
 {% else %}
 <!-- ══ SIN FLYER: header minimalista ══════════════════════════════════════ -->
@@ -91,10 +91,10 @@
   <div class="container-lg text-center">
     {% if pub.logo_filename %}
     <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
-         style="width:clamp(150px,22vw,220px);height:clamp(150px,22vw,220px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
+         style="width:clamp(320px,38vw,450px);height:clamp(320px,38vw,450px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
     {% endif %}
     <div class="d-flex gap-2 justify-content-end mb-3">
-      <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
+      <a href="https://www.latribu.top" class="btn btn-outline-secondary rounded-pill btn-sm px-3">
         <i class="bi bi-arrow-left me-1"></i>Volver
       </a>
       {% if pub.audio_filename %}
@@ -143,8 +143,9 @@
 
   <!-- BOTÓN IR A LA RIFA (justo después de fechas) -->
   {% if pub.tipo_evento == 'Rifa' and pub.rifa_url and (show_all or 'rifa' in mostrar) %}
+  {% set rifa_link = pub.rifa_url.replace('/rifa/', '/rifas/') %}
   <div class="mb-4">
-    <a href="{{ pub.rifa_url }}" class="btn btn-orange rounded-pill px-5 py-2 fw-bold fs-5">
+    <a href="{{ rifa_link }}" class="btn btn-orange rounded-pill px-5 py-2 fw-bold fs-5">
       <i class="bi bi-ticket-perforated me-2"></i>Ir a la Rifa
     </a>
   </div>
