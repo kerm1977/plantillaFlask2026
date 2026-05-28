@@ -89,6 +89,7 @@ from routes import (        # noqa: E402, F401
     db_export,
     forms,
     rifas,
+    publicaciones,
 )
 
 # Re-exportar para app.py

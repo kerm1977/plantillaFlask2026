@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}{{ pub.nombre }}{% endblock %}
+
+{% block content %}
+{% set show = mostrar %}
+
+{% if pub.audio_filename %}
+<audio id="bgAudio" src="{{ url_for('static', filename='musica/' + pub.audio_filename) }}" loop preload="auto"></audio>
+{% endif %}
+
+<div class="container mt-4 mb-5">
+  <!-- FLYER HERO -->
+  {% if pub.flyer_filename and 'flyer' in show %}
+  <div class="rounded-5 overflow-hidden mb-4 shadow-lg position-relative" style="max-height:420px;">
+    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) }}"
+         class="w-100" style="object-fit:cover;max-height:420px;" alt="{{ pub.nombre }}">
+    {% if pub.logo_filename and 'logo' in show %}
+    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
+         class="position-absolute bottom-0 start-0 m-3 rounded-circle border border-3 border-white shadow"
+         style="width:72px;height:72px;object-fit:cover;" alt="logo">
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="glass-panel rounded-5 p-4">
+
+    <!-- Header: logo + título -->
+    <div class="d-flex align-items-center gap-3 mb-3">
+      {% if pub.logo_filename and 'logo' in show and pub.flyer_filename not in [None,''] %}
+      <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
+           class="rounded-circle border" style="width:56px;height:56px;object-fit:cover;flex-shrink:0;" alt="logo">
+      {% endif %}
+      <div>
+        <h2 class="fw-bold text-orange mb-0">{{ pub.nombre }}</h2>
+        {% if pub.tipo_evento and 'tipo' in show %}
+        <span class="badge rounded-pill" style="background:rgba(255,140,0,0.15);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+          {{ pub.tipo_evento }}
+        </span>
+        {% endif %}
+      </div>
+      {% if pub.audio_filename %}
+      <button class="btn btn-sm rounded-pill ms-auto px-3" id="audioBtn"
+              style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);"
+              onclick="toggleAudio()" title="Reproducir/Pausar audio">
+        <i class="bi bi-music-note-beamed me-1"></i>Audio
+      </button>
+      {% endif %}
+    </div>
+
+    <!-- FECHAS -->
+    {% if 'fecha' in show %}
+    <div class="d-flex gap-3 mb-3 flex-wrap">
+      <div class="p-2 rounded-3" style="background:rgba(255,140,0,0.07);">
+        <small class="text-muted d-block">Fecha</small>
+        <span class="fw-bold">{{ pub.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+        {% if pub.fecha_fin %}
+        <span class="text-muted"> al </span>
+        <span class="fw-bold">{{ pub.fecha_fin.strftime('%d/%m/%Y') }}</span>
+        {% endif %}
+      </div>
+      {% if pub.hora_encuentro and 'hora' in show %}
+      <div class="p-2 rounded-3" style="background:rgba(255,140,0,0.07);">
+        <small class="text-muted d-block">Hora de encuentro</small>
+        <span class="fw-bold"><i class="bi bi-clock me-1"></i>{{ pub.hora_encuentro }}</span>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- DESCRIPCIÓN -->
+    {% if pub.descripcion and 'descripcion' in show %}
+    <p class="text-secondary mb-3">{{ pub.descripcion }}</p>
+    {% endif %}
+
+    <!-- CAMINATA FIELDS -->
+    {% if pub.tipo_evento == 'Caminata' %}
+      {% if pub.lugar and 'lugar' in show %}
+      <div class="mb-2"><i class="bi bi-geo-alt-fill text-orange me-2"></i><strong>Lugar:</strong> {{ pub.lugar }}</div>
+      {% endif %}
+      {% if pub.punto_salida and 'lugar' in show %}
+      <div class="mb-2"><i class="bi bi-pin-map-fill text-orange me-2"></i><strong>Punto de salida:</strong> {{ pub.punto_salida }}</div>
+      {% endif %}
+      {% if pub.recomendaciones and 'recomendaciones' in show %}
+      <div class="mb-3 p-3 rounded-4" style="background:rgba(25,135,84,0.07);border:1px solid rgba(25,135,84,0.15);">
+        <div class="fw-semibold text-success mb-1"><i class="bi bi-lightbulb me-1"></i>Recomendaciones</div>
+        <p class="small mb-0">{{ pub.recomendaciones }}</p>
+      </div>
+      {% endif %}
+      {% if pub.desc_caminata and 'desc_caminata' in show %}
+      <p class="small text-secondary mb-3">{{ pub.desc_caminata }}</p>
+      {% endif %}
+    {% endif %}
+
+    <!-- RIFA LINK -->
+    {% if pub.tipo_evento == 'Rifa' and pub.rifa_url and 'rifa' in show %}
+    <a href="{{ pub.rifa_url }}" class="btn btn-orange rounded-pill px-4 mb-3">
+      <i class="bi bi-ticket-perforated me-2"></i>Ver Rifa
+    </a>
+    {% endif %}
+
+    <!-- DIRECCIÓN Y URL -->
+    {% if pub.direccion and 'direccion' in show %}
+    <div class="mb-2"><i class="bi bi-house-fill text-orange me-2"></i><strong>Dirección:</strong> {{ pub.direccion }}</div>
+    {% endif %}
+    {% if pub.url_externa and 'url' in show %}
+    <div class="mb-3">
+      <a href="{{ pub.url_externa }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+        <i class="bi bi-link-45deg me-1"></i>Más información
+      </a>
+    </div>
+    {% endif %}
+
+    <!-- SINPE / CUENTA -->
+    {% if (pub.sinpe_info and 'sinpe' in show) or (pub.cuenta_info and 'cuenta' in show) %}
+    <div class="p-3 rounded-4 mb-3" style="background:rgba(13,110,253,0.06);border:1px solid rgba(13,110,253,0.15);">
+      <div class="fw-bold mb-2"><i class="bi bi-credit-card-fill me-2 text-primary"></i>Información de pago</div>
+      {% if pub.sinpe_info and 'sinpe' in show %}
+      <div class="small mb-1"><span class="text-muted">SINPE:</span> <strong>{{ pub.sinpe_info }}</strong></div>
+      {% endif %}
+      {% if pub.cuenta_info and 'cuenta' in show %}
+      <div class="small"><span class="text-muted">Cuenta:</span> <strong>{{ pub.cuenta_info }}</strong></div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- COMPARTIR -->
+    <div class="d-flex gap-2 pt-2">
+      <button onclick="compartirEvento()" class="btn btn-outline-orange rounded-pill px-4">
+        <i class="bi bi-share me-2"></i>Compartir
+      </button>
+      <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i>Eventos
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+let _audioPlaying = false;
+const _audio = document.getElementById('bgAudio');
+if (_audio) {
+    _audio.play().then(() => { _audioPlaying = true; }).catch(() => {});
+}
+function toggleAudio() {
+    if (!_audio) return;
+    if (_audioPlaying) { _audio.pause(); _audioPlaying = false; }
+    else { _audio.play(); _audioPlaying = true; }
+}
+function compartirEvento() {
+    const url = window.location.href;
+    const title = {{ pub.nombre | tojson }};
+    if (navigator.share) { navigator.share({ title, url }); }
+    else { navigator.clipboard?.writeText(url); alert('¡Enlace copiado!'); }
+}
+</script>
+{% endblock %}

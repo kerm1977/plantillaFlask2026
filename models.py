@@ -193,3 +193,32 @@ class RaffleSelection(db.Model):
     sinpe_name = db.Column(db.String(200))
     sinpe_phone = db.Column(db.String(50))
     __table_args__ = (db.UniqueConstraint('raffle_id', 'number', name='_raffle_number_uc'),)
+
+
+# ==========================================
+# SISTEMA DE PUBLICACIONES / EVENTOS
+# ==========================================
+class Publicacion(db.Model):
+    __tablename__ = 'publicacion'
+    id              = db.Column(db.Integer, primary_key=True)
+    nombre          = db.Column(db.String(200), nullable=False)
+    logo_filename   = db.Column(db.String(255))
+    flyer_filename  = db.Column(db.String(255))
+    audio_filename  = db.Column(db.String(255))
+    fecha_inicio    = db.Column(db.Date, nullable=False)
+    fecha_fin       = db.Column(db.Date)
+    descripcion     = db.Column(db.Text)
+    tipo_evento     = db.Column(db.String(50))          # Caminata | Taller | Rifa
+    rifa_url        = db.Column(db.String(500))
+    lugar           = db.Column(db.String(200))
+    punto_salida    = db.Column(db.String(200))
+    hora_encuentro  = db.Column(db.String(50))
+    recomendaciones = db.Column(db.Text)
+    desc_caminata   = db.Column(db.Text)
+    direccion       = db.Column(db.String(255))
+    url_externa     = db.Column(db.String(500))
+    mostrar         = db.Column(db.Text, default='[]')  # JSON list of visible fields
+    sinpe_info      = db.Column(db.String(300))
+    cuenta_info     = db.Column(db.String(400))
+    is_active       = db.Column(db.Boolean, default=True)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
