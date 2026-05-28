@@ -96,6 +96,35 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     } catch (err) { showMessage('registerMessage', 'Error de conexión'); }
 });
 
+async function submitForgotPassword() {
+    const email = document.getElementById('forgotEmail')?.value?.trim();
+    const msgEl = document.getElementById('forgotMsg');
+    if (!email) { msgEl.innerHTML = '<div class="alert alert-warning py-2 small">Ingresa tu correo.</div>'; return; }
+    msgEl.innerHTML = '<div class="text-secondary small">Buscando cuenta...</div>';
+    try {
+        const res = await fetch('/api/forgot_password', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            msgEl.innerHTML = '';
+            document.getElementById('forgotForm').classList.add('d-none');
+            document.getElementById('forgotResult').classList.remove('d-none');
+            document.getElementById('forgotLink').value = data.reset_url;
+            const waBtn = document.getElementById('forgotWA');
+            if (data.whatsapp_url) { waBtn.href = data.whatsapp_url; waBtn.classList.remove('d-none'); }
+        } else {
+            msgEl.innerHTML = `<div class="alert alert-danger py-2 small">${data.error}</div>`;
+        }
+    } catch (e) { msgEl.innerHTML = '<div class="alert alert-danger py-2 small">Error de conexión.</div>'; }
+}
+
+function copyResetLink() {
+    const link = document.getElementById('forgotLink');
+    if (link) { link.select(); navigator.clipboard?.writeText(link.value); }
+}
+
 // ✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️
 // ✂️ FIN DE CORTE: auth_ui.js ✂️
 // ✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️✂️

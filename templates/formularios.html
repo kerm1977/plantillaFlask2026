@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Formularios - La Tribu{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-3 px-md-4">
+    <!-- HEADER -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <h2 class="fw-bold text-orange mb-0"><i class="bi bi-ui-checks-grid me-2"></i>Formularios</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/admin/rifas" class="btn btn-warning-orange rounded-pill px-4">
+                <i class="bi bi-ticket-perforated me-1"></i>Administrar Rifas
+            </a>
+            <button class="btn btn-orange rounded-pill px-4 shadow-sm" onclick="showCreateForm()">
+                <i class="bi bi-plus-lg me-1"></i>Nuevo Formulario
+            </button>
+        </div>
+    </div>
+
+    <!-- LISTA DE FORMULARIOS -->
+    <div id="formsList" class="row g-3"></div>
+
+    <!-- EDITOR CON VISTA PREVIA EN VIVO -->
+    <div id="formEditor" class="d-none">
+        <div class="row g-4">
+            <!-- PANEL IZQUIERDO: Constructor -->
+            <div class="col-lg-6">
+                <div class="card glass-panel border-0 shadow-sm sticky-top" style="top: 80px;">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold mb-0"><i class="bi bi-hammer me-1"></i>Constructor</h5>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
+                                <i class="bi bi-arrow-left me-1"></i>Volver
+                            </button>
+                        </div>
+
+                        <!-- Config -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-12">
+                                <input type="text" id="formName" class="form-control form-control-lg fw-bold" placeholder="Nombre del Formulario" oninput="updatePreview()">
+                            </div>
+                            <div class="col-6">
+                                <select id="formType" class="form-select form-select-sm" onchange="updatePreview()">
+                                    <option value="registro">Registro</option>
+                                    <option value="examen">Examen</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select id="formAllowEdit" class="form-select form-select-sm">
+                                    <option value="false">No editable</option>
+                                    <option value="true">Editable</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Triggers -->
+                        <div class="mb-3 p-2 bg-light rounded-3">
+                            <small class="fw-bold text-secondary"><i class="bi bi-eye me-1"></i>Campos visibles:</small>
+                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                <div class="form-check form-switch form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="trigNombre" checked onchange="updatePreview()">
+                                    <label class="form-check-label small" for="trigNombre">Nombre</label>
+                                </div>
+                                <div class="form-check form-switch form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="trigFecha" onchange="updatePreview()">
+                                    <label class="form-check-label small" for="trigFecha">Fecha</label>
+                                </div>
+                                <div class="form-check form-switch form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="trigEmail" onchange="updatePreview()">
+                                    <label class="form-check-label small" for="trigEmail">Email</label>
+                                </div>
+                                <div class="form-check form-switch form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="trigEdad" onchange="updatePreview()">
+                                    <label class="form-check-label small" for="trigEdad">Edad</label>
+                                </div>
+                                <div class="form-check form-switch form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="trigTelefono" onchange="updatePreview()">
+                                    <label class="form-check-label small" for="trigTelefono">Teléfono</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preguntas -->
+                        <div id="fieldsContainer" style="max-height: 45vh; overflow-y: auto;"></div>
+
+                        <div class="d-flex gap-2 flex-wrap mt-3 mb-3">
+                            <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="addField('text')">
+                                <i class="bi bi-type me-1"></i>Respuesta corta
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="addField('textarea')">
+                                <i class="bi bi-text-paragraph me-1"></i>Respuesta larga
+                            </button>
+                            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="addField('radio')">
+                                <i class="bi bi-record-circle me-1"></i>Única selección
+                            </button>
+                            <button class="btn btn-outline-info btn-sm rounded-pill" onclick="addField('checkbox')">
+                                <i class="bi bi-check2-square me-1"></i>Múltiple selección
+                            </button>
+                            <button class="btn btn-outline-warning btn-sm rounded-pill" onclick="addField('file')">
+                                <i class="bi bi-paperclip me-1"></i>Archivo
+                            </button>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <button class="btn btn-orange rounded-pill px-4 shadow-sm" onclick="saveForm()">
+                                <i class="bi bi-check-lg me-1"></i>Guardar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Vista Previa en Vivo -->
+            <div class="col-lg-6">
+                <div class="sticky-top" style="top: 80px;">
+                    <div class="d-flex align-items-center mb-2">
+                        <small class="fw-bold text-secondary"><i class="bi bi-phone me-1"></i>VISTA PREVIA EN VIVO</small>
+                    </div>
+                    <div class="card border-0 shadow" style="border-radius: 16px; max-height: 85vh; overflow-y: auto; background: linear-gradient(135deg, #fff8f0, #ffffff);">
+                        <div class="card-body p-4" id="livePreview">
+                            <!-- Se renderiza dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISOR DE RESPUESTAS -->
+    <div id="responsesViewer" class="d-none">
+        <div class="card glass-panel border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <h4 class="fw-bold mb-0" id="responsesTitle">Respuestas</h4>
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportResponses('xlsx')">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="exportResponses('json')">
+                            <i class="bi bi-filetype-json me-1"></i>JSON
+                        </button>
+                        <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportResponses('whatsapp')">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
+                            <i class="bi bi-arrow-left me-1"></i>Volver
+                        </button>
+                    </div>
+                </div>
+                <div id="responsesTable" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VER DETALLE DE RESPUESTA -->
+<div class="modal fade" id="responseDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-5 glass-panel">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="responseDetailName">Detalle de Respuesta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="responseDetailBody"></div>
+            <div class="modal-footer border-0 pt-0">
+                <button class="btn btn-outline-secondary rounded-pill btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: EDITAR RESPUESTA (Superusuario) -->
+<div class="modal fade" id="editResponseModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-5 glass-panel">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-fill text-orange me-2"></i>Editar Respuesta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="editResponseBody"></div>
+            <div class="modal-footer border-0 pt-0 gap-2">
+                <button class="btn btn-outline-secondary rounded-pill btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-orange rounded-pill btn-sm px-4 fw-bold" onclick="saveEditedResponse()">
+                    <i class="bi bi-check2 me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/formularios_scripts.html' %}
+{% endblock %}

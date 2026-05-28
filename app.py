@@ -33,6 +33,22 @@ def _migrate_raffle_selection():
         print(f"[Migration] Error en _migrate_raffle_selection: {e}")
 
 
+def _migrate_user_reset():
+    """Agrega columnas de recuperación de contraseña al modelo User."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(user)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        for col, definition in [("reset_token", "VARCHAR(64)"), ("reset_expires", "VARCHAR(30)")]:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE user ADD COLUMN {col} {definition}")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_user_reset: {e}")
+
+
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_super_secreta_pwa')
@@ -55,6 +71,8 @@ def create_app():
         
         # Migración automática: agrega columnas faltantes en raffle_selection
         _migrate_raffle_selection()
+        # Migración: columnas de recuperación de contraseña
+        _migrate_user_reset()
         
         # Inyecta automáticamente los superusuarios
         inject_superusers()

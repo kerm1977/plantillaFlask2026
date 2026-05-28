@@ -25,6 +25,8 @@ class User(db.Model):
     institution = db.Column(db.String(200))
     other_info = db.Column(db.Text)
     
+    reset_token = db.Column(db.String(64))
+    reset_expires = db.Column(db.String(30))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
