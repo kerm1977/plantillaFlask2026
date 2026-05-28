@@ -116,7 +116,7 @@ body {
 /* Botón Global Crear (A la derecha) */
 .btn-global-add {
     position: fixed;
-    bottom: calc(var(--nav-mobile-height, 70px) + 85px);
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
     right: 20px;
     width: 50px;
     height: 50px;
@@ -361,4 +361,26 @@ body {
     padding: 10px 15px;
     margin-bottom: 12px;
     border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* ==========================================
+   GLOBAL: ELIMINAR TODAS LAS SOMBRAS DEL SITIO
+   ========================================== */
+*,
+*::before,
+*::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+/* Mantener text-shadow solo en el flyer overlay */
+.flyer-glass-overlay,
+.flyer-glass-overlay * {
+    text-shadow: 0 2px 5px rgba(0,0,0,0.6) !important;
+}
+/* Mantener focus ring para accesibilidad de formularios */
+.form-control:focus,
+.form-select:focus,
+.glass-input:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
 }

@@ -49,6 +49,30 @@ def _migrate_user_reset():
         print(f"[Migration] Error en _migrate_user_reset: {e}")
 
 
+def _migrate_publicacion():
+    """Agrega columnas de redes sociales a la tabla publicacion."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(publicacion)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        migrations = [
+            ("telefono",  "VARCHAR(50)"),
+            ("whatsapp",  "VARCHAR(50)"),
+            ("facebook",  "VARCHAR(300)"),
+            ("instagram", "VARCHAR(300)"),
+            ("tiktok",    "VARCHAR(300)"),
+            ("youtube",   "VARCHAR(300)"),
+        ]
+        for col, definition in migrations:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE publicacion ADD COLUMN {col} {definition}")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_publicacion: {e}")
+
+
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_super_secreta_pwa')
@@ -73,6 +97,8 @@ def create_app():
         _migrate_raffle_selection()
         # Migración: columnas de recuperación de contraseña
         _migrate_user_reset()
+        # Migración: redes sociales en publicacion
+        _migrate_publicacion()
         
         # Inyecta automáticamente los superusuarios
         inject_superusers()

@@ -28,7 +28,8 @@ function toggleTipoFields() {
 
 function _resetForm() {
     ['pubNombre','pubDesc','pubDireccion','pubUrl','pubLugar','pubPuntoSalida',
-     'pubHora','pubRecomendaciones','pubDescCaminata'].forEach(id => {
+     'pubHora','pubRecomendaciones','pubDescCaminata',
+     'pubTelefono','pubWhatsapp','pubFacebook','pubInstagram','pubTiktok','pubYoutube'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('pubFechaInicio').value = '';
@@ -76,6 +77,12 @@ async function editEvento(id) {
     document.getElementById('pubUrl').value          = d.url_externa || '';
     document.getElementById('pubSinpe').value        = d.sinpe_info || '';
     document.getElementById('pubCuenta').value       = d.cuenta_info || '';
+    document.getElementById('pubTelefono').value     = d.telefono || '';
+    document.getElementById('pubWhatsapp').value     = d.whatsapp || '';
+    document.getElementById('pubFacebook').value     = d.facebook || '';
+    document.getElementById('pubInstagram').value    = d.instagram || '';
+    document.getElementById('pubTiktok').value       = d.tiktok || '';
+    document.getElementById('pubYoutube').value      = d.youtube || '';
     toggleTipoFields();
     // Mostrar checkboxes
     let mostrar = [];
@@ -124,6 +131,12 @@ async function submitEvento() {
     fd.append('url_externa',     document.getElementById('pubUrl').value);
     fd.append('sinpe_info',      document.getElementById('pubSinpe').value);
     fd.append('cuenta_info',     document.getElementById('pubCuenta').value);
+    fd.append('telefono',        document.getElementById('pubTelefono').value);
+    fd.append('whatsapp',        document.getElementById('pubWhatsapp').value);
+    fd.append('facebook',        document.getElementById('pubFacebook').value);
+    fd.append('instagram',       document.getElementById('pubInstagram').value);
+    fd.append('tiktok',          document.getElementById('pubTiktok').value);
+    fd.append('youtube',         document.getElementById('pubYoutube').value);
     fd.append('mostrar',         JSON.stringify(mostrar));
     const logo  = document.getElementById('pubLogo').files[0];
     const flyer = document.getElementById('pubFlyer').files[0];

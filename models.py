@@ -220,5 +220,11 @@ class Publicacion(db.Model):
     mostrar         = db.Column(db.Text, default='[]')  # JSON list of visible fields
     sinpe_info      = db.Column(db.String(300))
     cuenta_info     = db.Column(db.String(400))
+    telefono        = db.Column(db.String(50))
+    whatsapp        = db.Column(db.String(50))
+    facebook        = db.Column(db.String(300))
+    instagram       = db.Column(db.String(300))
+    tiktok          = db.Column(db.String(300))
+    youtube         = db.Column(db.String(300))
     is_active       = db.Column(db.Boolean, default=True)
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)
