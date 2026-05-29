@@ -2,6 +2,12 @@
 {% block title %}{{ pub.nombre }}{% endblock %}
 
 {% block content %}
+<style>
+  .ql-editor strong, .ql-editor b { font-weight: 700 !important; }
+  .ql-editor em, .ql-editor i { font-style: italic !important; }
+  .ql-editor u { text-decoration: underline !important; }
+  .ql-editor s { text-decoration: line-through !important; }
+</style>
 {% set show_all = not mostrar %}
 
 {% if pub.audio_filename %}
@@ -57,7 +63,7 @@
     <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
             style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
             data-bs-toggle="modal" data-bs-target="#modalColaborar">
-      <i class="bi bi-heart-fill me-2"></i>Solo Colaborar
+      <i class="bi bi-heart-fill me-2"></i>Colaborar
     </button>
   </div>
   {% elif (pub.sinpe_info and (show_all or 'sinpe' in mostrar)) or (pub.cuenta_info and (show_all or 'cuenta' in mostrar)) %}
@@ -65,7 +71,7 @@
     <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
             style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
             data-bs-toggle="modal" data-bs-target="#modalColaborar">
-      <i class="bi bi-heart-fill me-2"></i>Solo Colaborar
+      <i class="bi bi-heart-fill me-2"></i>Colaborar
     </button>
   </div>
   {% endif %}
@@ -75,7 +81,7 @@
 
       <!-- DESCRIPCIÓN -->
       {% if pub.descripcion and (show_all or 'descripcion' in mostrar) %}
-      <div style="font-size:1.1rem;line-height:1.85;color:#333;" class="mb-4 ql-editor" >{{ pub.descripcion | safe }}</div>
+      <div class="mb-4 ql-editor" style="font-size:1.1rem;line-height:1.85;color:#333;">{{ pub.descripcion | safe }}</div>
       {% endif %}
 
       <!-- CAMINATA -->

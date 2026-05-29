@@ -8,7 +8,6 @@
     font-weight: 400 !important;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
-  #pubDescEditor .ql-editor * { font-weight: inherit; }
   #pubDescEditor .ql-editor strong,
   #pubDescEditor .ql-editor b { font-weight: 700 !important; }
   #pubDescEditor .ql-editor em,
@@ -22,6 +21,7 @@
   (function() {
     const toolbarOptions = [
       ['bold', 'italic', 'underline', 'strike'],
+      [{ 'size': ['small', false, 'large', 'huge'] }],
       [{ 'align': [] }],
       [{ 'list': 'ordered' }, { 'list': 'bullet' }],
       ['clean']
