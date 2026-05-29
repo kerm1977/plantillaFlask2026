@@ -70,7 +70,11 @@
     // Variables globales inyectadas por Flask para uso en home.js
     window.IS_SUPER_USER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
 </script>
-<!-- Referencia a nuestro nuevo archivo JavaScript limpio -->
-<script src="{{ url_for('static', filename='js/home.js') }}"></script>
+<!-- Módulos de home.js divididos por funcionalidad -->
+<script src="{{ url_for('static', filename='js/home_db.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_events.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_filters.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_init.js') }}"></script>
 
 <!-- ============================================ -->

@@ -56,6 +56,7 @@ function deseleccionarNumeros() {
     selectedNumbers = [];
     clearLocalStorage();
     updateSelectionPanel();
+    updateMobileSelectButton();
 }
 
 function toggleNumber(num) {
@@ -65,6 +66,7 @@ function toggleNumber(num) {
     else { selectedNumbers.push(num); btn.classList.add('btn-primary'); }
     saveToLocalStorage();
     updateSelectionPanel();
+    updateMobileSelectButton();
 }
 
 function updateSelectionPanel() {
@@ -75,6 +77,23 @@ function updateSelectionPanel() {
     document.getElementById('totalPrice').textContent = selectedNumbers.length * {{ rifa.price }};
 }
 
+function updateMobileSelectButton() {
+    const mobileBtn = document.getElementById('mobileSelectBtn');
+    if (!mobileBtn) return;
+    
+    if (selectedNumbers.length > 0) {
+        mobileBtn.style.background = 'linear-gradient(135deg, #28a745, #20c997)';
+        mobileBtn.style.color = 'white';
+        mobileBtn.style.boxShadow = '0 4px 15px rgba(40, 167, 69, 0.4)';
+        mobileBtn.querySelector('i').classList.add('animate-bounce');
+    } else {
+        mobileBtn.style.background = 'transparent';
+        mobileBtn.style.color = '';
+        mobileBtn.style.boxShadow = '';
+        mobileBtn.querySelector('i').classList.remove('animate-bounce');
+    }
+}
+
 function openUserDataModal() {
     if (selectedNumbers.length === 0) { alert('Primero selecciona números'); return; }
     if (!userDataModal) userDataModal = new bootstrap.Modal(document.getElementById('userDataModal'));
@@ -82,6 +101,17 @@ function openUserDataModal() {
     document.getElementById('modalPhone').value = '';
     document.getElementById('modalPin').value = '';
     document.getElementById('modalAutocompleteResults').style.display = 'none';
+    
+    // Llenar números seleccionados en el modal
+    const modalNumbersDiv = document.getElementById('modalSelectedNumbers');
+    modalNumbersDiv.innerHTML = selectedNumbers.map(num => 
+        `<span class="badge rounded-pill" style="background:rgba(40,167,69,0.15);color:#28a745;border:1px solid rgba(40,167,69,0.3);font-size:0.9rem;padding:0.4rem 0.7rem;">${num}</span>`
+    ).join('');
+    
+    // Llenar total a pagar
+    const totalPrice = selectedNumbers.length * {{ rifa.price }};
+    document.getElementById('modalTotalPrice').textContent = '₡' + totalPrice.toLocaleString();
+    
     userDataModal.show();
 }
 

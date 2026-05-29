@@ -68,6 +68,27 @@ def migrate_database():
         else:
             print(f"[ERROR] Error con 'monto_recaudado': {e}")
 
+    # Columnas adicionales para SINPE y cuentas bancarias
+    new_columns = [
+        ('sinpe_info_2', 'VARCHAR(300)'),
+        ('sinpe_info_3', 'VARCHAR(300)'),
+        ('sinpe_info_4', 'VARCHAR(300)'),
+        ('cuenta_info_2', 'VARCHAR(400)'),
+        ('cuenta_info_3', 'VARCHAR(400)'),
+        ('cuenta_info_4', 'VARCHAR(400)'),
+        ('cuentas_visibles', 'TEXT')
+    ]
+    
+    for col_name, col_type in new_columns:
+        try:
+            cursor.execute(f"ALTER TABLE publicacion ADD COLUMN {col_name} {col_type} DEFAULT ''")
+            print(f"[OK] Columna '{col_name}' añadida con éxito a la tabla publicacion.")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" in str(e).lower():
+                print(f"[--] La columna '{col_name}' ya existía. Omitiendo...")
+            else:
+                print(f"[ERROR] Error con '{col_name}': {e}")
+
     # Guardamos los cambios y cerramos
     conn.commit()
     conn.close()

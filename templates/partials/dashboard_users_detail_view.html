@@ -1,0 +1,110 @@
+<script>
+function viewUserDetails(userObj) {
+    currentSelectedUserId   = userObj.type === 'user' ? userObj.id : null;
+    currentSelectedUserName = userObj.display_name;
+    currentSelectedUserObj  = userObj;
+    document.getElementById('adminUsersList').classList.add('d-none');
+    document.getElementById('adminUserDetails').classList.remove('d-none');
+    const isUser = userObj.type === 'user';
+    document.getElementById('btnBlockUser').classList.toggle('d-none', !isUser);
+    document.getElementById('btnEditUserAdmin').classList.toggle('d-none', !isUser);
+    document.getElementById('btnDeleteUser').classList.toggle('d-none', !isUser);
+    const btnCrm = document.getElementById('btnEditHikerCrm');
+    if (btnCrm) {
+        const cedula = userObj.crm_cedula || (userObj.type === 'hiker' ? userObj.crm_cedula : null);
+        if (cedula) { btnCrm.href = `/editar_caminante/${cedula}`; btnCrm.classList.remove('d-none'); }
+        else { btnCrm.classList.add('d-none'); }
+    }
+    if (userObj.type === 'hiker') {
+        document.getElementById('userDetailsContent').innerHTML = `
+            <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4 fs-4">
+                <i class="bi bi-card-list text-primary me-2"></i>Ficha CRM — ${userObj.display_name}</h3>
+            <div class="row g-3 text-start">
+                <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
+                    <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula || '—'}</div></div></div>
+                <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
+                    <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
+                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${userObj.crm_tipo_sangre || '?'}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Teléfono</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.phone || '—'}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_alergias || 'Ninguna registrada'}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-heart-pulse-fill text-danger me-1"></i>Enfermedades Crónicas</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_enfermedades || 'Ninguna registrada'}</div></div></div>
+                <div class="col-12"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-telephone-fill text-primary me-1"></i>Contacto de Emergencia</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_emergencia_nombre || 'No registrado'}${userObj.crm_emergencia_tel ? ' — ' + userObj.crm_emergencia_tel : ''}</div></div></div>
+            </div>`;
+        return;
+    }
+    let ageStr = 'No especificada';
+    if (userObj.dob) {
+        const dob = new Date(userObj.dob), today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        ageStr = `${userObj.dob} (<span class="badge bg-secondary rounded-pill ms-1">${age} años</span>)`;
+    }
+    const hasCrm = !!userObj.crm_cedula;
+    const crmSection = hasCrm ? `
+        <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+            <h5 class="fw-bold mb-3" style="color:#ff8c00;"><i class="bi bi-shield-plus-fill me-2"></i>Ficha CRM / Médica
+                <span class="badge bg-success rounded-pill ms-2 fw-normal" style="font-size:0.65rem;">Vinculada por teléfono</span></h5>
+            <div class="row g-3 text-start">
+                <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
+                    <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula}</div></div></div>
+                <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
+                    <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
+                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${userObj.crm_tipo_sangre || '?'}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_alergias || 'Ninguna registrada'}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-telephone-fill text-primary me-1"></i>Contacto de Emergencia</label>
+                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_emergencia_nombre || 'No registrado'} ${userObj.crm_emergencia_tel ? '— ' + userObj.crm_emergencia_tel : ''}</div></div></div>
+            </div></div>` :
+        `<div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+            <p class="text-muted small fst-italic"><i class="bi bi-database-slash me-1"></i>Sin ficha CRM vinculada.</p></div>`;
+    document.getElementById('userDetailsContent').innerHTML = `
+        <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4 fs-4">
+            <i class="bi bi-person-vcard-fill text-orange me-2"></i>Expediente #${userObj.id}</h3>
+        <div class="row g-3 g-md-4 text-start">
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Nombre Completo</label>
+                <div class="fw-bold fs-5 ps-2 text-dark text-break">${userObj.name} ${userObj.last_name_1} ${userObj.last_name_2}</div></div></div>
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Correo Electrónico</label>
+                <div class="fw-semibold fs-6 ps-2 text-dark text-break">${userObj.email}</div></div></div>
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Rol y Estado</label>
+                <div class="fw-semibold fs-6 ps-2 text-dark">${userObj.role} — 
+                ${userObj.status === 'Activo' ? '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Activo</span>' : '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Bloqueado</span>'}
+                </div></div></div>
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Teléfono</label>
+                <div class="fw-semibold fs-6 ps-2 text-dark">${userObj.phone}</div></div></div>
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Fecha de Nacimiento</label>
+                <div class="fw-semibold fs-6 ps-2 text-dark">${ageStr}</div></div></div>
+            <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
+                <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Fechas de Sistema</label>
+                <div class="fw-semibold text-dark" style="font-size:0.85rem;">
+                    <div class="mb-1"><i class="bi bi-calendar-check text-orange me-1"></i>Reg: ${userObj.created || 'N/A'}</div>
+                    <div><i class="bi bi-clock-history text-orange me-1"></i>Mod: ${userObj.updated || 'N/A'}</div>
+                </div></div></div>
+        </div>${crmSection}`;
+    const btnBlock = document.getElementById('btnBlockUser');
+    if (userObj.status === 'Activo') {
+        btnBlock.innerHTML = '<i class="bi bi-slash-circle me-1"></i>Bloquear Acceso';
+        btnBlock.className = 'btn btn-warning rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-dark btn-action-mobile';
+    } else {
+        btnBlock.innerHTML = '<i class="bi bi-check-circle me-1"></i>Desbloquear';
+        btnBlock.className = 'btn btn-success rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-white btn-action-mobile';
+    }
+}
+</script>

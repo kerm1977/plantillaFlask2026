@@ -1,0 +1,144 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const dobElement = document.getElementById('dob-display');
+    if (dobElement) {
+        const dobStr = dobElement.getAttribute('data-dob');
+        if (dobStr && dobStr.trim() !== '') {
+            const dob = new Date(dobStr);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const m = today.getMonth() - dob.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+            const badge = document.getElementById('age-badge');
+            badge.innerHTML = `<i class="bi bi-balloon-fill text-warning me-1"></i> ${age} años`;
+            badge.style.display = 'inline-block';
+        }
+    }
+
+    const existingPhone = "{{ user.phone or '' }}";
+    if (existingPhone && existingPhone.trim() !== '' && existingPhone !== 'No registrado') {
+        const editDynSelect = document.getElementById('editDynamicSelect');
+        const editDynContainer = document.getElementById('editDynamicContainer');
+        if (editDynSelect && editDynContainer) {
+            editDynSelect.value = 'Telefono';
+            editDynContainer.innerHTML = `
+                <div class="input-group">
+                    <span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
+                    <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico" 
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="15" value="${existingPhone}">
+                </div>
+                <small class="text-muted mt-1 d-block ps-2">Solo números permitidos.</small>`;
+        }
+    }
+
+    const editAvatarUpload = document.getElementById('editAvatarUpload');
+    const editAvatarPreviewImg = document.getElementById('editAvatarPreviewImg');
+    const editScaleSlider = document.getElementById('editScaleSlider');
+    const editPosXSlider = document.getElementById('editPosXSlider');
+    const editPosYSlider = document.getElementById('editPosYSlider');
+
+    if (editScaleSlider && editPosXSlider && editPosYSlider) {
+        function updateEditImageTransform() {
+            const scale = editScaleSlider.value;
+            const posX = editPosXSlider.value;
+            const posY = editPosYSlider.value;
+            editAvatarPreviewImg.style.transform = `scale(${scale}) translate(${posX}px, ${posY}px)`;
+        }
+
+        editScaleSlider.addEventListener('input', updateEditImageTransform);
+        editPosXSlider.addEventListener('input', updateEditImageTransform);
+        editPosYSlider.addEventListener('input', updateEditImageTransform);
+
+        editAvatarUpload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    editAvatarPreviewImg.src = e.target.result;
+                    editScaleSlider.value = 1;
+                    editPosXSlider.value = 0;
+                    editPosYSlider.value = 0;
+                    updateEditImageTransform();
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    const savedTransformStr = localStorage.getItem('avatarTransform_{{ user.id }}');
+    if (savedTransformStr) {
+        try {
+            const savedTransform = JSON.parse(savedTransformStr);
+            const mainAvatar = document.getElementById('mainProfileAvatar');
+            if (mainAvatar) {
+                mainAvatar.style.transform = `scale(${savedTransform.scale}) translate(${savedTransform.mainPosX}px, ${savedTransform.mainPosY}px)`;
+            }
+            if (editScaleSlider && editPosXSlider && editPosYSlider && editAvatarPreviewImg) {
+                editScaleSlider.value = savedTransform.scale;
+                editPosXSlider.value = savedTransform.editPosX;
+                editPosYSlider.value = savedTransform.editPosY;
+                editAvatarPreviewImg.style.transform = `scale(${savedTransform.scale}) translate(${savedTransform.editPosX}px, ${savedTransform.editPosY}px)`;
+            }
+        } catch(e) { console.error("Error leyendo transformaciones guardadas", e); }
+    }
+
+    const editProfileForm = document.getElementById('editProfileForm');
+    if (editProfileForm) {
+        editProfileForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); 
+            const btnSubmit = editProfileForm.querySelector('button[type="submit"]');
+            const originalText = btnSubmit.innerHTML;
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
+            
+            const pass = document.getElementById('editPass').value;
+            const passVerify = document.getElementById('editPassVerify').value;
+            if (pass && pass !== passVerify) {
+                alert("Las contraseñas no coinciden");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = originalText;
+                return;
+            }
+
+            const formData = new FormData(this);
+            if (pass) {
+                formData.set('password', pass);
+            }
+
+            try {
+                const response = await fetch('/api/update_profile', {
+                    method: 'POST',
+                    body: formData
+                });
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    const scale = document.getElementById('editScaleSlider').value;
+                    const editPosX = document.getElementById('editPosXSlider').value;
+                    const editPosY = document.getElementById('editPosYSlider').value;
+                    const factor = 200 / 120;
+                    
+                    localStorage.setItem('avatarTransform_{{ user.id }}', JSON.stringify({
+                        scale: scale,
+                        mainPosX: editPosX * factor,
+                        mainPosY: editPosY * factor,
+                        editPosX: editPosX,
+                        editPosY: editPosY
+                    }));
+                    window.location.reload();
+                } else {
+                    alert(result.error || "Error al actualizar perfil");
+                    btnSubmit.innerHTML = originalText;
+                    btnSubmit.disabled = false;
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error de conexión con el servidor");
+                btnSubmit.innerHTML = originalText;
+                btnSubmit.disabled = false;
+            }
+        });
+    }
+});
+</script>

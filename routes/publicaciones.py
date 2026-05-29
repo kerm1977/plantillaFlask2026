@@ -77,8 +77,12 @@ def api_pub_create():
         punto_salida=f.get('punto_salida', ''), hora_encuentro=f.get('hora_encuentro', ''),
         recomendaciones=f.get('recomendaciones', ''), desc_caminata=f.get('desc_caminata', ''),
         direccion=f.get('direccion', ''), url_externa=f.get('url_externa', ''),
-        mostrar=f.get('mostrar', '[]'), sinpe_info=f.get('sinpe_info', ''),
-        cuenta_info=f.get('cuenta_info', ''), audio_filename=f.get('audio_filename', ''),
+        mostrar=f.get('mostrar', '[]'),
+        sinpe_info=f.get('sinpe_info', ''), sinpe_info_2=f.get('sinpe_info_2', ''),
+        sinpe_info_3=f.get('sinpe_info_3', ''), sinpe_info_4=f.get('sinpe_info_4', ''),
+        cuenta_info=f.get('cuenta_info', ''), cuenta_info_2=f.get('cuenta_info_2', ''),
+        cuenta_info_3=f.get('cuenta_info_3', ''), cuenta_info_4=f.get('cuenta_info_4', ''),
+        audio_filename=f.get('audio_filename', ''),
         colaborar_detalle=f.get('colaborar_detalle', 'Apoyo Sueños de Vida'),
         telefono=f.get('telefono', ''), whatsapp=f.get('whatsapp', ''),
         facebook=f.get('facebook', ''), instagram=f.get('instagram', ''),
@@ -103,7 +107,8 @@ def api_pub_update(pid):
     f = request.form
     for field in ['nombre', 'descripcion', 'tipo_evento', 'rifa_url', 'lugar', 'punto_salida',
                   'hora_encuentro', 'recomendaciones', 'desc_caminata', 'direccion',
-                  'url_externa', 'mostrar', 'sinpe_info', 'cuenta_info', 'audio_filename',
+                  'url_externa', 'mostrar', 'sinpe_info', 'sinpe_info_2', 'sinpe_info_3', 'sinpe_info_4',
+                  'cuenta_info', 'cuenta_info_2', 'cuenta_info_3', 'cuenta_info_4', 'audio_filename',
                   'telefono', 'whatsapp', 'facebook', 'instagram', 'tiktok', 'youtube',
                   'rifa_url_2', 'colaborar_detalle']:
         if f.get(field) is not None:

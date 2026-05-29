@@ -1,0 +1,88 @@
+                <div id="nationalFields" class="glass-table-container p-3 p-md-4 rounded-4 mb-4">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2 border-bottom border-white border-opacity-50 pb-2">
+                        <h5 class="fw-bold mb-0 text-warning-custom">Fechas de Actividad</h5>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input m-0" type="checkbox" id="diaSeguroToggle" onchange="toggleDiaSeguro()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="diaSeguroToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Día Exacto
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
+                            <input type="number" id="dias" name="dias" min="1" max="10" value="1" onchange="toggleDateInputs()" class="form-control glass-input rounded-3">
+                        </div>
+                        
+                        <div id="singleDateGroup" class="col-12 col-md-8">
+                            <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
+                            <div class="row g-1 date-split">
+                                <div class="col-3 normal-day">
+                                    <input type="number" id="dayUnica" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                                </div>
+                                <div class="col-3 secure-day d-none">
+                                    <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.85rem;">
+                                </div>
+                                <div class="col-5">
+                                    <select id="monthUnica" class="form-select glass-input rounded-3">
+                                        <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+                                        <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+                                        <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+                                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                    </select>
+                                </div>
+                                <div class="col-4">
+                                    <input type="number" id="yearUnica" class="form-control glass-input rounded-3" value="2026" min="2024">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="rangeDateGroup" class="col-12 col-md-8 d-none">
+                            <div class="row g-2">
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label fw-bold text-muted small mb-1">Fecha Inicio</label>
+                                    <div class="row g-1 date-split">
+                                        <div class="col-3 normal-day">
+                                            <input type="number" id="dayInicio" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                                        </div>
+                                        <div class="col-3 secure-day d-none">
+                                            <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
+                                        </div>
+                                        <div class="col-5">
+                                            <select id="monthInicio" class="form-select glass-input rounded-3">
+                                                <option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option>
+                                                <option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+                                                <option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="number" id="yearInicio" class="form-control glass-input rounded-3" value="2026" min="2024">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-sm-6">
+                                    <label class="form-label fw-bold text-muted small mb-1">Fecha Regreso</label>
+                                    <div class="row g-1 date-split">
+                                        <div class="col-3 normal-day">
+                                            <input type="number" id="dayRegreso" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                                        </div>
+                                        <div class="col-3 secure-day d-none">
+                                            <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
+                                        </div>
+                                        <div class="col-5">
+                                            <select id="monthRegreso" class="form-select glass-input rounded-3">
+                                                <option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option>
+                                                <option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+                                                <option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-4">
+                                            <input type="number" id="yearRegreso" class="form-control glass-input rounded-3" value="2026" min="2024">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>

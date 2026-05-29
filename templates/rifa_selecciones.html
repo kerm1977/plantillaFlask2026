@@ -1,6 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+/* Ocultar logosueños en tablero de selección de rifa - desktop y móvil */
+.logo-suenos-desktop-fixed,
+.logo-suenos-mobile,
+[id*="logoSuenos"],
+img[src*="logosueños"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Ocultar logosueños en tablero de selección de rifa
+    const logosueñosElements = document.querySelectorAll('[id*="logoSuenos"], .logo-suenos-desktop-fixed, .logo-suenos-mobile, img[src*="logosueños"]');
+    logosueñosElements.forEach(el => {
+        el.style.display = 'none';
+        el.style.visibility = 'hidden';
+        el.style.opacity = '0';
+    });
+});
+</script>
 <div class="container mt-4">
     <div class="glass-panel rounded-5 p-4">
         <a href="{{ url_for('main.admin_rifas') }}" class="btn btn-outline-secondary rounded-pill mb-3">

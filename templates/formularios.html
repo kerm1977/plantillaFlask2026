@@ -24,84 +24,106 @@
             <!-- PANEL IZQUIERDO: Constructor -->
             <div class="col-lg-6">
                 <div class="card glass-panel border-0 shadow-sm sticky-top" style="top: 80px;">
-                    <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <h5 class="fw-bold mb-0"><i class="bi bi-hammer me-1"></i>Constructor</h5>
-                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h5 class="fw-bold mb-0 fs-5"><i class="bi bi-hammer text-orange me-2"></i>Constructor</h5>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 fw-semibold" onclick="backToList()">
                                 <i class="bi bi-arrow-left me-1"></i>Volver
                             </button>
                         </div>
 
                         <!-- Config -->
-                        <div class="row g-2 mb-3">
-                            <div class="col-12">
-                                <input type="text" id="formName" class="form-control form-control-lg fw-bold" placeholder="Nombre del Formulario" oninput="updatePreview()">
-                            </div>
-                            <div class="col-6">
-                                <select id="formType" class="form-select form-select-sm" onchange="updatePreview()">
-                                    <option value="registro">Registro</option>
-                                    <option value="examen">Examen</option>
-                                </select>
-                            </div>
-                            <div class="col-6">
-                                <select id="formAllowEdit" class="form-select form-select-sm">
-                                    <option value="false">No editable</option>
-                                    <option value="true">Editable</option>
-                                </select>
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2">Configuración del Formulario</label>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <input type="text" id="formName" class="form-control form-control-lg fw-bold rounded-3" placeholder="Nombre del Formulario" oninput="updatePreview()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-semibold small text-muted d-block mb-1">Tipo</label>
+                                    <select id="formType" class="form-select form-select-sm rounded-3" onchange="updatePreview()">
+                                        <option value="registro">Registro</option>
+                                        <option value="examen">Examen</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-semibold small text-muted d-block mb-1">Edición</label>
+                                    <select id="formAllowEdit" class="form-select form-select-sm rounded-3">
+                                        <option value="false">No editable</option>
+                                        <option value="true">Editable</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Triggers -->
-                        <div class="mb-3 p-2 bg-light rounded-3">
-                            <small class="fw-bold text-secondary"><i class="bi bi-eye me-1"></i>Campos visibles:</small>
-                            <div class="d-flex flex-wrap gap-2 mt-1">
-                                <div class="form-check form-switch form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="trigNombre" checked onchange="updatePreview()">
-                                    <label class="form-check-label small" for="trigNombre">Nombre</label>
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-eye me-1"></i>Campos visibles</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigNombre" checked onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigNombre">Nombre</label>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="trigFecha" onchange="updatePreview()">
-                                    <label class="form-check-label small" for="trigFecha">Fecha</label>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigFecha" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigFecha">Fecha</label>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="trigEmail" onchange="updatePreview()">
-                                    <label class="form-check-label small" for="trigEmail">Email</label>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigEmail" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigEmail">Email</label>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="trigEdad" onchange="updatePreview()">
-                                    <label class="form-check-label small" for="trigEdad">Edad</label>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigEdad" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigEdad">Edad</label>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch form-check-inline">
-                                    <input class="form-check-input" type="checkbox" id="trigTelefono" onchange="updatePreview()">
-                                    <label class="form-check-label small" for="trigTelefono">Teléfono</label>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigTelefono" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigTelefono">Teléfono</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Preguntas -->
-                        <div id="fieldsContainer" style="max-height: 45vh; overflow-y: auto;"></div>
+                        <div class="mb-4">
+                            <label class="fw-semibold small text-muted d-block mb-2">Preguntas del Formulario</label>
+                            <div id="fieldsContainer" style="max-height: 35vh; overflow-y: auto;"></div>
+                        </div>
 
-                        <div class="d-flex gap-2 flex-wrap mt-3 mb-3">
-                            <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="addField('text')">
-                                <i class="bi bi-type me-1"></i>Respuesta corta
-                            </button>
-                            <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="addField('textarea')">
-                                <i class="bi bi-text-paragraph me-1"></i>Respuesta larga
-                            </button>
-                            <button class="btn btn-outline-success btn-sm rounded-pill" onclick="addField('radio')">
-                                <i class="bi bi-record-circle me-1"></i>Única selección
-                            </button>
-                            <button class="btn btn-outline-info btn-sm rounded-pill" onclick="addField('checkbox')">
-                                <i class="bi bi-check2-square me-1"></i>Múltiple selección
-                            </button>
-                            <button class="btn btn-outline-warning btn-sm rounded-pill" onclick="addField('file')">
-                                <i class="bi bi-paperclip me-1"></i>Archivo
-                            </button>
+                        <!-- Botones de agregar campo -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2">Agregar Campo</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('text')">
+                                    <i class="bi bi-type me-1"></i>Respuesta corta
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('textarea')">
+                                    <i class="bi bi-text-paragraph me-1"></i>Respuesta larga
+                                </button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('radio')">
+                                    <i class="bi bi-record-circle me-1"></i>Única selección
+                                </button>
+                                <button class="btn btn-outline-info btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('checkbox')">
+                                    <i class="bi bi-check2-square me-1"></i>Múltiple selección
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('file')">
+                                    <i class="bi bi-paperclip me-1"></i>Archivo
+                                </button>
+                            </div>
                         </div>
 
                         <div class="d-flex gap-2 justify-content-end border-top pt-3">
-                            <button class="btn btn-orange rounded-pill px-4 shadow-sm" onclick="saveForm()">
-                                <i class="bi bi-check-lg me-1"></i>Guardar
+                            <button class="btn btn-orange rounded-pill px-5 py-2 fw-bold shadow-sm" onclick="saveForm()">
+                                <i class="bi bi-check-lg me-1"></i>Guardar Formulario
                             </button>
                         </div>
                     </div>
@@ -155,13 +177,13 @@
 <div class="modal fade" id="responseDetailModal" tabindex="-1" style="z-index:1060;">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-5 glass-panel">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold" id="responseDetailName">Detalle de Respuesta</h5>
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5" id="responseDetailName">Detalle de Respuesta</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-2" id="responseDetailBody"></div>
-            <div class="modal-footer border-0 pt-0">
-                <button class="btn btn-outline-secondary rounded-pill btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            <div class="modal-body pt-2 px-4 pb-4" id="responseDetailBody"></div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -171,15 +193,44 @@
 <div class="modal fade" id="editResponseModal" tabindex="-1" style="z-index:1060;">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 rounded-5 glass-panel">
-            <div class="modal-header border-0 pb-0">
-                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-fill text-orange me-2"></i>Editar Respuesta</h5>
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-pencil-fill text-orange me-2"></i>Editar Respuesta</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body pt-2" id="editResponseBody"></div>
-            <div class="modal-footer border-0 pt-0 gap-2">
-                <button class="btn btn-outline-secondary rounded-pill btn-sm" data-bs-dismiss="modal">Cancelar</button>
-                <button class="btn btn-orange rounded-pill btn-sm px-4 fw-bold" onclick="saveEditedResponse()">
+            <div class="modal-body pt-2 px-4 pb-4" id="editResponseBody"></div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2">
+                <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-orange rounded-pill px-5 py-2 fw-bold" onclick="saveEditedResponse()">
                     <i class="bi bi-check2 me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: COMPARTIR ENLACE -->
+<div class="modal fade" id="shareLinkModal" tabindex="-1" style="z-index:1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-share-fill text-orange me-2"></i>Compartir Formulario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <p class="text-secondary mb-3">Copia este enlace para compartir el formulario:</p>
+                <div class="input-group mb-3 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                    <span class="input-group-text bg-white border-end-0 text-orange"><i class="bi bi-link-45deg fs-4"></i></span>
+                    <input type="text" id="shareLinkInput" class="form-control border-start-0 bg-white text-dark fw-bold" readonly
+                           style="cursor:pointer;" onclick="copyShareLink()" title="Toca para copiar">
+                    <span class="input-group-text bg-white border-start-0" style="cursor:pointer;" onclick="copyShareLink()">
+                        <i class="bi bi-copy text-orange"></i>
+                    </span>
+                </div>
+                <div id="shareCopyFeedback" class="text-success fw-bold small mb-3 d-none">
+                    <i class="bi bi-check-circle-fill me-1"></i>¡Enlace copiado!
+                </div>
+                <button class="btn btn-success fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyShareLink()">
+                    <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
                 </button>
             </div>
         </div>

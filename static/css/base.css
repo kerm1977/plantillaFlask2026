@@ -137,7 +137,44 @@ body {
 .btn-global-add:hover {
     background: rgba(255, 140, 0, 1);
     transform: scale(1.05);
-    color: white;
+}
+
+/* Logo de Sueños en Navbar Desktop */
+.logo-suenos-navbar {
+    height: 40px;
+    width: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.logo-suenos-navbar:hover {
+    transform: scale(1.05);
+}
+
+/* Logo de Sueños en Móvil */
+.logo-suenos-mobile {
+    height: 120px;
+    width: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 70px;
+}
+.logo-suenos-mobile:hover {
+    transform: scale(1.05);
+}
+
+/* Logo de Sueños Flotante en PC */
+.logo-suenos-desktop-fixed {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    height: 150px;
+    width: auto;
+    z-index: 1045;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.logo-suenos-desktop-fixed:hover {
+    transform: scale(1.05);
 }
 
 .modal-alert {

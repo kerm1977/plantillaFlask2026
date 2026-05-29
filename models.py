@@ -220,7 +220,14 @@ class Publicacion(db.Model):
     url_externa     = db.Column(db.String(500))
     mostrar         = db.Column(db.Text, default='[]')  # JSON list of visible fields
     sinpe_info         = db.Column(db.String(300))
+    sinpe_info_2       = db.Column(db.String(300))
+    sinpe_info_3       = db.Column(db.String(300))
+    sinpe_info_4       = db.Column(db.String(300))
     cuenta_info        = db.Column(db.String(400))
+    cuenta_info_2      = db.Column(db.String(400))
+    cuenta_info_3      = db.Column(db.String(400))
+    cuenta_info_4      = db.Column(db.String(400))
+    cuentas_visibles   = db.Column(db.Text, default='[]')  # JSON list of visible account indices
     colaborar_detalle  = db.Column(db.String(300), default='Apoyo Sueños de Vida')
     telefono        = db.Column(db.String(50))
     whatsapp        = db.Column(db.String(50))

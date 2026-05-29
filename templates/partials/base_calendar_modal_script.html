@@ -1,0 +1,44 @@
+<!-- SCRIPT DE TAMAÑO Y MARGEN DE NOTA -->
+<script>
+    function actualizarTamanoNota() {
+        const size = document.getElementById('calSliderNotaSize').value;
+        const margin = document.getElementById('calSliderNotaMargin').value;
+        
+        const valTextSize = document.getElementById('calValNotaSize');
+        const valTextMargin = document.getElementById('calValNotaMargin');
+        const notaEl = document.getElementById('cal-flyer-nota');
+        
+        if(valTextSize) valTextSize.innerText = size + 'rem';
+        if(valTextMargin) valTextMargin.innerText = margin + 'px';
+        
+        if(notaEl) {
+            notaEl.style.fontSize = size + 'rem';
+            notaEl.style.paddingLeft = margin + 'px';
+            notaEl.style.paddingRight = margin + 'px';
+        }
+        
+        localStorage.setItem('cal_nota_size', size);
+        localStorage.setItem('cal_nota_margin', margin);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const modalCal = document.getElementById('calendarioModal');
+        if(modalCal) {
+            modalCal.addEventListener('shown.bs.modal', function () {
+                const savedSize = localStorage.getItem('cal_nota_size');
+                const savedMargin = localStorage.getItem('cal_nota_margin');
+                
+                if (savedSize) {
+                    const sliderSize = document.getElementById('calSliderNotaSize');
+                    if(sliderSize) sliderSize.value = savedSize;
+                }
+                if (savedMargin) {
+                    const sliderMargin = document.getElementById('calSliderNotaMargin');
+                    if(sliderMargin) sliderMargin.value = savedMargin;
+                }
+                
+                actualizarTamanoNota();
+            });
+        }
+    });
+</script>

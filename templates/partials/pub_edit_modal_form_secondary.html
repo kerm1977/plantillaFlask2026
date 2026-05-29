@@ -1,0 +1,162 @@
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(108,117,125,0.1);">
+                <i class="bi bi-eye-fill text-secondary fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Campos visibles públicamente</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2" id="mostrarChecks">
+              {% set opts = [('logo','Logo'),('flyer','Flyer'),('fecha','Fechas'),
+                             ('descripcion','Descripción'),('tipo','Tipo'),('lugar','Lugar'),
+                             ('hora','Hora'),('recomendaciones','Recomendaciones'),
+                             ('desc_caminata','Desc. caminata'),('rifa','Rifa'),
+                             ('direccion','Dirección'),('url','URL'),('sinpe','SINPE'),('cuenta','Cuenta')] %}
+              {% for val, lbl in opts %}
+              <div class="form-check form-check-inline m-0 px-2 py-1 rounded-pill"
+                   style="background:rgba(255,140,0,0.07);border:1px solid rgba(255,140,0,0.18);">
+                <input class="form-check-input" type="checkbox" id="m_{{ val }}" value="{{ val }}" checked>
+                <label class="form-check-label small fw-semibold" for="m_{{ val }}">{{ lbl }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="rounded-4 p-3 mb-3" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(13,110,253,0.1);">
+                <i class="bi bi-credit-card-fill text-primary fs-5"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Información de pago</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Seleccionar SINPE (múltiples)</label>
+                <div class="border rounded-3 p-2" style="background:#f8f9fa;max-height:150px;overflow-y:auto;">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sinpe1" value="86529837 - Jenny Ceciliano Cordoba">
+                    <label class="form-check-label small" for="sinpe1">86529837 - Jenny Ceciliano Cordoba</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sinpe2" value="87984232 - Jenny Ceciliano Cordoba">
+                    <label class="form-check-label small" for="sinpe2">87984232 - Jenny Ceciliano Cordoba</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sinpe3" value="86227500 - Kenneth Ruiz Matamoros">
+                    <label class="form-check-label small" for="sinpe3">86227500 - Kenneth Ruiz Matamoros</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="sinpe4" value="" onchange="toggleCustomInput('sinpe4', 'pubSinpe4Custom')">
+                    <label class="form-check-label small" for="sinpe4">SINPE 4 (personalizado)</label>
+                  </div>
+                </div>
+                <input type="text" class="form-control form-control-sm mt-2 d-none" id="pubSinpe4Custom" placeholder="Número - Nombre (ej: 88888888 - Nombre)">
+              </div>
+              <div class="col-12">
+                <label class="form-label fw-semibold small text-muted">Seleccionar CUENTAS (múltiples)</label>
+                <div class="border rounded-3 p-2" style="background:#f8f9fa;max-height:200px;overflow-y:auto;">
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta1" value="Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103">
+                    <label class="form-check-label small" for="cuenta1">Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta2" value="Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163">
+                    <label class="form-check-label small" for="cuenta2">Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta3" value="Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778">
+                    <label class="form-check-label small" for="cuenta3">Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta4" value="Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793">
+                    <label class="form-check-label small" for="cuenta4">Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta5" value="Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158">
+                    <label class="form-check-label small" for="cuenta5">Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</label>
+                  </div>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="cuenta6" value="" onchange="toggleCustomInput('cuenta6', 'pubCuenta6Custom')">
+                    <label class="form-check-label small" for="cuenta6">Cuenta 6 (personalizada)</label>
+                  </div>
+                </div>
+                <input type="text" class="form-control form-control-sm mt-2 d-none" id="pubCuenta6Custom" placeholder="Nombre (Banco) - Cuenta (ej: Nombre (BCR) - CR123456789)">
+              </div>
+              <div class="col-12 mt-1">
+                <label class="form-label fw-semibold small text-muted">
+                  <i class="bi bi-tag-fill text-orange me-1"></i>Detalle del pago
+                  <span class="fw-normal text-muted">(texto del modal "Solo Colaborar")</span>
+                </label>
+                <input type="text" class="form-control form-control-sm" id="pubColaborarDetalle"
+                       placeholder="Apoyo Sueños de Vida" maxlength="200">
+              </div>
+            </div>
+          </div>
+
+          <script>
+          function toggleCustomInput(checkboxId, inputId) {
+            const checkbox = document.getElementById(checkboxId);
+            const input = document.getElementById(inputId);
+            if (checkbox.checked) {
+              input.classList.remove('d-none');
+            } else {
+              input.classList.add('d-none');
+              input.value = '';
+            }
+          }
+          </script>
+
+          <div class="rounded-4 p-3 mb-1" style="background:#fff;border:1px solid #e9ecef;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span class="rounded-3 p-2 d-flex" style="background:rgba(111,66,193,0.1);">
+                <i class="bi bi-share-fill fs-5" style="color:#6f42c1;"></i>
+              </span>
+              <span class="fw-bold" style="color:#444;">Contacto y Redes Sociales</span>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Teléfono</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-telephone-fill text-orange"></i></span>
+                  <input type="tel" class="form-control" id="pubTelefono" placeholder="8888-7777">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">WhatsApp</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-whatsapp text-success"></i></span>
+                  <input type="tel" class="form-control" id="pubWhatsapp" placeholder="50688887777">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Facebook</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-facebook text-primary"></i></span>
+                  <input type="url" class="form-control" id="pubFacebook" placeholder="https://facebook.com/...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">Instagram</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="color:#E1306C;"><i class="bi bi-instagram"></i></span>
+                  <input type="url" class="form-control" id="pubInstagram" placeholder="https://instagram.com/...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">TikTok</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text"><i class="bi bi-tiktok"></i></span>
+                  <input type="url" class="form-control" id="pubTiktok" placeholder="https://tiktok.com/@...">
+                </div>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label fw-semibold small text-muted">YouTube</label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" style="color:#FF0000;"><i class="bi bi-youtube"></i></span>
+                  <input type="url" class="form-control" id="pubYoutube" placeholder="https://youtube.com/...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </form>
+      </div>

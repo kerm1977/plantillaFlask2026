@@ -79,8 +79,40 @@ async function editEvento(id) {
     document.getElementById('pubDescCaminata').value = d.desc_caminata || '';
     document.getElementById('pubDireccion').value    = d.direccion || '';
     document.getElementById('pubUrl').value          = d.url_externa || '';
-    document.getElementById('pubSinpe').value        = d.sinpe_info || '';
-    document.getElementById('pubCuenta').value       = d.cuenta_info || '';
+    
+    // Cargar SINPE checkboxes
+    const sinpeValues = [d.sinpe_info, d.sinpe_info_2, d.sinpe_info_3, d.sinpe_info_4];
+    for (let i = 0; i < 4; i++) {
+        const cb = document.getElementById(`sinpe${i + 1}`);
+        if (cb) {
+            cb.checked = !!sinpeValues[i];
+            if (i === 3 && sinpeValues[i]) {
+                document.getElementById('pubSinpe4Custom').value = sinpeValues[i];
+                document.getElementById('pubSinpe4Custom').classList.remove('d-none');
+            }
+        }
+    }
+    
+    // Cargar cuentas checkboxes - comparar por valor exacto
+    const cuentaValues = [d.cuenta_info, d.cuenta_info_2, d.cuenta_info_3, d.cuenta_info_4];
+    for (let i = 1; i <= 6; i++) {
+        const cb = document.getElementById(`cuenta${i}`);
+        if (cb) {
+            // Verificar si este checkbox coincide con algún valor guardado
+            cb.checked = cuentaValues.includes(cb.value);
+        }
+    }
+    
+    // Si hay más de 4 cuentas, verificar si hay cuenta personalizada
+    if (cuentaValues.length > 4 && cuentaValues[4]) {
+        const cb6 = document.getElementById('cuenta6');
+        if (cb6) {
+            cb6.checked = true;
+            document.getElementById('pubCuenta6Custom').value = cuentaValues[4];
+            document.getElementById('pubCuenta6Custom').classList.remove('d-none');
+        }
+    }
+    
     document.getElementById('pubColaborarDetalle').value = d.colaborar_detalle || '';
     document.getElementById('pubTelefono').value     = d.telefono || '';
     document.getElementById('pubWhatsapp').value     = d.whatsapp || '';
@@ -119,6 +151,35 @@ async function submitEvento() {
         return;
     }
     const mostrar = Array.from(document.querySelectorAll('#mostrarChecks input:checked')).map(c => c.value);
+    
+    // Obtener SINPE seleccionados
+    const sinpeSelected = [];
+    for (let i = 1; i <= 4; i++) {
+        const cb = document.getElementById(`sinpe${i}`);
+        if (cb && cb.checked) {
+            if (i === 4) {
+                const custom = document.getElementById('pubSinpe4Custom').value;
+                sinpeSelected.push(custom || '');
+            } else {
+                sinpeSelected.push(cb.value);
+            }
+        }
+    }
+    
+    // Obtener cuentas seleccionadas - mantener orden de checkboxes
+    const cuentaSelected = [];
+    for (let i = 1; i <= 6; i++) {
+        const cb = document.getElementById(`cuenta${i}`);
+        if (cb && cb.checked) {
+            if (i === 6) {
+                const custom = document.getElementById('pubCuenta6Custom').value;
+                if (custom) cuentaSelected.push(custom);
+            } else if (cb.value) {
+                cuentaSelected.push(cb.value);
+            }
+        }
+    }
+    
     const fd = new FormData();
     fd.append('nombre',          nombre);
     fd.append('fecha_inicio',    fecha);
@@ -135,8 +196,14 @@ async function submitEvento() {
     fd.append('desc_caminata',   document.getElementById('pubDescCaminata').value);
     fd.append('direccion',       document.getElementById('pubDireccion').value);
     fd.append('url_externa',     document.getElementById('pubUrl').value);
-    fd.append('sinpe_info',      document.getElementById('pubSinpe').value);
-    fd.append('cuenta_info',     document.getElementById('pubCuenta').value);
+    fd.append('sinpe_info',      sinpeSelected[0] || '');
+    fd.append('sinpe_info_2',    sinpeSelected[1] || '');
+    fd.append('sinpe_info_3',    sinpeSelected[2] || '');
+    fd.append('sinpe_info_4',    sinpeSelected[3] || '');
+    fd.append('cuenta_info',     cuentaSelected[0] || '');
+    fd.append('cuenta_info_2',   cuentaSelected[1] || '');
+    fd.append('cuenta_info_3',   cuentaSelected[2] || '');
+    fd.append('cuenta_info_4',   cuentaSelected[3] || '');
     fd.append('colaborar_detalle', document.getElementById('pubColaborarDetalle').value);
     fd.append('telefono',          document.getElementById('pubTelefono').value);
     fd.append('whatsapp',        document.getElementById('pubWhatsapp').value);
@@ -163,12 +230,37 @@ async function submitEvento() {
     }
 }
 
-async function deleteEvento(id) {
-    if (!confirm('¿Eliminar este evento? Esta acción no se puede deshacer.')) return;
-    const res = await fetch(`/api/publicaciones/${id}`, { method: 'DELETE' });
-    const d   = await res.json();
-    if (d.ok) window.location.reload();
-    else alert(d.error || 'Error al eliminar');
+let deletePubId = null;
+
+async function deleteEvento(id, nombre) {
+    deletePubId = id;
+    document.getElementById('deletePubName').textContent = nombre || 'este evento';
+    const modal = new bootstrap.Modal(document.getElementById('deletePubModal'));
+    modal.show();
+}
+
+async function processDeletePub() {
+    if (!deletePubId) return;
+    const btn = document.getElementById('btnConfirmDeletePub');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/publicaciones/${deletePubId}`, { method: 'DELETE' });
+        const d = await res.json();
+        if (d.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('deletePubModal')).hide();
+            window.location.reload();
+        } else {
+            alert(d.error || 'Error al eliminar');
+            btn.innerHTML = 'Sí, eliminar evento';
+            btn.disabled = false;
+        }
+    } catch (err) {
+        alert('Error de conexión');
+        btn.innerHTML = 'Sí, eliminar evento';
+        btn.disabled = false;
+    }
 }
 
 async function toggleEvento(id, btn) {

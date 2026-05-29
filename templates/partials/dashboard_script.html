@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 showUsersList(); loadAllUsers();
             } else { alert("Error al actualizar: " + (result.error || 'Desconocido')); }
             btnSubmit.innerHTML = originalHTML; btnSubmit.disabled = false;
-        } catch(err) { alert("Error de conexión al guardar los datos."); }
+        } catch(err) { alert("Error de conexiÃ³n al guardar los datos."); }
     });
 });
 
@@ -74,7 +74,7 @@ function _dashMsg(cls, html) {
     el.className = `alert ${cls} rounded-3 py-2 small`; el.innerHTML = html; el.classList.remove('d-none');
 }
 async function dashExportJSON() {
-    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando exportación…');
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando exportaciÃ³nÂ…');
     try {
         const r = await fetch('/api/admin/db/export');
         if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
@@ -86,7 +86,7 @@ async function dashExportJSON() {
     } catch(e) { _dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`); }
 }
 async function dashExportExcel() {
-    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando Excel…');
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando ExcelÂ…');
     try {
         const r=await fetch('/api/admin/db/export'); if(!r.ok){const d=await r.json();throw new Error(d.error);}
         const data=await r.json(), wb=XLSX.utils.book_new();
@@ -98,13 +98,13 @@ async function dashExportExcel() {
 }
 async function dashImportJSON(input) {
     const file=input.files[0]; if(!file) return;
-    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Importando datos…');
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Importando datosÂ…');
     try {
         const json=JSON.parse(await file.text());
         const r=await fetch('/api/admin/db/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(json)});
         const d=await r.json();
-        if(d.ok){const summary=Object.entries(d.stats).map(([t,v])=>`<b>${t}</b>: +${v.added} nuevos, ${v.skipped} existentes`).join(' · ');
-            _dashMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado — ${summary}`); loadAllUsers();}
+        if(d.ok){const summary=Object.entries(d.stats).map(([t,v])=>`<b>${t}</b>: +${v.added} nuevos, ${v.skipped} existentes`).join(' Â· ');
+            _dashMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado Â— ${summary}`); loadAllUsers();}
         else{throw new Error(d.error||'Error desconocido');}
     } catch(e){_dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
     input.value='';

@@ -17,36 +17,39 @@ async function loadForms() {
         const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : 'bi-clipboard-data';
         const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
         return `<div class="col-12 col-sm-6 col-lg-4">
-            <div class="rounded-4 h-100 d-flex flex-column overflow-hidden" style="background:rgba(255,255,255,0.55);border-left:4px solid ${accent};border-top:1px solid rgba(255,255,255,0.7);border-right:1px solid rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.5);transition:transform 0.2s ease;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform='none'">
-                <div class="p-3 d-flex flex-column flex-grow-1">
-                    <div class="d-flex align-items-center justify-content-between mb-2">
-                        <div class="d-flex align-items-center gap-2" style="min-width:0;">
-                            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:${accent}15;">
-                                <i class="bi ${typeIcon}" style="color:${accent};font-size:1.1rem;"></i></div>
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                            <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:linear-gradient(135deg, ${accent}15, ${accent}25);box-shadow:0 4px 12px ${accent}20;">
+                                <i class="bi ${typeIcon}" style="color:${accent};font-size:1.4rem;"></i>
+                            </div>
                             <div style="min-width:0;">
-                                <h6 class="fw-bold mb-0 text-truncate" style="font-size:0.95rem;">${f.name}</h6>
-                                <div class="d-flex align-items-center gap-1 mt-1">
-                                    <span class="badge rounded-pill" style="font-size:0.65rem;background:${accent}20;color:${accent};border:1px solid ${accent}40;">${typeLabel}</span>
-                                    <span class="badge rounded-pill ${f.is_active?'bg-success':'bg-secondary'} bg-opacity-10 ${f.is_active?'text-success':'text-secondary'}" style="font-size:0.65rem;border:1px solid ${f.is_active?'rgba(25,135,84,0.3)':'rgba(108,117,125,0.3)'};">${f.is_active?'Activo':'Cerrado'}</span>
+                                <h5 class="fw-bold mb-1 text-truncate" style="font-size:1.05rem;color:#212529;">${f.name}</h5>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge rounded-pill px-2 py-1" style="font-size:0.7rem;background:${accent}15;color:${accent};border:1px solid ${accent}30;font-weight:600;">${typeLabel}</span>
+                                    <span class="badge rounded-pill px-2 py-1 ${f.is_active?'bg-success':'bg-secondary'} bg-opacity-10 ${f.is_active?'text-success':'text-secondary'}" style="font-size:0.7rem;border:1px solid ${f.is_active?'rgba(25,135,84,0.25)':'rgba(108,117,125,0.25)'};font-weight:600;">${f.is_active?'Activo':'Cerrado'}</span>
                                 </div>
                             </div>
                         </div>
-                        ${f.responses_count > 0 ? `<span class="badge bg-danger rounded-pill d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;font-size:0.8rem;">${f.responses_count}</span>` : ''}
+                        ${f.responses_count > 0 ? `<div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:linear-gradient(135deg, #dc3545, #c82333);box-shadow:0 4px 10px rgba(220,53,69,0.3);"><span class="text-white fw-bold" style="font-size:0.9rem;">${f.responses_count}</span></div>` : ''}
                     </div>
-                    <div class="d-flex flex-wrap gap-3 mt-1 mb-2" style="font-size:0.78rem;color:#6c757d;">
-                        <span><i class="bi bi-calendar3 me-1"></i>${f.created_at}</span>
-                        <span><i class="bi bi-list-check me-1"></i>${f.fields_count} preguntas</span>
+                    <div class="d-flex align-items-center gap-4 mb-3" style="font-size:0.85rem;color:#6c757d;">
+                        <span class="d-flex align-items-center"><i class="bi bi-calendar3 me-2" style="color:${accent};"></i>${f.created_at}</span>
+                        <span class="d-flex align-items-center"><i class="bi bi-list-check me-2" style="color:${accent};"></i>${f.fields_count} preguntas</span>
                     </div>
-                    <div class="rounded-3 px-2 py-1 mb-2 d-flex align-items-center" style="background:rgba(13,110,253,0.06);font-size:0.75rem;">
-                        <i class="bi bi-link-45deg me-1" style="color:${accent};"></i>
-                        <span class="text-truncate" style="color:#495057;">/form/${f.slug}</span>
+                    <div class="rounded-4 px-3 py-2 mb-3 d-flex align-items-center justify-content-between" style="background:linear-gradient(135deg, rgba(13,110,253,0.05), rgba(13,110,253,0.1));border:1px solid rgba(13,110,253,0.15);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-link-45deg" style="color:${accent};font-size:1rem;"></i>
+                            <span class="text-truncate" style="color:#495057;font-size:0.85rem;font-weight:500;">/form/${f.slug}</span>
+                        </div>
+                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:${accent}15;color:${accent};border:1px solid ${accent}30;" onclick="copyLink('${f.slug}')"><i class="bi bi-copy"></i></button>
                     </div>
-                    <div class="mt-auto pt-2 d-flex gap-1 flex-wrap border-top" style="border-color:rgba(0,0,0,0.06) !important;">
-                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(13,110,253,0.08);color:#0d6efd;border:1px solid rgba(13,110,253,0.15);" onclick="editForm(${f.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
-                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(25,135,84,0.08);color:#198754;border:1px solid rgba(25,135,84,0.15);" onclick="viewResponses(${f.id})"><i class="bi bi-eye me-1"></i>${f.responses_count}</button>
-                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(108,117,125,0.08);color:#6c757d;border:1px solid rgba(108,117,125,0.15);" onclick="copyLink('${f.slug}')"><i class="bi bi-share"></i></button>
-                        <a href="/form/${f.slug}" target="_blank" class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(13,202,240,0.08);color:#0dcaf0;border:1px solid rgba(13,202,240,0.15);"><i class="bi bi-box-arrow-up-right"></i></a>
-                        <button class="btn btn-sm rounded-pill px-2 py-1 ms-auto" style="font-size:0.75rem;background:rgba(220,53,69,0.08);color:#dc3545;border:1px solid rgba(220,53,69,0.15);" onclick="deleteForm(${f.id})"><i class="bi bi-trash3"></i></button>
+                    <div class="mt-auto pt-3 d-flex gap-2 flex-wrap border-top" style="border-color:rgba(0,0,0,0.08) !important;">
+                        <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.15));color:#0d6efd;border:1px solid rgba(13,110,253,0.2);" onclick="editForm(${f.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                        <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(25,135,84,0.1), rgba(25,135,84,0.15));color:#198754;border:1px solid rgba(25,135,84,0.2);" onclick="viewResponses(${f.id})"><i class="bi bi-eye me-1"></i>Respuestas</button>
+                        <a href="/form/${f.slug}" target="_blank" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.15));color:#0dcaf0;border:1px solid rgba(13,202,240,0.2);"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir</a>
+                        <button class="btn btn-sm rounded-pill px-3 py-2 ms-auto fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(220,53,69,0.1), rgba(220,53,69,0.15));color:#dc3545;border:1px solid rgba(220,53,69,0.2);" onclick="deleteForm(${f.id})"><i class="bi bi-trash3 me-1"></i>Eliminar</button>
                     </div>
                 </div>
             </div>
@@ -126,6 +129,24 @@ async function deleteForm(id) {
 
 function copyLink(slug) {
     const url = `${window.location.origin}/form/${slug}`;
-    navigator.clipboard.writeText(url).then(() => alert('Link copiado:\n' + url));
+    document.getElementById('shareLinkInput').value = url;
+    new bootstrap.Modal(document.getElementById('shareLinkModal')).show();
+}
+
+function copyShareLink() {
+    const input = document.getElementById('shareLinkInput');
+    const feedback = document.getElementById('shareCopyFeedback');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    const doFeedback = () => {
+        if (feedback) {
+            feedback.classList.remove('d-none');
+            setTimeout(() => feedback.classList.add('d-none'), 2500);
+        }
+    };
+    navigator.clipboard.writeText(input.value).then(doFeedback).catch(() => {
+        document.execCommand('copy');
+        doFeedback();
+    });
 }
 </script>

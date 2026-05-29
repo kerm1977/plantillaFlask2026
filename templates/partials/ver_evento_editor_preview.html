@@ -1,0 +1,83 @@
+<!-- COLUMNA DERECHA: EDITOR DE FLYER 9:16 (SOLO SUPERUSUARIOS) -->
+{% if is_super_user %}
+<div class="col-12 col-lg-5">
+    <div class="glass-panel p-3 p-md-4 rounded-4 shadow-sm border border-white border-opacity-50 sticky-lg-top" style="top: 20px;">
+        <h4 class="fw-bold text-dark mb-2 d-flex align-items-center h5">
+            <i class="bi bi-magic text-orange me-2"></i>Generador de Flyer
+        </h4>
+        <p class="text-secondary small mb-3" style="font-size: 0.8rem;">Diseña un póster perfecto eligiendo qué elementos quieres mostrar.</p>
+
+        <!-- CONTENEDOR ENVOLTURA PARA ESCALAR PREVIEW -->
+        <div id="flyerPreviewContainer">
+            <div id="flyerPreviewWrapper" class="flyer-preview-wrapper mb-3 shadow">
+                <!-- ÁREA DE CAPTURA DEL FLYER FÍSICA (Base = 360x640 siempre) -->
+                <div id="flyerCaptureArea" class="flyer-capture-area">
+                    <!-- Capa 1: Imagen Base -->
+                    <div class="flyer-bg-container" style="z-index: 0;">
+                        <img id="flyerBgImg" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                    </div>
+                    <!-- Capa 2: Clon de la Imagen para el Efecto Blur -->
+                    <div id="flyerBgBlurContainer" class="flyer-bg-container" style="z-index: 1;">
+                        <img id="flyerBgImgClone" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                    </div>
+                    <!-- Capa 3: Textos y Overlay Oscuro -->
+                    <div id="flyerOverlay" class="flyer-glass-overlay" style="z-index: 2;">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="flyer-badge">{{ evento.actividad }}</span>
+                            <div>
+                                {% if evento.zona_alto_riesgo %}
+                                <span class="flyer-badge bg-dark border-danger text-danger me-1"><i class="bi bi-exclamation-triangle-fill"></i> ALTO RIESGO</span>
+                                {% endif %}
+                                <span id="fl_dificultad" class="flyer-badge bg-danger border-0">{{ evento.dificultad }}</span>
+                            </div>
+                        </div>
+                        <h2 class="fw-bold mb-2" style="font-size: calc(1.4rem * var(--text-scale)); line-height: 1.15; letter-spacing: -0.5px;">{{ evento.nombre_lugar }}</h2>
+                        <div id="fl_fecha" class="mb-1 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                            <i class="bi bi-calendar-event me-1"></i><strong>Fecha:</strong> {{ date_display }}
+                        </div>
+                        <div id="fl_salida" class="mb-2 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                            <i class="bi bi-geo-alt me-1"></i><strong>Salida:</strong> {{ dest_text }} ({{ time_text }})
+                        </div>
+                        <div class="row g-2 mt-2 pt-2 border-top border-white border-opacity-25">
+                            <div class="col-6" id="fl_inversion">
+                                <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Inversión Total</small>
+                                <span class="fw-bold" style="color: #ffc107; font-size: calc(1.2rem * var(--text-scale));">{{ precio_mostrar }}</span>
+                            </div>
+                            <div class="col-6" id="fl_reserva">
+                                <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Reserva tu espacio</small>
+                                <span class="fw-bold" style="font-size: calc(1.2rem * var(--text-scale));">
+                                    {% set r_val = evento.reserva|int if evento.reserva else 0 %}
+                                    {% if r_val > 0 %}{{ evento.moneda }}{{ evento.reserva }}{% else %}PENDIENTE{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        <div id="fl_capacidad" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Capacidad del evento</small>
+                            <span class="fw-bold" style="font-size: calc(0.75rem * var(--text-scale));"><i class="bi bi-people-fill me-1"></i> {{ evento.capacidad|replace('AGOTADO_', '') }} personas max.</span>
+                        </div>
+                        <div id="fl_pagos" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Métodos de Pago</small>
+                            <div style="font-size: calc(0.7rem * var(--text-scale)); line-height: 1.3;">
+                                {% if evento.sinpe %}<strong>SINPE:</strong> {{ evento.sinpe }}<br>{% endif %}
+                                {% if evento.cuenta and evento.cuenta != 'Ninguna' %}<strong>Cuenta:</strong> {{ evento.cuenta }}{% endif %}
+                            </div>
+                        </div>
+                        {% if evento.incluye %}
+                        <div id="fl_incluye" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                            <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Lo que incluye</small>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for item in evento.incluye.split(',') %}
+                                    {% if item.strip() %}
+                                        <span class="badge border border-white border-opacity-50 text-white shadow-sm" style="font-size: calc(0.55rem * var(--text-scale)); background: rgba(255,255,255,0.15);">{{ item.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,24 @@
+<!-- Modal Eliminar Publicación Home -->
+<div class="modal fade" id="deleteEventHomeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 rounded-5 glass-panel p-4 text-center">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(220,53,69,0.15), rgba(220,53,69,0.08)); border: 2px solid rgba(220,53,69,0.25);">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 2.5rem; color: #dc3545;"></i>
+                </div>
+            </div>
+            <div class="modal-body pb-0">
+                <h5 class="fw-bold mb-2" style="color: #212529;">¿Eliminar Publicación?</h5>
+                <p class="text-secondary small mb-4" id="deleteEventHomeName" style="line-height: 1.6;">Esta acción borrará permanentemente la publicación de la base de datos.</p>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" id="btnConfirmDeleteHome" class="btn fw-bold rounded-pill px-4 shadow-sm w-100 text-white" style="background: linear-gradient(135deg, #dc3545, #c82333);" onclick="processDeleteEventHome()">
+                        <i class="bi bi-trash3 me-2"></i>Sí, eliminar evento
+                    </button>
+                    <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="background: rgba(108,117,125,0.08); color: #6c757d; border: 1px solid rgba(108,117,125,0.2);">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

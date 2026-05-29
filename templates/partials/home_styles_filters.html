@@ -1,0 +1,87 @@
+<style>
+    /* Buscador y Filtros Rápidos */
+    .search-container {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(15px);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        border-radius: 2rem;
+        padding: 0.5rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+    }
+    .quick-filter-badge {
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid transparent;
+        display: inline-flex;
+        align-items: center;
+    }
+    .quick-filter-badge:hover {
+        transform: translateY(-2px);
+        background-color: var(--primary-orange) !important;
+        color: white !important;
+    }
+
+    /* Selector de Meses */
+    .month-filter-select {
+        background-color: white;
+        color: #6c757d;
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border-radius: 50rem;
+        padding: 0.5rem 1rem;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        outline: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23ff8c00'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        background-size: 16px 12px;
+        padding-right: 2.5rem;
+        transition: all 0.2s ease;
+    }
+    .month-filter-select:hover, .month-filter-select:focus {
+        transform: translateY(-2px);
+        color: var(--primary-orange);
+    }
+
+    /* Botones Adicionales (Opciones y Mostrar Todo) */
+    .btn-glass-action {
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 140, 0, 0.6);
+        color: var(--primary-orange);
+        transition: all 0.3s ease;
+    }
+    .btn-glass-action:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: var(--primary-orange);
+        color: #e07b00;
+        box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
+    }
+
+    /* Colores Alternos de los Meses */
+    .month-black {
+        color: #1a1a1a !important;
+        border-color: #1a1a1a !important;
+    }
+    .month-gray {
+        color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+
+    /* Estilos del Mes Colapsable */
+    .month-header-title {
+        transition: opacity 0.3s ease, transform 0.2s ease;
+    }
+    .month-header-title:active {
+        transform: scale(0.98);
+    }
+
+    /* Transición suave para la flecha de la nota colapsable */
+    #notaChevron {
+        transition: transform 0.3s ease;
+    }
+</style>
