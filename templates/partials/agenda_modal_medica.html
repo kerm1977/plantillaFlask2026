@@ -1,0 +1,92 @@
+<!-- MODAL DE LA TARJETA MÉDICA (RESPONSIVO Y SEGURO)           -->
+<!-- ========================================================== -->
+<div class="modal fade" id="hikerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered"> 
+        <!-- max-width y w-100 asegura que nunca exceda la pantalla -->
+        <div class="modal-content border-0 shadow-lg w-100 mx-auto" style="background-color: #ffffff; border-radius: 1.5rem; overflow: hidden; max-width: 550px;">
+            
+            <div class="d-flex justify-content-end pt-3 pe-3 bg-white">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- ÁREA A EXPORTAR A PNG -->
+            <div id="tarjetaExportable" class="id-card">
+                
+                <img src="{{ url_for('static', filename='logo.png') }}" class="watermark-logo" alt="Sello de Agua La Tribu">
+
+                <div class="id-card-header">
+                    <div class="ps-3 ps-sm-4"></div> 
+                    <span class="pin-badge me-3 me-sm-4" id="modalPin">PIN-AQUÍ</span>
+                </div>
+                
+                <div class="id-card-body">
+                    
+                    <div class="d-flex justify-content-end mb-3 mt-2 pe-1 pe-sm-3">
+                        <div class="text-center">
+                            <!-- Tamaño de círculo de sangre adaptado -->
+                            <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow-sm mb-2" style="width: 80px; height: 80px; font-size: 2.2rem;" id="modalSangre">
+                                O+
+                            </div>
+                            <p class="data-label text-danger mb-0">Grupo Sanguíneo</p>
+                            <p class="text-muted fw-bold mb-0" style="font-size: 0.60rem; text-transform: uppercase;">+ Factor RH (Rhesus)</p>
+                        </div>
+                    </div>
+
+                    <div class="text-center mb-3 px-2">
+                        <p class="data-value text-orange mb-1 fw-black" style="line-height: 1.1; font-size: clamp(1.4rem, 6vw, 2rem);" id="modalNombre">Cargando...</p>
+                    </div>
+                    
+                    <!-- DISTRIBUCIÓN RESPONSIVA -->
+                    <div class="row text-center mt-3 g-2">
+                        <div class="col-12 col-sm-5 mb-2 px-1">
+                            <p class="data-value fs-4 mb-0" id="modalCedula">...</p>
+                            <p class="data-label text-muted">Cédula</p>
+                        </div>
+                        <div class="col-6 col-sm-3 mb-2 px-1">
+                            <p class="data-value fs-4 mb-0" id="modalEdad">...</p>
+                            <p class="data-label text-muted">Edad</p>
+                            <small id="modalFechaNacSutil" class="text-muted" style="font-size: 0.6rem; display: block; margin-top: -5px;"></small>
+                        </div>
+                        <div class="col-6 col-sm-4 mb-2 px-1">
+                            <p class="data-value fs-4 mb-0" id="modalTelefono">...</p>
+                            <p class="data-label text-muted">Teléfono</p>
+                        </div>
+                    </div>
+
+                    <hr class="w-100 border-secondary opacity-25 my-3">
+                    
+                    <div class="row text-center g-2">
+                        <div class="col-6 mb-3 px-1">
+                            <p class="data-label text-danger mb-1"><i class="bi bi-exclamation-triangle-fill"></i> Alergias</p>
+                            <p class="data-value fs-6 lh-sm fw-semibold" id="modalAlergias">...</p>
+                        </div>
+                        <div class="col-6 mb-3 px-1">
+                            <p class="data-label text-danger mb-1"><i class="bi bi-heart-pulse-fill"></i> Enfermedades</p>
+                            <p class="data-value fs-6 lh-sm fw-semibold" id="modalEnfermedades">...</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-light p-3 rounded-4 border text-center mt-3 mb-2 shadow-sm mx-1">
+                        <p class="data-label text-primary mb-1"><i class="bi bi-telephone-fill"></i> Contacto de Emergencia</p>
+                        <p class="data-value mb-0 fs-5" id="modalEmergencia">...</p>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- BOTONES DE ACCIÓN (Flex-column en móvil para que no se aprieten, row en PC) -->
+            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 p-3 p-sm-4 bg-white border-top">
+                <button class="btn btn-outline-primary fw-bold px-3 py-2 rounded-pill shadow-sm w-100" onclick="descargarTarjeta()">
+                    <i class="bi bi-download me-1"></i> Imagen
+                </button>
+                <a id="btnEditHiker" href="#" class="btn btn-outline-warning fw-bold px-3 py-2 rounded-pill shadow-sm w-100 text-dark text-center">
+                    <i class="bi bi-pencil-square me-1"></i> Editar
+                </a>
+                <button class="btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100" id="btnDeleteHiker" onclick="deleteHiker()">
+                    <i class="bi bi-trash-fill me-1"></i> Eliminar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -9,10 +9,9 @@ const urlsToCache = [
     '/offline.html', // Página para mostrar cuando no hay conexión
     '/static/manifest.json', // El manifest de la PWA
     '/static/css/main.css',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css',
-    'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css',
-    'https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.7/dist/umd/popper.min.js',
-    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js',
+    '/static/css/bootstrap.css',
+    '/static/css/bootstrap-icons.css',
+    '/static/js/bootstrap.bundle.min.js',
     // Asegúrate de que las rutas a tus imágenes y otros assets sean correctas.
     '/static/uploads/icons/icon-192x192.jpg',
     '/static/uploads/icons/icon-512x512.jpg'

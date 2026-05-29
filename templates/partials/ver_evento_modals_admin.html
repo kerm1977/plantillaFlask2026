@@ -1,0 +1,41 @@
+<div class="modal fade" id="deleteEventModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-header border-0 pb-0 justify-content-center">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                    <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+            <div class="modal-body pb-0">
+                <h5 class="fw-bold text-dark mb-2">¿Eliminar Evento?</h5>
+                <p class="text-secondary small mb-4">Esta acción borrará permanentemente "<strong>{{ evento.nombre_lugar }}</strong>" de la base de datos y no se puede deshacer.</p>
+                <div class="d-flex flex-column gap-2">
+                    <button type="button" id="btnConfirmDelete" class="btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white" onclick="processDeleteEvento({{ evento.id }})">
+                        Sí, eliminar evento
+                    </button>
+                    <button type="button" class="btn bg-white text-secondary fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="border: 1px solid #ced4da;">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="successDeleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-body pb-2 pt-2">
+                <div class="mb-3 d-flex justify-content-center">
+                    <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                        <i class="bi bi-trash-check-fill" style="font-size: 3rem;"></i>
+                    </div>
+                </div>
+                <h5 class="fw-bold text-dark mb-3 fs-5">¡Eliminado!</h5>
+                <p class="text-secondary small mb-4">El evento fue purgado de la base de datos de manera permanente.</p>
+                <div class="d-flex align-items-center justify-content-center text-success fw-bold small">
+                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                    Redirigiendo al inicio...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

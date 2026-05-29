@@ -1,0 +1,390 @@
+{% extends "base.html" %}
+{% block title %}{{ form.name }} - La Tribu{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+    <div class="card glass-panel border-0 shadow-sm">
+        <div class="card-body">
+            <h3 class="fw-bold text-orange mb-1">{{ form.name }}</h3>
+            <span class="badge {{ 'bg-warning text-dark' if form.form_type == 'examen' else 'bg-info' }} rounded-pill mb-3">
+                {{ 'Examen' if form.form_type == 'examen' else 'Registro' }}
+            </span>
+
+            {% if not form.allow_edit %}
+            <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Una vez enviada la respuesta <strong>no podrá modificarse</strong>.</div>
+            {% endif %}
+
+            <form id="publicForm" onsubmit="submitForm(event)">
+                {% if form.show_nombre %}
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-semibold">Nombre Completo o Cédula <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="pf_nombre" required autocomplete="off" placeholder="Digita cédula o nombre...">
+                    <div id="autocompleteList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 100; display:none; max-height:200px; overflow-y:auto;"></div>
+                </div>
+                {% endif %}
+                {% if form.show_email %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control" id="pf_email">
+                </div>
+                {% endif %}
+                {% if form.show_edad %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Edad</label>
+                    <input type="number" class="form-control" id="pf_edad" min="1" max="120">
+                </div>
+                {% endif %}
+                {% if form.show_telefono %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teléfono</label>
+                    <input type="tel" class="form-control" id="pf_telefono" placeholder="88881234">
+                </div>
+                {% endif %}
+                {% if form.show_fecha %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fecha</label>
+                    <input type="date" class="form-control" id="pf_fecha">
+                </div>
+                {% endif %}
+
+                <hr>
+                <div id="dynamicFields"></div>
+
+                <!-- Banner de edición -->
+                <div id="editBanner" class="alert alert-info py-2 small d-none">
+                    <i class="bi bi-pencil-square me-1"></i>Estás editando tu respuesta anterior.
+                </div>
+
+                <button type="submit" class="btn btn-orange rounded-pill px-5 w-100 mt-3 shadow-sm" id="btnSubmit">
+                    <i class="bi bi-send me-1"></i>Enviar Respuesta
+                </button>
+            </form>
+
+            <div id="resultPanel" class="d-none py-4">
+                <div class="text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <h4 class="fw-bold mt-2">¡Respuesta enviada!</h4>
+                    <p id="resultMsg" class="text-muted"></p>
+                    <div id="scorePanel" class="d-none">
+                        <div class="display-4 fw-bold text-orange" id="scoreValue"></div>
+                        <p class="text-muted" id="scoreDetail"></p>
+                    </div>
+                </div>
+
+                <!-- Resumen de respuestas -->
+                <div id="summaryPanel" class="d-none mt-4">
+                    <div class="alert alert-light border">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-card-checklist me-1"></i>Tu selección registrada:</h6>
+                        <pre id="summaryText" class="mb-0 small" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                    </div>
+                </div>
+
+                <!-- Botones para enviar a admins -->
+                <div id="adminSendPanel" class="d-none mt-3">
+                    <p class="text-muted small text-center mb-2">
+                        <i class="bi bi-info-circle me-1"></i>El sistema ya registró tu selección. Si deseas, puedes enviar tu solicitud a:
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a id="btnSendJenny" href="#" target="_blank" class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar a Jenny
+                        </a>
+                        <a id="btnSendKenneth" href="#" target="_blank" class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar a Kenneth
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enlace para editar la selección -->
+                <div id="editLinkPanel" class="d-none mt-3 text-center">
+                    <a href="#" id="btnEditSelection" class="btn btn-outline-primary rounded-pill px-4" onclick="editMySelection(); return false;">
+                        <i class="bi bi-pencil-square me-1"></i>Editar mi selección
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const FORM_ID = {{ form.id }};
+const FORM_TYPE = "{{ form.form_type }}";
+const ALLOW_EDIT = {{ 'true' if form.allow_edit else 'false' }};
+const EDIT_TOKEN = "{{ edit_token|default('', true) }}";
+const EDIT_RESPONSE_ID = {{ edit_response_id|default('null', true) }};
+let formFields = [];
+let editingResponseId = EDIT_RESPONSE_ID;
+let acTimeout = null;
+
+async function loadFields() {
+    const res = await fetch(`/api/forms/${FORM_ID}`);
+    const data = await res.json();
+    formFields = data.fields;
+    renderDynamicFields();
+    // Si viene con token de edición, precargar datos
+    if (EDIT_TOKEN) {
+        await loadResponseByToken(EDIT_TOKEN);
+    }
+}
+
+async function loadResponseByToken(token) {
+    const res = await fetch(`/api/forms/response_by_token/${token}`);
+    const data = await res.json();
+    if (!data.found) return;
+    editingResponseId = data.response_id;
+    // Rellenar campos personales
+    if (document.getElementById('pf_nombre')) document.getElementById('pf_nombre').value = data.nombre_completo || '';
+    if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email || '';
+    if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono || '';
+    if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
+    // Rellenar respuestas dinámicas
+    for (const f of formFields) {
+        const val = data.answers[String(f.id)];
+        if (val === undefined || val === null) continue;
+        if (f.field_type === 'text' || f.field_type === 'textarea') {
+            const input = document.querySelector(`[data-field-id="${f.id}"]`);
+            if (input) input.value = val;
+        } else if (f.field_type === 'radio') {
+            const radio = document.querySelector(`input[name="field_${f.id}"][value="${val}"]`);
+            if (radio) radio.checked = true;
+        } else if (f.field_type === 'checkbox' && Array.isArray(val)) {
+            val.forEach(v => {
+                const cb = document.querySelector(`input[name="field_${f.id}"][value="${v}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+    }
+    document.getElementById('editBanner').classList.remove('d-none');
+    document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+}
+
+function renderDynamicFields() {
+    const container = document.getElementById('dynamicFields');
+    container.innerHTML = formFields.map((f, i) => {
+        let html = `<div class="mb-3"><label class="form-label fw-semibold">${i+1}. ${f.label}</label>`;
+        if (f.field_type === 'text') {
+            html += `<input type="text" class="form-control" data-field-id="${f.id}">`;
+        } else if (f.field_type === 'textarea') {
+            html += `<textarea class="form-control" rows="4" data-field-id="${f.id}" placeholder="Escribe tu respuesta..."></textarea>`;
+        } else if (f.field_type === 'radio') {
+            html += f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_${f.id}" value="${o}" data-field-id="${f.id}">
+                    <label class="form-check-label">${o}</label>
+                </div>`).join('');
+        } else if (f.field_type === 'checkbox') {
+            html += f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="field_${f.id}" value="${o}" data-field-id="${f.id}">
+                    <label class="form-check-label">${o}</label>
+                </div>`).join('');
+        } else if (f.field_type === 'file') {
+            html += `<input type="file" class="form-control" data-field-id="${f.id}" data-type="file">`;
+        }
+        html += '</div>';
+        return html;
+    }).join('');
+}
+
+// ============================
+// AUTOCOMPLETAR DESDE AGENDA
+// ============================
+const nombreInput = document.getElementById('pf_nombre');
+const acList = document.getElementById('autocompleteList');
+
+if (nombreInput && acList) {
+    nombreInput.addEventListener('input', function() {
+        const q = this.value.trim();
+        clearTimeout(acTimeout);
+        if (q.length < 2) { acList.style.display = 'none'; return; }
+        acTimeout = setTimeout(async () => {
+            const res = await fetch(`/api/forms/search_hikers?q=${encodeURIComponent(q)}`);
+            const results = await res.json();
+            if (!results.length) { acList.style.display = 'none'; return; }
+            acList.innerHTML = results.map(r => `
+                <button type="button" class="list-group-item list-group-item-action py-2" onclick="selectHiker(this)" 
+                        data-nombre="${r.nombre_completo}" data-telefono="${r.telefono}" data-cedula="${r.cedula}">
+                    <strong>${r.nombre_completo}</strong>
+                    <small class="text-muted ms-2">${r.cedula}</small>
+                </button>
+            `).join('');
+            acList.style.display = 'block';
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!acList.contains(e.target) && e.target !== nombreInput) acList.style.display = 'none';
+    });
+}
+
+function selectHiker(el) {
+    const nombre = el.dataset.nombre;
+    const telefono = el.dataset.telefono;
+    document.getElementById('pf_nombre').value = nombre;
+    if (document.getElementById('pf_telefono') && telefono) {
+        document.getElementById('pf_telefono').value = telefono;
+    }
+    document.getElementById('autocompleteList').style.display = 'none';
+
+    // Si permite edición y no es examen, buscar respuesta existente
+    if (ALLOW_EDIT && FORM_TYPE !== 'examen') {
+        checkExistingResponse(nombre);
+    }
+}
+
+async function checkExistingResponse(nombre) {
+    const res = await fetch(`/api/forms/${FORM_ID}/my_response?nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (data.found) {
+        editingResponseId = data.response_id;
+        // Rellenar campos personales
+        if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email;
+        if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono;
+        if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
+        // Rellenar respuestas
+        for (const f of formFields) {
+            const val = data.answers[String(f.id)];
+            if (val === undefined || val === null) continue;
+            if (f.field_type === 'text' || f.field_type === 'textarea') {
+                const input = document.querySelector(`[data-field-id="${f.id}"]`);
+                if (input) input.value = val;
+            } else if (f.field_type === 'radio') {
+                const radio = document.querySelector(`input[name="field_${f.id}"][value="${val}"]`);
+                if (radio) radio.checked = true;
+            } else if (f.field_type === 'checkbox' && Array.isArray(val)) {
+                val.forEach(v => {
+                    const cb = document.querySelector(`input[name="field_${f.id}"][value="${v}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+        }
+        document.getElementById('editBanner').classList.remove('d-none');
+        document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+    }
+}
+
+// ============================
+// ENVIAR / ACTUALIZAR
+// ============================
+async function submitForm(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
+
+    const answers = {};
+    for (const f of formFields) {
+        if (f.field_type === 'text' || f.field_type === 'textarea') {
+            const input = document.querySelector(`[data-field-id="${f.id}"]`);
+            answers[f.id] = input ? input.value : '';
+        } else if (f.field_type === 'radio') {
+            const checked = document.querySelector(`input[name="field_${f.id}"]:checked`);
+            answers[f.id] = checked ? checked.value : '';
+        } else if (f.field_type === 'checkbox') {
+            const checked = document.querySelectorAll(`input[name="field_${f.id}"]:checked`);
+            answers[f.id] = Array.from(checked).map(c => c.value);
+        } else if (f.field_type === 'file') {
+            const fileInput = document.querySelector(`[data-field-id="${f.id}"][data-type="file"]`);
+            if (fileInput && fileInput.files.length > 0) {
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                fd.append('field_id', f.id);
+                const uploadRes = await fetch(`/api/forms/${FORM_ID}/submit_file`, { method: 'POST', body: fd });
+                const uploadData = await uploadRes.json();
+                answers[f.id] = uploadData.path || '';
+            } else {
+                answers[f.id] = '';
+            }
+        }
+    }
+
+    const payload = {
+        answers: answers,
+        nombre_completo: document.getElementById('pf_nombre')?.value || '',
+        email: document.getElementById('pf_email')?.value || '',
+        telefono: document.getElementById('pf_telefono')?.value || '',
+        edad: document.getElementById('pf_edad')?.value || '',
+    };
+
+    let res;
+    if (editingResponseId) {
+        res = await fetch(`/api/forms/${FORM_ID}/response/${editingResponseId}`, {
+            method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+    } else {
+        res = await fetch(`/api/forms/${FORM_ID}/submit`, {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+    }
+    const data = await res.json();
+
+    if (data.ok) {
+        document.getElementById('publicForm').classList.add('d-none');
+        document.getElementById('resultPanel').classList.remove('d-none');
+
+        if (FORM_TYPE === 'examen' && data.score !== undefined) {
+            document.getElementById('scorePanel').classList.remove('d-none');
+            document.getElementById('scoreValue').textContent = data.score + '%';
+            document.getElementById('scoreDetail').textContent = `${data.correct} de ${data.total} correctas`;
+        }
+
+        let msg = editingResponseId
+            ? 'Tu respuesta ha sido actualizada correctamente.'
+            : 'Tu información ha sido registrada exitosamente.';
+        document.getElementById('resultMsg').textContent = msg;
+
+        // Mostrar resumen de respuestas
+        if (data.answers_summary) {
+            document.getElementById('summaryText').textContent = data.answers_summary;
+            document.getElementById('summaryPanel').classList.remove('d-none');
+        }
+
+        // Botones para enviar a admins (Jenny y Kenneth)
+        if (data.admin_msg) {
+            const JENNY_PHONE = '50686529837';
+            const KENNETH_PHONE = '50686227500';
+            document.getElementById('btnSendJenny').href = `https://wa.me/${JENNY_PHONE}?text=${data.admin_msg}`;
+            document.getElementById('btnSendKenneth').href = `https://wa.me/${KENNETH_PHONE}?text=${data.admin_msg}`;
+            document.getElementById('adminSendPanel').classList.remove('d-none');
+        }
+
+        // Mostrar enlace de edición (solo si permite edición y no es examen)
+        if (ALLOW_EDIT && FORM_TYPE !== 'examen') {
+            if (!editingResponseId && data.response_id) {
+                editingResponseId = data.response_id;
+            }
+            if (data.edit_token) {
+                window._lastEditToken = data.edit_token;
+            }
+            document.getElementById('editLinkPanel').classList.remove('d-none');
+        }
+
+        // Auto-enviar al usuario su copia
+        if (data.whatsapp_url) {
+            setTimeout(() => { window.open(data.whatsapp_url, '_blank'); }, 1500);
+        }
+    } else {
+        alert(data.error || 'Error al enviar');
+        btn.disabled = false;
+        btn.innerHTML = editingResponseId
+            ? '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta'
+            : '<i class="bi bi-send me-1"></i>Enviar Respuesta';
+    }
+}
+
+function editMySelection() {
+    // Si hay token, navegar a la URL de edición segura
+    const token = window._lastEditToken || EDIT_TOKEN;
+    if (token) {
+        window.location.href = `${window.location.origin}/form/{{ form.slug or form.id }}/editar/${token}`;
+        return;
+    }
+    // Fallback: volver al formulario in-page
+    document.getElementById('resultPanel').classList.add('d-none');
+    document.getElementById('publicForm').classList.remove('d-none');
+    document.getElementById('editBanner').classList.remove('d-none');
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+}
+
+loadFields();
+</script>
+{% endblock %}

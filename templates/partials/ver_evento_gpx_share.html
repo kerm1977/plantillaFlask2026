@@ -1,0 +1,118 @@
+                        <!-- ============================================ -->
+                        <!-- SECCIÓN GPX DE LA RUTA                      -->
+                        <!-- ============================================ -->
+                        {% if is_super_user or evento.gpx_filename %}
+                        <hr class="border-secondary opacity-25 my-3 hide-on-export">
+                        <div class="hide-on-export" id="gpxSection">
+
+                            <h6 class="fw-bold text-dark mb-3 d-flex align-items-center">
+                                <i class="bi bi-map-fill text-orange me-2"></i>Ruta GPX
+                            </h6>
+
+                            <!-- PANEL SUPERUSUARIO -->
+                            {% if is_super_user %}
+                            <div class="rounded-3 p-3 mb-3 border" style="background: #fff9f2; border-color: #ffe0b2 !important;">
+                                <p class="fw-bold text-secondary small mb-2"><i class="bi bi-shield-lock-fill text-orange me-1"></i>Gestión del GPX (solo visible para ti)</p>
+
+                                <!-- Upload GPX -->
+                                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                    <label class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-0" style="cursor:pointer; font-size:0.82rem;">
+                                        <i class="bi bi-upload me-1"></i>
+                                        {% if evento.gpx_filename %}Reemplazar GPX{% else %}Subir GPX{% endif %}
+                                        <input type="file" accept=".gpx" class="d-none" id="gpxFileInput" onchange="uploadGPX({{ evento.id }}, this)">
+                                    </label>
+                                    {% if evento.gpx_filename %}
+                                    <span class="badge bg-success rounded-pill"><i class="bi bi-check-circle me-1"></i>{{ evento.gpx_filename }}</span>
+                                    <button class="btn btn-sm btn-outline-danger rounded-pill px-3" style="font-size:0.82rem;" onclick="deleteGPX({{ evento.id }})">
+                                        <i class="bi bi-trash me-1"></i>Borrar
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Contraseña -->
+                                {% if evento.gpx_filename %}
+                                <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
+                                    <span class="small text-secondary">Contraseña:</span>
+                                    <span id="gpxPwdDisplay" class="fw-bold text-dark font-monospace px-2 py-1 bg-white border rounded-2" style="letter-spacing:3px; font-size:1rem;">
+                                        {% if evento.gpx_password %}{{ evento.gpx_password }}{% else %}—{% endif %}
+                                    </span>
+                                    <button class="btn btn-sm btn-orange rounded-pill px-3" style="font-size:0.82rem;" onclick="generateGPXPassword({{ evento.id }})">
+                                        <i class="bi bi-arrow-clockwise me-1"></i>Generar
+                                    </button>
+                                    <input type="text" id="gpxCustomPwd" class="form-control form-control-sm rounded-pill" style="max-width:110px; font-size:0.82rem;" placeholder="O escribe una">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" style="font-size:0.82rem;" onclick="setCustomGPXPassword({{ evento.id }})">
+                                        <i class="bi bi-check2 me-1"></i>Usar
+                                    </button>
+                                </div>
+                                {% endif %}
+
+                                <!-- OrganicMaps URL -->
+                                <div class="mt-3">
+                                    <label class="small fw-bold text-secondary mb-1 d-block">
+                                        <img src="https://organicmaps.app/favicon.ico" onerror="this.style.display='none'" width="14" class="me-1"> Link de OrganicMaps / Play Store:
+                                    </label>
+                                    <div class="d-flex gap-2">
+                                        <input type="url" id="organicmapsInput" class="form-control form-control-sm rounded-pill" placeholder="https://play.google.com/..." value="{{ evento.organicmaps_url or '' }}" style="font-size:0.82rem;">
+                                        <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" style="font-size:0.82rem;" onclick="saveOrganicMaps({{ evento.id }})">
+                                            <i class="bi bi-save me-1"></i>Guardar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                            <!-- PANEL USUARIO: Descarga con contraseña -->
+                            {% if evento.gpx_filename %}
+                            <div class="rounded-3 p-3 border" style="background: #f0f7ff; border-color: #b3d4f5 !important;">
+                                <p class="small text-secondary mb-2"><i class="bi bi-info-circle me-1"></i>Ingresa la contraseña que compartió el organizador para descargar el GPX.</p>
+                                <div class="d-flex gap-2 align-items-center flex-wrap">
+                                    <input type="text" id="gpxPasswordInput" class="form-control form-control-sm rounded-pill font-monospace text-uppercase" style="max-width:130px; font-size:0.95rem; letter-spacing:3px;" placeholder="CLAVE" maxlength="10">
+                                    <button class="btn btn-sm btn-orange rounded-pill px-4 fw-bold" onclick="downloadGPX({{ evento.id }})">
+                                        <i class="bi bi-download me-1"></i>Descargar GPX
+                                    </button>
+                                </div>
+                                <div id="gpxError" class="text-danger small mt-2 d-none"><i class="bi bi-x-circle me-1"></i>Contraseña incorrecta</div>
+                            </div>
+
+                            <!-- OrganicMaps botón -->
+                            {% if evento.organicmaps_url %}
+                            <a href="{{ evento.organicmaps_url }}" target="_blank" rel="noopener" class="btn btn-sm rounded-pill mt-2 fw-bold d-inline-flex align-items-center gap-2 px-4" style="background:#4caf50; color:white; font-size:0.85rem;">
+                                <i class="bi bi-map me-1"></i>Abrir en OrganicMaps
+                            </a>
+                            {% endif %}
+                            {% endif %}
+
+                        </div>
+                        {% endif %}
+                        <!-- FIN SECCIÓN GPX -->
+
+                        <div class="share-section mt-4 pt-3 border-top border-secondary border-opacity-25 hide-on-export">
+                            <h6 class="fw-bold text-secondary mb-3 text-center text-md-start" style="font-size: 0.85rem;">Invita a tus amigos y comparte la aventura:</h6>
+                            <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-start">
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-2 fw-bold d-flex align-items-center" style="color: #495057; border: 1px solid #ced4da; font-size: 0.85rem;" onclick="shareNative()">
+                                    <i class="bi bi-share-fill text-primary me-2"></i>Compartir
+                                </button>
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-2 fw-bold d-flex align-items-center" style="color: #198754; border: 1px solid #198754; font-size: 0.85rem;" onclick="shareToFriendWhatsApp()">
+                                    <i class="bi bi-whatsapp me-2"></i>Enviar Link
+                                </button>
+                                <button id="btnExportPNG" class="btn btn-orange shadow-sm rounded-pill px-3 py-2 fw-bold text-white d-flex align-items-center ms-md-auto" style="font-size: 0.85rem;" onclick="exportToPNG()">
+                                    <i class="bi bi-image me-2"></i>Descargar Info Larga
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- ZONA DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
+                        {% if is_super_user %}
+                        <hr class="border-danger opacity-25 mt-4 mb-3 hide-on-export">
+                        <div class="admin-section hide-on-export">
+                            <h6 class="fw-bold text-danger mb-2 text-center text-md-start" style="font-size: 0.85rem;"><i class="bi bi-exclamation-octagon-fill me-2"></i>Zona de Administración:</h6>
+                            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
+                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="color: #ff8c00; border: 1px solid #ff8c00; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#editEventModal">
+                                    <i class="bi bi-pencil-square me-2"></i> Editar Evento
+                                </button>
+                                <button class="btn btn-danger shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
+                                    <i class="bi bi-trash-fill me-2"></i> Eliminar Evento
+                                </button>
+                            </div>
+                        </div>
+                        {% endif %}

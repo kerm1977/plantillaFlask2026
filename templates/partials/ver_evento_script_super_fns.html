@@ -1,0 +1,85 @@
+<script>
+// FUNCIONES GLOBALES PARA EL MODO EDICIÓN 
+{% if is_super_user %}
+function toggleEditActividad() {
+    const act = document.getElementById('editActividad').value;
+    document.getElementById('editNationalFields').classList.toggle('d-none', act === 'Internacional');
+    document.getElementById('editInternationalFields').classList.toggle('d-none', act !== 'Internacional');
+}
+
+function toggleEditDateInputs() {
+    const dias = parseInt(document.getElementById('editDias').value) || 1;
+    document.getElementById('editSingleDateGroup').classList.toggle('d-none', dias > 1);
+    document.getElementById('editRangeDateGroup').classList.toggle('d-none', dias <= 1);
+}
+
+function toggleEditDiaSeguro() {
+    const isSecure = document.getElementById('editDiaSeguroToggle').checked;
+    document.querySelectorAll('.edit-normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.edit-secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+function toggleEditLogisticaSegura() {
+    const isSecure = document.getElementById('editLogisticaSeguraToggle').checked;
+    document.querySelectorAll('.edit-normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.edit-secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+function toggleEditOtherDesc() {
+    document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
+}
+
+let deleteClicks = 0;
+function processDeleteEvento(eventId) {
+    const btn = document.getElementById('btnConfirmDelete');
+    deleteClicks++;
+    
+    if (deleteClicks === 1) {
+        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
+        btn.classList.replace('btn-danger', 'btn-warning');
+        btn.classList.replace('text-white', 'text-dark');
+    } else if (deleteClicks === 2) {
+        btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
+        btn.classList.replace('btn-warning', 'btn-dark');
+        btn.classList.add('text-white');
+    } else {
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
+        btn.disabled = true;
+        ejecutarBorradoReal(eventId);
+    }
+    
+    setTimeout(() => {
+        if (deleteClicks > 0 && deleteClicks < 3) {
+            deleteClicks = 0;
+            btn.innerHTML = 'Sí, eliminar evento';
+            btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
+        }
+    }, 4000);
+}
+
+async function ejecutarBorradoReal(eventId) {
+    try {
+        const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
+        const result = await response.json();
+        
+        if (response.ok && result.success) {
+            try {
+                const request = indexedDB.open("EventosLocalDB", 3);
+                request.onsuccess = (e) => { e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId); };
+            } catch(e) {}
+            
+            const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteEventModal'));
+            if(deleteModal) deleteModal.hide();
+            new bootstrap.Modal(document.getElementById('successDeleteModal')).show();
+            setTimeout(() => { window.location.href = '/'; }, 2000);
+        } else {
+            alert("Error al eliminar el evento.");
+            document.getElementById('btnConfirmDelete').disabled = false;
+        }
+    } catch (err) {
+        alert("Error de conexión al intentar eliminar el evento.");
+        document.getElementById('btnConfirmDelete').disabled = false;
+    }
+}
+{% endif %}
+</script>

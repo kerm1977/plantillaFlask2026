@@ -87,8 +87,12 @@ from routes import (        # noqa: E402, F401
     hiker_admin,
     backups,
     db_export,
-    forms,
-    rifas,
+    forms_crud,
+    forms_public,
+    forms_responses,
+    rifas_public,
+    rifas_selecciones,
+    rifas_admin,
     publicaciones,
 )
 

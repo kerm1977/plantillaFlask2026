@@ -1,0 +1,120 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    {% if is_super_user %}
+    // 2. LÓGICA DE EDICIÓN DEL EVENTO
+    // ==========================================
+        toggleEditActividad();
+        toggleEditDateInputs();
+        toggleEditDiaSeguro();
+        toggleEditLogisticaSegura();
+        
+        const setDateFields = (dateStr, dId, mId, yId) => {
+            if(!dateStr || dateStr === "None") return;
+            const pts = dateStr.split('-');
+            if(pts.length === 3) {
+                document.getElementById(yId).value = pts[0];
+                document.getElementById(mId).value = pts[1];
+                document.getElementById(dId).value = parseInt(pts[2], 10);
+            }
+        };
+
+        setDateFields("{{ evento.fecha_unica or '' }}", 'e_dayUnica', 'e_monthUnica', 'e_yearUnica');
+        setDateFields("{{ evento.fecha_inicio or '' }}", 'e_dayInicio', 'e_monthInicio', 'e_yearInicio');
+        setDateFields("{{ evento.fecha_regreso or '' }}", 'e_dayRegreso', 'e_monthRegreso', 'e_yearRegreso');
+
+        const includesGuardados = "{{ evento.incluye or '' }}".split(',').map(s => s.trim());
+        const checkboxes = document.querySelectorAll('#editIncluyeWrapper input[type="checkbox"]');
+        
+        checkboxes.forEach(cb => {
+            if (cb.value !== "Otros" && includesGuardados.includes(cb.value)) {
+                cb.checked = true;
+                const index = includesGuardados.indexOf(cb.value);
+                if (index > -1) includesGuardados.splice(index, 1);
+            }
+        });
+        
+        const filteredOtros = includesGuardados.filter(item => item !== "Otros" && item !== "");
+        if (filteredOtros.length > 0) {
+            document.getElementById('e_checkOtros').checked = true;
+            document.getElementById('editOtrosDescripcion').value = filteredOtros.join(', ');
+            toggleEditOtherDesc();
+        }
+
+        const editImageUpload = document.getElementById('editEventImageUpload');
+        if (editImageUpload) {
+            editImageUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        document.getElementById('editEventImagePreview').src = evt.target.result;
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+
+        document.getElementById('editEventForm')?.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            const isSecureDia = document.getElementById('editDiaSeguroToggle').checked;
+            formData.set('solo_chat', isSecureDia);
+
+            const isSecureLog = document.getElementById('editLogisticaSeguraToggle').checked;
+            formData.set('logistica_segura', isSecureLog);
+            
+            // NUEVO: Guardar selección de zona de alto riesgo
+            const isAltoRiesgo = document.getElementById('editAltoRiesgoToggle') ? document.getElementById('editAltoRiesgoToggle').checked : false;
+            formData.set('zona_alto_riesgo', isAltoRiesgo);
+
+            const incluyeArr = [];
+            document.querySelectorAll('#editIncluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
+                if(cb.value === "Otros") {
+                    const desc = document.getElementById('editOtrosDescripcion').value;
+                    if(desc) incluyeArr.push(desc);
+                } else {
+                    incluyeArr.push(cb.value);
+                }
+            });
+            formData.set('incluye', incluyeArr.join(', '));
+
+            const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0'+v : v)); };
+            
+            if (document.getElementById('editActividad').value === 'Internacional') {
+                formData.set('fechaUnica', document.getElementById('editFechaIda') ? document.getElementById('editFechaIda').value : '');
+            } else {
+                const dias = parseInt(document.getElementById('editDias').value) || 1;
+                if (dias === 1) {
+                    const y = document.getElementById('e_yearUnica').value;
+                    const m = document.getElementById('e_monthUnica').value;
+                    const d = isSecureDia ? '01' : pad(document.getElementById('e_dayUnica').value);
+                    formData.set('fechaUnica', `${y}-${m}-${d}`);
+                } else {
+                    const yI = document.getElementById('e_yearInicio').value;
+                    const mI = document.getElementById('e_monthInicio').value;
+                    const dI = isSecureDia ? '01' : pad(document.getElementById('e_dayInicio').value);
+                    formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
+                    
+                    const yR = document.getElementById('e_yearRegreso').value;
+                    const mR = document.getElementById('e_monthRegreso').value;
+                    const dR = isSecureDia ? '01' : pad(document.getElementById('e_dayRegreso').value);
+                    formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
+                }
+            }
+
+            try {
+                const response = await fetch('/api/update_event/{{ evento.id }}', { method: 'POST', body: formData });
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    window.location.reload(); 
+                } else {
+                    alert("Error al actualizar: " + (result.error || "Desconocido"));
+                }
+            } catch (err) { 
+                alert("Error de conexión al intentar actualizar el evento."); 
+            }
+        });
+    {% endif %}
+});
+</script>

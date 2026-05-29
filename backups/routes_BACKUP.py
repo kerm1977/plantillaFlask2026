@@ -1,15 +1,58 @@
-from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response
+from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response, send_file
 from models import User, Notification, Event, Hiker, EventRegistration, SiteContent
 from users import hash_password, check_password
 from db import db
-from datetime import datetime
+from datetime import datetime, date as _date
 import os
 import json
 import re
 import secrets
 import string
+import zipfile
+import threading
+import sys
 from sqlalchemy import text
 from werkzeug.utils import secure_filename
+
+# ==========================================
+# SISTEMA DE RESPALDOS
+# ==========================================
+_PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
+_BACKUP_DIR   = os.path.join(_PROJECT_ROOT, 'backups')
+_META_FILE    = os.path.join(_BACKUP_DIR, 'metadata.json')
+_DB_PATH      = os.path.join(_PROJECT_ROOT, 'local_app.db')
+_BACKUP_SKIP  = {'backups', '__pycache__', '.git', 'venv', 'env', 'node_modules',
+                 '.idea', '.vscode', '.mypy_cache'}
+
+def _load_meta():
+    if not os.path.exists(_META_FILE): return []
+    try:
+        with open(_META_FILE, 'r', encoding='utf-8') as f: return json.load(f)
+    except: return []
+
+def _save_meta(entries):
+    os.makedirs(_BACKUP_DIR, exist_ok=True)
+    with open(_META_FILE, 'w', encoding='utf-8') as f:
+        json.dump(entries, f, ensure_ascii=False, indent=2)
+
+def _make_zip(zip_path, skip_backup_dir=True):
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        for item in os.listdir(_PROJECT_ROOT):
+            if item in _BACKUP_SKIP: continue
+            if skip_backup_dir and item == 'backups': continue
+            if item.startswith('templates_BACKUP_'): continue
+            full = os.path.join(_PROJECT_ROOT, item)
+            if os.path.isfile(full):
+                if not full.endswith('.pyc'):
+                    zf.write(full, item)
+            elif os.path.isdir(full):
+                for root_d, dirs, files in os.walk(full):
+                    dirs[:] = [d for d in dirs if d not in _BACKUP_SKIP
+                               and not d.startswith('templates_BACKUP_')]
+                    for fname in files:
+                        if fname.endswith('.pyc'): continue
+                        fp = os.path.join(root_d, fname)
+                        zf.write(fp, os.path.relpath(fp, _PROJECT_ROOT))
 
 bp = Blueprint('main', __name__)
 
@@ -18,6 +61,13 @@ def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+
+@bp.before_request
+def ensure_session_avatar():
+    if 'user_id' in session and 'avatar' not in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            session['avatar'] = user.avatar or ''
 # -----------------------------------------
 
 @bp.route('/')
@@ -449,6 +499,16 @@ DEFAULT_SITE_CONTENT = {
         "Ubuntu: “Soy porque tú eres. Eres porque somos.” Es nuestra guía de vida.\n"
         "Respeto a la naturaleza: Somos guardianes del entorno que recorremos.\n"
         "Solidaridad: Tenemos la responsabilidad sobre los demás, especialmente sobre los vulnerables y el medio ambiente."
+    ),
+    'oracion': (
+        "GRACIAS SEÑOR POR ESTE HERMOSO DÍA QUE NOS HAS REGALADO.\n\n"
+        "POR NUESTROS AMIGOS Y AMIGAS QUE NOS ACOMPAÑAN EN ESTA ACTIVIDAD Y AQUELLOS QUE NO PUDIERON ESTAR HOY CON NOSOTROS.\n\n"
+        "NOS AMPARAMOS A TU PROTECCIÓN Y LA DE NUESTROS FAMILIARES QUE NOS ESPERAN EN CASA.\n\n"
+        "PROTEGE A LOS INDEFENSOS QUE SUFREN LA AGRESIÓN Y ABANDONO DE CUALQUIER TIPO.\n\n"
+        "PONEMOS A TODAS LAS PERSONAS QUE ESTÁN EN LOS HOSPITALES, A LOS PRIVADOS DE LIBERTAD Y DE MOVIMIENTO QUE DESEAN TENER LA OPORTUNIDAD QUE NOSOTROS TENEMOS EN ESTE DÍA... ACOMPÁÑALOS Y DALES FUERZA PARA VENCER SU ANGUSTIA.\n\n"
+        "QUE TU PROTECCIÓN LLEGUE A LOS DEMÁS GRUPOS Y SENDERISTAS DEL MUNDO QUE COMPARTEN NUESTRA MISMA PASIÓN PARA QUE LLEVEMOS UN CORAZÓN PASIVO, ALEGRE Y SERENO CON UN ESPÍRITU PROTECTOR DE LA NATURALEZA Y NUESTRO ENTORNO, DISFRUTANDO ASÍ CADA PASO QUE DAMOS EN NUESTRA NACIÓN Y NUESTRA TIERRA.\n\n"
+        "QUE HOY LA NATURALEZA Y LA MONTAÑA SE SOMETAN A TU ORDEN Y A TU PROTECCIÓN..... PARA QUE CONVIVAMOS CON ELLA DE MANERA PASIVA Y ARMONIOSA.\n\n"
+        "FORTALECE NUESTRA AMISTAD, NUESTRA HERMANDAD Y DIOS CUBRA CON SU SANGRE PRECIOSA A ESTE GRUPO LLAMADO LA TRIBU."
     )
 }
 
@@ -536,6 +596,7 @@ def login():
             return jsonify({'error': 'Usuario bloqueado'}), 403
         session['user_id'] = user.id
         session['role'] = user.role
+        session['avatar'] = user.avatar or 'default.png'
         return jsonify({'success': True})
     return jsonify({'error': 'Credenciales inválidas'}), 401
 
@@ -614,6 +675,7 @@ def update_profile():
             user.avatar = f"uploads/{filename}" 
 
         db.session.commit()
+        session['avatar'] = user.avatar or 'default.png'
         return jsonify({'success': True})
         
     except Exception as e:
@@ -633,8 +695,23 @@ def admin_get_users():
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     users = User.query.all()
+    hikers = Hiker.query.all()
+    hiker_by_phone = {}
+    for h in hikers:
+        if h.telefono:
+            clean = re.sub(r'\D', '', h.telefono)
+            if clean:
+                hiker_by_phone[clean] = h
     output = []
     for u in users:
+        u_phone_clean = re.sub(r'\D', '', u.phone or '')
+        hiker = hiker_by_phone.get(u_phone_clean)
+        f_nac = ''
+        if hiker:
+            try:
+                if hasattr(hiker, 'fecha_nacimiento') and hiker.fecha_nacimiento:
+                    f_nac = hiker.fecha_nacimiento.strftime('%Y-%m-%d')
+            except: pass
         output.append({
             'id': u.id,
             'name': u.name,
@@ -647,8 +724,90 @@ def admin_get_users():
             'phone': f"{u.phone_code or ''} {u.phone or 'No registrado'}",
             'created': u.created_at.strftime('%d de %B, %Y - %H:%M') if u.created_at else 'N/A',
             'updated': u.updated_at.strftime('%d de %B, %Y - %H:%M') if u.updated_at else 'N/A',
-            'avatar': u.avatar
+            'avatar': u.avatar,
+            'crm_cedula': hiker.cedula if hiker else None,
+            'crm_tipo_sangre': hiker.tipo_sangre if hiker else None,
+            'crm_alergias': hiker.alergias if hiker else None,
+            'crm_enfermedades': getattr(hiker, 'enfermedades_cronicas', '') if hiker else None,
+            'crm_emergencia_nombre': hiker.contacto_emergencia_nombre if hiker else None,
+            'crm_emergencia_tel': hiker.contacto_emergencia_telefono if hiker else None,
+            'crm_fecha_nac': f_nac
         })
+    return jsonify(output)
+
+@bp.route('/api/admin/all_contacts')
+def admin_get_all_contacts():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+
+    users = User.query.all()
+    hikers = Hiker.query.all()
+
+    hiker_by_phone = {}
+    for h in hikers:
+        if h.telefono:
+            clean = re.sub(r'\D', '', h.telefono)
+            if clean:
+                hiker_by_phone[clean] = h
+
+    matched_hiker_ids = set()
+    output = []
+
+    for u in users:
+        u_phone_clean = re.sub(r'\D', '', u.phone or '')
+        hiker = hiker_by_phone.get(u_phone_clean)
+        if hiker:
+            matched_hiker_ids.add(hiker.id)
+        f_nac = ''
+        if hiker:
+            try:
+                if hasattr(hiker, 'fecha_nacimiento') and hiker.fecha_nacimiento:
+                    f_nac = hiker.fecha_nacimiento.strftime('%Y-%m-%d')
+            except: pass
+        output.append({
+            'type': 'user',
+            'id': u.id,
+            'display_name': f'{u.name} {u.last_name_1} {u.last_name_2}',
+            'name': u.name, 'last_name_1': u.last_name_1, 'last_name_2': u.last_name_2,
+            'email': u.email, 'role': u.role, 'status': u.status,
+            'dob': u.dob.strftime('%Y-%m-%d') if u.dob else None,
+            'phone': f"{u.phone_code or ''} {u.phone or 'No registrado'}",
+            'created': u.created_at.strftime('%d/%m/%Y') if u.created_at else 'N/A',
+            'updated': u.updated_at.strftime('%d/%m/%Y') if u.updated_at else 'N/A',
+            'avatar': u.avatar,
+            'crm_cedula': hiker.cedula if hiker else None,
+            'crm_tipo_sangre': hiker.tipo_sangre if hiker else None,
+            'crm_alergias': hiker.alergias if hiker else None,
+            'crm_enfermedades': getattr(hiker, 'enfermedades_cronicas', '') if hiker else None,
+            'crm_emergencia_nombre': hiker.contacto_emergencia_nombre if hiker else None,
+            'crm_emergencia_tel': hiker.contacto_emergencia_telefono if hiker else None,
+            'crm_fecha_nac': f_nac
+        })
+
+    for h in hikers:
+        if h.id in matched_hiker_ids:
+            continue
+        f_nac = ''
+        try:
+            if hasattr(h, 'fecha_nacimiento') and h.fecha_nacimiento:
+                f_nac = h.fecha_nacimiento.strftime('%Y-%m-%d')
+        except: pass
+        output.append({
+            'type': 'hiker',
+            'id': f'h{h.id}',
+            'hiker_id': h.id,
+            'display_name': h.nombre_completo or 'Sin nombre',
+            'phone': h.telefono or 'No registrado',
+            'crm_cedula': h.cedula,
+            'crm_tipo_sangre': h.tipo_sangre,
+            'crm_alergias': h.alergias,
+            'crm_enfermedades': getattr(h, 'enfermedades_cronicas', ''),
+            'crm_emergencia_nombre': h.contacto_emergencia_nombre,
+            'crm_emergencia_tel': h.contacto_emergencia_telefono,
+            'crm_fecha_nac': f_nac,
+            'pin_secreto': h.pin_secreto
+        })
+
     return jsonify(output)
 
 @bp.route('/api/admin/toggle_status/<int:user_id>', methods=['POST'])
@@ -721,6 +880,15 @@ def admin_update_user(user_id):
 # ==========================================
 # SISTEMA CRM E INSCRIPCIONES (LA TRIBU)
 # ==========================================
+
+@bp.route('/registro')
+def registro_publico():
+    """Formulario de registro CRM sin evento específico."""
+    class _MockEvento:
+        nombre_lugar = "La Tribu de Los Libres"
+        id           = 0
+        is_sold_out  = False
+    return render_template('formulario_inscripcion.html', evento=_MockEvento())
 
 @bp.route('/inscripcion/<path:identifier>')
 def inscripcion_evento(identifier):
@@ -1000,3 +1168,262 @@ def get_hiker_by_pin(pin):
             'contacto_emergencia_telefono': hiker.contacto_emergencia_telefono
         })
     return jsonify({'found': False})
+
+# ==========================================
+# RUTAS DEL SISTEMA DE RESPALDOS
+# ==========================================
+@bp.route('/backups')
+def backup_manager():
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    return render_template('backups.html')
+
+@bp.route('/api/admin/backup/list')
+def backup_list():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    entries = _load_meta()
+    entries.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    return jsonify(entries)
+
+@bp.route('/api/admin/backup/create', methods=['POST'])
+def backup_create():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    payload     = request.get_json() or {}
+    name        = payload.get('name', '').strip() or 'Respaldo sin título'
+    description = payload.get('description', '').strip()
+    ts          = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+    zip_fname   = f'backup_{ts}.zip'
+    zip_path    = os.path.join(_BACKUP_DIR, zip_fname)
+    os.makedirs(_BACKUP_DIR, exist_ok=True)
+    try:
+        _make_zip(zip_path)
+        size  = os.path.getsize(zip_path)
+        entry = {
+            'id': ts, 'name': name, 'description': description,
+            'filename': zip_fname, 'size': size,
+            'created_at': datetime.utcnow().isoformat(), 'auto': False
+        }
+        entries = _load_meta()
+        entries.append(entry)
+        _save_meta(entries)
+        return jsonify({'ok': True, 'entry': entry})
+    except Exception as e:
+        if os.path.exists(zip_path): os.remove(zip_path)
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/admin/backup/download/<backup_id>')
+def backup_download(backup_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    entry = next((e for e in _load_meta() if e['id'] == backup_id), None)
+    if not entry: return jsonify({'error': 'No encontrado'}), 404
+    zip_path = os.path.join(_BACKUP_DIR, entry['filename'])
+    if not os.path.exists(zip_path): return jsonify({'error': 'Archivo no encontrado'}), 404
+    return send_file(zip_path, as_attachment=True, download_name=entry['filename'])
+
+@bp.route('/api/admin/backup/delete/<backup_id>', methods=['DELETE'])
+def backup_delete(backup_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    entries  = _load_meta()
+    entry    = next((e for e in entries if e['id'] == backup_id), None)
+    if not entry: return jsonify({'error': 'No encontrado'}), 404
+    zip_path = os.path.join(_BACKUP_DIR, entry['filename'])
+    if os.path.exists(zip_path): os.remove(zip_path)
+    _save_meta([e for e in entries if e['id'] != backup_id])
+    return jsonify({'ok': True})
+
+@bp.route('/api/admin/backup/restore/<backup_id>', methods=['POST'])
+def backup_restore(backup_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    entries  = _load_meta()
+    entry    = next((e for e in entries if e['id'] == backup_id), None)
+    if not entry: return jsonify({'error': 'Respaldo no encontrado'}), 404
+    zip_path = os.path.join(_BACKUP_DIR, entry['filename'])
+    if not os.path.exists(zip_path): return jsonify({'error': 'Archivo ZIP no encontrado'}), 404
+    try:
+        ts       = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        auto_zip = os.path.join(_BACKUP_DIR, f'pre_restore_{ts}.zip')
+        _make_zip(auto_zip)
+        auto_entry = {
+            'id': f'pre_{ts}',
+            'name': f'[AUTO] Antes de restaurar: {entry["name"]}',
+            'description': f'Respaldo automático creado antes de restaurar "{entry["name"]}".',
+            'filename': f'pre_restore_{ts}.zip',
+            'size': os.path.getsize(auto_zip),
+            'created_at': datetime.utcnow().isoformat(), 'auto': True
+        }
+        entries.append(auto_entry)
+        _save_meta(entries)
+        db.engine.dispose()
+        with zipfile.ZipFile(zip_path, 'r') as zf:
+            zf.extractall(_PROJECT_ROOT)
+        def _restart():
+            import time; time.sleep(2)
+            os.execv(sys.executable, [sys.executable] + sys.argv)
+        threading.Thread(target=_restart, daemon=True).start()
+        return jsonify({'ok': True, 'restart': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+# ==========================================
+# IMPORTAR contactos.json
+# ==========================================
+@bp.route('/api/admin/import/contactos', methods=['POST'])
+def import_contactos():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    try:
+        import random, string as _str
+        json_path = os.path.join(_PROJECT_ROOT, 'contactos.json')
+        with open(json_path, 'r', encoding='utf-8') as f:
+            contacts = json.load(f)
+        added = skipped = 0
+        for c in contacts:
+            cedula          = str(c.get('Cédula', '')).strip()
+            nombre_completo = ' '.join(filter(None, [
+                c.get('Nombre','').strip(),
+                c.get('Primer Apellido','').strip(),
+                c.get('Segundo Apellido','').strip()
+            ]))
+            if not nombre_completo:
+                skipped += 1; continue
+            if cedula and Hiker.query.filter_by(cedula=cedula).first():
+                skipped += 1; continue
+            if not cedula and Hiker.query.filter_by(nombre_completo=nombre_completo).first():
+                skipped += 1; continue
+            pin = ''.join(random.choices(_str.ascii_uppercase + _str.digits, k=6))
+            if not cedula:
+                cedula = 'SC-' + ''.join(random.choices(_str.digits, k=8))
+            db.session.add(Hiker(
+                cedula=cedula,
+                nombre_completo=nombre_completo,
+                pin_secreto=pin
+            ))
+            added += 1
+        db.session.commit()
+        return jsonify({'ok': True, 'added': added, 'skipped': skipped})
+    except FileNotFoundError:
+        return jsonify({'error': 'contactos.json no encontrado en el servidor'}), 404
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+# ==========================================
+# EXPORTAR / IMPORTAR BASE DE DATOS
+# ==========================================
+def _serialize_row(obj, date_fields=(), datetime_fields=()):
+    d = {}
+    for col in obj.__table__.columns:
+        val = getattr(obj, col.name)
+        if val is None:
+            d[col.name] = None
+        elif hasattr(val, 'isoformat'):
+            d[col.name] = val.isoformat()
+        else:
+            d[col.name] = val
+    return d
+
+@bp.route('/api/admin/db/export')
+def db_export_json():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    try:
+        from models import User, Hiker, Event, EventRegistration, Notification, SiteContent
+        payload = {
+            'exported_at': datetime.utcnow().isoformat(),
+            'version': '1.0',
+            'tables': {
+                'users':               [_serialize_row(r) for r in User.query.all()],
+                'hikers':              [_serialize_row(r) for r in Hiker.query.all()],
+                'events':              [_serialize_row(r) for r in Event.query.all()],
+                'event_registrations': [_serialize_row(r) for r in EventRegistration.query.all()],
+                'notifications':       [_serialize_row(r) for r in Notification.query.all()],
+                'site_content':        [_serialize_row(r) for r in SiteContent.query.all()],
+            }
+        }
+        ts       = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        fname    = f'db_export_{ts}.json'
+        raw      = json.dumps(payload, ensure_ascii=False, indent=2)
+        return Response(
+            raw,
+            mimetype='application/json',
+            headers={'Content-Disposition': f'attachment; filename="{fname}"'}
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/admin/db/import', methods=['POST'])
+def db_import_json():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    try:
+        data = request.get_json()
+        if not data or 'tables' not in data:
+            return jsonify({'error': 'Formato de archivo inválido'}), 400
+        tables   = data['tables']
+        stats    = {}
+
+        # --- Hikers ---
+        import random as _rnd, string as _str2
+        added = skipped = 0
+        for row in tables.get('hikers', []):
+            cedula = row.get('cedula')
+            nombre = row.get('nombre_completo', '')
+            if cedula:
+                if Hiker.query.filter_by(cedula=cedula).first():
+                    skipped += 1; continue
+            else:
+                if Hiker.query.filter_by(nombre_completo=nombre).first():
+                    skipped += 1; continue
+                cedula = 'SC-' + ''.join(_rnd.choices(_str2.digits, k=8))
+            h = Hiker(
+                cedula=cedula, nombre_completo=nombre,
+                telefono=row.get('telefono'), tipo_sangre=row.get('tipo_sangre'),
+                alergias=row.get('alergias'), enfermedades_cronicas=row.get('enfermedades_cronicas'),
+                contacto_emergencia_nombre=row.get('contacto_emergencia_nombre'),
+                contacto_emergencia_telefono=row.get('contacto_emergencia_telefono'),
+                pin_secreto=row.get('pin_secreto')
+            )
+            if row.get('fecha_nacimiento'):
+                try: h.fecha_nacimiento = datetime.strptime(row['fecha_nacimiento'][:10], '%Y-%m-%d').date()
+                except: pass
+            db.session.add(h); added += 1
+        db.session.commit()
+        stats['hikers'] = {'added': added, 'skipped': skipped}
+
+        # --- Users ---
+        added = skipped = 0
+        for row in tables.get('users', []):
+            if User.query.filter_by(email=row.get('email','').lower()).first():
+                skipped += 1; continue
+            u = User(
+                name=row.get('name'), last_name_1=row.get('last_name_1'),
+                last_name_2=row.get('last_name_2'), email=row.get('email','').lower(),
+                password_hash=row.get('password_hash', ''), role=row.get('role','Usuario'),
+                status=row.get('status','Activo'), phone=row.get('phone'),
+                phone_code=row.get('phone_code'), avatar=row.get('avatar','default.png')
+            )
+            if row.get('dob'):
+                try: u.dob = datetime.strptime(row['dob'][:10], '%Y-%m-%d').date()
+                except: pass
+            db.session.add(u); added += 1
+        db.session.commit()
+        stats['users'] = {'added': added, 'skipped': skipped}
+
+        # --- SiteContent ---
+        added = skipped = 0
+        for row in tables.get('site_content', []):
+            if SiteContent.query.filter_by(key=row.get('key')).first():
+                skipped += 1; continue
+            db.session.add(SiteContent(key=row.get('key'), value=row.get('value',''))); added += 1
+        db.session.commit()
+        stats['site_content'] = {'added': added, 'skipped': skipped}
+
+        return jsonify({'ok': True, 'stats': stats})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500

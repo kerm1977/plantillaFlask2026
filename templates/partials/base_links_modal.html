@@ -1,0 +1,117 @@
+
+    <!-- ========================================================== -->
+    <!-- MODAL: GENERADOR DE LINKS DE INSCRIPCIÓN (EL SELECT)       -->
+    <!-- ========================================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="modal fade" id="linkGeneratorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header bg-warning bg-opacity-25 border-0" style="border-radius: 1.5rem 1.5rem 0 0;">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-share-fill text-orange me-2"></i>Generar Link de Inscripción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center bg-light" style="border-radius: 0 0 1.5rem 1.5rem;">
+                    <p class="text-secondary fw-bold mb-4">Seleccione la caminata activa a la que desea invitar a los participantes.</p>
+                    
+                    <select id="selectEventosActivos" class="form-select form-select-lg mb-4 fw-bold text-center shadow-sm" style="border-radius: 1rem; border: 2px solid #ff8c00; cursor: pointer;">
+                        <option value="">Cargando caminatas...</option>
+                    </select>
+
+                    <div id="linkResultContainer" class="d-none animate__animated animate__fadeIn">
+                        <div class="input-group mb-2 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                            <span class="input-group-text bg-white border-end-0 text-orange"><i class="bi bi-link-45deg fs-4"></i></span>
+                            <input type="text" id="generatedLinkUrl" class="form-control border-start-0 bg-white text-dark fw-bold" readonly
+                                   style="cursor:pointer;" onclick="copyGeneratedLink()" title="Toca para copiar">
+                            <span class="input-group-text bg-white border-start-0" style="cursor:pointer;" onclick="copyGeneratedLink()">
+                                <i class="bi bi-copy text-orange"></i>
+                            </span>
+                        </div>
+                        <div id="copyFeedback" class="text-success fw-bold small mb-2 d-none">
+                            <i class="bi bi-check-circle-fill me-1"></i>¡Enlace copiado!
+                        </div>
+                        <button class="btn btn-success fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
+                            <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Controlador del Modal de Links (ACTUALIZADO A SLUGS) -->
+    <script>
+        let generadorModal;
+
+        async function abrirGeneradorLinks() {
+            if (!generadorModal) {
+                generadorModal = new bootstrap.Modal(document.getElementById('linkGeneratorModal'));
+            }
+            generadorModal.show();
+            
+            const select = document.getElementById('selectEventosActivos');
+            const linkContainer = document.getElementById('linkResultContainer');
+            
+            select.innerHTML = '<option value="">Buscando caminatas activas...</option>';
+            linkContainer.classList.add('d-none');
+
+            try {
+                // Obtenemos todos los eventos directo de la API existente
+                const res = await fetch('/api/get_events');
+                const eventos = await res.json();
+                
+                select.innerHTML = '<option value="" selected disabled>-- Toque aquí para seleccionar --</option>';
+                select.innerHTML += '<option value="registro" data-name="registro">\uD83D\uDDD2\uFE0F Solo Registrar (sin caminata)</option>';
+                let opcionesValidas = 0;
+                
+                eventos.forEach(ev => {
+                    // Filtramos solo los eventos que NO están agotados
+                    if (!ev.is_sold_out) {
+                        // MAGIA SLUG: Añadimos data-name
+                        select.innerHTML += `<option value="${ev.id}" data-name="${ev.nombreLugar}">${ev.nombreLugar} - ${ev.fecha}</option>`;
+                        opcionesValidas++;
+                    }
+                });
+
+                if (opcionesValidas === 0) {
+                    select.innerHTML = '<option value="" disabled>No hay caminatas con espacio en este momento</option>';
+                }
+                
+                // Evento cuando se elige una caminata del select
+                select.onchange = function() {
+                    if(this.value) {
+                        linkContainer.classList.remove('d-none');
+                        if (this.value === 'registro') {
+                            document.getElementById('generatedLinkUrl').value = window.location.origin + '/registro';
+                        } else {
+                            const eventName = this.options[this.selectedIndex].getAttribute('data-name');
+                            const slug = eventName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                            document.getElementById('generatedLinkUrl').value = window.location.origin + '/inscripcion/' + slug + '-' + this.value;
+                        }
+                    } else {
+                        linkContainer.classList.add('d-none');
+                    }
+                };
+            } catch (error) {
+                select.innerHTML = '<option value="" disabled>Error de conexión al buscar caminatas.</option>';
+            }
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('generatedLinkUrl');
+            const feedback = document.getElementById('copyFeedback');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            const doFeedback = () => {
+                if (feedback) {
+                    feedback.classList.remove('d-none');
+                    setTimeout(() => feedback.classList.add('d-none'), 2500);
+                }
+            };
+            navigator.clipboard.writeText(input.value).then(doFeedback).catch(() => {
+                document.execCommand('copy');
+                doFeedback();
+            });
+        }
+    </script>
+    {% endif %}
+

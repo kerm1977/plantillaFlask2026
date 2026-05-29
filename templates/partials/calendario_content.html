@@ -1,0 +1,96 @@
+
+<div class="container py-4 mb-5 pb-5">
+    <div class="row g-4">
+        
+        <!-- PANEL DE HERRAMIENTAS (EDITOR) -->
+        <div class="col-lg-4">
+            <div class="editor-tools p-4 shadow-sm h-100">
+                <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-sliders text-orange me-2"></i>Herramientas</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Categoría (Filtro)</label>
+                    <select id="filtroCategoria" class="form-select bg-white border-0 shadow-sm" onchange="renderizarCalendario()">
+                        <option value="Todas">Todas las Caminatas</option>
+                        <option value="Parques Nacionales">Parques Nacionales</option>
+                        <option value="Volcanes">Volcanes</option>
+                        <option value="Playas">Playas</option>
+                        <option value="Montaña">Montaña</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Título del Flyer</label>
+                    <input type="text" id="inputTitulo" class="form-control bg-white border-0 shadow-sm" value="CALENDARIO DE AVENTURAS" oninput="actualizarTextos()">
+                </div>
+
+                <hr class="my-4 opacity-25">
+
+                <!-- CONTROLES DE IMAGEN (Iguales a los que usas en el perfil/eventos) -->
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-image text-orange me-2"></i>Fondo del Flyer</h6>
+                
+                <div class="mb-3">
+                    <input type="file" id="bgImageUpload" class="form-control form-control-sm bg-white border-0 shadow-sm" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Escala</span> <span id="valScale">1.0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderScale" min="0.5" max="3" step="0.1" value="1">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Horizontal (X)</span> <span id="valX">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderX" min="-1000" max="1000" step="10" value="0">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Vertical (Y)</span> <span id="valY">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderY" min="-1000" max="1000" step="10" value="0">
+                </div>
+
+                <button onclick="descargarArte()" class="btn btn-primary w-100 fw-bold rounded-pill shadow-sm py-2">
+                    <i class="bi bi-download me-2"></i>Descargar 16:9
+                </button>
+            </div>
+        </div>
+
+        <!-- ÁREA DEL LIENZO -->
+        <div class="col-lg-8">
+            <div id="flyer-wrapper">
+                <div id="lienzo-16-9">
+                    <!-- Imagen de fondo controlada por el editor -->
+                    <img id="flyer-bg-img" src="{{ url_for('static', filename='default_bg.jpg') }}" onerror="this.src='https://images.unsplash.com/photo-1518182170546-076616fdfaaf?q=80&w=1920&auto=format&fit=crop'">
+                    <div class="overlay-oscuro"></div>
+
+                    <div class="calendario-contenido">
+                        <!-- Cabecera -->
+                        <div class="text-center mb-5">
+                            <h1 id="flyer-titulo" class="display-3 fw-black text-white text-uppercase" style="font-weight: 900; letter-spacing: 3px; text-shadow: 2px 4px 10px rgba(0,0,0,0.5);">
+                                CALENDARIO DE AVENTURAS
+                            </h1>
+                            <p id="flyer-subtitulo" class="fs-2 text-orange fw-bold mt-2" style="text-shadow: 1px 2px 5px rgba(0,0,0,0.5);">Todas las Caminatas</p>
+                        </div>
+
+                        <!-- Grilla de Meses (Inyectada por JS) -->
+                        <div id="grid-meses" class="row g-4 flex-grow-1">
+                            <!-- JS inserta las tarjetas aquí -->
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-4 text-center">
+                            <div class="d-inline-block px-5 py-3 rounded-pill" style="background: var(--primary-orange); color: var(--bg-darker);">
+                                <h3 class="fw-bold mb-0 m-0"><i class="bi bi-whatsapp me-2"></i>Reservas: 8622-7500 | www.latribu.top</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

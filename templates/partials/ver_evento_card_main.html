@@ -1,0 +1,137 @@
+                        <div class="row g-4 mb-4">
+                            <div class="col-12 col-md-5 d-flex flex-column align-items-center">
+                                <div class="position-relative w-100" style="max-width: 320px;">
+                                    {% if is_sold_out %}
+                                        <div class="sold-out-overlay" style="font-size: 1.1rem; padding: 4px 12px;">SIN ESPACIO</div>
+                                    {% endif %}
+
+                                    {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+                                    <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
+                                    
+                                    {% set badge_class = 'bg-success' %}
+                                    {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
+                                    {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
+                                    <span class="position-absolute top-0 end-0 badge rounded-pill {{ badge_class }} m-2 border border-2 border-white shadow-sm badge-dificultad text-uppercase">
+                                        {{ evento.dificultad }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-7">
+                                <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 text-uppercase fw-bold shadow-sm" style="font-size: 0.75rem;">{{ evento.actividad }}</span>
+                                <h1 class="fw-bold text-dark h3 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
+                                
+                                <div class="price-banner d-flex flex-column gap-2 mb-3">
+                                    <div>
+                                        <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Inversión Total</span>
+                                        <span class="fw-bold text-orange" style="font-size: 1.6rem; line-height: 1;">
+                                            {% if precio_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="border-top border-secondary border-opacity-25 pt-2 mt-1">
+                                        <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size: 0.7rem; letter-spacing: 1px;">Reserva tu espacio con</span>
+                                        <span class="fw-bold text-dark fs-5">
+                                            {% set r_val = evento.reserva|int if evento.reserva else 0 %}
+                                            {% if r_val > 0 %}{{ evento.moneda }}{{ evento.reserva }}{% else %}PENDIENTE{% endif %}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {% if is_sold_out and not is_super_user %}
+                                <button class="btn btn-secondary w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export disabled">
+                                    <i class="bi bi-x-circle me-2"></i>Sin Espacio
+                                </button>
+                                {% else %}
+                                <button class="btn btn-success w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export" onclick="reservarPorWhatsApp()">
+                                    <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
+                                </button>
+                                {% endif %}
+
+                                <!-- ALERTA ZONA ALTO RIESGO PÚBLICA -->
+                                {% if evento.zona_alto_riesgo %}
+                                <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-50 rounded-4 p-3 mt-4 mb-0 d-flex align-items-center hide-on-export shadow-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-danger fs-1 me-3"></i>
+                                    <div>
+                                        <h6 class="fw-bold text-danger mb-1" style="letter-spacing: 0.5px;">ZONA DE ALTO RIESGO</h6>
+                                        <p class="mb-0 text-danger small opacity-100 fw-bold" style="line-height: 1.3;">Alta exigencia técnica o terreno peligroso. Evalúa tu condición física responsablemente.</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <hr class="border-secondary opacity-25 mb-3">
+
+                        <!-- Detalles Logísticos -->
+                        <h6 class="fw-bold text-warning-custom mb-3"><i class="bi bi-journal-text me-2"></i>Información Logística</h6>
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-calendar-event"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Fecha de la Actividad</h6>
+                                <p class="mb-0 fs-6 text-dark fw-bold">
+                                    {% if evento.dias > 1 %}
+                                        Del {{ inicio_formateada }} al {{ regreso_formateada }}
+                                    {% else %}
+                                        <i class="bi bi-calendar-check text-orange me-1"></i> {{ fecha_formateada }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-geo-alt"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Punto de Salida y Hora</h6>
+                                {% if is_private and not is_super_user %}
+                                    <p class="text-danger fw-bold fs-6 mt-1 mb-0"><i class="bi bi-shield-lock-fill me-2"></i>¡Información en el chat!</p>
+                                {% else %}
+                                    <p class="mb-1 text-dark"><strong>Lugar:</strong> {{ lugar_real }} 
+                                    {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
+                                    </p>
+                                    <p class="mb-1 text-dark"><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}
+                                    {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
+                                    </p>
+                                    {% if evento.puntos_recogida %}
+                                        <p class="small text-secondary mt-1 mb-0"><i class="bi bi-bus-front text-orange me-1"></i><strong>Pasamos a recoger en:</strong> {{ evento.puntos_recogida }}</p>
+                                    {% endif %}
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-icon"><i class="bi bi-credit-card"></i></div>
+                            <div class="detail-text">
+                                <h6 class="fw-bold text-dark mb-1" style="font-size: 0.9rem;">Cupos y Métodos de Pago</h6>
+                                <p class="mb-1"><strong>Capacidad:</strong> {{ evento.capacidad|replace('AGOTADO_', '') }} max.</p>
+                                {% if evento.sinpe %}
+                                    <p class="mb-1"><strong><i class="bi bi-phone text-orange me-1"></i>SINPE:</strong> {{ evento.sinpe }}</p>
+                                {% endif %}
+                                {% if evento.cuenta and evento.cuenta != 'Ninguna' %}
+                                    <p class="mb-0"><strong><i class="bi bi-bank text-orange me-1"></i>Cuenta:</strong> {{ evento.cuenta }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if evento.incluye %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-bag-check-fill text-orange me-2"></i>El evento incluye:</h6>
+                            <div class="d-flex flex-wrap">
+                                {% for item in evento.incluye.split(',') %}
+                                    {% if item.strip() %}
+                                        <span class="incluye-pill"><i class="bi bi-check2-circle me-2"></i>{{ item.strip() }}</span>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if evento.itinerario %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-card-text text-orange me-2"></i>Itinerario Especial</h6>
+                            <div class="border-left border-4 border-orange ps-3 mt-2 text-secondary" style="white-space: pre-wrap; font-size: 0.85rem;">
+                                {{ evento.itinerario }}
+                            </div>
+                        </div>
+                        {% endif %}

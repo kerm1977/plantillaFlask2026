@@ -1,0 +1,162 @@
+<script>
+    {% if not evento.is_sold_out %}
+    // --- Lógica Inteligente de Búsqueda de Caminantes ---
+    const cedulaInput = document.getElementById('cedula');
+    const camposAdicionales = document.getElementById('camposAdicionales');
+    const aviso = document.getElementById('cedulaAviso');
+    const btnSubmit = document.getElementById('btnSubmit');
+    
+    // Lista de campos que se validan (INCLUYENDO FECHA DE NACIMIENTO)
+    const requiredFields = ['nombre_completo', 'telefono', 'fecha_nacimiento', 'tipo_sangre', 'emergencia_nombre', 'emergencia_telefono'];
+    
+    let delayTimer;
+
+    cedulaInput.addEventListener('input', function() {
+        clearTimeout(delayTimer);
+        const cedulaVal = this.value.trim();
+        
+        // Empieza a buscar cuando haya al menos 7 dígitos
+        if(cedulaVal.length >= 7) {
+            delayTimer = setTimeout(() => {
+                fetch(`/api/hiker/check/${cedulaVal}`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data.found) {
+                        // 1. Llenar los datos invisibles para que se envíen bien
+                        document.getElementById('nombre_completo').value = data.nombre_completo || '';
+                        document.getElementById('telefono').value = data.telefono || '';
+                        document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento || '';
+                        document.getElementById('tipo_sangre').value = data.tipo_sangre || '';
+                        document.getElementById('alergias').value = data.alergias || '';
+                        document.getElementById('enfermedades_cronicas').value = data.enfermedades_cronicas || '';
+                        document.getElementById('emergencia_nombre').value = data.contacto_emergencia_nombre || '';
+                        document.getElementById('emergencia_telefono').value = data.contacto_emergencia_telefono || '';
+                        
+                        // 2. Quitar el 'required' para que HTML5 no bloquee el envío al estar ocultos
+                        requiredFields.forEach(f => document.getElementById(f).removeAttribute('required'));
+
+                        // 3. OCULTAR TODO EL RESTO DEL FORMULARIO
+                        camposAdicionales.classList.add('d-none');
+                        
+                        // 4. Mostrar el saludo personalizado
+                        const primerNombre = data.nombre_completo.split(' ')[0];
+                        aviso.innerHTML = `<i class="bi bi-check-circle-fill me-2"></i> ¡Hola <strong>${primerNombre}</strong>!`;
+                        aviso.classList.remove('d-none');
+                        
+                    } else {
+                        // SI NO EXISTE: Volver a mostrar todo normal
+                        camposAdicionales.classList.remove('d-none');
+                        aviso.classList.add('d-none');
+                        
+                        // Restaurar los required
+                        requiredFields.forEach(f => document.getElementById(f).setAttribute('required', 'true'));
+                    }
+                })
+                .catch(err => console.log('Error buscando cédula:', err));
+            }, 500);
+        } else {
+            // Si borra la cédula, mostramos todo de nuevo
+            camposAdicionales.classList.remove('d-none');
+            aviso.classList.add('d-none');
+            requiredFields.forEach(f => document.getElementById(f).setAttribute('required', 'true'));
+        }
+    });
+
+    // --- Toggle sección crear cuenta ---
+    function toggleCamposCuenta(show) {
+        document.getElementById('camposCuenta').classList.toggle('d-none', !show);
+    }
+
+    // --- Envío del Formulario y Redirección a WhatsApp ---
+    document.getElementById('inscripcionForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> ENVIANDO...';
+
+        const payload = {
+            event_id: document.getElementById('event_id').value,
+            cedula: document.getElementById('cedula').value.trim(),
+            nombre_completo: document.getElementById('nombre_completo').value.trim(),
+            telefono: document.getElementById('telefono').value.trim(),
+            fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+            tipo_sangre: document.getElementById('tipo_sangre').value,
+            alergias: document.getElementById('alergias').value.trim() || 'Ninguna',
+            enfermedades_cronicas: document.getElementById('enfermedades_cronicas').value.trim() || 'Ninguna',
+            contacto_emergencia_nombre: document.getElementById('emergencia_nombre').value.trim(),
+            contacto_emergencia_telefono: document.getElementById('emergencia_telefono').value.trim()
+        };
+
+        try {
+            const response = await fetch('/api/hiker/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+
+            if(response.ok && data.success) {
+                // -- Intentar crear cuenta si el usuario lo solicitó --
+                const crearCuenta = document.getElementById('crearCuentaCheck').checked;
+                if (crearCuenta) {
+                    const email   = document.getElementById('reg_email').value.trim();
+                    const pwd     = document.getElementById('reg_password').value;
+                    const pwd2    = document.getElementById('reg_password2').value;
+                    const rName   = document.getElementById('reg_name').value.trim();
+                    const rLn1    = document.getElementById('reg_ln1').value.trim();
+                    const rLn2    = document.getElementById('reg_ln2').value.trim();
+                    const regMsg  = document.getElementById('regAccountMsg');
+
+                    if (!email || !pwd || !rName || !rLn1) {
+                        regMsg.className = 'alert alert-warning rounded-3 py-2 small mb-2';
+                        regMsg.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Completa nombre, correo y contraseña para crear la cuenta.';
+                        regMsg.classList.remove('d-none');
+                    } else if (pwd !== pwd2) {
+                        regMsg.className = 'alert alert-danger rounded-3 py-2 small mb-2';
+                        regMsg.innerHTML = '<i class="bi bi-x-circle me-1"></i>Las contraseñas no coinciden.';
+                        regMsg.classList.remove('d-none');
+                    } else {
+                        const regResp = await fetch('/api/register', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                name: rName, last_name_1: rLn1, last_name_2: rLn2 || '-',
+                                email, password: pwd,
+                                phone: payload.telefono, dob: payload.fecha_nacimiento
+                            })
+                        });
+                        const regData = await regResp.json();
+                        if (!regResp.ok) {
+                            regMsg.className = 'alert alert-warning rounded-3 py-2 small mb-2';
+                            regMsg.innerHTML = `<i class="bi bi-info-circle me-1"></i>Inscripción guardada, pero la cuenta no se creó: ${regData.error || 'error desconocido'}`;
+                            regMsg.classList.remove('d-none');
+                        }
+                    }
+                }
+
+                const pin = data.pin || "VERIFICADO";
+                const nombreEvento = document.getElementById('nombreEvento').value;
+                let textoWhatsApp = `¡Hola La Tribu! Mi nombre es *${payload.nombre_completo}* y deseo reservar mi espacio para la caminata: *${nombreEvento}*.\n\n`;
+                textoWhatsApp += `Aquí está mi ficha médica actualizada (PIN: ${pin}):\n`;
+                textoWhatsApp += `▫️ *Cédula:* ${payload.cedula}\n`;
+                textoWhatsApp += `▫️ *Teléfono:* ${payload.telefono}\n`;
+                textoWhatsApp += `▫️ *Sangre:* ${payload.tipo_sangre}\n`;
+                textoWhatsApp += `▫️ *Alergias:* ${payload.alergias}\n`;
+                textoWhatsApp += `▫️ *Enfermedades:* ${payload.enfermedades_cronicas}\n`;
+                textoWhatsApp += `🚨 *Emergencia:* ${payload.contacto_emergencia_nombre} al número ${payload.contacto_emergencia_telefono}`;
+                
+                const numeroAdministrador = "50686529837";
+                window.location.href = `https://api.whatsapp.com/send?phone=${numeroAdministrador}&text=${encodeURIComponent(textoWhatsApp)}`;
+            } else {
+                alert("Hubo un error guardando tu información. Por favor intenta de nuevo.");
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = 'Enviar información a La Tribu';
+            }
+        } catch (error) {
+            alert("Error de conexión. Revisa que tengas internet e intenta nuevamente.");
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Enviar información a La Tribu';
+        }
+    });
+    {% endif %}
+</script>

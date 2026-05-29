@@ -1,0 +1,213 @@
+
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-lg-12 col-xl-10">
+        
+        <div class="glass-panel rounded-5 p-4 p-md-5 mb-4 position-relative border-0 shadow-lg">
+            <h2 class="fw-bold text-dark mb-4 text-center text-md-start">
+                <i class="bi bi-speedometer2 text-orange me-2"></i>Dashboard de Administración
+            </h2>
+            
+            <!-- VISTA 1: Lista de Contactos -->
+            <div id="adminUsersList">
+                <div class="d-flex flex-column flex-md-row justify-content-between mb-3 gap-3">
+                    <div class="input-group shadow-sm rounded-pill overflow-hidden w-100">
+                        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-orange"></i></span>
+                        <input type="text" class="form-control border-0 py-2 bg-white" id="searchUserInput" placeholder="Buscar por nombre, cédula, correo o teléfono...">
+                    </div>
+                    <button class="btn bg-white rounded-pill px-4 flex-shrink-0 shadow-sm fw-bold" style="color: #ff8c00; border: 2px solid #ff8c00;" onclick="loadAllUsers()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+                    </button>
+                </div>
+
+                <!-- Contadores -->
+                <div class="d-flex gap-2 flex-wrap mb-3" id="contactCounters">
+                    <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:rgba(0,0,0,0.07);color:#333;font-size:0.8rem;">
+                        <i class="bi bi-people-fill text-orange me-1"></i>Total: <span id="countTotal">—</span>
+                    </span>
+                    <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:rgba(25,135,84,0.12);color:#157347;font-size:0.8rem;">
+                        <i class="bi bi-person-check-fill me-1"></i>Usuarios registrados: <span id="countUsers">—</span>
+                    </span>
+                    <span class="badge rounded-pill fw-semibold px-3 py-2" style="background:rgba(13,110,253,0.1);color:#0a58ca;font-size:0.8rem;">
+                        <i class="bi bi-card-list me-1"></i>Solo CRM: <span id="countHikers">—</span>
+                    </span>
+                </div>
+
+                <!-- Exportar / Importar BD -->
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <span class="fw-bold text-dark small"><i class="bi bi-database-down text-orange me-1"></i>Base de Datos:</span>
+                    <button class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="dashExportJSON()">
+                        <i class="bi bi-filetype-json me-1"></i>JSON
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3" onclick="dashExportExcel()">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
+                    </button>
+                    <label class="btn btn-sm btn-outline-warning rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
+                        <i class="bi bi-upload me-1"></i>Importar
+                        <input type="file" id="dashImportInput" accept=".json" class="d-none" onchange="dashImportJSON(this)">
+                    </label>
+                </div>
+                <div id="dashDbMsg" class="mb-3 d-none small"></div>
+
+                <div class="table-responsive glass-table-container rounded-4 p-2 shadow-sm">
+                    <table class="table table-hover table-glass align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th class="border-0 rounded-start fw-bold py-3">Nombre / Contacto</th>
+                                <th class="border-0 fw-bold py-3 d-none d-sm-table-cell">Tipo</th>
+                                <th class="border-0 fw-bold py-3 d-none d-sm-table-cell">Estado</th>
+                                <th class="border-0 rounded-end text-end text-sm-center fw-bold py-3">Ver</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody">
+                            <tr><td colspan="4" class="text-center py-4 text-muted"><i class="bi bi-hourglass-split me-2"></i>Cargando registros...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Paginación -->
+                <div id="dashPaginationBar" class="d-flex justify-content-center flex-wrap gap-2 mt-3 pb-2"></div>
+            </div>
+
+            <!-- VISTA 2: Detalle Absoluto del Usuario (Oculto por defecto) -->
+            <div id="adminUserDetails" class="d-none animate__animated animate__fadeInRight">
+                <!-- Botón Volver -->
+                <button class="btn bg-white rounded-pill px-4 shadow-sm mb-4 fw-bold w-100 w-md-auto" style="color: #6c757d; border: 1px solid #ced4da;" onclick="showUsersList()">
+                    <i class="bi bi-arrow-left me-1"></i>Volver a la lista
+                </button>
+                
+                <div class="glass-table-container p-3 p-md-5 rounded-4 mb-4" id="userDetailsContent">
+                    <!-- El contenido detallado se inyecta por JS -->
+                </div>
+
+                <div class="d-flex flex-column flex-md-row gap-2 justify-content-end border-top border-white border-opacity-50 pt-4" id="detailActionBar">
+                    <button class="btn btn-warning rounded-pill px-4 shadow-sm fw-bold btn-action-mobile text-dark" id="btnBlockUser" onclick="toggleUserStatus()">
+                        <i class="bi bi-slash-circle me-1"></i>Bloquear Acceso
+                    </button>
+                    <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold btn-action-mobile" style="color: #ff8c00; border: 2px solid #ff8c00;" id="btnEditUserAdmin" onclick="openEditUserModal()">
+                        <i class="bi bi-pencil-square me-1"></i>Editar Datos
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold btn-action-mobile" id="btnDeleteUser" onclick="confirmDeleteUser()">
+                        <i class="bi bi-trash-fill me-1"></i>Borrar Usuario
+                    </button>
+                    <a id="btnEditHikerCrm" href="#" class="btn btn-outline-warning rounded-pill px-4 shadow-sm fw-bold btn-action-mobile text-dark d-none">
+                        <i class="bi bi-pencil-square me-1"></i>Editar Ficha CRM
+                    </a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal Personalizado Glassmorphic para Alertas y Confirmaciones -->
+<div class="modal fade" id="actionModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-body p-0">
+                <div id="actionModalIcon" class="mb-3"></div>
+                <h5 id="actionModalMessage" class="fw-bold text-dark mb-4 fs-6"></h5>
+                <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Usuario (Desde el Dashboard) -->
+<div class="modal fade" id="adminEditUserModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center">Editar Información del Usuario</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-2">
+                <form id="adminEditUserForm" enctype="multipart/form-data">
+                    
+                    <!-- Editor Visual de Avatar -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block">
+                                <div class="overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                    <img id="editAvatarPreviewImg" src="{{ url_for('static', filename='default.png') }}" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                                </div>
+                                <label for="editAvatarUpload" class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 36px; height: 36px; background-color: #ff8c00; border: 2px solid white; cursor: pointer; z-index: 10;">
+                                    <i class="bi bi-camera-fill text-white" style="font-size: 0.85rem;"></i>
+                                </label>
+                            </div>
+                            <input type="file" name="avatar" id="editAvatarUpload" class="d-none" accept="image/*">
+
+                            <!-- Controles del Editor Visual -->
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="editScaleSlider" min="1" max="3" step="0.1" value="1">
+                                
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="editPosXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="editPosYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información Personal Básica -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">Nombre</label>
+                            <input type="text" name="name" class="form-control glass-input validate-name" id="editName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">1° Apellido</label>
+                            <input type="text" name="last_name_1" class="form-control glass-input validate-lastname" id="editLastName1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">2° Apellido</label>
+                            <input type="text" name="last_name_2" class="form-control glass-input validate-lastname" id="editLastName2" required>
+                        </div>
+                        <div class="col-md-12 mt-3">
+                            <label class="form-label fw-bold text-secondary">Rol de Seguridad</label>
+                            <select class="form-select glass-input" name="role" id="editRole" required>
+                                <option value="Usuario">Usuario</option>
+                                <option value="Colaborador">Colaborador</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Superusuario">Superusuario</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary">Email Principal</label>
+                        <input type="email" name="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" required>
+                    </div>
+
+                    <!-- Información Adicional Dinámica -->
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.15);">
+                        <label class="text-orange fw-bold mb-3 d-block"><i class="bi bi-plus-circle-dotted me-2"></i>Información Adicional</label>
+                        <select class="form-select glass-input rounded-3 mb-3" id="editDynamicSelect" onchange="handleEditDynamicSelect()">
+                            <option value="">Seleccione para agregar...</option>
+                            <option value="Telefono">Teléfono</option>
+                        </select>
+                        <div id="editDynamicContainer" class="animate__animated animate__fadeIn"></div>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Forzar Nueva Contraseña (Opcional)</label>
+                            <input type="password" name="password" class="form-control glass-input rounded-3 pe-5" id="editPass" placeholder="Dejar en blanco para mantener la actual">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('editPass', this)"></i>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-orange rounded-pill py-3 fw-bold fs-5 shadow-sm">Guardar Cambios del Usuario</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
