@@ -27,12 +27,13 @@ function toggleTipoFields() {
 }
 
 function _resetForm() {
-    ['pubNombre','pubDesc','pubDireccion','pubUrl','pubLugar','pubPuntoSalida',
+    ['pubNombre','pubDireccion','pubUrl','pubLugar','pubPuntoSalida',
      'pubHora','pubRecomendaciones','pubDescCaminata',
      'pubTelefono','pubWhatsapp','pubFacebook','pubInstagram','pubTiktok','pubYoutube',
      'pubColaborarDetalle'].forEach(id => {
         const el = document.getElementById(id); if (el) el.value = '';
     });
+    if (window._quillDesc) window._quillDesc.setText('');
     document.getElementById('pubFechaInicio').value = '';
     document.getElementById('pubFechaFin').value = '';
     document.getElementById('pubTipo').value = '';
@@ -66,7 +67,7 @@ async function editEvento(id) {
     document.getElementById('pubNombre').value       = d.nombre || '';
     document.getElementById('pubFechaInicio').value  = d.fecha_inicio || '';
     document.getElementById('pubFechaFin').value     = d.fecha_fin || '';
-    document.getElementById('pubDesc').value         = d.descripcion || '';
+    if (window._quillDesc) { window._quillDesc.root.innerHTML = d.descripcion || ''; }
     document.getElementById('pubAudio').value        = d.audio_filename || '';
     document.getElementById('pubTipo').value         = d.tipo_evento || '';
     document.getElementById('pubRifaUrl').value      = d.rifa_url || '';
@@ -122,7 +123,7 @@ async function submitEvento() {
     fd.append('nombre',          nombre);
     fd.append('fecha_inicio',    fecha);
     fd.append('fecha_fin',       document.getElementById('pubFechaFin').value);
-    fd.append('descripcion',     document.getElementById('pubDesc').value);
+    fd.append('descripcion',     window._quillDesc ? window._quillDesc.root.innerHTML : '');
     fd.append('audio_filename',  document.getElementById('pubAudio').value);
     fd.append('tipo_evento',     document.getElementById('pubTipo').value);
     fd.append('rifa_url',        document.getElementById('pubRifaUrl').value);

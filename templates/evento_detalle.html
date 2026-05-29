@@ -217,7 +217,7 @@
 
       <!-- DESCRIPCIÓN -->
       {% if pub.descripcion and (show_all or 'descripcion' in mostrar) %}
-      <p style="font-size:1.1rem;line-height:1.85;color:#333;" class="mb-4">{{ pub.descripcion }}</p>
+      <div style="font-size:1.1rem;line-height:1.85;color:#333;" class="mb-4 ql-editor" >{{ pub.descripcion | safe }}</div>
       {% endif %}
 
       <!-- CAMINATA -->
