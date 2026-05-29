@@ -1,0 +1,77 @@
+<!-- Modal: Datos del usuario -->
+<div class="modal fade" id="userDataModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-orange"><i class="bi bi-person-plus me-2"></i>Tus Datos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Nombre o Cédula</label>
+                    <input type="text" id="modalCedula" class="form-control rounded-pill" placeholder="Escribe nombre o cédula..." autocomplete="off">
+                    <div id="modalAutocompleteResults" class="list-group position-absolute w-100 mt-1 rounded-3" style="max-height:150px;overflow-y:auto;z-index:1100;display:none;"></div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Teléfono</label>
+                    <input type="text" id="modalPhone" class="form-control rounded-pill" placeholder="Tu teléfono">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">PIN (4 caracteres)</label>
+                    <input type="text" id="modalPin" class="form-control rounded-pill" placeholder="Ej: A1B2" maxlength="4" pattern="[A-Za-z0-9]{4}">
+                    <small class="text-secondary" style="font-size:0.75rem;">El pin protege tus números</small>
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-orange rounded-pill" onclick="confirmUserData()"><i class="bi bi-check-lg me-1"></i>Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Liberar números -->
+<div class="modal fade" id="clearModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-danger"><i class="bi bi-shield-lock me-2"></i>Liberar Números</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-secondary small">Ingresa teléfono y PIN para liberar.</p>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Teléfono</label>
+                    <input type="text" id="clearPhone" class="form-control rounded-pill" placeholder="Tu teléfono">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">PIN (4 caracteres)</label>
+                    <input type="text" id="clearPin" class="form-control rounded-pill" placeholder="Tu PIN" maxlength="4">
+                </div>
+            </div>
+            <div class="modal-footer border-0">
+                <button class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-danger rounded-pill" onclick="confirmClearNumbers()"><i class="bi bi-trash me-1"></i>Liberar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.number-btn {
+    width: 3.15rem; height: 3.15rem; border-radius: 50%; border: none;
+    background: #ffc107; color: #212529 !important; font-weight: 700;
+    font-size: 0.86rem; display: flex; align-items: center; justify-content: center;
+    padding: 0; cursor: pointer; transition: background .15s, transform .15s;
+    flex-shrink: 0; line-height: 1; box-sizing: border-box;
+}
+.number-btn:hover { background: #ffca2c; transform: scale(1.1); }
+.number-btn.btn-primary {
+    background: #ff8c00 !important; color: #212529 !important;
+    border: none !important; transform: scale(1.05);
+}
+#numbersGrid {
+    display: grid; grid-template-columns: repeat(auto-fill, 3.15rem);
+    gap: 0.5rem; justify-content: center; padding: 0.5rem 0;
+}
+</style>

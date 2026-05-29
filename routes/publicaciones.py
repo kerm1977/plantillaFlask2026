@@ -52,7 +52,7 @@ def _pub_dict(p):
 @bp.route('/admin/publicaciones')
 def admin_publicaciones():
     if session.get('role') != 'Superusuario':
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.home'))
     items = Publicacion.query.order_by(Publicacion.created_at.desc()).all()
     rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.asc()).all()
     return render_template('publicaciones_admin.html',

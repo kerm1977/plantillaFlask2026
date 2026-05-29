@@ -1,0 +1,131 @@
+<script>
+let currentFormId = null;
+let currentFormSlug = null;
+let fields = [];
+
+async function loadForms() {
+    const res = await fetch('/api/forms');
+    const data = await res.json();
+    const container = document.getElementById('formsList');
+    if (!data.length) {
+        container.innerHTML = `<div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay formularios creados aún.</div>`;
+        return;
+    }
+    container.innerHTML = data.map(f => {
+        const accent = f.form_type === 'examen' ? '#ff8c00' : '#0d6efd';
+        const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : 'bi-clipboard-data';
+        const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
+        return `<div class="col-12 col-sm-6 col-lg-4">
+            <div class="rounded-4 h-100 d-flex flex-column overflow-hidden" style="background:rgba(255,255,255,0.55);border-left:4px solid ${accent};border-top:1px solid rgba(255,255,255,0.7);border-right:1px solid rgba(255,255,255,0.5);border-bottom:1px solid rgba(255,255,255,0.5);transition:transform 0.2s ease;" onmouseenter="this.style.transform='translateY(-3px)'" onmouseleave="this.style.transform='none'">
+                <div class="p-3 d-flex flex-column flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <div class="d-flex align-items-center gap-2" style="min-width:0;">
+                            <div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:${accent}15;">
+                                <i class="bi ${typeIcon}" style="color:${accent};font-size:1.1rem;"></i></div>
+                            <div style="min-width:0;">
+                                <h6 class="fw-bold mb-0 text-truncate" style="font-size:0.95rem;">${f.name}</h6>
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge rounded-pill" style="font-size:0.65rem;background:${accent}20;color:${accent};border:1px solid ${accent}40;">${typeLabel}</span>
+                                    <span class="badge rounded-pill ${f.is_active?'bg-success':'bg-secondary'} bg-opacity-10 ${f.is_active?'text-success':'text-secondary'}" style="font-size:0.65rem;border:1px solid ${f.is_active?'rgba(25,135,84,0.3)':'rgba(108,117,125,0.3)'};">${f.is_active?'Activo':'Cerrado'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${f.responses_count > 0 ? `<span class="badge bg-danger rounded-pill d-flex align-items-center justify-content-center flex-shrink-0" style="width:28px;height:28px;font-size:0.8rem;">${f.responses_count}</span>` : ''}
+                    </div>
+                    <div class="d-flex flex-wrap gap-3 mt-1 mb-2" style="font-size:0.78rem;color:#6c757d;">
+                        <span><i class="bi bi-calendar3 me-1"></i>${f.created_at}</span>
+                        <span><i class="bi bi-list-check me-1"></i>${f.fields_count} preguntas</span>
+                    </div>
+                    <div class="rounded-3 px-2 py-1 mb-2 d-flex align-items-center" style="background:rgba(13,110,253,0.06);font-size:0.75rem;">
+                        <i class="bi bi-link-45deg me-1" style="color:${accent};"></i>
+                        <span class="text-truncate" style="color:#495057;">/form/${f.slug}</span>
+                    </div>
+                    <div class="mt-auto pt-2 d-flex gap-1 flex-wrap border-top" style="border-color:rgba(0,0,0,0.06) !important;">
+                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(13,110,253,0.08);color:#0d6efd;border:1px solid rgba(13,110,253,0.15);" onclick="editForm(${f.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(25,135,84,0.08);color:#198754;border:1px solid rgba(25,135,84,0.15);" onclick="viewResponses(${f.id})"><i class="bi bi-eye me-1"></i>${f.responses_count}</button>
+                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(108,117,125,0.08);color:#6c757d;border:1px solid rgba(108,117,125,0.15);" onclick="copyLink('${f.slug}')"><i class="bi bi-share"></i></button>
+                        <a href="/form/${f.slug}" target="_blank" class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:rgba(13,202,240,0.08);color:#0dcaf0;border:1px solid rgba(13,202,240,0.15);"><i class="bi bi-box-arrow-up-right"></i></a>
+                        <button class="btn btn-sm rounded-pill px-2 py-1 ms-auto" style="font-size:0.75rem;background:rgba(220,53,69,0.08);color:#dc3545;border:1px solid rgba(220,53,69,0.15);" onclick="deleteForm(${f.id})"><i class="bi bi-trash3"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function backToList() {
+    document.getElementById('formEditor').classList.add('d-none');
+    document.getElementById('responsesViewer').classList.add('d-none');
+    document.getElementById('formsList').classList.remove('d-none');
+    loadForms();
+}
+
+function showCreateForm() {
+    currentFormId = null; currentFormSlug = null; fields = [];
+    document.getElementById('formName').value = '';
+    document.getElementById('formType').value = 'registro';
+    document.getElementById('formAllowEdit').value = 'false';
+    document.getElementById('trigNombre').checked = true;
+    document.getElementById('trigFecha').checked = false;
+    document.getElementById('trigEmail').checked = false;
+    document.getElementById('trigEdad').checked = false;
+    document.getElementById('trigTelefono').checked = false;
+    renderFields(); updatePreview();
+    document.getElementById('formsList').classList.add('d-none');
+    document.getElementById('formEditor').classList.remove('d-none');
+}
+
+async function editForm(id) {
+    const form = await (await fetch(`/api/forms/${id}`)).json();
+    currentFormId = id; currentFormSlug = form.slug;
+    document.getElementById('formName').value = form.name;
+    document.getElementById('formType').value = form.form_type;
+    document.getElementById('formAllowEdit').value = form.allow_edit ? 'true' : 'false';
+    document.getElementById('trigNombre').checked = form.show_nombre;
+    document.getElementById('trigFecha').checked = form.show_fecha;
+    document.getElementById('trigEmail').checked = form.show_email;
+    document.getElementById('trigEdad').checked = form.show_edad;
+    document.getElementById('trigTelefono').checked = form.show_telefono;
+    fields = form.fields.map(f => ({...f}));
+    renderFields(); updatePreview();
+    document.getElementById('formsList').classList.add('d-none');
+    document.getElementById('formEditor').classList.remove('d-none');
+}
+
+async function saveForm() {
+    const payload = {
+        name: document.getElementById('formName').value.trim() || 'Sin título',
+        form_type: document.getElementById('formType').value,
+        allow_edit: document.getElementById('formAllowEdit').value === 'true',
+        show_nombre: document.getElementById('trigNombre').checked,
+        show_fecha: document.getElementById('trigFecha').checked,
+        show_email: document.getElementById('trigEmail').checked,
+        show_edad: document.getElementById('trigEdad').checked,
+        show_telefono: document.getElementById('trigTelefono').checked,
+    };
+    let formId = currentFormId;
+    if (!formId) {
+        const res = await fetch('/api/forms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const data = await res.json();
+        if (!data.ok) { alert(data.error || 'Error'); return; }
+        formId = data.id; currentFormId = formId; currentFormSlug = data.slug;
+    } else {
+        await fetch(`/api/forms/${formId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    }
+    await fetch(`/api/forms/${formId}/fields`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: fields})});
+    alert('Formulario guardado correctamente');
+    backToList();
+}
+
+async function deleteForm(id) {
+    if (!confirm('¿Eliminar este formulario y todas sus respuestas?')) return;
+    await fetch(`/api/forms/${id}`, {method:'DELETE'});
+    loadForms();
+}
+
+function copyLink(slug) {
+    const url = `${window.location.origin}/form/${slug}`;
+    navigator.clipboard.writeText(url).then(() => alert('Link copiado:\n' + url));
+}
+</script>

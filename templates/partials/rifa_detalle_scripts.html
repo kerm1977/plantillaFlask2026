@@ -1,0 +1,152 @@
+<script>
+let selectedNumbers = [];
+let acTimeout = null;
+let userDataModal, clearModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    localStorage.removeItem('raffleSelection_{{ rifa.id }}');
+    const rifaPanel = document.getElementById('rifaDetailsPanel');
+    if (rifaPanel) {
+        rifaPanel.addEventListener('hide.bs.collapse', () => {
+            document.getElementById('rifaToggleBtn').innerHTML = '<i class="bi bi-eye me-1"></i><span>Ver Rifa</span>';
+        });
+        rifaPanel.addEventListener('show.bs.collapse', () => {
+            document.getElementById('rifaToggleBtn').innerHTML = '<i class="bi bi-eye-slash me-1"></i><span>Ocultar Detalles</span>';
+        });
+    }
+    const modalCedulaInput = document.getElementById('modalCedula');
+    if (modalCedulaInput) {
+        modalCedulaInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            const resultsDiv = document.getElementById('modalAutocompleteResults');
+            if (acTimeout) clearTimeout(acTimeout);
+            if (query.length < 2) { resultsDiv.style.display = 'none'; return; }
+            acTimeout = setTimeout(() => {
+                fetch(`/api/hikers/search?q=${encodeURIComponent(query)}`)
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.hikers && data.hikers.length > 0) {
+                            resultsDiv.innerHTML = data.hikers.map(h =>
+                                `<a href="#" class="list-group-item list-group-item-action"
+                                   onclick="selectHiker('${h.cedula}', '${h.nombre_completo}', '${h.telefono || ''}')"
+                                   data-cedula="${h.cedula}">
+                                   <strong>${h.nombre_completo}</strong> <small class="text-muted">(${h.cedula})</small></a>`
+                            ).join('');
+                            resultsDiv.style.display = 'block';
+                        } else { resultsDiv.style.display = 'none'; }
+                    });
+            }, 300);
+        });
+    }
+});
+
+function saveToLocalStorage() {
+    localStorage.setItem('raffleSelection_{{ rifa.id }}', JSON.stringify({numbers: selectedNumbers, timestamp: new Date().toISOString()}));
+}
+function clearLocalStorage() { localStorage.removeItem('raffleSelection_{{ rifa.id }}'); }
+
+function selectHiker(cedula, nombre, telefono) {
+    document.getElementById('modalCedula').value = nombre + ' (' + cedula + ')';
+    if (telefono) document.getElementById('modalPhone').value = telefono;
+    document.getElementById('modalAutocompleteResults').style.display = 'none';
+}
+
+function deseleccionarNumeros() {
+    selectedNumbers.forEach(num => { const btn = document.querySelector(`.number-btn[data-number="${num}"]`); if (btn) btn.classList.remove('btn-primary'); });
+    selectedNumbers = [];
+    clearLocalStorage();
+    updateSelectionPanel();
+}
+
+function toggleNumber(num) {
+    const index = selectedNumbers.indexOf(num);
+    const btn = document.querySelector(`.number-btn[data-number="${num}"]`);
+    if (index > -1) { selectedNumbers.splice(index, 1); btn.classList.remove('btn-primary'); }
+    else { selectedNumbers.push(num); btn.classList.add('btn-primary'); }
+    saveToLocalStorage();
+    updateSelectionPanel();
+}
+
+function updateSelectionPanel() {
+    const panel = document.getElementById('selectionPanel');
+    if (selectedNumbers.length === 0) { panel.classList.add('d-none'); return; }
+    panel.classList.remove('d-none');
+    document.getElementById('selectedNumbersDisplay').innerHTML = selectedNumbers.map(num => `<span class="badge bg-primary rounded-pill">${num}</span>`).join('');
+    document.getElementById('totalPrice').textContent = selectedNumbers.length * {{ rifa.price }};
+}
+
+function openUserDataModal() {
+    if (selectedNumbers.length === 0) { alert('Primero selecciona números'); return; }
+    if (!userDataModal) userDataModal = new bootstrap.Modal(document.getElementById('userDataModal'));
+    document.getElementById('modalCedula').value = '';
+    document.getElementById('modalPhone').value = '';
+    document.getElementById('modalPin').value = '';
+    document.getElementById('modalAutocompleteResults').style.display = 'none';
+    userDataModal.show();
+}
+
+function confirmUserData() {
+    const cedula = document.getElementById('modalCedula').value.trim();
+    const phone  = document.getElementById('modalPhone').value.trim();
+    const pin    = document.getElementById('modalPin').value.trim();
+    if (!cedula || !phone || !pin) { alert('Por favor completa todos los campos'); return; }
+    if (pin.length !== 4 || !/^[A-Za-z0-9]{4}$/.test(pin)) { alert('El PIN debe tener exactamente 4 caracteres alfanuméricos (Ej: A1B2)'); return; }
+    fetch(`/api/rifas/{{ rifa.id }}/select-multiple`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({numbers: selectedNumbers, customer_name: cedula, customer_phone: phone, customer_cedula: cedula, pin: pin})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) { userDataModal.hide(); alert(`¡${selectedNumbers.length} números seleccionados exitosamente!`); clearLocalStorage(); window.location.reload(); }
+        else { alert(data.error || 'Error al seleccionar'); }
+    });
+}
+
+function openClearModal() {
+    if (selectedNumbers.length === 0) { alert('No hay números seleccionados'); return; }
+    openClearModalCard('');
+}
+
+function openClearModalCard(phone) {
+    if (!clearModal) clearModal = new bootstrap.Modal(document.getElementById('clearModal'));
+    document.getElementById('clearPhone').value = phone || '';
+    document.getElementById('clearPin').value = '';
+    clearModal.show();
+}
+
+function confirmClearNumbers() {
+    const phone = document.getElementById('clearPhone').value.trim();
+    const pin   = document.getElementById('clearPin').value.trim();
+    if (!phone || !pin) { alert('Ingresa tu teléfono y PIN'); return; }
+    fetch(`/api/rifas/{{ rifa.id }}/release-numbers`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone: phone, pin: pin})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) { clearModal.hide(); alert(`¡${data.count} números liberados exitosamente!`); clearLocalStorage(); window.location.reload(); }
+        else { alert(data.error || 'Error al liberar números'); }
+    });
+}
+
+function toggleMobileSelection() { openUserDataModal(); }
+
+function superClearNumbers(phone) {
+    if (!confirm('¿Liberar todos los números de este cliente?')) return;
+    fetch(`/api/rifas/{{ rifa.id }}/admin-release`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({phone: phone})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) { alert(`¡${data.count} números liberados!`); window.location.reload(); }
+        else { alert(data.error || 'Error'); }
+    });
+}
+
+function shareRaffle() {
+    const url = window.location.href;
+    if (navigator.share) { navigator.share({title: '{{ rifa.name }}', url: url}); }
+    else { navigator.clipboard.writeText(url).then(() => { alert('¡Enlace copiado!'); }); }
+}
+</script>

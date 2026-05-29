@@ -1,0 +1,37 @@
+<style>
+  .ev-nombre {
+    font-family: 'Ronda', 'Nunito', system-ui, sans-serif;
+    font-weight: 800; color: #000 !important;
+    font-size: clamp(1.1rem, 5vw, 3rem);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: 100%; display: block; line-height: 1.15;
+  }
+  .ev-badge {
+    font-family: 'Ronda', system-ui, sans-serif;
+    background: rgba(255,140,0,0.12); color: #cc6e00;
+    border: 1px solid rgba(255,140,0,0.35); border-radius: 50rem;
+    padding: 0.25rem 0.9rem; font-size: 0.82rem; font-weight: 700; display: inline-block;
+  }
+  .ev-chip {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.55rem 1.1rem; border-radius: 1rem;
+    background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.2);
+  }
+  .ev-chip small { font-size: 0.65rem; color: #999; text-transform: uppercase; letter-spacing: .04em; display: block; }
+  .ev-chip span  { font-weight: 700; color: #000; font-size: 0.95rem; }
+  .ev-section    { font-family: 'Ronda', system-ui, sans-serif; }
+
+  @keyframes flyerGlow {
+    0%   { box-shadow: 0 0 18px 4px rgba(255,140,0,0.35), 0 0 40px 8px rgba(255,193,7,0.15); }
+    33%  { box-shadow: 0 0 22px 6px rgba(255,180,0,0.45), 0 0 50px 10px rgba(255,220,100,0.2); }
+    66%  { box-shadow: 0 0 18px 4px rgba(255,100,0,0.3),  0 0 38px 8px rgba(255,160,50,0.18); }
+    100% { box-shadow: 0 0 18px 4px rgba(255,140,0,0.35), 0 0 40px 8px rgba(255,193,7,0.15); }
+  }
+  .flyer-shimmer {
+    border-radius: 1.4rem; overflow: hidden; cursor: zoom-in;
+    animation: flyerGlow 3.5s ease-in-out infinite;
+    border: 2px solid rgba(255,160,0,0.25); transition: transform 0.25s ease;
+  }
+  .flyer-shimmer:hover { transform: scale(1.012); }
+  .flyer-shimmer img   { border-radius: 1.35rem; display:block; width:100%; height:auto; }
+</style>
