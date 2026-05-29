@@ -144,7 +144,8 @@ def evento_detalle_pub(pid):
         mostrar = json.loads(pub.mostrar or '[]')
     except Exception:
         mostrar = []
-    return render_template('evento_detalle.html', pub=pub, mostrar=mostrar)
+    rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.asc()).all()
+    return render_template('evento_detalle.html', pub=pub, mostrar=mostrar, rifas=rifas, mp3_files=_mp3_list())
 
 
 @bp.route('/eventos')
