@@ -38,6 +38,24 @@
         .flyer-glass-overlay, .flyer-glass-overlay * {
             text-shadow: 0 2px 5px rgba(0,0,0,0.6) !important;
         }
+
+        /* ===== ANIMACIÓN HEARTBEAT PARA LOGO SUEÑOS ===== */
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.1); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.1); }
+            70% { transform: scale(1); }
+        }
+        .animate-heartbeat {
+            animation: heartbeat 1.5s ease-in-out infinite;
+        }
+
+        /* ===== ANIMACIÓN BLINK PARA PUNTO VERDE ===== */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
@@ -83,6 +101,14 @@
         <i class="bi bi-arrow-left fs-4"></i>
     </button>
     {% endif %}
+
+    <!-- ========================================== -->
+    <!-- LOGO DE SUEÑOS FLOTANTE EN PC -->
+    <!-- ========================================== -->
+    <a id="logoSuenosDesktopLink" href="#" target="_blank" class="d-none d-md-block" style="display: none !important;">
+        <img id="logoSuenosDesktop" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed animate-heartbeat">
+    </a>
+    <img id="logoSuenosDesktopNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed d-none d-md-block animate-heartbeat" style="display: none !important;">
 
     <!-- ========================================== -->
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
@@ -157,5 +183,79 @@
 {% include 'partials/base_calendar_modal.html' %}
 
 {% include 'partials/base_links_modal.html' %}
+
+<!-- MODAL: CONFIGURACIÓN LOGO SUEÑOS -->
+{% if session.get('role') == 'Superusuario' %}
+<div class="modal fade" id="configLogoSuenosModal" tabindex="-1" style="z-index:1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-gear-fill text-orange me-2"></i>Configurar Logo Sueños</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <!-- Mostrar/Ocultar -->
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" id="logoMostrarToggle" style="cursor: pointer;">
+                    <label class="form-check-label fw-bold" for="logoMostrarToggle" style="cursor: pointer;">Mostrar Logo</label>
+                </div>
+
+                <!-- Enlace -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Enlace al hacer clic</label>
+                    <input type="url" id="logoEnlace" class="form-control glass-input" placeholder="https://ejemplo.com">
+                </div>
+
+                <!-- Selector de eventos activos -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">O seleccionar un evento activo</label>
+                    <select id="logoEventoSelect" class="form-select glass-input" onchange="seleccionarEvento()">
+                        <option value="">-- Seleccionar evento --</option>
+                    </select>
+                </div>
+
+                <!-- Tamaño PC -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Tamaño en PC (px)</label>
+                    <input type="number" id="logoTamañoPC" class="form-control glass-input" value="150" min="50" max="500">
+                </div>
+
+                <!-- Tamaño Móvil -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Tamaño en Móvil (px)</label>
+                    <input type="number" id="logoTamañoMobile" class="form-control glass-input" value="120" min="30" max="300">
+                </div>
+
+                <!-- Posición PC -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Posición desde borde PC (px)</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" id="logoPosicionLeft" class="form-control glass-input" value="20" placeholder="Izquierda">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="logoPosicionBottom" class="form-control glass-input" value="100" placeholder="Abajo">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nombre del archivo -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Nombre del archivo de imagen</label>
+                    <input type="text" id="logoNombreArchivo" class="form-control glass-input" value="logosueños.png" placeholder="ejemplo.png">
+                </div>
+
+                <button class="btn btn-orange fw-bold w-100 py-3 shadow rounded-pill" onclick="guardarConfigLogoSuenos()">
+                    <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                </button>
+
+                <button class="btn btn-outline-secondary fw-bold w-100 py-3 shadow rounded-pill mt-2" onclick="limpiarCachéChrome()">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar Caché y Recargar PWA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 {% include 'partials/base_scripts.html' %}

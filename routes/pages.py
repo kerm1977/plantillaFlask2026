@@ -1,5 +1,5 @@
-from flask import render_template, session, redirect, url_for
-from models import Notification, Event, Hiker
+from flask import render_template, session, redirect, url_for, jsonify, request
+from models import Notification, Event, Hiker, Publicacion, LogoConfig
 from datetime import datetime, date
 from sqlalchemy import func
 from db import db
@@ -15,6 +15,70 @@ def home():
         Hiker.fecha_nacimiento != None
     ).all()
     return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers)
+
+
+@bp.route('/api/eventos-activos')
+def api_eventos_activos():
+    eventos = []
+    # Eventos de caminatas
+    caminatas = Event.query.filter_by(is_active=True).all()
+    for ev in caminatas:
+        eventos.append({
+            'nombre': ev.nombre,
+            'url': f'/eventos/{ev.id}'
+        })
+    # Eventos especiales/publicaciones
+    publicaciones = Publicacion.query.filter_by(is_active=True).all()
+    for pub in publicaciones:
+        eventos.append({
+            'nombre': pub.nombre,
+            'url': f'/eventos/{pub.id}'
+        })
+    return jsonify(eventos)
+
+
+@bp.route('/api/logo-config', methods=['GET'])
+def api_get_logo_config():
+    config = LogoConfig.query.first()
+    if not config:
+        # Crear configuración por defecto
+        config = LogoConfig()
+        db.session.add(config)
+        db.session.commit()
+    return jsonify({
+        'mostrar': config.mostrar,
+        'enlace': config.enlace,
+        'tamaño_pc': config.tamaño_pc,
+        'tamaño_mobile': config.tamaño_mobile,
+        'posicion_left': config.posicion_left,
+        'posicion_bottom': config.posicion_bottom,
+        'nombre_archivo': config.nombre_archivo
+    })
+
+
+@bp.route('/api/logo-config', methods=['POST'])
+def api_save_logo_config():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+
+    data = request.get_json()
+    config = LogoConfig.query.first()
+
+    if not config:
+        config = LogoConfig()
+        db.session.add(config)
+
+    config.mostrar = data.get('mostrar', True)
+    config.enlace = data.get('enlace', '')
+    config.tamaño_pc = data.get('tamaño_pc', 150)
+    config.tamaño_mobile = data.get('tamaño_mobile', 120)
+    config.posicion_left = data.get('posicion_left', 20)
+    config.posicion_bottom = data.get('posicion_bottom', 100)
+    config.nombre_archivo = data.get('nombre_archivo', 'logosueños.png')
+    config.updated_at = datetime.utcnow()
+
+    db.session.commit()
+    return jsonify({'ok': True})
 
 
 @bp.route('/profile')

@@ -44,6 +44,20 @@
   {% if pub.tipo_evento and (show_all or 'tipo' in mostrar) %}
   <div class="mt-2"><span class="ev-badge">{{ pub.tipo_evento }}</span></div>
   {% endif %}
+  {% if pub.monto_recaudado and pub.monto_recaudado > 0 %}
+  <div class="mt-2">
+    <span class="ev-badge" style="background:rgba(25,135,84,0.15);color:#0d6832;border:1px solid rgba(25,135,84,0.3);">
+      <i class="bi bi-cash-coin me-1"></i>Recaudado: ₡{{ "{:,.0f}".format(pub.monto_recaudado) }}
+      <span class="ms-2" style="width:8px;height:8px;background:#28a745;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span>
+    </span>
+  </div>
+  <div class="mt-2 small text-muted" style="font-size: 0.85rem;">
+    <i class="bi bi-clock me-1"></i>A las 6pm de cada día se actualizan los cambios... Campaña por el mes de Junio.
+  </div>
+  <div class="mt-1 small text-muted" style="font-size: 0.85rem;">
+    <i class="bi bi-info-circle me-1"></i>Recuerda colocar en el DETALLE de la colaboración "Sueños de Vida.. animalitos, perros, gatos" o el que nos permita identificar el ingreso
+  </div>
+  {% endif %}
 
   {% set has_social = pub.telefono or pub.whatsapp or pub.facebook or pub.instagram or pub.tiktok or pub.youtube %}
   {% if has_social %}

@@ -28,6 +28,36 @@ async function saveDetalle(pubId) {
     if (d.ok) { document.getElementById('colaborarDetalleText').textContent = val; toggleEditDetalle(); }
     else { alert(d.error || 'Error al guardar'); }
 }
+
+function abrirModalMontoRecaudado() {
+    const pubId = {{ pub.id }};
+    const currentMonto = {{ pub.monto_recaudado or 0 }};
+    document.getElementById('montoRecaudadoInput').value = currentMonto;
+    const modal = new bootstrap.Modal(document.getElementById('montoRecaudadoModal'));
+    modal.show();
+}
+
+async function guardarMontoRecaudado() {
+    const pubId = {{ pub.id }};
+    const monto = parseFloat(document.getElementById('montoRecaudadoInput').value) || 0;
+    
+    try {
+        const res = await fetch(`/api/publicaciones/${pubId}/monto-recaudado`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ monto: monto })
+        });
+        const d = await res.json();
+        if (d.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('montoRecaudadoModal')).hide();
+            location.reload();
+        } else {
+            alert('Error al guardar: ' + (d.error || 'Desconocido'));
+        }
+    } catch (err) {
+        alert('Error de conexión');
+    }
+}
 function compartirEvento() {
     const url = 'https://www.latribu.top' + window.location.pathname;
     const title = {{ pub.nombre | tojson }};

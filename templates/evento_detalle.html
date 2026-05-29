@@ -49,6 +49,11 @@
       <i class="bi bi-ticket-perforated me-2"></i>Segunda Rifa
     </a>
     {% endif %}
+    {% if session.get('role') == 'Superusuario' %}
+    <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold fs-5" onclick="abrirModalMontoRecaudado()">
+      <i class="bi bi-cash-coin me-2"></i>Editar Monto
+    </button>
+    {% endif %}
     <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
             style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
             data-bs-toggle="modal" data-bs-target="#modalColaborar">
@@ -164,8 +169,8 @@
     <button onclick="compartirEvento()" class="btn btn-orange rounded-pill px-4 fw-semibold">
       <i class="bi bi-share me-2"></i>Compartir este evento
     </button>
-    <a href="{{ url_for('main.eventos_publicos') }}" class="btn btn-outline-secondary rounded-pill px-4">
-      <i class="bi bi-arrow-left me-1"></i>Ver todos los eventos
+    <a href="https://www.latribu.top" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-arrow-left me-1"></i>Ver caminatas de la tribu
     </a>
   </div>
 </div>
@@ -174,6 +179,33 @@
 
 {% if session.get('role') == 'Superusuario' %}
 {% include 'partials/pub_edit_modal.html' %}
+
+<!-- Modal para editar monto recaudado -->
+<div class="modal fade" id="montoRecaudadoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 rounded-5 glass-panel p-4 text-center">
+      <div class="modal-header border-0 pb-0 justify-content-center">
+        <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(25,135,84,0.15), rgba(25,135,84,0.08)); border: 2px solid rgba(25,135,84,0.25);">
+          <i class="bi bi-cash-coin" style="font-size: 2.5rem; color: #198754;"></i>
+        </div>
+      </div>
+      <div class="modal-body pb-0">
+        <h5 class="fw-bold mb-3" style="color: #212529;">Editar Monto Recaudado</h5>
+        <div class="mb-4">
+          <input type="number" id="montoRecaudadoInput" class="form-control glass-input text-center fw-bold fs-5" step="1" min="0" placeholder="0">
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm w-100 text-white" style="background: linear-gradient(135deg, #198754, #157347);" onclick="guardarMontoRecaudado()">
+            <i class="bi bi-check-lg me-2"></i>Guardar Monto
+          </button>
+          <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="background: rgba(108,117,125,0.08); color: #6c757d; border: 1px solid rgba(108,117,125,0.2);">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endif %}
 
 {% include 'partials/evento_detalle_scripts.html' %}

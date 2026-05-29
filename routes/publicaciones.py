@@ -53,7 +53,7 @@ def _pub_dict(p):
 def admin_publicaciones():
     if session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
-    items = Publicacion.query.order_by(Publicacion.created_at.desc()).all()
+    items = Publicacion.query.order_by(Publicacion.fecha_inicio.desc()).all()
     rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.asc()).all()
     return render_template('publicaciones_admin.html',
                            items=items, rifas=rifas, mp3_files=_mp3_list())
@@ -152,3 +152,13 @@ def evento_detalle_pub(pid):
 def eventos_publicos():
     items = Publicacion.query.filter_by(is_active=True).order_by(Publicacion.fecha_inicio.asc()).all()
     return render_template('eventos_lista.html', items=items)
+
+
+@bp.route('/api/publicaciones/<int:pid>/monto-recaudado', methods=['POST'])
+def api_pub_monto_recaudado(pid):
+    if session.get('role') != 'Superusuario': return jsonify({'error': 'No autorizado'}), 403
+    data = request.get_json()
+    p = Publicacion.query.get_or_404(pid)
+    p.monto_recaudado = data.get('monto', 0.0)
+    db.session.commit()
+    return jsonify({'ok': True, 'monto': p.monto_recaudado})

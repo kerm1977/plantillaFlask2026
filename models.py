@@ -229,4 +229,21 @@ class Publicacion(db.Model):
     tiktok          = db.Column(db.String(300))
     youtube         = db.Column(db.String(300))
     is_active       = db.Column(db.Boolean, default=True)
+    monto_recaudado = db.Column(db.Float, default=0.0)
+
+
+# ==========================================
+# CONFIGURACIÓN DEL LOGO DE SUEÑOS
+# ==========================================
+class LogoConfig(db.Model):
+    __tablename__ = 'logo_config'
+    id = db.Column(db.Integer, primary_key=True)
+    mostrar = db.Column(db.Boolean, default=True)
+    enlace = db.Column(db.String(500))
+    tamaño_pc = db.Column(db.Integer, default=150)
+    tamaño_mobile = db.Column(db.Integer, default=120)
+    posicion_left = db.Column(db.Integer, default=20)
+    posicion_bottom = db.Column(db.Integer, default=100)
+    nombre_archivo = db.Column(db.String(255), default='logosueños.png')
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_at      = db.Column(db.DateTime, default=datetime.utcnow)

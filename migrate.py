@@ -28,6 +28,46 @@ def migrate_database():
             else:
                 print(f"[ERROR] Error con '{columna}': {e}")
 
+    # Columna para mostrar logo de sueños en eventos especiales
+    try:
+        cursor.execute("ALTER TABLE publicacion ADD COLUMN mostrar_logo_suenos BOOLEAN DEFAULT 0")
+        print("[OK] Columna 'mostrar_logo_suenos' añadida con éxito a la tabla publicacion.")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e).lower():
+            print("[--] La columna 'mostrar_logo_suenos' ya existía. Omitiendo...")
+        else:
+            print(f"[ERROR] Error con 'mostrar_logo_suenos': {e}")
+
+    # Tabla para configuración del logo de sueños
+    try:
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS logo_config (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                mostrar BOOLEAN DEFAULT 1,
+                enlace VARCHAR(500),
+                tamaño_pc INTEGER DEFAULT 150,
+                tamaño_mobile INTEGER DEFAULT 120,
+                posicion_left INTEGER DEFAULT 20,
+                posicion_bottom INTEGER DEFAULT 100,
+                nombre_archivo VARCHAR(255) DEFAULT 'logosueños.png',
+                updated_at DATETIME,
+                created_at DATETIME
+            )
+        """)
+        print("[OK] Tabla 'logo_config' creada o ya existía.")
+    except sqlite3.OperationalError as e:
+        print(f"[ERROR] Error creando tabla 'logo_config': {e}")
+
+    # Columna para monto recaudado en publicaciones
+    try:
+        cursor.execute("ALTER TABLE publicacion ADD COLUMN monto_recaudado REAL DEFAULT 0.0")
+        print("[OK] Columna 'monto_recaudado' añadida con éxito a la tabla publicacion.")
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" in str(e).lower():
+            print("[--] La columna 'monto_recaudado' ya existía. Omitiendo...")
+        else:
+            print(f"[ERROR] Error con 'monto_recaudado': {e}")
+
     # Guardamos los cambios y cerramos
     conn.commit()
     conn.close()
