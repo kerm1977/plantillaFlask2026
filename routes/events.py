@@ -1,4 +1,4 @@
-from flask import jsonify, session
+from flask import jsonify, session, make_response
 from models import Event
 from db import db
 from routes import bp
@@ -43,7 +43,10 @@ def get_events():
             "capacidad": e.capacidad,
             "is_sold_out": e.is_sold_out # Mandamos el booleano al frontend
         })
-    return jsonify(output)
+    response = make_response(jsonify(output))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 
 @bp.route('/api/toggle_espacio/<int:event_id>', methods=['POST'])

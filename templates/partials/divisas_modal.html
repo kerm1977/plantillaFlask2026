@@ -1,0 +1,193 @@
+<!-- Modal Calculadora de Divisas -->
+<div class="modal fade" id="divisasModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-currency-exchange text-orange me-2"></i>Calculadora de Divisas</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 px-md-5 pb-5 pt-2 text-start">
+        <div class="row g-3 mb-4">
+          <div class="col-12">
+            <label class="form-label fw-bold text-muted small mb-1">Monto a convertir</label>
+            <input type="number" id="divAmount" class="form-control glass-input rounded-4 fw-bold fs-5" value="1.00" min="0" step="0.01" style="padding: 0.8rem 1rem;">
+          </div>
+          
+          <div class="col-12 col-md-5">
+            <label class="form-label fw-bold text-muted small mb-1">De</label>
+            <select id="divFromCurrency" class="form-select glass-input rounded-4 fs-5" style="padding: 0.8rem 1rem;">
+              <option value="CRC" selected>CRC - Colón Costarricense</option>
+              <option value="MXN">MXN - Peso Mexicano</option>
+              <option value="PEN">PEN - Sol Peruano</option>
+              <option value="EUR">EUR - Euro (España)</option>
+              <option value="HNL">HNL - Lempira Hondureño</option>
+              <option value="BZD">BZD - Dólar Beliceño</option>
+              <option value="NIO">NIO - Córdoba Nicaragüense</option>
+              <option value="USD">USD - Dólar Estadounidense</option>
+            </select>
+          </div>
+          
+          <div class="col-12 col-md-2 d-flex align-items-end justify-content-center pb-3">
+            <button id="divSwapBtn" class="btn btn-glass-action rounded-circle" style="width: 50px; height: 50px;" title="Invertir">
+              <i class="bi bi-arrow-left-right fs-4"></i>
+            </button>
+          </div>
+          
+          <div class="col-12 col-md-5">
+            <label class="form-label fw-bold text-muted small mb-1">A</label>
+            <select id="divToCurrency" class="form-select glass-input rounded-4 fs-5" style="padding: 0.8rem 1rem;">
+              <option value="CRC">CRC - Colón Costarricense</option>
+              <option value="MXN" selected>MXN - Peso Mexicano</option>
+              <option value="PEN">PEN - Sol Peruano</option>
+              <option value="EUR">EUR - Euro (España)</option>
+              <option value="HNL">HNL - Lempira Hondureño</option>
+              <option value="BZD">BZD - Dólar Beliceño</option>
+              <option value="NIO">NIO - Córdoba Nicaragüense</option>
+              <option value="USD">USD - Dólar Estadounidense</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="text-center p-4 rounded-4 border border-3" style="background: rgba(255,140,0,0.08); border-color: rgba(255,140,0,0.3);">
+          <small class="text-muted d-block mb-2 fw-bold" style="font-size: 0.8rem; letter-spacing: 0.05em;">RESULTADO</small>
+          <div id="divResult" class="fw-bold" style="font-size: 2.5rem; color: #ff8c00;">0.00</div>
+          <div id="divRate" class="text-muted small mt-2">Calculando...</div>
+        </div>
+        
+        <div class="mt-4 text-center">
+          <button id="divOptionsBtn" class="btn btn-outline-secondary rounded-pill px-4">
+            <i class="bi bi-gear me-2"></i>Editar Tasas de Cambio
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Edición de Tasas -->
+<div class="modal fade" id="divisasRatesModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-gear text-orange me-2"></i>Editar Tasas de Cambio</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 px-md-5 pb-5 pt-2 text-start">
+        <p class="text-muted text-center mb-4">Configura el valor de cada moneda con respecto a <strong>1 USD (Dólar Base)</strong></p>
+        <div id="divRatesContainer" class="d-flex flex-column gap-2">
+          <!-- Tasas generadas dinámicamente -->
+        </div>
+      </div>
+      <div class="modal-footer border-0 px-4 px-md-5 pb-4">
+        <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+        <button id="divSaveRatesBtn" class="btn btn-orange rounded-pill px-4 fw-bold">
+          <i class="bi bi-check-lg me-2"></i>Guardar Cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Tasas de cambio
+let exchangeRates = {
+  "USD": 1.00,
+  "CRC": 514.25,
+  "MXN": 16.85,
+  "PEN": 3.74,
+  "EUR": 0.92,
+  "HNL": 24.68,
+  "BZD": 2.01,
+  "NIO": 36.62
+};
+
+const currencyNames = {
+  "USD": "Dólar Estadounidense",
+  "CRC": "Colón Costarricense",
+  "MXN": "Peso Mexicano",
+  "PEN": "Sol Peruano",
+  "EUR": "Euro",
+  "HNL": "Lempira Hondureño",
+  "BZD": "Dólar Beliceño",
+  "NIO": "Córdoba Nicaragüense"
+};
+
+function calculateDivisas() {
+  const amount = parseFloat(document.getElementById('divAmount').value) || 0;
+  const fromCurrency = document.getElementById('divFromCurrency').value;
+  const toCurrency = document.getElementById('divToCurrency').value;
+  
+  const rateFromInUSD = exchangeRates[fromCurrency];
+  const rateToInUSD = exchangeRates[toCurrency];
+  const conversionRate = rateToInUSD / rateFromInUSD;
+  const finalAmount = amount * conversionRate;
+  
+  let locale = 'es-MX';
+  if (toCurrency === 'CRC') locale = 'es-CR';
+  if (toCurrency === 'PEN') locale = 'es-PE';
+  if (toCurrency === 'EUR') locale = 'es-ES';
+  if (toCurrency === 'HNL') locale = 'es-HN';
+  if (toCurrency === 'NIO') locale = 'es-NI';
+  
+  document.getElementById('divResult').textContent = finalAmount.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ' + toCurrency;
+  document.getElementById('divRate').textContent = `1 ${fromCurrency} = ${conversionRate.toFixed(4)} ${toCurrency}`;
+}
+
+function swapDivisas() {
+  const temp = document.getElementById('divFromCurrency').value;
+  document.getElementById('divFromCurrency').value = document.getElementById('divToCurrency').value;
+  document.getElementById('divToCurrency').value = temp;
+  calculateDivisas();
+}
+
+function renderRatesInputs() {
+  const container = document.getElementById('divRatesContainer');
+  container.innerHTML = '';
+  
+  for (const [currency, rate] of Object.entries(exchangeRates)) {
+    const row = document.createElement('div');
+    row.className = 'row g-2 align-items-center';
+    row.innerHTML = `
+      <div class="col-3">
+        <span class="fw-bold text-orange">${currency}</span>
+      </div>
+      <div class="col-5">
+        <span class="text-muted small">${currencyNames[currency]}</span>
+      </div>
+      <div class="col-4">
+        <input type="number" class="form-control glass-input rounded-3 fw-bold" 
+               id="edit-rate-${currency}" value="${rate}" step="0.0001" min="0.0001">
+      </div>
+    `;
+    container.appendChild(row);
+  }
+}
+
+function saveRates() {
+  for (const currency in exchangeRates) {
+    const inputElement = document.getElementById(`edit-rate-${currency}`);
+    if (inputElement) {
+      const newValue = parseFloat(inputElement.value);
+      if (!isNaN(newValue) && newValue > 0) {
+        exchangeRates[currency] = newValue;
+      }
+    }
+  }
+  calculateDivisas();
+  bootstrap.Modal.getInstance(document.getElementById('divisasRatesModal')).hide();
+}
+
+// Event listeners
+document.getElementById('divAmount').addEventListener('input', calculateDivisas);
+document.getElementById('divFromCurrency').addEventListener('change', calculateDivisas);
+document.getElementById('divToCurrency').addEventListener('change', calculateDivisas);
+document.getElementById('divSwapBtn').addEventListener('click', swapDivisas);
+document.getElementById('divOptionsBtn').addEventListener('click', () => {
+  renderRatesInputs();
+  new bootstrap.Modal(document.getElementById('divisasRatesModal')).show();
+});
+document.getElementById('divSaveRatesBtn').addEventListener('click', saveRates);
+
+// Inicializar
+calculateDivisas();
+</script>

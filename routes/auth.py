@@ -8,12 +8,18 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
+from security import check_rate_limit, validate_password_strength
 
 
 @bp.route('/api/login', methods=['POST'])
 def login():
     data = request.json
-    user = User.query.filter_by(email=data.get('email').lower()).first()
+    email = data.get('email', '').lower()
+    
+    if not check_rate_limit(email):
+        return jsonify({'error': 'Demasiados intentos. Espere 15 minutos.'}), 429
+    
+    user = User.query.filter_by(email=email).first()
     if user and check_password(data.get('password'), user.password_hash):
         if user.status == 'Bloqueado':
             return jsonify({'error': 'Usuario bloqueado'}), 403
@@ -27,6 +33,12 @@ def login():
 @bp.route('/api/register', methods=['POST'])
 def register():
     data = request.json
+    password = data.get('password', '')
+    
+    valid, msg = validate_password_strength(password)
+    if not valid:
+        return jsonify({'error': msg}), 400
+    
     if User.query.filter_by(email=data.get('email').lower()).first():
         return jsonify({'error': 'Email ya registrado'}), 400
         
@@ -36,7 +48,7 @@ def register():
             last_name_1=data.get('last_name_1'),
             last_name_2=data.get('last_name_2'),
             email=data.get('email').lower(),
-            password_hash=hash_password(data.get('password'))
+            password_hash=hash_password(password)
         )
         
         if data.get('phone_code'): new_user.phone_code = data.get('phone_code')
@@ -162,18 +174,22 @@ def reset_password():
     data = request.get_json() or {}
     token = data.get('token', '')
     new_pass = data.get('password', '').strip()
-    if not token or len(new_pass) < 6:
-        return jsonify({'ok': False, 'error': 'Contrase\u00f1a debe tener al menos 6 caracteres'}), 400
+    
+    valid, msg = validate_password_strength(new_pass)
+    if not valid:
+        return jsonify({'ok': False, 'error': msg}), 400
+    if not token:
+        return jsonify({'ok': False, 'error': 'Token requerido'}), 400
 
     user = User.query.filter_by(reset_token=token).first()
     if not user:
-        return jsonify({'ok': False, 'error': 'Token inv\u00e1lido o expirado'}), 400
+        return jsonify({'ok': False, 'error': 'Token inválido o expirado'}), 400
     try:
         expires = datetime.strptime(user.reset_expires, '%Y-%m-%d %H:%M:%S')
         if datetime.utcnow() > expires:
             return jsonify({'ok': False, 'error': 'El enlace ha expirado'}), 400
     except Exception:
-        return jsonify({'ok': False, 'error': 'Token inv\u00e1lido'}), 400
+        return jsonify({'ok': False, 'error': 'Token inválido'}), 400
 
     user.password_hash = hash_password(new_pass)
     user.reset_token = None

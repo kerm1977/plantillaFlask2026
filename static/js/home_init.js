@@ -3,10 +3,10 @@
 
 document.addEventListener("DOMContentLoaded", async () => {
     await initDB();
-    
+
     currentViewMode = await loadSetting('userViewMode', 'grid');
     updateViewButtons(currentViewMode);
-    
+
     loadEvents();
 
     const filtersCollapse = document.getElementById('filtersCollapse');

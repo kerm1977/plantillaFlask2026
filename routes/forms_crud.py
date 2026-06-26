@@ -49,9 +49,9 @@ def api_list_forms():
     return jsonify([{
         'id': f.id, 'name': f.name, 'slug': f.slug, 'form_type': f.form_type,
         'is_active': f.is_active, 'allow_edit': f.allow_edit,
-        'show_nombre': f.show_nombre, 'show_fecha': f.show_fecha,
-        'show_email': f.show_email, 'show_edad': f.show_edad,
-        'show_telefono': f.show_telefono,
+        'show_nombre': f.show_nombre, 'show_cedula': f.show_cedula,
+        'show_fecha': f.show_fecha, 'show_email': f.show_email,
+        'show_edad': f.show_edad, 'show_telefono': f.show_telefono,
         'created_at': f.created_at.strftime('%d/%m/%Y %H:%M') if f.created_at else '',
         'fields_count': len(f.fields), 'responses_count': len(f.responses)
     } for f in forms])
@@ -68,6 +68,7 @@ def api_create_form():
         form_type=data.get('form_type', 'registro'),
         allow_edit=data.get('allow_edit', False),
         show_nombre=data.get('show_nombre', True),
+        show_cedula=data.get('show_cedula', False),
         show_fecha=data.get('show_fecha', False),
         show_email=data.get('show_email', False),
         show_edad=data.get('show_edad', False),
@@ -89,8 +90,9 @@ def api_get_form(form_id):
         'id': form.id, 'name': form.name, 'slug': form.slug,
         'form_type': form.form_type, 'is_active': form.is_active,
         'allow_edit': form.allow_edit, 'show_nombre': form.show_nombre,
-        'show_fecha': form.show_fecha, 'show_email': form.show_email,
-        'show_edad': form.show_edad, 'show_telefono': form.show_telefono,
+        'show_cedula': form.show_cedula, 'show_fecha': form.show_fecha,
+        'show_email': form.show_email, 'show_edad': form.show_edad,
+        'show_telefono': form.show_telefono,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses)
     })
@@ -110,6 +112,7 @@ def api_update_form(form_id):
     form.is_active    = data.get('is_active', form.is_active)
     form.allow_edit   = data.get('allow_edit', form.allow_edit)
     form.show_nombre  = data.get('show_nombre', form.show_nombre)
+    form.show_cedula  = data.get('show_cedula', form.show_cedula)
     form.show_fecha   = data.get('show_fecha', form.show_fecha)
     form.show_email   = data.get('show_email', form.show_email)
     form.show_edad    = data.get('show_edad', form.show_edad)

@@ -10,7 +10,7 @@
             <div class="pin-search-bar">
                 <i class="bi bi-person-vcard-fill text-orange fs-3 mx-2"></i>
                 <!-- CORRECCIÓN DE PLACEHOLDER -->
-                <input type="text" id="publicPinInput" class="pin-input ms-2" placeholder="PIN" autocomplete="off">
+                <input type="search" id="publicPinInput" class="pin-input ms-2" placeholder="PIN" autocomplete="off" style="text-transform: none !important;" autocapitalize="none" spellcheck="false" autocorrect="off">
                 <button class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" style="background-color: #ff8c00; color: white; border: none;" onclick="buscarPinPublico()">
                     Buscar
                 </button>
@@ -73,6 +73,9 @@
                     </button>
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" id="btnOpenPlayer" onclick="openMusicPlayer()" title="Reproductor de Música">
                         <i class="bi bi-music-note-beamed fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#divisasModal" title="Calculadora de Divisas">
+                        <i class="bi bi-currency-exchange fs-5"></i>
                     </button>
                     {% if session.get('role') == 'Superusuario' %}
                     <a href="/formularios" class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" title="Formularios">

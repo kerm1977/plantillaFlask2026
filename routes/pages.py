@@ -1,4 +1,4 @@
-from flask import render_template, session, redirect, url_for, jsonify, request
+from flask import render_template, session, redirect, url_for, jsonify, request, make_response
 from models import Notification, Event, Hiker, Publicacion, LogoConfig
 from datetime import datetime, date
 from sqlalchemy import func
@@ -20,20 +20,23 @@ def home():
 @bp.route('/api/eventos-activos')
 def api_eventos_activos():
     eventos = []
-    # Eventos de caminatas
-    caminatas = Event.query.filter_by(is_active=True).all()
-    for ev in caminatas:
-        eventos.append({
-            'nombre': ev.nombre,
-            'url': f'/eventos/{ev.id}'
-        })
-    # Eventos especiales/publicaciones
-    publicaciones = Publicacion.query.filter_by(is_active=True).all()
-    for pub in publicaciones:
-        eventos.append({
-            'nombre': pub.nombre,
-            'url': f'/eventos/{pub.id}'
-        })
+    try:
+        # Eventos de caminatas
+        caminatas = Event.query.filter_by(is_active=True).all()
+        for ev in caminatas:
+            eventos.append({
+                'nombre': getattr(ev, 'nombre_lugar', 'Caminata'),
+                'url': f'/eventos/{ev.id}'
+            })
+        # Eventos especiales/publicaciones
+        publicaciones = Publicacion.query.filter_by(is_active=True).all()
+        for pub in publicaciones:
+            eventos.append({
+                'nombre': pub.nombre,
+                'url': f'/eventos/{pub.id}'
+            })
+    except Exception as e:
+        print(f"Error en api_eventos_activos: {e}")
     return jsonify(eventos)
 
 
@@ -93,47 +96,58 @@ def profile():
     return render_template('perfil.html', user=user)
 
 
-@bp.route('/calendario')
-def calendario():
-    # Protegemos la ruta para que solo Superusuarios puedan acceder
+@bp.route('/gestor-fechas')
+def gestor_fechas():
     if session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
-    
-    # Obtener todos los eventos ordenados por fecha
-    eventos_db = Event.query.order_by(Event.fecha_inicio).all()
-    
-    meses_es = {
-        1: 'Enero', 2: 'Febrero', 3: 'Marzo', 4: 'Abril',
-        5: 'Mayo', 6: 'Junio', 7: 'Julio', 8: 'Agosto',
-        9: 'Septiembre', 10: 'Octubre', 11: 'Noviembre', 12: 'Diciembre'
-    }
-    
+    eventos_db = Event.query.all()
     eventos_procesados = []
     for ev in eventos_db:
-        if getattr(ev, 'fecha_inicio', None):
-            fecha_dt = ev.fecha_inicio
-            
-            # Blindaje: Por si la fecha viene como string desde SQLite
-            if isinstance(fecha_dt, str):
+        fecha_str = getattr(ev, 'fecha_inicio', None) or getattr(ev, 'fecha_unica', None)
+        fecha_completa = ''
+        if fecha_str:
+            for fmt in ['%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y']:
                 try:
-                    fecha_dt = datetime.strptime(fecha_dt, '%Y-%m-%d').date()
+                    fecha_completa = datetime.strptime(str(fecha_str), fmt).strftime('%Y-%m-%d')
+                    break
                 except ValueError:
-                    try:
-                        fecha_dt = datetime.strptime(fecha_dt, '%d/%m/%Y').date()
-                    except ValueError:
-                        continue # Si el formato es totalmente ilegible, lo omite sin crashear
-            
-            # Extracción segura de mes y día
-            mes_num = getattr(fecha_dt, 'month', 1)
-            dia_num = getattr(fecha_dt, 'day', 1)
-            
-            eventos_procesados.append({
-                'mes': meses_es.get(mes_num, 'S/M'),
-                'dia': str(dia_num),
-                'nombre': getattr(ev, 'nombre_lugar', 'Caminata'),
-                'categoria': getattr(ev, 'actividad', 'Caminata') or 'Caminata',
-                'dificultad': getattr(ev, 'dificultad', 'Moderada') or 'Moderada'
-            })
+                    continue
+        eventos_procesados.append({
+            'id': ev.id,
+            'nombre': getattr(ev, 'nombre_lugar', 'Caminata'),
+            'fecha_completa': fecha_completa
+        })
+    eventos_procesados.sort(key=lambda x: x['fecha_completa'] or '9999')
+    resp = make_response(render_template('gestor_fechas.html', eventos=eventos_procesados))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
+
+
+
+@bp.route('/api/eventos/<int:event_id>/mover-fecha', methods=['POST'])
+def mover_evento_fecha(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
     
-    # Pasamos los eventos ya procesados al HTML sin errores de Json
-    return render_template('calendario.html', eventos=eventos_procesados)
+    evento = Event.query.get_or_404(event_id)
+    data = request.get_json()
+    nueva_fecha = data.get('nueva_fecha')
+    
+    if not nueva_fecha:
+        return jsonify({'error': 'Fecha requerida'}), 400
+    
+    try:
+        fecha_dt = datetime.strptime(nueva_fecha, '%Y-%m-%d').date()
+        print(f"DEBUG: Moviendo evento {event_id} de {evento.fecha_inicio} a {fecha_dt}")
+        evento.fecha_inicio = fecha_dt.strftime('%Y-%m-%d')
+        db.session.commit()
+        print(f"DEBUG: Evento movido exitosamente")
+        return jsonify({'ok': True, 'nueva_fecha': nueva_fecha})
+    except ValueError as e:
+        print(f"ERROR: Formato de fecha inválido: {e}")
+        return jsonify({'error': 'Formato de fecha inválido (YYYY-MM-DD)'}), 400
+    except Exception as e:
+        print(f"ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500

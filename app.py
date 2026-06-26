@@ -1,11 +1,12 @@
 # app.py
 import os
 from flask import Flask
+from config import Config
 from db import db, configure_db_uri
 from routes import bp, inject_site_content
 from users import inject_superusers
 
-import models  # <-- ESTA LÍNEA ES CRÍTICA: Obliga a leer los modelos antes de crear la BD
+import models_core, models_forms, models_rifas, models_publicaciones  # Cargar todos los modelos
 
 def _migrate_raffle_selection():
     """Agrega columnas faltantes en raffle_selection sin borrar datos existentes."""
@@ -77,11 +78,10 @@ def _migrate_publicacion():
 
 def create_app():
     app = Flask(__name__)
-    app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'clave_super_secreta_pwa')
+    app.config.from_object(Config)
     
     # Configuración inteligente de Base de Datos
     app.config['SQLALCHEMY_DATABASE_URI'] = configure_db_uri()
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Inicializar la base de datos con la app
     db.init_app(app)
@@ -111,6 +111,5 @@ def create_app():
 
 if __name__ == '__main__':
     app = create_app()
-    # Adaptamos el puerto para que escuche el .bat o use 5050 por defecto
     port = int(os.environ.get('PORT', 5050))
-    app.run(debug=True, host='0.0.0.0', port=port)
+    app.run(debug=Config.DEBUG, host='0.0.0.0', port=port)

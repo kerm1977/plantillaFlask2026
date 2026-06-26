@@ -1,23 +1,10 @@
 import json
 from io import BytesIO
 from flask import request, jsonify, session, send_file, Response
-from models import Form, FormField, FormResponse, FormAnswer
+from models import Form, FormField, FormResponse
 from db import db
 from routes import bp
-
-
-def _build_answers_map(response, fields):
-    """Retorna dict {field_id: parsed_value} para una respuesta."""
-    raw = {a.field_id: a.value for a in response.answers}
-    result = {}
-    for f in fields:
-        val = raw.get(f.id, '')
-        try:
-            val = json.loads(val)
-        except Exception:
-            pass
-        result[str(f.id)] = val
-    return result
+from routes.forms_responses_utils import _build_answers_map, _update_response_answers
 
 
 # ── LISTAR RESPUESTAS ────────────────────────────────────────────────────────
@@ -32,15 +19,16 @@ def api_get_responses(form_id):
                 FormResponse.submitted_at.desc()).all()
     output = []
     for r in responses:
-        row = {'id': r.id, 'nombre_completo': r.nombre_completo, 'email': r.email,
-               'telefono': r.telefono, 'edad': r.edad,
+        row = {'id': r.id, 'nombre_completo': r.nombre_completo, 'cedula': r.cedula or '',
+               'email': r.email, 'telefono': r.telefono, 'edad': r.edad,
                'submitted_at': r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '',
                'score': r.score, 'total_questions': r.total_questions,
                'answers': _build_answers_map(r, fields)}
         output.append(row)
     fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type,
                     'options': json.loads(f.options) if f.options else []} for f in fields]
-    return jsonify({'fields': fields_info, 'responses': output})
+    return jsonify({'fields': fields_info, 'responses': output,
+                    'show_cedula': form.show_cedula})
 
 
 # ── EXPORTAR RESPUESTAS ──────────────────────────────────────────────────────
@@ -57,9 +45,12 @@ def api_export_responses(form_id, fmt):
     if fmt == 'json':
         rows = []
         for r in responses:
-            row = {'nombre': r.nombre_completo, 'email': r.email, 'telefono': r.telefono,
-                   'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
-                   'score': r.score}
+            row = {'nombre': r.nombre_completo}
+            if form.show_cedula:
+                row['cedula'] = r.cedula or ''
+            row.update({'email': r.email, 'telefono': r.telefono,
+                        'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
+                        'score': r.score})
             for f in fields:
                 val = _build_answers_map(r, [f]).get(str(f.id), '')
                 row[f.label] = val
@@ -74,14 +65,20 @@ def api_export_responses(form_id, fmt):
             wb = openpyxl.Workbook()
             ws = wb.active
             ws.title = form.name[:30]
-            headers = ['Nombre', 'Email', 'Teléfono', 'Edad', 'Fecha']
+            headers = ['Nombre']
+            if form.show_cedula:
+                headers.append('Cédula')
+            headers += ['Email', 'Teléfono', 'Edad', 'Fecha']
             if form.form_type == 'examen':
                 headers.append('Calificación')
             headers += [f.label for f in fields]
             ws.append(headers)
             for r in responses:
-                row = [r.nombre_completo, r.email, r.telefono, r.edad,
-                       r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
+                row = [r.nombre_completo]
+                if form.show_cedula:
+                    row.append(r.cedula or '')
+                row += [r.email, r.telefono, r.edad,
+                        r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
                 for f in fields:
@@ -145,16 +142,7 @@ def api_update_response(form_id, response_id):
     resp.email           = data.get('email', resp.email)
     resp.telefono        = data.get('telefono', resp.telefono)
     resp.edad            = int(data.get('edad')) if data.get('edad') else resp.edad
-    existing = {a.field_id: a for a in resp.answers}
-    fields   = FormField.query.filter_by(form_id=form_id).order_by(FormField.order).all()
-    for field in fields:
-        answer_value = answers_data.get(str(field.id), '')
-        val = (json.dumps(answer_value, ensure_ascii=False)
-               if isinstance(answer_value, list) else str(answer_value))
-        if field.id in existing:
-            existing[field.id].value = val
-        else:
-            resp.answers.append(FormAnswer(field_id=field.id, value=val))
+    _update_response_answers(resp, answers_data, form_id)
     db.session.commit()
     return jsonify({'ok': True})
 
@@ -171,8 +159,10 @@ def api_get_my_response(form_id):
         return jsonify({'found': False})
     fields = FormField.query.filter_by(form_id=form_id).order_by(FormField.order).all()
     return jsonify({'found': True, 'response_id': resp.id,
-                    'nombre_completo': resp.nombre_completo, 'email': resp.email or '',
-                    'telefono': resp.telefono or '', 'edad': resp.edad,
+                    'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
+                    'email': resp.email or '', 'telefono': resp.telefono or '',
+                    'edad': resp.edad,
+                    'submitted_at': resp.submitted_at.strftime('%d/%m/%Y %H:%M') if resp.submitted_at else '',
                     'answers': _build_answers_map(resp, fields)})
 
 
@@ -186,20 +176,12 @@ def api_admin_update_response(response_id):
     data         = request.get_json() or {}
     answers_data = data.get('answers', {})
     resp.nombre_completo = data.get('nombre_completo', resp.nombre_completo)
+    resp.cedula          = data.get('cedula', resp.cedula)
     resp.email           = data.get('email', resp.email)
     resp.telefono        = data.get('telefono', resp.telefono)
     if data.get('edad'):
         resp.edad = int(data['edad'])
-    existing = {a.field_id: a for a in resp.answers}
-    fields   = FormField.query.filter_by(form_id=resp.form_id).order_by(FormField.order).all()
-    for field in fields:
-        answer_value = answers_data.get(str(field.id), '')
-        val = (json.dumps(answer_value, ensure_ascii=False)
-               if isinstance(answer_value, list) else str(answer_value))
-        if field.id in existing:
-            existing[field.id].value = val
-        else:
-            resp.answers.append(FormAnswer(field_id=field.id, value=val))
+    _update_response_answers(resp, answers_data, resp.form_id)
     db.session.commit()
     return jsonify({'ok': True})
 
@@ -213,6 +195,6 @@ def api_get_response_by_token(token):
         return jsonify({'found': False})
     fields = FormField.query.filter_by(form_id=resp.form_id).order_by(FormField.order).all()
     return jsonify({'found': True, 'response_id': resp.id,
-                    'nombre_completo': resp.nombre_completo, 'email': resp.email or '',
-                    'telefono': resp.telefono or '', 'edad': resp.edad,
-                    'answers': _build_answers_map(resp, fields)})
+                    'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
+                    'email': resp.email or '', 'telefono': resp.telefono or '',
+                    'edad': resp.edad, 'answers': _build_answers_map(resp, fields)})

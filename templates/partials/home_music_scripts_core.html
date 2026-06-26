@@ -92,7 +92,10 @@ function mpPlay(index) {
         MP.isPlaying = true;
         mpUpdateUI();
         mpShowMiniPlayer();
-    }).catch(() => {});
+    }).catch(err => {
+        console.error('Error reproduciendo audio:', err);
+        alert('Error al reproducir: ' + err.message);
+    });
 }
 
 function mpTogglePlay() {

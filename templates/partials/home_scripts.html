@@ -1,7 +1,7 @@
 <script>
     async function buscarPinPublico() {
         const pinInput = document.getElementById('publicPinInput');
-        const pin = pinInput.value.trim().toUpperCase();
+        const pin = pinInput.value.trim();
         
         if(!pin) {
             alert("Por favor, ingresa tu PIN.");
@@ -63,6 +63,26 @@
             buscarPinPublico();
         }
     });
+
+    // Evitar autocapitalización del input PIN - enfoque radical
+    document.getElementById('publicPinInput').addEventListener('keydown', function (e) {
+        // Permitir teclas especiales
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter' || 
+            e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+            e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
+        
+        // Si es una letra, prevenir el comportamiento por defecto e insertar manualmente
+        if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+            e.preventDefault();
+            const cursorPosition = this.selectionStart;
+            const currentValue = this.value;
+            const newValue = currentValue.slice(0, cursorPosition) + e.key + currentValue.slice(cursorPosition);
+            this.value = newValue;
+            this.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+        }
+    });
 </script>
 
 <!-- Scripts de Lógica de Datos EXTERNOS -->
@@ -74,6 +94,8 @@
 <script src="{{ url_for('static', filename='js/home_db.js') }}"></script>
 <script src="{{ url_for('static', filename='js/home_events.js') }}"></script>
 <script src="{{ url_for('static', filename='js/home_filters.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render_utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render_cards.js') }}"></script>
 <script src="{{ url_for('static', filename='js/home_render.js') }}"></script>
 <script src="{{ url_for('static', filename='js/home_init.js') }}"></script>
 

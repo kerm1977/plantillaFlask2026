@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="glass-panel rounded-4 p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold text-orange mb-1"><i class="bi bi-calendar-check me-2"></i>Gestor de Fechas</h2>
+                <p class="text-muted mb-0 small">Cambia la fecha de cualquier caminata directamente desde aquí.</p>
+            </div>
+            <a href="/eventos" class="btn btn-orange rounded-pill px-4">
+                <i class="bi bi-plus-circle me-2"></i>Crear nueva caminata
+            </a>
+        </div>
+
+        <!-- Buscador -->
+        <div class="mb-3">
+            <input type="text" id="buscador" class="form-control rounded-pill"
+                   placeholder="🔍  Buscar por nombre de caminata..."
+                   oninput="filtrarEventos()" style="max-width:400px;">
+        </div>
+
+        <!-- Tabla -->
+        <div id="sinEventos" class="d-none text-center py-5 text-muted">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2 text-orange opacity-50"></i>
+            No hay caminatas registradas aún.
+        </div>
+
+        <div class="rounded-3 overflow-hidden" id="contenedorTabla" style="border: 1px solid #e0e0e0;">
+            <table class="table table-hover mb-0 align-middle" id="tablaEventos">
+                <thead style="background:#fff7ee; border-bottom:2px solid #ffe0b2;">
+                    <tr>
+                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">#</th>
+                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Caminata</th>
+                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Fecha actual</th>
+                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Nueva fecha</th>
+                        <th class="py-3 px-3 text-orange fw-semibold text-center" style="font-size:.85rem;">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyEventos"></tbody>
+            </table>
+        </div>
+
+        <!-- Toast de confirmación -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+            <div id="toastOk" class="toast align-items-center text-white border-0 rounded-3"
+                 style="background:#28a745;" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fw-semibold">
+                        <i class="bi bi-check-circle me-2"></i><span id="toastMsg">Fecha actualizada</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.btn-orange        { background:#ff8c00; color:#fff; border:none; }
+.btn-orange:hover  { background:#e07800; color:#fff; }
+.btn-outline-orange{ border:1.5px solid #ff8c00; color:#ff8c00; background:transparent; }
+.btn-outline-orange:hover{ background:#ff8c00; color:#fff; }
+.text-orange       { color:#ff8c00 !important; }
+.fila-editando td  { background:#fff7ee !important; }
+.input-fecha       { border:1.5px solid #ff8c00; border-radius:8px; padding:4px 10px; font-size:.9rem; }
+.input-fecha:focus { outline:none; box-shadow:0 0 0 3px rgba(255,140,0,.2); }
+.badge-fecha       { background:rgba(255,140,0,.12); color:#c85a00;
+                     border-radius:20px; padding:4px 12px; font-size:.82rem; font-weight:600; }
+</style>
+
+<script>
+const eventosDB = {{ eventos | tojson | safe }};
+
+function renderTabla(lista) {
+    const tbody = document.getElementById('tbodyEventos');
+    tbody.innerHTML = '';
+
+    if (lista.length === 0) {
+        document.getElementById('sinEventos').classList.remove('d-none');
+        document.getElementById('contenedorTabla').classList.add('d-none');
+        return;
+    }
+    document.getElementById('sinEventos').classList.add('d-none');
+    document.getElementById('contenedorTabla').classList.remove('d-none');
+
+    lista.forEach((ev, idx) => {
+        const fechaFormateada = ev.fecha_completa
+            ? new Date(ev.fecha_completa + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'})
+            : '—';
+
+        const tr = document.createElement('tr');
+        tr.id = `fila-${ev.id}`;
+        tr.innerHTML = `
+            <td class="px-3 text-muted" style="font-size:.85rem;">${idx + 1}</td>
+            <td class="px-3 fw-semibold text-dark" style="font-size:.9rem;">
+                <a href="/detalles_evento/${ev.id}" class="text-dark text-decoration-none hover-orange">${ev.nombre}</a>
+            </td>
+            <td class="px-3">
+                <span class="badge-fecha" id="badge-${ev.id}">${fechaFormateada}</span>
+            </td>
+            <td class="px-3">
+                <input type="date" class="input-fecha" id="input-${ev.id}"
+                       value="${ev.fecha_completa || ''}"
+                       onchange="marcarCambio(${ev.id})" />
+            </td>
+            <td class="px-3 text-center">
+                <button class="btn btn-outline-orange btn-sm rounded-pill px-3 d-none"
+                        id="btn-${ev.id}"
+                        onclick="guardarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
+                    <i class="bi bi-check2 me-1"></i>Guardar
+                </button>
+                <span class="text-muted small" id="listo-${ev.id}">—</span>
+            </td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function marcarCambio(id) {
+    document.getElementById(`fila-${id}`).classList.add('fila-editando');
+    document.getElementById(`btn-${id}`).classList.remove('d-none');
+    document.getElementById(`listo-${id}`).classList.add('d-none');
+}
+
+async function guardarFecha(id, nombre) {
+    const input = document.getElementById(`input-${id}`);
+    const nuevaFecha = input.value;
+    if (!nuevaFecha) { alert('Selecciona una fecha válida'); return; }
+
+    const btn = document.getElementById(`btn-${id}`);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando…';
+
+    try {
+        const res = await fetch(`/api/eventos/${id}/mover-fecha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nueva_fecha: nuevaFecha })
+        });
+
+        if (res.ok) {
+            const fechaFmt = new Date(nuevaFecha + 'T00:00:00')
+                .toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+            document.getElementById(`badge-${id}`).textContent = fechaFmt;
+            document.getElementById(`fila-${id}`).classList.remove('fila-editando');
+            btn.classList.add('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+            document.getElementById(`listo-${id}`).textContent = '✓ Guardado';
+            document.getElementById(`listo-${id}`).classList.remove('d-none');
+            document.getElementById(`listo-${id}`).className = 'text-success small fw-semibold';
+
+            // Actualizar datos locales
+            const ev = eventosDB.find(e => e.id === id);
+            if (ev) ev.fecha_completa = nuevaFecha;
+
+            // Mostrar toast
+            document.getElementById('toastMsg').textContent = `"${nombre}" → ${fechaFmt}`;
+            new bootstrap.Toast(document.getElementById('toastOk'), { delay: 3000 }).show();
+        } else {
+            alert('Error al guardar la fecha. Intenta de nuevo.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+        }
+    } catch (err) {
+        alert('Error de conexión.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+    }
+}
+
+function filtrarEventos() {
+    const q = document.getElementById('buscador').value.toLowerCase();
+    const filtrados = q ? eventosDB.filter(ev => ev.nombre.toLowerCase().includes(q)) : eventosDB;
+    renderTabla(filtrados);
+}
+
+renderTabla(eventosDB);
+</script>
+{% endblock %}

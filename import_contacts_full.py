@@ -2,13 +2,14 @@
 Script de importacion masiva de contactos a la base de datos.
 Ejecutar: python import_contacts_full.py
 """
-import re, random, string, sys, os
+import sys, os
 
 # ── Configurar Flask app context ────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
 from app import create_app
 from db import db
 from models import Hiker
+from import_contacts_utils import gen_pin, parse_line
 app = create_app()
 
 RAW = """
@@ -138,63 +139,6 @@ Ronald Quesada Hernandez 302490477
 Solange Ruiz Venegas 107230925
 Kattia Brenes Viquez 303360312
 """
-
-def gen_pin():
-    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-def parse_line(raw):
-    line = raw.strip()
-    if not line:
-        return None
-
-    # Remove parenthetical comments
-    line = re.sub(r'\([^)]*\)', '', line)
-
-    # Extract email
-    email = ''
-    m = re.search(r'[\w.\-]+@[\w.\-]+\.\w+', line)
-    if m:
-        email = m.group(0)
-        line = (line[:m.start()] + line[m.end():]).strip()
-
-    # Remove keywords before cedula
-    line = re.sub(r'\b[Cc][eé][ée]?dulas?\b', '', line)
-    line = re.sub(r'\bCed\b', '', line)
-    line = re.sub(r'\bDimex\b', '', line, flags=re.IGNORECASE)
-    line = line.replace(',', ' ')
-    line = re.sub(r'\s+', ' ', line).strip()
-
-    cedula = ''
-    name   = line
-
-    # Case: spaces inside cedula like "1 1879 0294" — three digit groups at end
-    m = re.search(r'\s(\d{1,3})\s+(\d{3,4})\s+(\d{3,4})\s*$', line)
-    if m:
-        cedula = m.group(1) + m.group(2) + m.group(3)
-        name   = line[:m.start()].strip()
-    else:
-        # Case: cedula (digits + optional dashes) possibly glued to last name word
-        # Split on boundary between letters and digits at end: e.g. "Rojas1-0712-0249"
-        line2 = re.sub(r'([a-záéíóúüñA-ZÁÉÍÓÚÜÑ])(\d)', r'\1 \2', line)
-        # Now find cedula at end: optional letter prefix + digits + optional dashes
-        m = re.search(r'\s([A-Z]?\d[\d\-]*)\s*$', line2)
-        if m:
-            raw_ced = re.sub(r'[\-\s]', '', m.group(1))
-            if len(raw_ced.lstrip('ABCDEFGHIJKLMNOPQRSTUVWXYZ')) >= 5:
-                cedula = raw_ced
-                # Map back position to original line
-                name = line2[:m.start()].strip()
-                # Clean letter artifacts left after split
-                name = re.sub(r'\s+', ' ', name).strip()
-
-    if not name:
-        return None
-
-    if not cedula:
-        cedula = 'SC-' + ''.join(random.choices(string.digits, k=8))
-
-    return {'nombre_completo': name, 'cedula': cedula, 'email': email}
-
 
 def main():
     lines = [l.strip() for l in RAW.strip().split('\n') if l.strip()]

@@ -78,7 +78,7 @@ def register_hiker():
         # Generar PIN si es nuevo
         if not hiker.pin_secreto:
             import random, string
-            hiker.pin_secreto = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+            hiker.pin_secreto = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
             
         db.session.commit()
 

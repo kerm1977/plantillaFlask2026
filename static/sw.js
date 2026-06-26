@@ -1,9 +1,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v8.0';
-const STATIC_CACHE   = 'la-tribu-static-v8.0';
-const PAGES_CACHE    = 'la-tribu-pages-v8.0';
+const CACHE_NAME     = 'la-tribu-v9.4';
+const STATIC_CACHE   = 'la-tribu-static-v9.4';
+const PAGES_CACHE    = 'la-tribu-pages-v9.4';
 const OFFLINE_URL    = '/offline';
 
 // ── Shell completo precacheado al instalar ─────────────────────────────────
@@ -72,8 +72,18 @@ self.addEventListener('fetch', event => {
     if (event.request.method !== 'GET') return;
     const url = new URL(event.request.url);
     if (!url.protocol.startsWith('http')) return;
+    // Ignorar peticiones a dominios externos (Cloudflare, CDNs, etc.)
+    if (url.origin !== self.location.origin) return;
 
-    // 1. ESTÁTICOS (/static/) → Cache-first, actualiza en background
+    // 1. Uploads de usuarios → siempre Network, nunca cachear
+    if (url.pathname.startsWith('/static/uploads/')) {
+        event.respondWith(
+            fetch(event.request).catch(() => new Response('', { status: 404 }))
+        );
+        return;
+    }
+
+    // 2. ESTÁTICOS (/static/) → Cache-first, actualiza en background
     if (url.pathname.startsWith('/static/')) {
         event.respondWith(
             caches.open(STATIC_CACHE).then(async cache => {
@@ -82,54 +92,53 @@ self.addEventListener('fetch', event => {
                     if (res && res.status === 200) cache.put(event.request, res.clone());
                     return res;
                 }).catch(() => null);
-                return cached || await fetchPromise;
+                return cached || await fetchPromise || new Response('', { status: 404 });
             })
         );
         return;
     }
 
-    // 2. API (/api/) → Network-first, guarda en caché de páginas
-    if (url.pathname.startsWith('/api/')) {
+    // 2. Páginas dinámicas admin → siempre Network-first (sin caché)
+    const NETWORK_ONLY = ['/gestor-fechas', '/dashboard', '/eventos', '/detalles_evento'];
+    if (NETWORK_ONLY.some(p => url.pathname.startsWith(p))) {
         event.respondWith(
-            fetch(event.request).then(res => {
-                if (res && res.status === 200) {
-                    caches.open(PAGES_CACHE).then(c => c.put(event.request, res.clone()));
-                }
-                return res;
-            }).catch(() => caches.match(event.request))
+            fetch(event.request).catch(() => caches.match(event.request))
         );
         return;
     }
 
-    // 3. NAVEGACIÓN (HTML) → Stale-While-Revalidate
-    //    Sirve caché instantáneamente Y actualiza en background.
-    //    Si no hay caché Y no hay red → página offline.
+    // 3. API (/api/) → Network-first, SIN caché para evitar datos obsoletos
+    if (url.pathname.startsWith('/api/')) {
+        event.respondWith(
+            fetch(event.request).catch(() => {
+                return new Response(JSON.stringify([]), {
+                    status: 200,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+            })
+        );
+        return;
+    }
+
+    // 3. NAVEGACIÓN (HTML) → Network-first, caché solo si no hay red
     event.respondWith(
         caches.open(PAGES_CACHE).then(async cache => {
-            const cached = await cache.match(event.request);
-
-            const networkFetch = fetch(event.request).then(res => {
-                if (res && res.status === 200) {
-                    cache.put(event.request, res.clone());
+            try {
+                const fresh = await fetch(event.request);
+                if (fresh && fresh.status === 200) {
+                    cache.put(event.request, fresh.clone());
                 }
-                return res;
-            }).catch(() => null);
-
-            if (cached) {
-                // Sirve caché ahora, actualiza en background
-                networkFetch; // dispara sin await
-                return cached;
+                return fresh;
+            } catch (err) {
+                // Sin red → intentar caché
+                const cached = await cache.match(event.request);
+                if (cached) return cached;
+                // Sin caché y sin red → página offline
+                if (event.request.mode === 'navigate') {
+                    return cache.match(OFFLINE_URL) || caches.match(OFFLINE_URL);
+                }
+                return new Response('Sin conexión', { status: 503 });
             }
-
-            // No está en caché → esperar la red
-            const fresh = await networkFetch;
-            if (fresh) return fresh;
-
-            // Sin red y sin caché → página offline
-            if (event.request.mode === 'navigate') {
-                return cache.match(OFFLINE_URL) || caches.match(OFFLINE_URL);
-            }
-            return new Response('Sin conexión', { status: 503 });
         })
     );
 });

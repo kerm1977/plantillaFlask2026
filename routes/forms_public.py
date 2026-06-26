@@ -41,13 +41,26 @@ def api_submit_form(form_id):
     data         = request.get_json() or {}
     answers_data = data.get('answers', {})
     edit_token   = uuid.uuid4().hex
+    cedula_valor = data.get('cedula', '').strip()
+    nombre_valor = data.get('nombre_completo', '').strip()
     response = FormResponse(
         form_id=form_id, edit_token=edit_token,
-        nombre_completo=data.get('nombre_completo', ''),
+        nombre_completo=nombre_valor,
+        cedula=cedula_valor or None,
         email=data.get('email', ''),
         telefono=data.get('telefono', ''),
         edad=int(data.get('edad')) if data.get('edad') else None,
     )
+    # Guardar/actualizar en agenda Hiker si hay cédula y nombre
+    if cedula_valor and nombre_valor:
+        hiker = Hiker.query.filter_by(cedula=cedula_valor).first()
+        if not hiker:
+            hiker = Hiker(cedula=cedula_valor, nombre_completo=nombre_valor,
+                          telefono=data.get('telefono', '') or None)
+            db.session.add(hiker)
+        else:
+            if data.get('telefono') and not hiker.telefono:
+                hiker.telefono = data.get('telefono')
     score = total_graded = 0
     fields = FormField.query.filter_by(form_id=form_id).order_by(FormField.order).all()
     for field in fields:

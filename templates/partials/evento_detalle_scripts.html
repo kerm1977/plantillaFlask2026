@@ -40,12 +40,13 @@ function abrirModalMontoRecaudado() {
 async function guardarMontoRecaudado() {
     const pubId = {{ pub.id }};
     const monto = parseFloat(document.getElementById('montoRecaudadoInput').value) || 0;
+    const justification = document.getElementById('paymentJustificationInput').value.trim();
     
     try {
         const res = await fetch(`/api/publicaciones/${pubId}/monto-recaudado`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ monto: monto })
+            body: JSON.stringify({ monto: monto, justification: justification })
         });
         const d = await res.json();
         if (d.ok) {

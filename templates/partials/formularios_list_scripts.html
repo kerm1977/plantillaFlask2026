@@ -70,6 +70,7 @@ function showCreateForm() {
     document.getElementById('formType').value = 'registro';
     document.getElementById('formAllowEdit').value = 'false';
     document.getElementById('trigNombre').checked = true;
+    document.getElementById('trigCedula').checked = false;
     document.getElementById('trigFecha').checked = false;
     document.getElementById('trigEmail').checked = false;
     document.getElementById('trigEdad').checked = false;
@@ -86,6 +87,7 @@ async function editForm(id) {
     document.getElementById('formType').value = form.form_type;
     document.getElementById('formAllowEdit').value = form.allow_edit ? 'true' : 'false';
     document.getElementById('trigNombre').checked = form.show_nombre;
+    document.getElementById('trigCedula').checked = form.show_cedula;
     document.getElementById('trigFecha').checked = form.show_fecha;
     document.getElementById('trigEmail').checked = form.show_email;
     document.getElementById('trigEdad').checked = form.show_edad;
@@ -102,6 +104,7 @@ async function saveForm() {
         form_type: document.getElementById('formType').value,
         allow_edit: document.getElementById('formAllowEdit').value === 'true',
         show_nombre: document.getElementById('trigNombre').checked,
+        show_cedula: document.getElementById('trigCedula').checked,
         show_fecha: document.getElementById('trigFecha').checked,
         show_email: document.getElementById('trigEmail').checked,
         show_edad: document.getElementById('trigEdad').checked,

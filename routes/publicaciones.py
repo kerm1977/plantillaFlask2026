@@ -165,5 +165,6 @@ def api_pub_monto_recaudado(pid):
     data = request.get_json()
     p = Publicacion.query.get_or_404(pid)
     p.monto_recaudado = data.get('monto', 0.0)
+    p.payment_justification = data.get('justification', '')
     db.session.commit()
     return jsonify({'ok': True, 'monto': p.monto_recaudado})

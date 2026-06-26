@@ -26,6 +26,21 @@ async function loadEvents() {
     }
 }
 
+// Limpiar IndexedDB al cargar la página para evitar datos corruptos
+async function clearIndexedDB() {
+    try {
+        if (!localDB) {
+            localDB = await initDB();
+        }
+        const tx = localDB.transaction("eventos", "readwrite");
+        const store = tx.objectStore("eventos");
+        store.clear();
+        console.log("IndexedDB limpiado correctamente");
+    } catch (err) {
+        console.warn("Error limpiando IndexedDB:", err);
+    }
+}
+
 async function toggleEspacio(eventId) {
     const eventIndex = allEvents.findIndex(ev => ev.id === eventId);
     if (eventIndex !== -1) {

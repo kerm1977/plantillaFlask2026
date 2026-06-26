@@ -92,6 +92,7 @@ from routes import (        # noqa: E402, F401
     forms_responses,
     rifas_public,
     rifas_selecciones,
+    rifas_selecciones_select,
     rifas_admin,
     publicaciones,
 )

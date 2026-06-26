@@ -205,3 +205,22 @@ def find_winner(raffle_id, number):
                                    'phone': selection.customer_phone,
                                    'cedula': selection.customer_cedula or ''}})
     return jsonify({'winner': None})
+
+
+# ── ACTUALIZAR ESTADO DE PAGO ───────────────────────────────────────────────────
+
+@bp.route('/api/rifas/<int:raffle_id>/toggle-payment/<string:phone>', methods=['POST'])
+def toggle_payment(raffle_id, phone):
+    user = User.query.get(session.get('user_id'))
+    if not user or user.email not in ['kenth1977@gmail.com', 'lthikingcr@gmail.com']:
+        return jsonify({'error': 'No autorizado'}), 403
+    selections = RaffleSelection.query.filter_by(
+        raffle_id=raffle_id, customer_phone=phone).all()
+    if not selections:
+        return jsonify({'error': 'Selección no encontrada'}), 404
+    # Actualizar todas las selecciones de este teléfono
+    new_status = not selections[0].is_paid
+    for sel in selections:
+        sel.is_paid = new_status
+    db.session.commit()
+    return jsonify({'ok': True, 'is_paid': new_status})

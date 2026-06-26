@@ -1,5 +1,5 @@
 import json
-from flask import Response, send_from_directory, render_template
+from flask import Response, send_from_directory, render_template, make_response
 from routes import bp
 
 # ==========================================
@@ -47,7 +47,11 @@ def manifest():
 
 @bp.route('/sw.js')
 def sw():
-    return send_from_directory('static', 'sw.js', mimetype='application/javascript')
+    response = make_response(send_from_directory('static', 'sw.js', mimetype='application/javascript'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 
 @bp.route('/offline')

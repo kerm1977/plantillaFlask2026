@@ -20,6 +20,42 @@ def search_hikers():
     return jsonify({'hikers': results})
 
 
+# ── VISTA PÚBLICA: DETALLE ───────────────────────────────────────────────────
+
+@bp.route('/rifas/<int:raffle_id>')
+def rifa_detalle(raffle_id):
+    rifa = Raffle.query.get_or_404(raffle_id)
+    if not rifa.is_active:
+        flash('Esta rifa no está activa', 'warning')
+        return redirect(url_for('main.list_rifas'))
+    selections = RaffleSelection.query.filter_by(raffle_id=raffle_id, is_canceled=False).all()
+    selected_numbers = [s.number for s in selections]
+    grouped_selections = {}
+    for s in selections:
+        key = s.customer_phone
+        if key not in grouped_selections:
+            # Ocultar solo el contenido entre paréntesis (cedula)
+            display_name = s.customer_name
+            if display_name:
+                import re
+                # Eliminar todo lo que esté entre paréntesis
+                display_name = re.sub(r'\([^)]*\)', '', display_name).strip()
+            grouped_selections[key] = {'name': display_name, 'phone': s.customer_phone,
+                                        'numbers': [], 'total': 0, 'is_paid': s.is_paid}
+        grouped_selections[key]['numbers'].append(s.number)
+        grouped_selections[key]['total'] += rifa.price
+    available_numbers = [f"{i:02d}" for i in range(100) if f"{i:02d}" not in selected_numbers]
+    try:
+        winners = json.loads(rifa.winning_numbers) if rifa.winning_numbers else []
+    except Exception:
+        winners = []
+    number_to_name = {s.number: s.customer_name for s in selections}
+    winners_info = [{'number': num, 'name': number_to_name.get(num, 'Sin asignar')} for num in winners]
+    return render_template('rifa_detalle.html', rifa=rifa, available_numbers=available_numbers,
+                           selected_numbers=selected_numbers, winners=winners,
+                           winners_info=winners_info, grouped_selections=grouped_selections)
+
+
 # ── VISTA PÚBLICA: LISTA ─────────────────────────────────────────────────────
 
 @bp.route('/rifas')
@@ -60,36 +96,6 @@ def list_rifas():
             'total_sold': total_sold, 'total_available': 100 - total_sold
         })
     return render_template('rifas.html', rifas=raffle_data, stats=stats)
-
-
-# ── VISTA PÚBLICA: DETALLE ───────────────────────────────────────────────────
-
-@bp.route('/rifas/<int:raffle_id>')
-def rifa_detalle(raffle_id):
-    rifa = Raffle.query.get_or_404(raffle_id)
-    if not rifa.is_active:
-        flash('Esta rifa no está activa', 'warning')
-        return redirect(url_for('main.list_rifas'))
-    selections = RaffleSelection.query.filter_by(raffle_id=raffle_id, is_canceled=False).all()
-    selected_numbers = [s.number for s in selections]
-    grouped_selections = {}
-    for s in selections:
-        key = s.customer_phone
-        if key not in grouped_selections:
-            grouped_selections[key] = {'name': s.customer_name, 'phone': s.customer_phone,
-                                        'numbers': [], 'total': 0}
-        grouped_selections[key]['numbers'].append(s.number)
-        grouped_selections[key]['total'] += rifa.price
-    available_numbers = [f"{i:02d}" for i in range(100) if f"{i:02d}" not in selected_numbers]
-    try:
-        winners = json.loads(rifa.winning_numbers) if rifa.winning_numbers else []
-    except Exception:
-        winners = []
-    number_to_name = {s.number: s.customer_name for s in selections}
-    winners_info = [{'number': num, 'name': number_to_name.get(num, 'Sin asignar')} for num in winners]
-    return render_template('rifa_detalle.html', rifa=rifa, available_numbers=available_numbers,
-                           selected_numbers=selected_numbers, winners=winners,
-                           winners_info=winners_info, grouped_selections=grouped_selections)
 
 
 # ── MI SELECCIÓN (VISTA PERSONAL) ────────────────────────────────────────────

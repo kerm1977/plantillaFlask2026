@@ -25,50 +25,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=2">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=2">
 
-    <style>
-        /* ===== ELIMINAR ABSOLUTAMENTE TODAS LAS SOMBRAS ===== */
-        *, *::before, *::after { box-shadow: none !important; text-shadow: none !important; }
-        .shadow, .shadow-sm, .shadow-lg, .shadow-none,
-        [class*="shadow"] { box-shadow: none !important; }
-        /* Mantener focus ring para accesibilidad */
-        .form-control:focus, .form-select:focus, .glass-input:focus, .form-check-input:focus {
-            box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
-        }
-        /* Mantener text-shadow en flyer overlay */
-        .flyer-glass-overlay, .flyer-glass-overlay * {
-            text-shadow: 0 2px 5px rgba(0,0,0,0.6) !important;
-        }
-
-        /* ===== ANIMACIÓN HEARTBEAT PARA LOGO SUEÑOS ===== */
-        @keyframes heartbeat {
-            0% { transform: scale(1); }
-            14% { transform: scale(1.1); }
-            28% { transform: scale(1); }
-            42% { transform: scale(1.1); }
-            70% { transform: scale(1); }
-        }
-        .animate-heartbeat {
-            animation: heartbeat 1.5s ease-in-out infinite;
-        }
-
-        /* ===== ANIMACIÓN BLINK PARA PUNTO VERDE ===== */
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-        .animate-blink {
-            animation: blink 1s infinite;
-        }
-
-        /* ===== ANIMACIÓN BOUNCE PARA BOTÓN SELECCIONAR ===== */
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-        .animate-bounce {
-            animation: bounce 0.6s ease-in-out infinite;
-        }
-    </style>
+    {% include 'partials/base_styles.html' %}
 </head>
 <body>
     <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
@@ -161,7 +118,16 @@
 
             <li><hr class="dropdown-divider opacity-25"></li>
             
-            <!-- Opción 4: Agenda / Directorio -->
+            <!-- Opción 4: Gestor de Fechas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/gestor-fechas">
+                    <i class="bi bi-calendar-check text-orange me-2 fs-5"></i> Gestor de Fechas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 5: Agenda / Directorio -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard">
                     <i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda

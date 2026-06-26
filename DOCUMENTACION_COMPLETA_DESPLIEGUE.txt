@@ -1,0 +1,379 @@
+================================================================================
+GUÍA COMPLETA DE DESPLIEGUE - LA TRIBU
+================================================================================
+Este documento describe paso a paso cómo desplegar la aplicación Flask con
+Cloudflare Tunnel, Tailscale Funnel y configuración de alta disponibilidad.
+
+================================================================================
+1. ARQUITECTURA GENERAL
+================================================================================
+
+La aplicación tiene 3 capas de acceso:
+
+1. APLICACIÓN FLASK (Puerto 5050)
+   - Python/Flask app que corre localmente
+   - Base de datos: SQLite (local) o MySQL (producción)
+   - PWA con Service Worker para offline
+
+2. CLOUDFLARE TUNNEL (Opción 1)
+   - Exposición HTTPS pública a través de dominio personalizado
+   - No requiere abrir puertos en router
+   - Certificado SSL automático
+
+3. TAILSCALE FUNNEL (Opción 2)
+   - Exposición HTTPS a través de dominio .ts.net
+   - Acceso seguro desde cualquier dispositivo con Tailscale
+   - Ideal para red privada o pruebas
+
+================================================================================
+2. REQUISITOS PREVIOS
+================================================================================
+
+2.1 SOFTWARE NECESARIO:
+- Python 3.8+ (https://www.python.org/downloads/)
+- Git (opcional, para clonar)
+- Cloudflared.exe (https://github.com/cloudflare/cloudflared/releases)
+- Tailscale (https://tailscale.com/download/windows)
+
+2.2 DEPENDENCIAS PYTHON:
+pip install flask flask-sqlalchemy flask-login pymysql
+
+2.3 ESTRUCTURA DE CARPETAS:
+plantillaFlask2026/
+├── app.py              # Aplicación Flask principal
+├── config.py           # Configuración
+├── db.py               # Conexión a base de datos
+├── ejecutar.bat        # Script de lanzamiento
+├── cloudflared.exe     # Binario de Cloudflare Tunnel
+├── requirements.txt    # Dependencias Python
+├── static/             # Archivos estáticos (CSS, JS, imágenes)
+├── templates/          # Plantillas HTML
+├── routes/             # Rutas Flask
+├── models/             # Modelos de base de datos
+└── local_app.db        # Base de datos SQLite (se crea automáticamente)
+
+================================================================================
+3. CONFIGURACIÓN DE CLOUDFLARE TUNNEL
+================================================================================
+
+3.1 CREAR TUNNEL EN CLOUDFLARE:
+1. Ve a https://dash.cloudflare.com/
+2. Accede a tu dominio
+3. Zero Trust → Networks → Tunnels
+4. "Create a tunnel" → "Cloudflare Tunnel"
+5. Nombre: "la-tribu-tunnel"
+6. Plataforma: Windows
+7. Ejecuta el comando que te dan para instalar:
+   cloudflared.exe tunnel install <TOKEN>
+
+3.2 CONFIGURAR SERVICIO:
+El comando anterior instala cloudflared como servicio de Windows.
+Para desinstalar: cloudflared.exe service uninstall
+
+3.3 OBTENER TOKEN PARA EJECUTAR.BAT:
+En la configuración del tunnel, copia el token y reemplaza en ejecutar.bat
+línea 94:
+cloudflared.exe tunnel run --token TU_TOKEN_AQUI
+
+3.4 CONFIGURAR DOMINIO:
+En Cloudflare, configura el tunnel para apuntar a:
+- Protocolo: http
+- URL: http://localhost:5050
+- Dominio: tu-dominio.com
+
+================================================================================
+4. CONFIGURACIÓN DE TAILSCALE FUNNEL
+================================================================================
+
+4.1 INSTALAR TAILSCALE:
+1. Descarga e instala Tailscale para Windows
+2. Inicia sesión con tu cuenta
+3. Verifica que estás conectado (icono verde en barra de tareas)
+
+4.2 CONFIGURAR FUNNEL:
+Tailscale Funnel requiere:
+- Tailscale con autenticación habilitada
+- Dominio .ts.net asignado automáticamente
+
+El comando en ejecutar.bat (línea 109):
+tailscale funnel --bg --https=8443 http://127.0.0.1:5050
+
+--bg: Ejecuta en segundo plano
+--https=8443: Puerto HTTPS (cambia si es necesario)
+
+4.3 ACCEDER A LA APP:
+Una vez activo, accede vía:
+https://tu-nombre-maquina.ts.net
+
+================================================================================
+5. SCRIPT EJECUTAR.BAT - EXPLICACIÓN
+================================================================================
+
+El script tiene 4 modos:
+
+[1] MODO CLOUDFLARE (Solo Dominio)
+- Inicia Flask en puerto 5050
+- Inicia Cloudflare Tunnel
+- Ambos se reinician si se cierran
+
+[2] MODO TAILSCALE FUNNEL (.ts.net)
+- Inicia Flask en puerto 5050
+- Inicia Tailscale Funnel
+- Ambos se reinician si se cierran
+
+[3] MODO HÍBRIDO (Ambos)
+- Inicia Flask + Cloudflare + Tailscale
+- Máxima redundancia
+
+[4] LIMPIEZA
+- Desinstala servicio de Cloudflare
+
+5.1 AUTO-ARRANQUE DE 10 SEGUNDOS:
+Si no seleccionas nada, automáticamente elige la opción 1 después de 10
+segundos. Esto es para que la app arranque sola tras un reinicio del servidor.
+
+5.2 WATCHERS (BUCLES INFINITOS):
+- TRIBU_WATCHER: Ejecuta app.py en bucle infinito
+- CLOUD_WATCHER: Ejecuta cloudflared en bucle infinito
+- TAIL_WATCHER: Ejecuta tailscale funnel en bucle infinito
+
+Si cierras cualquier ventana, se reinicia automáticamente después de 3 segundos.
+
+================================================================================
+6. CONFIGURACIÓN DE AUTO-ARRANQUE EN WINDOWS
+================================================================================
+
+Para que la app arranque automáticamente al iniciar Windows:
+
+1. Presiona Windows + R
+2. Escribe: shell:startup
+3. Se abre la carpeta de inicio
+4. Crea acceso directo a ejecutar.bat
+5. Arrastra el acceso directo a la carpeta de inicio
+
+Ahora, al reiniciar Windows, el script se ejecutará automáticamente.
+
+================================================================================
+7. CONFIGURACIÓN DE BIOS PARA AUTO-ENCENDIDO
+================================================================================
+
+Para que la PC encienda sola tras un apagón:
+
+1. Reinicia la PC
+2. Presiona F2, DEL o F10 para entrar al BIOS
+3. Busca: Power Management → "Restore on AC Power Loss"
+4. Cambia de "Power Off" a "Power On"
+5. Guarda y reinicia
+
+================================================================================
+8. CONFIGURACIÓN DE BASE DE DATOS
+================================================================================
+
+8.1 SQLITE (LOCAL - POR DEFECTO):
+- Archivo: local_app.db
+- Se crea automáticamente al ejecutar app.py
+- Ideal para desarrollo y servidores pequeños
+- No requiere configuración adicional
+
+8.2 MYSQL (PRODUCCIÓN):
+Variables de entorno necesarias:
+- DB_USER: usuario MySQL
+- DB_PASS: contraseña MySQL
+- DB_HOST: host MySQL
+- DB_NAME: nombre de base de datos
+
+En PythonAnywhere:
+- Configura en la pestaña "Web" → "Databases"
+- Las variables se detectan automáticamente en db.py
+
+En servidor local con Tailscale:
+- TAILSCALE_IP: IP del servidor MySQL en red Tailscale
+- Usuario: root
+- Contraseña: root
+- Base de datos: pwa_db
+
+================================================================================
+9. CONFIGURACIÓN DE VARIABLES DE ENTORNO
+================================================================================
+
+En Windows (set):
+set SECRET_KEY=tu_clave_secreta
+set DEBUG=False
+set SUPERUSER_EMAILS=admin@ejemplo.com
+set SUPERUSER_PASSWORD=tu_contraseña
+
+En Linux/Mac (export):
+export SECRET_KEY=tu_clave_secreta
+export DEBUG=False
+export SUPERUSER_EMAILS=admin@ejemplo.com
+export SUPERUSER_PASSWORD=tu_contraseña
+
+O crea archivo .env (requiere python-dotenv):
+SECRET_KEY=tu_clave_secreta
+DEBUG=False
+SUPERUSER_EMAILS=admin@ejemplo.com
+SUPERUSER_PASSWORD=tu_contraseña
+
+================================================================================
+10. CONFIGURACIÓN DE PWA Y SERVICE WORKER
+================================================================================
+
+10.1 ARCHIVOS PWA:
+- manifest.json: Configuración de PWA
+- sw.js: Service Worker para offline
+- sw.js debe estar en /static/
+
+10.2 ESTRATEGIAS DE CACHÉ:
+- Estáticos (/static/): Cache-first
+- Páginas dinámicas: Network-first
+- API: Network-first
+- Uploads: Network (sin caché)
+
+10.3 REGISTRAR SERVICE WORKER:
+En base.html:
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+}
+</script>
+
+================================================================================
+11. INSTALACIÓN EN NUEVO SERVIDOR - PASO A PASO
+================================================================================
+
+11.1 CLONAR O COPIAR CÓDIGO:
+git clone <repositorio>
+O copia manualmente la carpeta plantillaFlask2026
+
+11.2 INSTALAR DEPENDENCIAS:
+cd plantillaFlask2026
+pip install -r requirements.txt
+O manualmente:
+pip install flask flask-sqlalchemy flask-login pymysql
+
+11.3 CONFIGURAR VARIABLES DE ENTORNO:
+Opcional si usas valores por defecto
+
+11.4 DESCARGAR BINARIOS:
+- cloudflared.exe → carpeta raíz
+- Tailscale → instalar en sistema
+
+11.5 CONFIGURAR CLOUDFLARE:
+1. Crear tunnel en Cloudflare Dashboard
+2. Copiar token a ejecutar.bat línea 94
+3. Configurar dominio en Cloudflare
+
+11.6 CONFIGURAR TAILSCALE:
+1. Instalar Tailscale
+2. Iniciar sesión
+3. Verificar conexión
+
+11.7 PROBAR LOCALMENTE:
+python app.py
+Abre http://localhost:5050
+
+11.8 PROBAR CON EJECUTAR.BAT:
+ejecutar.bat
+Selecciona opción 1, 2 o 3
+
+11.9 CONFIGURAR AUTO-ARRANQUE:
+- Crear acceso directo en shell:startup
+- Configurar BIOS para auto-encendido
+
+================================================================================
+12. TROUBLESHOOTING
+================================================================================
+
+12.1 PUERTO 5050 OCUPADO:
+netstat -aon | findstr :5050
+taskkill /F /PID <PID>
+
+12.2 CLOUDFLARE NO CONECTA:
+- Verifica token en ejecutar.bat
+- Desinstala servicio: cloudflared.exe service uninstall
+- Reinstala con nuevo token
+
+12.3 TAILSCALE FUNNEL FALLA:
+- Verifica que Tailscale esté conectado
+- Verifica puerto 8443 no esté ocupado
+- Revisa logs de Tailscale
+
+12.4 BASE DE DATOS NO CREA TABLAS:
+- Borra local_app.db
+- Ejecuta: python app.py
+- Se recreará automáticamente
+
+12.5 SERVICE WORKER NO ACTUALIZA:
+- F12 → Application → Service Workers
+- "Update on reload"
+- "Unregister" para limpiar
+
+================================================================================
+13. SEGURIDAD
+================================================================================
+
+13.1 CAMBIAR CONTRASEÑAS POR DEFECTO:
+- SUPERUSER_PASSWORD en config.py o variable de entorno
+- Contraseña de MySQL si la usas
+
+13.2 HTTPS OBLIGATORIO EN PRODUCCIÓN:
+- SESSION_COOKIE_SECURE = True (config.py)
+- Cloudflare Tunnel provee HTTPS automático
+- Tailscale Funnel provee HTTPS automático
+
+13.3 FIREWALL:
+- No necesitas abrir puertos con Cloudflare Tunnel
+- Con Tailscale, solo dispositivos autorizados acceden
+
+================================================================================
+14. MONITOREO
+================================================================================
+
+14.1 LOGS DE FLASK:
+- Se muestran en ventana verde de ejecutar.bat
+- app.py imprime eventos importantes
+
+14.2 LOGS DE CLOUDFLARE:
+- Se muestran en ventana amarilla de ejecutar.bat
+- También en Cloudflare Dashboard
+
+14.3 LOGS DE TAILSCALE:
+- Se muestran en ventana morada de ejecutar.bat
+- También en Tailscale Admin Console
+
+================================================================================
+15. BACKUP
+================================================================================
+
+15.1 BACKUP DE BASE DE DATOS SQLITE:
+Copiar local_app.db a ubicación segura
+
+15.2 BACKUP DE BASE DE DATOS MYSQL:
+mysqldump -u usuario -p nombre_db > backup.sql
+
+15.3 BACKUP DE CÓDIGO:
+git push o copiar carpeta completa
+
+================================================================================
+16. ESCALADO
+================================================================================
+
+16.1 MÚLTIPLES SERVIDORES:
+- Configurar balanceador de carga en Cloudflare
+- Replicar código en cada servidor
+- Usar MySQL centralizado en lugar de SQLite
+
+16.2 CDN PARA ESTÁTICOS:
+- Cloudflare R2 o AWS S3
+- Configurar en manifest.json y sw.js
+
+================================================================================
+FIN DE DOCUMENTACIÓN
+================================================================================
+
+Para soporte o preguntas adicionales, revisa:
+- Documentación de Flask: https://flask.palletsprojects.com/
+- Documentación de Cloudflare Tunnel: https://developers.cloudflare.com/cloudflare-one/connections/connect-apps/
+- Documentación de Tailscale: https://tailscale.com/kb/
+
+Última actualización: Junio 2026
