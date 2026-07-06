@@ -41,7 +41,7 @@ def rifa_detalle(raffle_id):
                 # Eliminar todo lo que esté entre paréntesis
                 display_name = re.sub(r'\([^)]*\)', '', display_name).strip()
             grouped_selections[key] = {'name': display_name, 'phone': s.customer_phone,
-                                        'numbers': [], 'total': 0, 'is_paid': s.is_paid}
+                                        'numbers': [], 'total': 0, 'is_paid': s.is_paid, 'is_canceled': False}
         grouped_selections[key]['numbers'].append(s.number)
         grouped_selections[key]['total'] += rifa.price
     available_numbers = [f"{i:02d}" for i in range(100) if f"{i:02d}" not in selected_numbers]
