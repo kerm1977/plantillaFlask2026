@@ -267,84 +267,100 @@
         }
 
         function updatePreview() {
-            const previewContainer = document.getElementById('formPreview');
-            const sectionItems = document.querySelectorAll('.section-item');
+            try {
+                const previewContainer = document.getElementById('formPreview');
+                const sectionItems = document.querySelectorAll('.section-item');
 
-            if (sectionItems.length === 0) {
-                previewContainer.innerHTML = '<div class="text-center text-muted small">Agrega secciones para ver la vista previa</div>';
-                return;
-            }
-
-            let previewHtml = '';
-
-            sectionItems.forEach(section => {
-                const sectionId = section.id.replace('section_', '');
-                const title = document.getElementById(`sectionTitle_${sectionId}`).value || 'Sin título';
-
-                previewHtml += `<div class="mb-3 p-2 border rounded-2 bg-light"><h6 class="fw-bold text-orange mb-2">${title}</h6>`;
-
-                // Campos predeterminados
-                if (document.getElementById(`section_${sectionId}_field_cedula`).checked) {
-                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Cédula</label><input type="text" class="form-control form-control-sm" placeholder="Número de cédula" disabled></div>`;
-                }
-                if (document.getElementById(`section_${sectionId}_field_nombre`).checked) {
-                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" class="form-control form-control-sm" placeholder="Nombre completo" disabled></div>`;
-                }
-                if (document.getElementById(`section_${sectionId}_field_telefono`).checked) {
-                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Teléfono</label><input type="text" class="form-control form-control-sm" placeholder="Número de teléfono" disabled></div>`;
-                }
-                if (document.getElementById(`section_${sectionId}_field_fecha_nacimiento`).checked) {
-                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Fecha de Nacimiento</label><input type="date" class="form-control form-control-sm" disabled></div>`;
+                if (sectionItems.length === 0) {
+                    previewContainer.innerHTML = '<div class="text-center text-muted small">Agrega secciones para ver la vista previa</div>';
+                    return;
                 }
 
-                // Ficha médica
-                if (document.getElementById(`section_${sectionId}_field_ficha_medica`).checked) {
-                    previewHtml += `<div class="mt-2 pt-2 border-top"><small class="fw-bold text-secondary">Ficha Médica</small>`;
-                    if (document.getElementById(`section_${sectionId}_field_tipo_sangre`).checked) {
-                        previewHtml += `<div class="mb-1"><label class="small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                let previewHtml = '';
+
+                sectionItems.forEach(section => {
+                    const sectionId = section.id.replace('section_', '');
+                    const titleInput = document.getElementById(`sectionTitle_${sectionId}`);
+                    const title = titleInput ? titleInput.value : 'Sin título';
+
+                    previewHtml += `<div class="mb-3 p-2 border rounded-2 bg-light"><h6 class="fw-bold text-orange mb-2">${title}</h6>`;
+
+                    // Campos predeterminados
+                    const cedulaCheck = document.getElementById(`section_${sectionId}_field_cedula`);
+                    if (cedulaCheck && cedulaCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Cédula</label><input type="text" class="form-control form-control-sm" placeholder="Número de cédula" disabled></div>`;
                     }
-                    if (document.getElementById(`section_${sectionId}_field_alergias`).checked) {
-                        previewHtml += `<div class="mb-1"><label class="small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    const nombreCheck = document.getElementById(`section_${sectionId}_field_nombre`);
+                    if (nombreCheck && nombreCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" class="form-control form-control-sm" placeholder="Nombre completo" disabled></div>`;
                     }
-                    if (document.getElementById(`section_${sectionId}_field_enfermedades`).checked) {
-                        previewHtml += `<div class="mb-1"><label class="small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    const telefonoCheck = document.getElementById(`section_${sectionId}_field_telefono`);
+                    if (telefonoCheck && telefonoCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Teléfono</label><input type="text" class="form-control form-control-sm" placeholder="Número de teléfono" disabled></div>`;
                     }
-                    if (document.getElementById(`section_${sectionId}_field_contacto_emergencia`).checked) {
-                        previewHtml += `<div class="mb-1"><label class="small">Contacto de Emergencia</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    const fechaCheck = document.getElementById(`section_${sectionId}_field_fecha_nacimiento`);
+                    if (fechaCheck && fechaCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Fecha de Nacimiento</label><input type="date" class="form-control form-control-sm" disabled></div>`;
                     }
-                    previewHtml += `</div>`;
-                }
 
-                // Campos personalizados
-                const customFields = section.querySelectorAll('.custom-field-item');
-                customFields.forEach(field => {
-                    const fieldId = field.id.replace('field_', '');
-                    const type = field.querySelector('select').value;
-                    const name = document.getElementById(`fieldName_${fieldId}`).value;
-                    if (name) {
-                        previewHtml += `<div class="mb-2"><label class="small fw-bold">${name}</label>`;
-                        if (type === 'text') {
-                            previewHtml += `<input type="text" class="form-control form-control-sm" disabled>`;
-                        } else if (type === 'textarea') {
-                            previewHtml += `<textarea class="form-control form-control-sm" rows="2" disabled></textarea>`;
-                        } else if (type === 'select') {
-                            previewHtml += `<select class="form-select form-select-sm" disabled><option>Seleccionar...</option>`;
-                            const options = field.querySelectorAll('#fieldOptions_' + fieldId + ' input');
-                            options.forEach(opt => {
-                                if (opt.value) previewHtml += `<option>${opt.value}</option>`;
-                            });
-                            previewHtml += `</select>`;
-                        } else if (type === 'checkbox') {
-                            previewHtml += `<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label small">${name}</label></div>`;
+                    // Ficha médica
+                    const fichaCheck = document.getElementById(`section_${sectionId}_field_ficha_medica`);
+                    if (fichaCheck && fichaCheck.checked) {
+                        previewHtml += `<div class="mt-2 pt-2 border-top"><small class="fw-bold text-secondary">Ficha Médica</small>`;
+                        const tipoSangreCheck = document.getElementById(`section_${sectionId}_field_tipo_sangre`);
+                        if (tipoSangreCheck && tipoSangreCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const alergiasCheck = document.getElementById(`section_${sectionId}_field_alergias`);
+                        if (alergiasCheck && alergiasCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const enfermedadesCheck = document.getElementById(`section_${sectionId}_field_enfermedades`);
+                        if (enfermedadesCheck && enfermedadesCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const contactoCheck = document.getElementById(`section_${sectionId}_field_contacto_emergencia`);
+                        if (contactoCheck && contactoCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Contacto de Emergencia</label><input type="text" class="form-control form-control-sm" disabled></div>`;
                         }
                         previewHtml += `</div>`;
                     }
+
+                    // Campos personalizados
+                    const customFields = section.querySelectorAll('.custom-field-item');
+                    customFields.forEach(field => {
+                        const fieldId = field.id.replace('field_', '');
+                        const typeSelect = field.querySelector('select');
+                        const type = typeSelect ? typeSelect.value : 'text';
+                        const nameInput = document.getElementById(`fieldName_${fieldId}`);
+                        const name = nameInput ? nameInput.value : '';
+                        if (name) {
+                            previewHtml += `<div class="mb-2"><label class="small fw-bold">${name}</label>`;
+                            if (type === 'text') {
+                                previewHtml += `<input type="text" class="form-control form-control-sm" disabled>`;
+                            } else if (type === 'textarea') {
+                                previewHtml += `<textarea class="form-control form-control-sm" rows="2" disabled></textarea>`;
+                            } else if (type === 'select') {
+                                previewHtml += `<select class="form-select form-select-sm" disabled><option>Seleccionar...</option>`;
+                                const options = field.querySelectorAll('#fieldOptions_' + fieldId + ' input');
+                                options.forEach(opt => {
+                                    if (opt.value) previewHtml += `<option>${opt.value}</option>`;
+                                });
+                                previewHtml += `</select>`;
+                            } else if (type === 'checkbox') {
+                                previewHtml += `<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label small">${name}</label></div>`;
+                            }
+                            previewHtml += `</div>`;
+                        }
+                    });
+
+                    previewHtml += `</div>`;
                 });
 
-                previewHtml += `</div>`;
-            });
-
-            previewContainer.innerHTML = previewHtml;
+                previewContainer.innerHTML = previewHtml;
+            } catch (error) {
+                console.error('Error en updatePreview:', error);
+            }
         }
 
         function generateFormLink() {
