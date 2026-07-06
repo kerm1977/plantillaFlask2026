@@ -20,17 +20,27 @@
                     </div>
 
                     <!-- Paso 2: Secciones del formulario -->
-                    <div class="mb-4">
-                        <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-layers me-2"></i>Paso 2: Secciones del Formulario</h6>
-                        <div id="sectionsContainer" class="bg-white p-3 rounded-3 shadow-sm">
-                            <div class="text-center text-muted small mb-3" id="noSectionsMsg">
-                                No hay secciones. Agrega una sección abajo.
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-layers me-2"></i>Paso 2: Secciones del Formulario</h6>
+                            <div id="sectionsContainer" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small mb-3" id="noSectionsMsg">
+                                    No hay secciones. Agrega una sección abajo.
+                                </div>
+                                <div id="sectionsList"></div>
                             </div>
-                            <div id="sectionsList"></div>
+                            <button class="btn btn-outline-primary w-100 mt-2 rounded-pill" onclick="addSection()">
+                                <i class="bi bi-plus-lg me-2"></i>Agregar Sección
+                            </button>
                         </div>
-                        <button class="btn btn-outline-primary w-100 mt-2 rounded-pill" onclick="addSection()">
-                            <i class="bi bi-plus-lg me-2"></i>Agregar Sección
-                        </button>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-eye me-2"></i>Vista Previa</h6>
+                            <div id="formPreview" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small">
+                                    Agrega secciones para ver la vista previa
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Botón generar -->
@@ -110,7 +120,7 @@
                 <div class="section-item mb-4 p-3 bg-light rounded-3" id="section_${sectionCounter}">
                     <div class="row g-2 mb-3">
                         <div class="col-md-10">
-                            <input type="text" class="form-control form-control-sm fw-bold" placeholder="Título de la sección" id="sectionTitle_${sectionCounter}">
+                            <input type="text" class="form-control form-control-sm fw-bold" placeholder="Título de la sección" id="sectionTitle_${sectionCounter}" oninput="updatePreview()">
                         </div>
                         <div class="col-md-2">
                             <button class="btn btn-danger btn-sm w-100" onclick="removeSection(${sectionCounter})">
@@ -123,25 +133,25 @@
                         <div class="row g-2 mt-1">
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_cedula">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_cedula" onchange="updatePreview()">
                                     <label class="form-check-label small" for="section_${sectionCounter}_field_cedula">Cédula</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_nombre">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_nombre" onchange="updatePreview()">
                                     <label class="form-check-label small" for="section_${sectionCounter}_field_nombre">Nombre</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_telefono">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_telefono" onchange="updatePreview()">
                                     <label class="form-check-label small" for="section_${sectionCounter}_field_telefono">Teléfono</label>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_fecha_nacimiento">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_fecha_nacimiento" onchange="updatePreview()">
                                     <label class="form-check-label small" for="section_${sectionCounter}_field_fecha_nacimiento">Fecha Nacimiento</label>
                                 </div>
                             </div>
@@ -150,14 +160,14 @@
                     <div class="mb-2">
                         <label class="small fw-bold text-secondary">Ficha médica:</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_ficha_medica" onchange="toggleFichaMedica(${sectionCounter})">
+                            <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_ficha_medica" onchange="toggleFichaMedica(${sectionCounter}); updatePreview();">
                             <label class="form-check-label small" for="section_${sectionCounter}_field_ficha_medica">Incluir ficha médica completa</label>
                         </div>
                         <div id="section_${sectionCounter}_ficha_medica_subfields" class="ms-4 d-none mt-1">
-                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_tipo_sangre"><label class="form-check-label small" for="section_${sectionCounter}_field_tipo_sangre">Tipo Sangre</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_alergias"><label class="form-check-label small" for="section_${sectionCounter}_field_alergias">Alergias</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_enfermedades"><label class="form-check-label small" for="section_${sectionCounter}_field_enfermedades">Enfermedades</label></div>
-                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_contacto_emergencia"><label class="form-check-label small" for="section_${sectionCounter}_field_contacto_emergencia">Contacto Emergencia</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_tipo_sangre" onchange="updatePreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_tipo_sangre">Tipo Sangre</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_alergias" onchange="updatePreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_alergias">Alergias</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_enfermedades" onchange="updatePreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_enfermedades">Enfermedades</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_contacto_emergencia" onchange="updatePreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_contacto_emergencia">Contacto Emergencia</label></div>
                         </div>
                     </div>
                     <div class="mb-2">
@@ -170,6 +180,7 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', sectionHtml);
+            updatePreview();
         }
 
         function removeSection(id) {
@@ -180,6 +191,7 @@
                 const noSectionsMsg = document.getElementById('noSectionsMsg');
                 if (noSectionsMsg) noSectionsMsg.classList.remove('d-none');
             }
+            updatePreview();
         }
 
         function toggleFichaMedica(sectionId) {
@@ -200,7 +212,7 @@
                 <div class="custom-field-item mb-2 p-2 bg-white rounded-2" id="field_${fieldCounter}">
                     <div class="row g-2">
                         <div class="col-md-3">
-                            <select class="form-select form-select-sm" onchange="toggleFieldType(${fieldCounter}, this.value)">
+                            <select class="form-select form-select-sm" onchange="toggleFieldType(${fieldCounter}, this.value); updatePreview();">
                                 <option value="text">Texto corto</option>
                                 <option value="textarea">Texto largo</option>
                                 <option value="select">Lista</option>
@@ -208,7 +220,7 @@
                             </select>
                         </div>
                         <div class="col-md-5">
-                            <input type="text" class="form-control form-control-sm" placeholder="Nombre del campo" id="fieldName_${fieldCounter}">
+                            <input type="text" class="form-control form-control-sm" placeholder="Nombre del campo" id="fieldName_${fieldCounter}" oninput="updatePreview()">
                         </div>
                         <div class="col-md-2">
                             <button class="btn btn-danger btn-sm w-100" onclick="removeField(${fieldCounter})">
@@ -217,8 +229,8 @@
                         </div>
                     </div>
                     <div id="fieldOptions_${fieldCounter}" class="d-none mt-1">
-                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 1" id="fieldOption_${fieldCounter}_1">
-                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 2" id="fieldOption_${fieldCounter}_2">
+                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 1" id="fieldOption_${fieldCounter}_1" oninput="updatePreview()">
+                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 2" id="fieldOption_${fieldCounter}_2" oninput="updatePreview()">
                         <button class="btn btn-outline-primary btn-sm" onclick="addFieldOption(${fieldCounter})">
                             <i class="bi bi-plus"></i> Agregar opción
                         </button>
@@ -226,6 +238,7 @@
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', fieldHtml);
+            updatePreview();
         }
 
         function toggleFieldType(fieldId, type) {
@@ -241,14 +254,97 @@
             const container = document.getElementById(`fieldOptions_${fieldId}`);
             const optionCount = container.querySelectorAll('input').length + 1;
             const optionHtml = `
-                <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción ${optionCount}" id="fieldOption_${fieldId}_${optionCount}">
+                <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción ${optionCount}" id="fieldOption_${fieldId}_${optionCount}" oninput="updatePreview()">
             `;
             container.insertAdjacentHTML('beforeend', optionHtml);
+            updatePreview();
         }
 
         function removeField(id) {
             const field = document.getElementById(`field_${id}`);
             field.remove();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const previewContainer = document.getElementById('formPreview');
+            const sectionItems = document.querySelectorAll('.section-item');
+
+            if (sectionItems.length === 0) {
+                previewContainer.innerHTML = '<div class="text-center text-muted small">Agrega secciones para ver la vista previa</div>';
+                return;
+            }
+
+            let previewHtml = '';
+
+            sectionItems.forEach(section => {
+                const sectionId = section.id.replace('section_', '');
+                const title = document.getElementById(`sectionTitle_${sectionId}`).value || 'Sin título';
+
+                previewHtml += `<div class="mb-3 p-2 border rounded-2 bg-light"><h6 class="fw-bold text-orange mb-2">${title}</h6>`;
+
+                // Campos predeterminados
+                if (document.getElementById(`section_${sectionId}_field_cedula`).checked) {
+                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Cédula</label><input type="text" class="form-control form-control-sm" placeholder="Número de cédula" disabled></div>`;
+                }
+                if (document.getElementById(`section_${sectionId}_field_nombre`).checked) {
+                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" class="form-control form-control-sm" placeholder="Nombre completo" disabled></div>`;
+                }
+                if (document.getElementById(`section_${sectionId}_field_telefono`).checked) {
+                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Teléfono</label><input type="text" class="form-control form-control-sm" placeholder="Número de teléfono" disabled></div>`;
+                }
+                if (document.getElementById(`section_${sectionId}_field_fecha_nacimiento`).checked) {
+                    previewHtml += `<div class="mb-2"><label class="small fw-bold">Fecha de Nacimiento</label><input type="date" class="form-control form-control-sm" disabled></div>`;
+                }
+
+                // Ficha médica
+                if (document.getElementById(`section_${sectionId}_field_ficha_medica`).checked) {
+                    previewHtml += `<div class="mt-2 pt-2 border-top"><small class="fw-bold text-secondary">Ficha Médica</small>`;
+                    if (document.getElementById(`section_${sectionId}_field_tipo_sangre`).checked) {
+                        previewHtml += `<div class="mb-1"><label class="small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    }
+                    if (document.getElementById(`section_${sectionId}_field_alergias`).checked) {
+                        previewHtml += `<div class="mb-1"><label class="small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    }
+                    if (document.getElementById(`section_${sectionId}_field_enfermedades`).checked) {
+                        previewHtml += `<div class="mb-1"><label class="small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    }
+                    if (document.getElementById(`section_${sectionId}_field_contacto_emergencia`).checked) {
+                        previewHtml += `<div class="mb-1"><label class="small">Contacto de Emergencia</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                    }
+                    previewHtml += `</div>`;
+                }
+
+                // Campos personalizados
+                const customFields = section.querySelectorAll('.custom-field-item');
+                customFields.forEach(field => {
+                    const fieldId = field.id.replace('field_', '');
+                    const type = field.querySelector('select').value;
+                    const name = document.getElementById(`fieldName_${fieldId}`).value;
+                    if (name) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">${name}</label>`;
+                        if (type === 'text') {
+                            previewHtml += `<input type="text" class="form-control form-control-sm" disabled>`;
+                        } else if (type === 'textarea') {
+                            previewHtml += `<textarea class="form-control form-control-sm" rows="2" disabled></textarea>`;
+                        } else if (type === 'select') {
+                            previewHtml += `<select class="form-select form-select-sm" disabled><option>Seleccionar...</option>`;
+                            const options = field.querySelectorAll('#fieldOptions_' + fieldId + ' input');
+                            options.forEach(opt => {
+                                if (opt.value) previewHtml += `<option>${opt.value}</option>`;
+                            });
+                            previewHtml += `</select>`;
+                        } else if (type === 'checkbox') {
+                            previewHtml += `<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label small">${name}</label></div>`;
+                        }
+                        previewHtml += `</div>`;
+                    }
+                });
+
+                previewHtml += `</div>`;
+            });
+
+            previewContainer.innerHTML = previewHtml;
         }
 
         function generateFormLink() {
