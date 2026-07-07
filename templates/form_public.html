@@ -51,6 +51,31 @@
                     <input type="date" class="form-control" id="pf_fecha">
                 </div>
                 {% endif %}
+                {% if form.show_ficha_medica %}
+                <hr>
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</h6>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tipo de Sangre</label>
+                    <input type="text" class="form-control" id="pf_tipo_sangre" placeholder="Ej: O+">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alergias</label>
+                    <input type="text" class="form-control" id="pf_alergias" placeholder="Ej: Ninguna">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Enfermedades Crónicas</label>
+                    <input type="text" class="form-control" id="pf_enfermedades" placeholder="Ej: Ninguna">
+                </div>
+                <label class="form-label fw-semibold small text-muted d-block mb-1">Contacto de Emergencia</label>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Contacto</label>
+                    <input type="text" class="form-control" id="pf_contacto_nombre">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teléfono del Contacto</label>
+                    <input type="tel" class="form-control" id="pf_contacto_telefono">
+                </div>
+                {% endif %}
 
                 <hr>
                 <div id="dynamicFields"></div>

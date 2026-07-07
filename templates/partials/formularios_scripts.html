@@ -48,6 +48,15 @@ function viewResponseDetail(index) {
         ${r.cedula ? `<div class="text-muted small"><i class="bi bi-person-vcard me-1"></i>${r.cedula}</div>` : ''}
         <div class="text-muted small mt-1">${r.submitted_at}${r.email?' • '+r.email:''}${r.telefono?' • '+r.telefono:''}</div>
         ${r.score !== null && r.score !== undefined ? `<span class="badge rounded-pill mt-1 ${r.score>=70?'bg-success':'bg-danger'}">${r.score}%</span>` : ''}</div>`;
+    if (data.show_ficha_medica) {
+        html += `<div class="mb-2 p-2 rounded-3" style="background:rgba(220,53,69,0.05);border:1px solid rgba(220,53,69,0.15);">
+            <small class="text-danger fw-bold d-block mb-1"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</small>
+            <div class="small"><strong>Tipo de Sangre:</strong> ${r.tipo_sangre || '-'}</div>
+            <div class="small"><strong>Alergias:</strong> ${r.alergias || '-'}</div>
+            <div class="small"><strong>Enfermedades Crónicas:</strong> ${r.enfermedades_cronicas || '-'}</div>
+            <div class="small"><strong>Contacto Emergencia:</strong> ${r.contacto_emergencia_nombre || '-'} ${r.contacto_emergencia_telefono ? '('+r.contacto_emergencia_telefono+')' : ''}</div>
+        </div>`;
+    }
     data.fields.forEach(f => {
         let val = r.answers[String(f.id)];
         if (Array.isArray(val)) val = val.join(', ');
@@ -75,6 +84,18 @@ function editResponseAdmin(index) {
             <input type="email" class="form-control form-control-sm" id="erEmail" value="${r.email || ''}"></div>
         <div class="col-6"><label class="fw-semibold small text-muted">Telefono</label>
             <input type="tel" class="form-control form-control-sm" id="erTelefono" value="${r.telefono || ''}"></div>
+        ${data.show_ficha_medica ? `
+        <div class="col-12"><hr class="my-1"><small class="fw-bold text-danger"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</small></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Tipo de Sangre</label>
+            <input type="text" class="form-control form-control-sm" id="erTipoSangre" value="${r.tipo_sangre || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Alergias</label>
+            <input type="text" class="form-control form-control-sm" id="erAlergias" value="${r.alergias || ''}"></div>
+        <div class="col-12"><label class="fw-semibold small text-muted">Enfermedades Crónicas</label>
+            <input type="text" class="form-control form-control-sm" id="erEnfermedades" value="${r.enfermedades_cronicas || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Nombre Contacto Emergencia</label>
+            <input type="text" class="form-control form-control-sm" id="erContactoNombre" value="${r.contacto_emergencia_nombre || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Teléfono Contacto Emergencia</label>
+            <input type="tel" class="form-control form-control-sm" id="erContactoTelefono" value="${r.contacto_emergencia_telefono || ''}"></div>` : ''}
     </div><hr class="my-2">`;
     data.fields.forEach(f => {
         const rawVal = r.answers[String(f.id)];
@@ -112,7 +133,18 @@ async function saveEditedResponse() {
     });
     const res = await fetch(`/api/forms/admin/responses/${ctx.id}`, {
         method:'PUT', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({nombre_completo: document.getElementById('erNombre').value, cedula: document.getElementById('erCedula')?.value || '', email: document.getElementById('erEmail').value, telefono: document.getElementById('erTelefono').value, answers})
+        body: JSON.stringify({
+            nombre_completo: document.getElementById('erNombre').value,
+            cedula: document.getElementById('erCedula')?.value || '',
+            email: document.getElementById('erEmail').value,
+            telefono: document.getElementById('erTelefono').value,
+            tipo_sangre: document.getElementById('erTipoSangre')?.value || '',
+            alergias: document.getElementById('erAlergias')?.value || '',
+            enfermedades_cronicas: document.getElementById('erEnfermedades')?.value || '',
+            contacto_emergencia_nombre: document.getElementById('erContactoNombre')?.value || '',
+            contacto_emergencia_telefono: document.getElementById('erContactoTelefono')?.value || '',
+            answers
+        })
     });
     const d = await res.json();
     if (d.ok) { bootstrap.Modal.getInstance(document.getElementById('editResponseModal')).hide(); viewResponses(ctx.formId); }
@@ -134,6 +166,7 @@ function copyResponsesTSV() {
     if (data.show_cedula) headers.push('Cédula');
     headers.push('Email', 'Teléfono', 'Edad', 'Fecha');
     if (data.responses.some(r => r.score !== null && r.score !== undefined)) headers.push('Nota (%)');
+    if (data.show_ficha_medica) headers.push('Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas', 'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono');
     data.fields.forEach(f => headers.push(f.label));
     // Construir filas
     const rows = data.responses.map(r => {
@@ -142,6 +175,9 @@ function copyResponsesTSV() {
         row.push(r.email || '', r.telefono || '', r.edad || '', r.submitted_at || '');
         if (data.responses.some(x => x.score !== null && x.score !== undefined)) {
             row.push(r.score !== null && r.score !== undefined ? r.score + '%' : '');
+        }
+        if (data.show_ficha_medica) {
+            row.push(r.tipo_sangre || '', r.alergias || '', r.enfermedades_cronicas || '', r.contacto_emergencia_nombre || '', r.contacto_emergencia_telefono || '');
         }
         data.fields.forEach(f => {
             let val = r.answers[String(f.id)];

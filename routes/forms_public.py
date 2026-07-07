@@ -50,6 +50,11 @@ def api_submit_form(form_id):
         email=data.get('email', ''),
         telefono=data.get('telefono', ''),
         edad=int(data.get('edad')) if data.get('edad') else None,
+        tipo_sangre=data.get('tipo_sangre', '') or None,
+        alergias=data.get('alergias', '') or None,
+        enfermedades_cronicas=data.get('enfermedades_cronicas', '') or None,
+        contacto_emergencia_nombre=data.get('contacto_emergencia_nombre', '') or None,
+        contacto_emergencia_telefono=data.get('contacto_emergencia_telefono', '') or None,
     )
     # Guardar/actualizar en agenda Hiker si hay cédula y nombre
     if cedula_valor and nombre_valor:

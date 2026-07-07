@@ -75,6 +75,7 @@ function showCreateForm() {
     document.getElementById('trigEmail').checked = false;
     document.getElementById('trigEdad').checked = false;
     document.getElementById('trigTelefono').checked = false;
+    document.getElementById('trigFichaMedica').checked = false;
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
@@ -92,6 +93,7 @@ async function editForm(id) {
     document.getElementById('trigEmail').checked = form.show_email;
     document.getElementById('trigEdad').checked = form.show_edad;
     document.getElementById('trigTelefono').checked = form.show_telefono;
+    document.getElementById('trigFichaMedica').checked = form.show_ficha_medica;
     fields = form.fields.map(f => ({...f}));
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
@@ -109,6 +111,7 @@ async function saveForm() {
         show_email: document.getElementById('trigEmail').checked,
         show_edad: document.getElementById('trigEdad').checked,
         show_telefono: document.getElementById('trigTelefono').checked,
+        show_ficha_medica: document.getElementById('trigFichaMedica').checked,
     };
     let formId = currentFormId;
     if (!formId) {

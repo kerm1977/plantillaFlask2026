@@ -52,6 +52,7 @@ def api_list_forms():
         'show_nombre': f.show_nombre, 'show_cedula': f.show_cedula,
         'show_fecha': f.show_fecha, 'show_email': f.show_email,
         'show_edad': f.show_edad, 'show_telefono': f.show_telefono,
+        'show_ficha_medica': f.show_ficha_medica,
         'created_at': f.created_at.strftime('%d/%m/%Y %H:%M') if f.created_at else '',
         'fields_count': len(f.fields), 'responses_count': len(f.responses)
     } for f in forms])
@@ -73,6 +74,7 @@ def api_create_form():
         show_email=data.get('show_email', False),
         show_edad=data.get('show_edad', False),
         show_telefono=data.get('show_telefono', False),
+        show_ficha_medica=data.get('show_ficha_medica', False),
     )
     db.session.add(form)
     db.session.commit()
@@ -92,7 +94,7 @@ def api_get_form(form_id):
         'allow_edit': form.allow_edit, 'show_nombre': form.show_nombre,
         'show_cedula': form.show_cedula, 'show_fecha': form.show_fecha,
         'show_email': form.show_email, 'show_edad': form.show_edad,
-        'show_telefono': form.show_telefono,
+        'show_telefono': form.show_telefono, 'show_ficha_medica': form.show_ficha_medica,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses)
     })
@@ -117,6 +119,7 @@ def api_update_form(form_id):
     form.show_email   = data.get('show_email', form.show_email)
     form.show_edad    = data.get('show_edad', form.show_edad)
     form.show_telefono= data.get('show_telefono', form.show_telefono)
+    form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
     db.session.commit()
     return jsonify({'ok': True})
 

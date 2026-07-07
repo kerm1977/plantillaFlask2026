@@ -21,6 +21,10 @@ def api_get_responses(form_id):
     for r in responses:
         row = {'id': r.id, 'nombre_completo': r.nombre_completo, 'cedula': r.cedula or '',
                'email': r.email, 'telefono': r.telefono, 'edad': r.edad,
+               'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
+               'enfermedades_cronicas': r.enfermedades_cronicas or '',
+               'contacto_emergencia_nombre': r.contacto_emergencia_nombre or '',
+               'contacto_emergencia_telefono': r.contacto_emergencia_telefono or '',
                'submitted_at': r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '',
                'score': r.score, 'total_questions': r.total_questions,
                'answers': _build_answers_map(r, fields)}
@@ -28,7 +32,7 @@ def api_get_responses(form_id):
     fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type,
                     'options': json.loads(f.options) if f.options else []} for f in fields]
     return jsonify({'fields': fields_info, 'responses': output,
-                    'show_cedula': form.show_cedula})
+                    'show_cedula': form.show_cedula, 'show_ficha_medica': form.show_ficha_medica})
 
 
 # ── EXPORTAR RESPUESTAS ──────────────────────────────────────────────────────
@@ -51,6 +55,11 @@ def api_export_responses(form_id, fmt):
             row.update({'email': r.email, 'telefono': r.telefono,
                         'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
                         'score': r.score})
+            if form.show_ficha_medica:
+                row.update({'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
+                            'enfermedades_cronicas': r.enfermedades_cronicas or '',
+                            'contacto_emergencia_nombre': r.contacto_emergencia_nombre or '',
+                            'contacto_emergencia_telefono': r.contacto_emergencia_telefono or ''})
             for f in fields:
                 val = _build_answers_map(r, [f]).get(str(f.id), '')
                 row[f.label] = val
@@ -71,6 +80,9 @@ def api_export_responses(form_id, fmt):
             headers += ['Email', 'Teléfono', 'Edad', 'Fecha']
             if form.form_type == 'examen':
                 headers.append('Calificación')
+            if form.show_ficha_medica:
+                headers += ['Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas',
+                            'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono']
             headers += [f.label for f in fields]
             ws.append(headers)
             for r in responses:
@@ -81,6 +93,9 @@ def api_export_responses(form_id, fmt):
                         r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
+                if form.show_ficha_medica:
+                    row += [r.tipo_sangre or '', r.alergias or '', r.enfermedades_cronicas or '',
+                           r.contacto_emergencia_nombre or '', r.contacto_emergencia_telefono or '']
                 for f in fields:
                     val = _build_answers_map(r, [f]).get(str(f.id), '')
                     if isinstance(val, list):
@@ -142,6 +157,11 @@ def api_update_response(form_id, response_id):
     resp.email           = data.get('email', resp.email)
     resp.telefono        = data.get('telefono', resp.telefono)
     resp.edad            = int(data.get('edad')) if data.get('edad') else resp.edad
+    resp.tipo_sangre                  = data.get('tipo_sangre', resp.tipo_sangre)
+    resp.alergias                     = data.get('alergias', resp.alergias)
+    resp.enfermedades_cronicas        = data.get('enfermedades_cronicas', resp.enfermedades_cronicas)
+    resp.contacto_emergencia_nombre   = data.get('contacto_emergencia_nombre', resp.contacto_emergencia_nombre)
+    resp.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono', resp.contacto_emergencia_telefono)
     _update_response_answers(resp, answers_data, form_id)
     db.session.commit()
     return jsonify({'ok': True})
@@ -162,6 +182,10 @@ def api_get_my_response(form_id):
                     'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
                     'email': resp.email or '', 'telefono': resp.telefono or '',
                     'edad': resp.edad,
+                    'tipo_sangre': resp.tipo_sangre or '', 'alergias': resp.alergias or '',
+                    'enfermedades_cronicas': resp.enfermedades_cronicas or '',
+                    'contacto_emergencia_nombre': resp.contacto_emergencia_nombre or '',
+                    'contacto_emergencia_telefono': resp.contacto_emergencia_telefono or '',
                     'submitted_at': resp.submitted_at.strftime('%d/%m/%Y %H:%M') if resp.submitted_at else '',
                     'answers': _build_answers_map(resp, fields)})
 
@@ -181,6 +205,11 @@ def api_admin_update_response(response_id):
     resp.telefono        = data.get('telefono', resp.telefono)
     if data.get('edad'):
         resp.edad = int(data['edad'])
+    resp.tipo_sangre                  = data.get('tipo_sangre', resp.tipo_sangre)
+    resp.alergias                     = data.get('alergias', resp.alergias)
+    resp.enfermedades_cronicas        = data.get('enfermedades_cronicas', resp.enfermedades_cronicas)
+    resp.contacto_emergencia_nombre   = data.get('contacto_emergencia_nombre', resp.contacto_emergencia_nombre)
+    resp.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono', resp.contacto_emergencia_telefono)
     _update_response_answers(resp, answers_data, resp.form_id)
     db.session.commit()
     return jsonify({'ok': True})
@@ -197,4 +226,9 @@ def api_get_response_by_token(token):
     return jsonify({'found': True, 'response_id': resp.id,
                     'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
                     'email': resp.email or '', 'telefono': resp.telefono or '',
-                    'edad': resp.edad, 'answers': _build_answers_map(resp, fields)})
+                    'edad': resp.edad,
+                    'tipo_sangre': resp.tipo_sangre or '', 'alergias': resp.alergias or '',
+                    'enfermedades_cronicas': resp.enfermedades_cronicas or '',
+                    'contacto_emergencia_nombre': resp.contacto_emergencia_nombre or '',
+                    'contacto_emergencia_telefono': resp.contacto_emergencia_telefono or '',
+                    'answers': _build_answers_map(resp, fields)})

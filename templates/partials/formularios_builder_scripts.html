@@ -84,6 +84,16 @@ function updatePreview() {
     if (document.getElementById('trigEdad').checked)     html += `<div class="mb-3"><label class="form-label fw-semibold small">Edad</label><input type="number" class="form-control form-control-sm" disabled placeholder="25"></div>`;
     if (document.getElementById('trigTelefono').checked) html += `<div class="mb-3"><label class="form-label fw-semibold small">Teléfono</label><input type="tel" class="form-control form-control-sm" disabled placeholder="88881234"></div>`;
     if (document.getElementById('trigFecha').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha</label><input type="date" class="form-control form-control-sm" disabled></div>`;
+    if (document.getElementById('trigFichaMedica').checked) {
+        html += `<div class="mt-2 mb-3 pt-2 border-top"><small class="fw-bold text-secondary d-block mb-2">Ficha Médica</small>`;
+        html += `<div class="mb-2"><label class="form-label small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<small class="fw-semibold text-muted d-block mb-1">Contacto de Emergencia</small>`;
+        html += `<div class="mb-2"><label class="form-label small">Nombre del Contacto</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Teléfono del Contacto</label><input type="tel" class="form-control form-control-sm" disabled></div>`;
+        html += `</div>`;
+    }
     if (fields.length > 0) html += '<hr class="my-3">';
     fields.forEach((f, i) => {
         const label = f.label || `Pregunta ${i+1}`;
