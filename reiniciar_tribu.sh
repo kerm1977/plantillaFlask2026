@@ -4,8 +4,14 @@
 
 cd ~/plantillaFlask2026 || { echo "[!] No se encontro ~/plantillaFlask2026"; exit 1; }
 
+# Ignorar cambios de permisos para evitar conflictos con git
+command -v git >/dev/null 2>&1 && git config core.fileMode false
+
 # Evitar que Android duerma Termux mientras corre
 command -v termux-wake-lock >/dev/null && termux-wake-lock
+
+# Asegurar que este script siga ejecutable
+test -f "$0" && chmod +x "$0"
 
 # Instalar herramientas basicas si faltan
 for pkg in python git procps tmux wget; do
