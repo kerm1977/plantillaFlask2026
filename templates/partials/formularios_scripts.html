@@ -6,9 +6,9 @@ let currentResponsesFormId = null;
 
 async function viewResponses(formId) {
     currentResponsesFormId = formId;
-    // Cargar números de reserva desde la API
+    // Cargar números de reserva de ESTE formulario
     try {
-        const res = await fetch('/api/reservation-config');
+        const res = await fetch(`/api/forms/${formId}/reservation-numbers`);
         const data = await res.json();
         reservationNumbers = data.reservation_numbers || '';
     } catch (e) {
@@ -295,10 +295,11 @@ function copyResponsesTSV() {
 let reservationNumbers = '';
 
 async function openReservationModal() {
+    if (!currentResponsesFormId) return;
     const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
-    // Cargar números desde la API
+    document.getElementById('reservationModalLabel').textContent = `Números de Reserva - Formulario #${currentResponsesFormId}`;
     try {
-        const res = await fetch('/api/reservation-config');
+        const res = await fetch(`/api/forms/${currentResponsesFormId}/reservation-numbers`);
         const data = await res.json();
         reservationNumbers = data.reservation_numbers || '';
         document.getElementById('reservationNumbersInput').value = reservationNumbers;
@@ -309,9 +310,10 @@ async function openReservationModal() {
 }
 
 async function saveReservationNumbers() {
+    if (!currentResponsesFormId) return;
     reservationNumbers = document.getElementById('reservationNumbersInput').value.trim();
     try {
-        const res = await fetch('/api/reservation-config', {
+        const res = await fetch(`/api/forms/${currentResponsesFormId}/reservation-numbers`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ reservation_numbers: reservationNumbers })
@@ -320,6 +322,7 @@ async function saveReservationNumbers() {
         if (data.success) {
             bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
             alert('Números de reserva guardados');
+            if (reservationNumbers) viewResponses(currentResponsesFormId);
         }
     } catch (e) {
         console.error('Error guardando números de reserva:', e);
@@ -331,17 +334,16 @@ function clearReservationNumbers() {
     document.getElementById('reservationNumbersInput').value = '';
 }
 
-// Cargar números de reserva desde la API al iniciar
-document.addEventListener('DOMContentLoaded', async function() {
-    try {
-        const res = await fetch('/api/reservation-config');
-        const data = await res.json();
-        reservationNumbers = data.reservation_numbers || '';
-    } catch (e) {
-        console.error('Error cargando números de reserva al iniciar:', e);
-        reservationNumbers = '';
-    }
-});
+function editReservationNumbers(formId) {
+    currentResponsesFormId = formId;
+    openReservationModal();
+}
+
+function copyReservationNumbers(text) {
+    const numbers = (text || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true})).join(', ');
+    if (!numbers) return;
+    navigator.clipboard.writeText(numbers).then(() => alert('Números de reserva copiados')).catch(() => alert('No se pudo copiar'));
+}
 
 async function assignReservationNumber(responseId, reservationNumber) {
     try {

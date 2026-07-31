@@ -47,8 +47,6 @@ def api_list_forms():
     if session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     forms = Form.query.order_by(Form.created_at.desc()).all()
-    global_config = ReservationConfig.query.first()
-    global_reservation_numbers = (global_config.reservation_numbers or '').strip() if global_config else ''
     return jsonify([{
         'id': f.id, 'name': f.name, 'slug': f.slug, 'form_type': f.form_type,
         'is_active': f.is_active, 'allow_edit': f.allow_edit,
@@ -58,7 +56,7 @@ def api_list_forms():
         'show_ficha_medica': f.show_ficha_medica,
         'created_at': f.created_at.strftime('%d/%m/%Y %H:%M') if f.created_at else '',
         'fields_count': len(f.fields), 'responses_count': len(f.responses),
-        'reservation_numbers': (f.reservation_numbers or global_reservation_numbers).strip()
+        'reservation_numbers': (f.reservation_numbers or '').strip()
     } for f in forms])
 
 
@@ -165,3 +163,24 @@ def api_save_fields(form_id):
         ))
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/api/forms/<int:form_id>/reservation-numbers', methods=['GET'])
+def api_get_form_reservation_numbers(form_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    form = Form.query.get_or_404(form_id)
+    return jsonify({'reservation_numbers': form.reservation_numbers or ''})
+
+
+@bp.route('/api/forms/<int:form_id>/reservation-numbers', methods=['POST'])
+def api_save_form_reservation_numbers(form_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    form = Form.query.get_or_404(form_id)
+    data = request.get_json()
+    reservation_numbers = (data.get('reservation_numbers', '') or '').strip()
+    form.reservation_numbers = reservation_numbers
+    form.has_reservation_numbers = bool(reservation_numbers)
+    db.session.commit()
+    return jsonify({'success': True, 'reservation_numbers': reservation_numbers})
