@@ -16,29 +16,33 @@ function shareToWhatsapp() {
 }
 
 async function clearPWACache() {
-    if (!confirm('¿Estás seguro de limpiar la caché PWA? Esto recargará la aplicación.')) return;
+    abrirModalBorrarUnificado({
+        titulo: 'Limpiar Caché',
+        mensaje: '¿Limpiar la caché PWA? Esto recargará la aplicación.',
+        onConfirmar: async () => {
+            try {
+                // Limpiar caché del service worker si existe
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
 
-    try {
-        // Limpiar caché del service worker si existe
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const registration of registrations) {
-                await registration.unregister();
+                // Limpiar toda la caché del navegador
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+                }
+
+                alert('Caché PWA limpiada correctamente. La aplicación se recargará.');
+                window.location.reload();
+            } catch (error) {
+                console.error('Error al limpiar caché:', error);
+                alert('Error al limpiar la caché: ' + error.message);
             }
         }
-
-        // Limpiar toda la caché del navegador
-        if ('caches' in window) {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
-        }
-
-        alert('Caché PWA limpiada correctamente. La aplicación se recargará.');
-        window.location.reload();
-    } catch (error) {
-        console.error('Error al limpiar caché:', error);
-        alert('Error al limpiar la caché: ' + error.message);
-    }
+    });
 }
 
 function handleEditDynamicSelect() {

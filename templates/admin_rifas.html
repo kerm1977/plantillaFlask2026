@@ -75,17 +75,21 @@
 
 <script>
 function eliminarRifa(id) {
-    if (confirm('¿Eliminar esta rifa? Esta acción no se puede deshacer.')) {
-        fetch(`/admin/rifas/${id}/eliminar`, { method: 'DELETE' })
-            .then(r => r.json())
-            .then(data => {
-                if (data.ok) {
-                    window.location.reload();
-                } else {
-                    alert(data.error || 'Error al eliminar');
-                }
-            });
-    }
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Rifa',
+        mensaje: '¿Eliminar esta rifa? Esta acción no se puede deshacer.',
+        onConfirmar: () => {
+            fetch(`/admin/rifas/${id}/eliminar`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Error al eliminar');
+                    }
+                });
+        }
+    });
 }
 </script>
 {% endblock %}

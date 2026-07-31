@@ -71,18 +71,23 @@ async function mpUploadFiles(files) {
 // Delete
 async function mpDeleteSong(index) {
     const song = MP.songs[index];
-    if (!confirm(`¿Eliminar "${song.display_name}"?`)) return;
-    const res = await fetch('/api/musica/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: song.filename })
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Canción',
+        mensaje: `¿Eliminar "${song.display_name}"?`,
+        onConfirmar: async () => {
+            const res = await fetch('/api/musica/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: song.filename })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                if (index === MP.currentIndex) mpStop();
+                else if (index < MP.currentIndex) MP.currentIndex--;
+                MP.songs.splice(index, 1);
+                mpUpdateUI();
+            }
+        }
     });
-    const data = await res.json();
-    if (data.ok) {
-        if (index === MP.currentIndex) mpStop();
-        else if (index < MP.currentIndex) MP.currentIndex--;
-        MP.songs.splice(index, 1);
-        mpUpdateUI();
-    }
 }
 </script>

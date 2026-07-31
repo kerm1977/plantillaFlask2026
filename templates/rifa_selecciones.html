@@ -118,20 +118,25 @@ function setWinners() {
 }
 
 function eliminarSeleccion(selectionId) {
-    if (confirm('¿Eliminar esta selección? Esta acción no se puede deshacer.')) {
-        fetch(`/admin/rifas/seleccion/${selectionId}/eliminar`, {
-            method: 'DELETE'
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                alert('Selección eliminada');
-                window.location.reload();
-            } else {
-                alert(data.error || 'Error al eliminar');
-            }
-        });
-    }
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Selección',
+        mensaje: '¿Eliminar esta selección? Esta acción no se puede deshacer.',
+        onConfirmar: () => {
+            fetch(`/admin/rifas/seleccion/${selectionId}/eliminar`, {
+                method: 'DELETE'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('Selección eliminada');
+                    window.location.reload();
+                } else {
+                    alert(data.error || 'Error al eliminar');
+                }
+            });
+        }
+    });
+}
 }
 </script>
 {% endblock %}

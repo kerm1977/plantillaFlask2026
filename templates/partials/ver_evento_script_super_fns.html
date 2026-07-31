@@ -29,32 +29,12 @@ function toggleEditOtherDesc() {
     document.getElementById('editOtrosDescContainer').classList.toggle('d-none', !document.getElementById('e_checkOtros').checked);
 }
 
-let deleteClicks = 0;
 function processDeleteEvento(eventId) {
-    const btn = document.getElementById('btnConfirmDelete');
-    deleteClicks++;
-    
-    if (deleteClicks === 1) {
-        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
-        btn.classList.replace('btn-danger', 'btn-warning');
-        btn.classList.replace('text-white', 'text-dark');
-    } else if (deleteClicks === 2) {
-        btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
-        btn.classList.replace('btn-warning', 'btn-dark');
-        btn.classList.add('text-white');
-    } else {
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
-        btn.disabled = true;
-        ejecutarBorradoReal(eventId);
-    }
-    
-    setTimeout(() => {
-        if (deleteClicks > 0 && deleteClicks < 3) {
-            deleteClicks = 0;
-            btn.innerHTML = 'Sí, eliminar evento';
-            btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
-        }
-    }, 4000);
+    abrirModalBorrarUnificado({
+        titulo: 'Eliminar Evento',
+        mensaje: 'Esta acción borrará permanentemente el evento de la base de datos y no se puede deshacer.',
+        onConfirmar: () => { ejecutarBorradoReal(eventId); }
+    });
 }
 
 async function ejecutarBorradoReal(eventId) {

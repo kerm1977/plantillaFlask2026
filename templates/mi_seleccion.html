@@ -85,22 +85,26 @@ function cancelarSeleccion() {
         return;
     }
     
-    if (confirm('¿Cancelar esta selección?')) {
-        fetch(`/api/rifas/seleccion/{{ selection.id }}/cancelar`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ phone: phone, pin: pin })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                alert('Selección cancelada');
-                window.location.href = '/rifas';
-            } else {
-                alert(data.error || 'Error al cancelar');
-            }
-        });
-    }
+    abrirModalBorrarUnificado({
+        titulo: 'Cancelar Selección',
+        mensaje: '¿Cancelar esta selección?',
+        onConfirmar: () => {
+            fetch(`/api/rifas/seleccion/{{ selection.id }}/cancelar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: phone, pin: pin })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('Selección cancelada');
+                    window.location.href = '/rifas';
+                } else {
+                    alert(data.error || 'Error al cancelar');
+                }
+            });
+        }
+    });
 }
 </script>
 {% endblock %}

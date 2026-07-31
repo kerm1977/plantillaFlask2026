@@ -239,17 +239,22 @@ async function confirmRestore() {
 }
 
 async function deleteBackup(id, btnEl) {
-    if (!confirm('¿Eliminar este respaldo permanentemente?')) return;
-    btnEl.disabled = true;
-    try {
-        const r = await fetch(`/api/admin/backup/delete/${id}`, { method: 'DELETE' });
-        const d = await r.json();
-        if (d.ok) loadBackups();
-        else alert(d.error || 'Error al eliminar');
-    } catch(e) {
-        alert('Error de red.');
-        btnEl.disabled = false;
-    }
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Respaldo',
+        mensaje: '¿Eliminar este respaldo permanentemente?',
+        onConfirmar: async () => {
+            btnEl.disabled = true;
+            try {
+                const r = await fetch(`/api/admin/backup/delete/${id}`, { method: 'DELETE' });
+                const d = await r.json();
+                if (d.ok) loadBackups();
+                else alert(d.error || 'Error al eliminar');
+            } catch(e) {
+                alert('Error de red.');
+                btnEl.disabled = false;
+            }
+        }
+    });
 }
 
 // ============================

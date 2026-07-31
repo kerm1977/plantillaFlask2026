@@ -137,22 +137,27 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 async function limpiarCachéChrome() {
-    if (!confirm('¿Estás seguro de limpiar la caché de Chrome? Esto recargará la aplicación PWA.')) return;
-    try {
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            for (const registration of registrations) {
-                await registration.unregister();
+    abrirModalBorrarUnificado({
+        titulo: 'Limpiar Caché',
+        mensaje: '¿Limpiar la caché de Chrome? Esto recargará la aplicación PWA.',
+        onConfirmar: async () => {
+            try {
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (const registration of registrations) {
+                        await registration.unregister();
+                    }
+                }
+                if ('caches' in window) {
+                    const cacheNames = await caches.keys();
+                    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+                }
+                alert('Caché limpiada correctamente. La aplicación se recargará.');
+                window.location.reload();
+            } catch (error) {
+                console.error('Error al limpiar caché:', error);
+                alert('Error al limpiar la caché: ' + error.message);
             }
         }
-        if ('caches' in window) {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
-        }
-        alert('Caché limpiada correctamente. La aplicación se recargará.');
-        window.location.reload();
-    } catch (error) {
-        console.error('Error al limpiar caché:', error);
-        alert('Error al limpiar la caché: ' + error.message);
-    }
+    });
 }

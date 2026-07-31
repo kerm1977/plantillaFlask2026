@@ -41,17 +41,23 @@ async function togglePayment(phone) {
 }
 
 function superClearNumbers(phone) {
-    if (!confirm('¿Liberar todos los números de este cliente?')) return;
-    const rifaId = window.RIFA_CONFIG ? window.RIFA_CONFIG.id : 0;
-    fetch(`/api/rifas/${rifaId}/admin-release`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({phone: phone})
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.ok) { alert(`¡${data.count} números liberados!`); window.location.reload(); }
-        else { alert(data.error || 'Error'); }
+    abrirModalBorrarUnificado({
+        titulo: 'Liberar Números',
+        mensaje: '¿Liberar todos los números de este cliente?',
+        nombre: phone,
+        onConfirmar: () => {
+            const rifaId = window.RIFA_CONFIG ? window.RIFA_CONFIG.id : 0;
+            fetch(`/api/rifas/${rifaId}/admin-release`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({phone: phone})
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) { alert(`¡${data.count} números liberados!`); window.location.reload(); }
+                else { alert(data.error || 'Error'); }
+            });
+        }
     });
 }
 

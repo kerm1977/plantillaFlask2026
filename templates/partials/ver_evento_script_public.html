@@ -80,10 +80,15 @@ async function uploadGPX(eventId, input) {
 }
 
 async function deleteGPX(eventId) {
-    if (!confirm('¿Borrar el GPX de esta ruta?')) return;
-    const res = await fetch(`/api/evento/${eventId}/gpx`, { method: 'DELETE' });
-    const data = await res.json();
-    if (data.ok) { location.reload(); }
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar GPX',
+        mensaje: '¿Borrar el GPX de esta ruta?',
+        onConfirmar: async () => {
+            const res = await fetch(`/api/evento/${eventId}/gpx`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.ok) { location.reload(); }
+        }
+    });
 }
 
 async function generateGPXPassword(eventId) {

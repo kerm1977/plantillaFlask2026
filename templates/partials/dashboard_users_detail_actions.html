@@ -61,41 +61,28 @@ async function toggleUserStatus() {
     } catch(err) { alert("Error de red al intentar comunicarse con el servidor."); }
 }
 
-let deleteClicks = 0;
 async function confirmDeleteUser() {
     if (!currentSelectedUserId) return;
-    const btn = document.getElementById('btnDeleteUser');
-    deleteClicks++;
-    if (deleteClicks === 1) {
-        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>¿Seguro?';
-        btn.classList.replace('btn-danger', 'btn-secondary');
-    } else if (deleteClicks === 2) {
-        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-1"></i>Confirmar Borrado';
-        btn.classList.replace('btn-secondary', 'btn-danger');
-    } else {
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando...'; btn.disabled = true;
-        try {
-            const response = await fetch(`/api/admin/delete_user/${currentSelectedUserId}`, { method: 'DELETE' });
-            const result   = await response.json();
-            if (response.ok && result.success) {
-                showGlassAlert('Usuario eliminado permanentemente.', '<i class="bi bi-trash-fill text-danger" style="font-size:3rem;"></i>');
-                deleteClicks = 0; btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
-                showUsersList(); loadAllUsers();
-            } else {
-                alert(result.error || "No se pudo eliminar el usuario."); btn.disabled = false; deleteClicks = 0;
-                btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
-                btn.classList.replace('btn-secondary', 'btn-danger');
-            }
-        } catch(err) { alert("Error al intentar eliminar el usuario."); btn.disabled = false; }
-    }
-    setTimeout(() => {
-        if (deleteClicks > 0 && deleteClicks < 3) {
-            deleteClicks = 0;
-            btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario';
-            btn.className = 'btn btn-danger rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto btn-action-mobile';
-            btn.disabled  = false;
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Usuario',
+        mensaje: '¿Eliminar este usuario permanentemente? Esta acción no se puede deshacer.',
+        nombre: currentSelectedUserName || '',
+        onConfirmar: async () => {
+            const btn = document.getElementById('btnDeleteUser');
+            if (btn) { btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando...'; btn.disabled = true; }
+            try {
+                const response = await fetch(`/api/admin/delete_user/${currentSelectedUserId}`, { method: 'DELETE' });
+                const result   = await response.json();
+                if (response.ok && result.success) {
+                    showGlassAlert('Usuario eliminado permanentemente.', '<i class="bi bi-trash-fill text-danger" style="font-size:3rem;"></i>');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario'; }
+                    showUsersList(); loadAllUsers();
+                } else {
+                    alert(result.error || "No se pudo eliminar el usuario.");
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario'; }
+                }
+            } catch(err) { alert("Error al intentar eliminar el usuario."); if (btn) btn.disabled = false; }
         }
-    }, 3000);
+    });
 }
 </script>

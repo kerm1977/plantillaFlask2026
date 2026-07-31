@@ -241,10 +241,15 @@ async function saveEditedResponse() {
 }
 
 async function deleteResponse(responseId) {
-    if (!confirm('Eliminar esta respuesta?')) return;
-    const data = await (await fetch(`/api/forms/responses/${responseId}`, {method:'DELETE'})).json();
-    if (data.ok) { viewResponses(currentResponsesFormId); }
-    else { alert(data.error || 'Error al eliminar'); }
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Respuesta',
+        mensaje: '¿Eliminar esta respuesta?',
+        onConfirmar: async () => {
+            const data = await (await fetch(`/api/forms/responses/${responseId}`, {method:'DELETE'})).json();
+            if (data.ok) { viewResponses(currentResponsesFormId); }
+            else { alert(data.error || 'Error al eliminar'); }
+        }
+    });
 }
 
 function copyResponsesTSV() {

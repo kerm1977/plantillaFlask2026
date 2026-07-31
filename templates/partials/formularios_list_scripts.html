@@ -134,9 +134,14 @@ async function saveForm() {
 }
 
 async function deleteForm(id) {
-    if (!confirm('¿Eliminar este formulario y todas sus respuestas?')) return;
-    await fetch(`/api/forms/${id}`, {method:'DELETE'});
-    loadForms();
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Formulario',
+        mensaje: '¿Eliminar este formulario y todas sus respuestas?',
+        onConfirmar: async () => {
+            await fetch(`/api/forms/${id}`, {method:'DELETE'});
+            loadForms();
+        }
+    });
 }
 
 function copyLink(slug) {

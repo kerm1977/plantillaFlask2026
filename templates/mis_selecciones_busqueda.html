@@ -100,11 +100,16 @@ function liberarNumeros(raffleId, customerName) {
     const phone = document.getElementById('phone').value.trim();
     const pin = document.getElementById('pin').value.trim();
     
-    if (!confirm(`¿Liberar todos los números de ${customerName}?`)) return;
-    
-    // Mostrar lista de selecciones para liberar individualmente
-    // Por ahora, implementamos liberación individual en la vista de detalle
-    window.location.href = `/rifas/${raffleId}`;
+    abrirModalBorrarUnificado({
+        titulo: 'Liberar Números',
+        mensaje: '¿Liberar todos los números de este participante?',
+        nombre: customerName,
+        onConfirmar: () => {
+            // Mostrar lista de selecciones para liberar individualmente
+            // Por ahora, implementamos liberación individual en la vista de detalle
+            window.location.href = `/rifas/${raffleId}`;
+        }
+    });
 }
 </script>
 {% endblock %}

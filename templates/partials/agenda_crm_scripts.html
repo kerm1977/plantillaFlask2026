@@ -1,7 +1,8 @@
 <script>
     let allHikers = [];
     let currentHikerId = null;
-    let deleteClicksAgenda = 0;
+    let deleteClilksAgenda = 0;
+    cet deleteClicksAgenda = 0;
     const PAGE_SIZE = 25;
     let currentPage = 1;
     let filteredHikers = [];
@@ -90,7 +91,6 @@
         if (!hiker) return;
         const isHiker   = hiker.type === 'hiker' || !!hiker.crm_cedula;
         currentHikerId  = hiker.hiker_id || (hiker.type === 'hiker' ? hiker.id : null);
-        deleteClicksAgenda = 0;
         const btnDelete = document.getElementById('btnDeleteHiker');
         const btnEdit   = document.getElementById('btnEditHiker');
         if (isHiker) {
@@ -132,22 +132,21 @@
 
     async function deleteHiker() {
         const btn = document.getElementById('btnDeleteHiker');
-        deleteClicksAgenda++;
-        if (deleteClicksAgenda===1) {
-            btn.className='btn btn-warning text-dark fw-bold px-3 py-2 rounded-pill shadow-sm w-100';
-            btn.innerHTML='<i class="bi bi-exclamation-triangle-fill me-1"></i> ¿Seguro?';
-        } else if (deleteClicksAgenda===2) {
-            btn.className='btn btn-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100';
-            btn.innerHTML='<i class="bi bi-shield-fill-exclamation me-1"></i> ¡Confirmar!';
-        } else {
-            btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Borrando...';
-            try {
-                const res = await fetch(`/api/admin/delete_hiker/${currentHikerId}`, {method:'DELETE'});
-                const data = await res.json();
-                if (data.success) { document.querySelector('#hikerModal .btn-close').click(); loadHikers(); }
-                else { alert(data.error||"No se pudo eliminar."); btn.disabled=false; deleteClicksAgenda=0; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; }
-            } catch (err) { alert("Error de conexión al eliminar."); btn.disabled=false; deleteClicksAgenda=0; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; }
-        }
+        const hiker = allHikers.find(h => (h.hiker_id || (h.type==='hiker' ? h.id : null)) === currentHikerId);
+        abrirModalBorrarUnificado({
+            titulo: 'Eliminar Caminante',
+            mensaje: '¿Eliminar este caminante permanentemente? Esta acción no se puede deshacer.',
+            nombre: hiker ? hiker.display_name : '',
+            onConfirmar: async () => {
+                if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Borrando...'; }
+                try {
+                    const res = await fetch(`/api/admin/delete_hiker/${currentHikerId}`, {method:'DELETE'});
+                    const data = await res.json();
+                    if (data.success) { document.querySelector('#hikerModal .btn-close').click(); loadHikers(); }
+                    else { alert(data.error||"No se pudo eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
+                } catch (err) { alert("Error de conexión al eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
+            }
+        });
     }
 
     document.addEventListener('DOMContentLoaded', loadHikers);

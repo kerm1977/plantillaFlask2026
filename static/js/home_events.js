@@ -2,8 +2,6 @@
 // Funciones de carga y gestión de eventos
 
 let allEvents = [];
-let deleteHomeEventId = null;
-let deleteHomeClicks = 0;
 
 async function loadEvents() {
     const container = document.getElementById('eventosContainer');
@@ -87,58 +85,25 @@ async function makePublic(eventId) {
 }
 
 function initiateDeleteEvent(eventId, eventName) {
-    deleteHomeEventId = eventId;
-    deleteHomeClicks = 0;
-    const nameEl = document.getElementById('deleteEventHomeName');
-    if(nameEl) nameEl.innerHTML = `Esta acción borrará permanentemente la publicación "<strong>${eventName}</strong>" y no se puede deshacer.`;
-    resetDeleteBtn();
-    new bootstrap.Modal(document.getElementById('deleteEventHomeModal')).show();
-}
-
-function processDeleteEventHome() {
-    const btn = document.getElementById('btnConfirmDeleteHome');
-    deleteHomeClicks++;
-    if (deleteHomeClicks === 1) {
-        btn.innerHTML = '<i class="bi bi-exclamation-triangle-fill me-2"></i>¿Está seguro?';
-        btn.className = 'btn btn-warning fw-bold rounded-pill px-4 shadow-sm w-100 text-dark';
-    } else if (deleteHomeClicks === 2) {
-        btn.innerHTML = '<i class="bi bi-exclamation-octagon-fill me-2"></i>¿Completamente seguro?';
-        btn.className = 'btn btn-dark fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
-    } else {
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Borrando...';
-        btn.disabled = true;
-        executeDeleteEventHome(deleteHomeEventId);
-    }
-    setTimeout(() => { if (deleteHomeClicks > 0 && deleteHomeClicks < 3) resetDeleteBtn(); }, 4000);
-}
-
-async function executeDeleteEventHome(eventId) {
-    try {
-        const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
-        const result = await response.json();
-        if (response.ok && result.success) {
+    abrirModalBorrarUnificado({
+        titulo: 'Eliminar Publicación',
+        mensaje: 'Esta acción borrará permanentemente la publicación y no se puede deshacer.',
+        nombre: eventName || 'esta publicación',
+        onConfirmar: async () => {
             try {
-                indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (e) => e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId);
-            } catch(e) {}
-            const modalEl = document.getElementById('deleteEventHomeModal');
-            if (modalEl) bootstrap.Modal.getInstance(modalEl)?.hide();
-            loadEvents();
-        } else {
-            alert("Error al eliminar el evento: " + (result.error || "Desconocido"));
-            resetDeleteBtn();
+                const response = await fetch(`/api/delete_event/${eventId}`, { method: 'DELETE' });
+                const result = await response.json();
+                if (response.ok && result.success) {
+                    try {
+                        indexedDB.open(DB_NAME, DB_VERSION).onsuccess = (e) => e.target.result.transaction("eventos", "readwrite").objectStore("eventos").delete(eventId);
+                    } catch(e) {}
+                    loadEvents();
+                } else {
+                    alert("Error al eliminar el evento: " + (result.error || "Desconocido"));
+                }
+            } catch (err) {
+                alert("Error de conexión al intentar eliminar el evento.");
+            }
         }
-    } catch (err) {
-        alert("Error de conexión al intentar eliminar el evento.");
-        resetDeleteBtn();
-    }
-}
-
-function resetDeleteBtn() {
-    const btn = document.getElementById('btnConfirmDeleteHome');
-    if(btn) {
-        btn.disabled = false;
-        deleteHomeClicks = 0;
-        btn.innerHTML = 'Sí, eliminar evento';
-        btn.className = 'btn btn-danger fw-bold rounded-pill px-4 shadow-sm w-100 text-white';
-    }
+    });
 }
