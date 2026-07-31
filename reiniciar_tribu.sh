@@ -41,17 +41,17 @@ tmux kill-session -t tribu_app 2>/dev/null || true
 tmux new -d -s tribu_app "cd ~/plantillaFlask2026 && python app.py"
 
 echo "[*] Verificando cloudflared..."
-if [ ! -f ./cloudflared ]; then
-    echo "[*] Descargando cloudflared..."
-    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared
-    chmod +x cloudflared
+if ! command -v cloudflared >/dev/null 2>&1; then
+    echo "[*] Instalando repositorio TUR y cloudflared..."
+    pkg install -y tur-repo
+    pkg install -y cloudflared
 fi
 
 echo "[*] Iniciando Cloudflare Tunnel..."
 if [ -f ~/.cloudflared_token ]; then
     TOKEN=$(cat ~/.cloudflared_token | tr -d '\r\n')
     tmux kill-session -t tribu_cloud 2>/dev/null || true
-    tmux new -d -s tribu_cloud "cd ~/plantillaFlask2026 && ./cloudflared tunnel run --token '$TOKEN'"
+    tmux new -d -s tribu_cloud "cloudflared tunnel run --token '$TOKEN'"
     echo "[OK] La Tribu y Cloudflare reiniciados."
     echo "    Flask local: https://localhost:5050"
     echo "    Dominio: https://latribu.top"
