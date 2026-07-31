@@ -72,11 +72,13 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
                 <div class="col-12 mt-4 mb-2 animate__animated animate__fadeIn w-100 text-center text-sm-start">
                     <div class="d-flex flex-column align-items-center justify-content-center justify-content-sm-start" onclick="toggleMonthCards('${currentMonthId}')" style="cursor: pointer;" title="Presiona una vez para expandir o colapsar">
                         <div class="d-flex align-items-center w-100 justify-content-center justify-content-sm-start">
-                            <h4 id="header-title-${currentMonthId}" class="${colorClass} fw-bold text-uppercase mb-0 pb-1 border-bottom border-2 d-inline-flex align-items-center month-header-title" style="letter-spacing: 1px; opacity: ${headerOpacity};">
-                                <i class="bi bi-calendar3 me-2"></i>${monthGroup}
-                                <i class="bi bi-chevron-down ms-2 fs-5" id="chevron-${currentMonthId}" style="transform: ${chevronRotation}; transition: transform 0.3s ease;"></i>
+                            <h4 id="header-title-${currentMonthId}" class="${colorClass} fw-bold text-uppercase mb-0 pb-1 border-bottom border-2 d-flex align-items-center justify-content-between w-100 month-header-title" style="letter-spacing: 1px; opacity: ${headerOpacity};">
+                                <span class="d-flex align-items-center">
+                                    <i class="bi bi-calendar3 me-2"></i>${monthGroup}
+                                    <i class="bi bi-chevron-down ms-2 fs-5" id="chevron-${currentMonthId}" style="transform: ${chevronRotation}; transition: transform 0.3s ease;"></i>
+                                </span>
                                 <span id="badge-${currentMonthId}" class="badge bg-white text-dark ms-3 shadow-sm border ${badgeDisplay} align-items-center" style="font-size: 0.85rem; border-radius: 12px;">
-                                    <i class="bi bi-droplet-fill text-info me-1"></i> ${count}
+                                    <i class="bi bi-person-walking me-1" style="color:#0dcaf0 !important;"></i> ${count}
                                 </span>
                             </h4>
                         </div>

@@ -102,6 +102,18 @@
                                         <label class="form-check-label small" for="trigFichaMedica">Ficha Médica</label>
                                     </div>
                                 </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigPasaporte" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigPasaporte">Pasaporte</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigFechaNacimiento" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigFechaNacimiento">Fecha Nacimiento</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -164,7 +176,28 @@
             <div class="card-body">
                 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                     <h4 class="fw-bold mb-0" id="responsesTitle">Respuestas</h4>
-                    <div class="d-flex gap-2 flex-wrap">
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="addMembrete" checked>
+                            <label class="form-check-label small fw-semibold" for="addMembrete">Agregar Membrete</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="includeFecha" checked>
+                            <label class="form-check-label small fw-semibold" for="includeFecha">Incluir Fecha</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="includeFichaMedica" checked>
+                            <label class="form-check-label small fw-semibold" for="includeFichaMedica">Incluir Ficha Médica</label>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning rounded-pill" onclick="openReservationModal()">
+                            <i class="bi bi-list-check me-1"></i>Números de Reserva
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="exportResponses('pdf')">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                        </button>
+                        <button class="btn btn-sm btn-outline-info rounded-pill" onclick="exportResponses('txt')">
+                            <i class="bi bi-file-earmark-text me-1"></i>TXT
+                        </button>
                         <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportResponses('xlsx')">
                             <i class="bi bi-file-earmark-excel me-1"></i>Excel
                         </button>
@@ -187,6 +220,66 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Responsive table for small screens (250px - 550px) */
+@media (max-width: 550px) and (min-width: 250px) {
+    #responsesTable table,
+    #responsesTable thead,
+    #responsesTable tbody,
+    #responsesTable th,
+    #responsesTable td,
+    #responsesTable tr {
+        display: block;
+    }
+    
+    #responsesTable thead {
+        display: none;
+    }
+    
+    #responsesTable tr {
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+    }
+    
+    #responsesTable td {
+        position: relative;
+        padding-left: 50%;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    #responsesTable td:last-child {
+        border-bottom: none;
+    }
+    
+    #responsesTable td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        content: attr(data-label);
+        color: #6c757d;
+    }
+    
+    #responsesTable .d-flex {
+        flex-direction: column;
+        gap: 5px !important;
+    }
+    
+    #responsesTable .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
 
 {% include 'partials/formularios_modals.html' %}
 

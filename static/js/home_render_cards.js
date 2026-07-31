@@ -4,6 +4,12 @@
 
 function renderGridCard(ev, currentMonthId, isExpanded, imgPath, badgeClass, destinoDisplay, timeDisplay, dateDisplay, isSoldOut, cardClass, overlay, cardAction, superUserBtns, btnHacerPublico) {
     const visibilityClass = isExpanded ? '' : 'd-none';
+    const googleCalendarBtn = ev.google_calendar_link ? 
+        `<a href="${ev.google_calendar_link}" target="_blank" class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-white w-100 mb-2" 
+           style="background:#4285F4;border:none;" onclick="event.stopPropagation()">
+          <i class="bi bi-google me-1"></i>Agregar a G.Calendar
+        </a>` : '';
+    
     return `
         <div class="col-12 col-xxs-6 col-sm-6 col-lg-4 col-xl-3 animate__animated animate__zoomIn month-item-${currentMonthId} ${visibilityClass}">
             <div class="glass-panel event-card rounded-4 h-100 d-flex flex-column overflow-hidden shadow-sm ${cardClass}" onclick="${cardAction}" style="cursor: pointer; position: relative;">
@@ -18,6 +24,7 @@ function renderGridCard(ev, currentMonthId, isExpanded, imgPath, badgeClass, des
                     <h5 class="fw-bold text-dark mb-1 text-truncate-multiline lh-sm">${ev.nombreLugar}</h5>
                     <p class="text-secondary small mb-1 text-truncate" title="Punto de Salida">${destinoDisplay}</p>
                     <p class="text-secondary small mb-3 text-truncate" title="Hora de Salida">${timeDisplay}</p>
+                    ${googleCalendarBtn}
                     <div class="event-details-box mt-auto d-flex justify-content-between align-items-center">
                         <div class="d-flex flex-column">
                             <span class="text-muted" style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase;">Precio</span>
@@ -39,6 +46,12 @@ function renderGridCard(ev, currentMonthId, isExpanded, imgPath, badgeClass, des
 
 function renderListCard(ev, currentMonthId, isExpanded, badgeClass, destinoDisplay, timeDisplay, dateDisplay, isSoldOut, cardClass, overlay, cardAction, superUserBtns, btnHacerPublico) {
     const visibilityClass = isExpanded ? '' : 'd-none';
+    const googleCalendarBtn = ev.google_calendar_link ? 
+        `<a href="${ev.google_calendar_link}" target="_blank" class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-white w-100 mb-2" 
+           style="background:#4285F4;border:none;" onclick="event.stopPropagation()">
+          <i class="bi bi-google me-1"></i>Agregar a G.Calendar
+        </a>` : '';
+    
     return `
         <div class="col-12 col-md-6 col-lg-4 animate__animated animate__fadeInUp month-item-${currentMonthId} ${visibilityClass}">
             <div class="glass-panel p-3 rounded-4 list-card-hover bg-white bg-opacity-50 ${cardClass}" onclick="${cardAction}" style="cursor: pointer; position: relative; overflow: hidden;">
@@ -51,14 +64,15 @@ function renderListCard(ev, currentMonthId, isExpanded, badgeClass, destinoDispl
                     </div>
                     <span class="badge-dificultad-list ${badgeClass} flex-shrink-0 shadow-sm mt-1">${ev.dificultad}</span>
                 </div>
-                <div class="d-flex justify-content-between align-items-end mt-3 border-top border-white border-opacity-75 pt-2">
-                    <div class="text-secondary small" style="font-size: 0.8rem; flex-grow: 1; min-width: 0; padding-right: 10px;">
-                        <div class="text-truncate mb-1">${destinoDisplay}</div>
-                        <div class="text-truncate mb-1">${timeDisplay}</div>
-                        <div class="fw-bold text-dark text-truncate">
-                            <i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}
-                        </div>
+                <div class="text-secondary small mb-2" style="font-size: 0.8rem;">
+                    <div class="text-truncate mb-1">${destinoDisplay}</div>
+                    <div class="text-truncate mb-1">${timeDisplay}</div>
+                    <div class="fw-bold text-dark text-truncate">
+                        <i class="bi bi-calendar-check text-orange me-1"></i>${dateDisplay}
                     </div>
+                </div>
+                ${googleCalendarBtn}
+                <div class="d-flex justify-content-between align-items-end border-top border-white border-opacity-75 pt-2">
                     <div class="text-end flex-shrink-0">
                         <span class="text-muted d-block lh-1" style="font-size: 0.6rem; text-transform: uppercase; font-weight: 800;">Precio</span>
                         <span class="fw-bold text-orange fs-5 lh-1">${ev.precio}</span>

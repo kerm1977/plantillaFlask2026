@@ -218,9 +218,9 @@ def toggle_payment(raffle_id, phone):
         raffle_id=raffle_id, customer_phone=phone).all()
     if not selections:
         return jsonify({'error': 'Selección no encontrada'}), 404
-    # Actualizar todas las selecciones de este teléfono
-    new_status = not selections[0].is_paid
+    # Alternar estado de pago de todas las selecciones de este teléfono
+    new_status = not all(sel.is_paid for sel in selections)
     for sel in selections:
         sel.is_paid = new_status
     db.session.commit()
-    return jsonify({'ok': True, 'is_paid': new_status})
+    return jsonify({'ok': True, 'is_paid': new_status, 'is_canceled': any(s.is_canceled for s in selections)})

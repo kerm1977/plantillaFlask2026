@@ -60,6 +60,10 @@
       <i class="bi bi-cash-coin me-2"></i>Editar Monto
     </button>
     {% endif %}
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
     <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
             style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
             data-bs-toggle="modal" data-bs-target="#modalColaborar">
@@ -67,12 +71,23 @@
     </button>
   </div>
   {% elif (pub.sinpe_info and (show_all or 'sinpe' in mostrar)) or (pub.cuenta_info and (show_all or 'cuenta' in mostrar)) %}
-  <div class="mb-4">
+  <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
     <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
             style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
             data-bs-toggle="modal" data-bs-target="#modalColaborar">
       <i class="bi bi-heart-fill me-2"></i>Colaborar
     </button>
+  </div>
+  {% else %}
+  <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
   </div>
   {% endif %}
 

@@ -76,6 +76,8 @@ function showCreateForm() {
     document.getElementById('trigEdad').checked = false;
     document.getElementById('trigTelefono').checked = false;
     document.getElementById('trigFichaMedica').checked = false;
+    document.getElementById('trigPasaporte').checked = false;
+    document.getElementById('trigFechaNacimiento').checked = false;
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
@@ -94,6 +96,8 @@ async function editForm(id) {
     document.getElementById('trigEdad').checked = form.show_edad;
     document.getElementById('trigTelefono').checked = form.show_telefono;
     document.getElementById('trigFichaMedica').checked = form.show_ficha_medica;
+    document.getElementById('trigPasaporte').checked = form.show_pasaporte;
+    document.getElementById('trigFechaNacimiento').checked = form.show_fecha_nacimiento;
     fields = form.fields.map(f => ({...f}));
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
@@ -112,6 +116,8 @@ async function saveForm() {
         show_edad: document.getElementById('trigEdad').checked,
         show_telefono: document.getElementById('trigTelefono').checked,
         show_ficha_medica: document.getElementById('trigFichaMedica').checked,
+        show_pasaporte: document.getElementById('trigPasaporte').checked,
+        show_fecha_nacimiento: document.getElementById('trigFechaNacimiento').checked,
     };
     let formId = currentFormId;
     if (!formId) {

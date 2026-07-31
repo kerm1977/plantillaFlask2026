@@ -1,6 +1,12 @@
 from db import db
 from datetime import datetime
 
+class ReservationConfig(db.Model):
+    __tablename__ = 'reservation_config'
+    id = db.Column(db.Integer, primary_key=True)
+    reservation_numbers = db.Column(db.Text, nullable=True)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 class Form(db.Model):
     __tablename__ = 'form'
     id = db.Column(db.Integer, primary_key=True)
@@ -16,6 +22,10 @@ class Form(db.Model):
     show_edad = db.Column(db.Boolean, default=False)
     show_telefono = db.Column(db.Boolean, default=False)
     show_ficha_medica = db.Column(db.Boolean, default=False)
+    show_pasaporte = db.Column(db.Boolean, default=False)
+    show_fecha_nacimiento = db.Column(db.Boolean, default=False)
+    has_reservation_numbers = db.Column(db.Boolean, default=False)
+    reservation_numbers = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     fields = db.relationship('FormField', backref='form', lazy=True, cascade='all, delete-orphan',
                              order_by='FormField.order')
@@ -46,6 +56,11 @@ class FormResponse(db.Model):
     enfermedades_cronicas = db.Column(db.Text)
     contacto_emergencia_nombre = db.Column(db.String(200))
     contacto_emergencia_telefono = db.Column(db.String(50))
+    pasaporte = db.Column(db.String(50))
+    fecha_nacimiento_dia = db.Column(db.Integer)
+    fecha_nacimiento_mes = db.Column(db.Integer)
+    fecha_nacimiento_anio = db.Column(db.Integer)
+    reservation_number = db.Column(db.String(100))
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     score = db.Column(db.Float)
     total_questions = db.Column(db.Integer)

@@ -86,13 +86,21 @@ function updatePreview() {
     if (document.getElementById('trigFecha').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha</label><input type="date" class="form-control form-control-sm" disabled></div>`;
     if (document.getElementById('trigFichaMedica').checked) {
         html += `<div class="mt-2 mb-3 pt-2 border-top"><small class="fw-bold text-secondary d-block mb-2">Ficha Médica</small>`;
-        html += `<div class="mb-2"><label class="form-label small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Tipo de Sangre</label><select class="form-select form-select-sm" disabled><option>No lo sé</option><option>No recibo transfusiones</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>`;
         html += `<div class="mb-2"><label class="form-label small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
         html += `<div class="mb-2"><label class="form-label small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
         html += `<small class="fw-semibold text-muted d-block mb-1">Contacto de Emergencia</small>`;
         html += `<div class="mb-2"><label class="form-label small">Nombre del Contacto</label><input type="text" class="form-control form-control-sm" disabled></div>`;
         html += `<div class="mb-2"><label class="form-label small">Teléfono del Contacto</label><input type="tel" class="form-control form-control-sm" disabled></div>`;
         html += `</div>`;
+    }
+    if (document.getElementById('trigPasaporte').checked) html += `<div class="mb-3"><label class="form-label fw-semibold small">Pasaporte</label><input type="text" class="form-control form-control-sm" disabled placeholder="Ej: 123456789"></div>`;
+    if (document.getElementById('trigFechaNacimiento').checked) {
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha de Nacimiento</label><div class="row g-2">`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Día" min="1" max="31"></div>`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Mes" min="1" max="12"></div>`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Año" min="1900" max="2025"></div>`;
+        html += `</div></div>`;
     }
     if (fields.length > 0) html += '<hr class="my-3">';
     fields.forEach((f, i) => {

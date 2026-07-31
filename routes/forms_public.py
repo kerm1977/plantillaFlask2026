@@ -55,17 +55,59 @@ def api_submit_form(form_id):
         enfermedades_cronicas=data.get('enfermedades_cronicas', '') or None,
         contacto_emergencia_nombre=data.get('contacto_emergencia_nombre', '') or None,
         contacto_emergencia_telefono=data.get('contacto_emergencia_telefono', '') or None,
+        pasaporte=data.get('pasaporte', '') or None,
+        fecha_nacimiento_dia=int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else None,
+        fecha_nacimiento_mes=int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else None,
+        fecha_nacimiento_anio=int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else None,
     )
     # Guardar/actualizar en agenda Hiker si hay cédula y nombre
     if cedula_valor and nombre_valor:
         hiker = Hiker.query.filter_by(cedula=cedula_valor).first()
+        # Convertir fecha de nacimiento a formato Date
+        fecha_nacimiento = None
+        if data.get('fecha_nacimiento_dia') and data.get('fecha_nacimiento_mes') and data.get('fecha_nacimiento_anio'):
+            from datetime import date
+            try:
+                fecha_nacimiento = date(
+                    int(data.get('fecha_nacimiento_anio')),
+                    int(data.get('fecha_nacimiento_mes')),
+                    int(data.get('fecha_nacimiento_dia'))
+                )
+            except ValueError:
+                pass
+        
         if not hiker:
-            hiker = Hiker(cedula=cedula_valor, nombre_completo=nombre_valor,
-                          telefono=data.get('telefono', '') or None)
+            hiker = Hiker(
+                cedula=cedula_valor,
+                nombre_completo=nombre_valor,
+                telefono=data.get('telefono', '') or None,
+                pasaporte=data.get('pasaporte', '') or None,
+                tipo_sangre=data.get('tipo_sangre', '') or None,
+                fecha_nacimiento=fecha_nacimiento,
+                alergias=data.get('alergias', '') or None,
+                enfermedades_cronicas=data.get('enfermedades_cronicas', '') or None,
+                contacto_emergencia_nombre=data.get('contacto_emergencia_nombre', '') or None,
+                contacto_emergencia_telefono=data.get('contacto_emergencia_telefono', '') or None
+            )
             db.session.add(hiker)
         else:
+            # Actualizar campos si están vacíos
             if data.get('telefono') and not hiker.telefono:
                 hiker.telefono = data.get('telefono')
+            if data.get('pasaporte') and not hiker.pasaporte:
+                hiker.pasaporte = data.get('pasaporte')
+            if data.get('tipo_sangre') and not hiker.tipo_sangre:
+                hiker.tipo_sangre = data.get('tipo_sangre')
+            if fecha_nacimiento and not hiker.fecha_nacimiento:
+                hiker.fecha_nacimiento = fecha_nacimiento
+            if data.get('alergias') and not hiker.alergias:
+                hiker.alergias = data.get('alergias')
+            if data.get('enfermedades_cronicas') and not hiker.enfermedades_cronicas:
+                hiker.enfermedades_cronicas = data.get('enfermedades_cronicas')
+            if data.get('contacto_emergencia_nombre') and not hiker.contacto_emergencia_nombre:
+                hiker.contacto_emergencia_nombre = data.get('contacto_emergencia_nombre')
+            if data.get('contacto_emergencia_telefono') and not hiker.contacto_emergencia_telefono:
+                hiker.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono')
     score = total_graded = 0
     fields = FormField.query.filter_by(form_id=form_id).order_by(FormField.order).all()
     for field in fields:

@@ -78,6 +78,7 @@ class Hiker(db.Model):
     cedula = db.Column(db.String(50), unique=True, nullable=False)
     nombre_completo = db.Column(db.String(200), nullable=False)
     telefono = db.Column(db.String(20))
+    pasaporte = db.Column(db.String(50))
     tipo_sangre = db.Column(db.String(10))
     fecha_nacimiento = db.Column(db.Date) 
     alergias = db.Column(db.Text)

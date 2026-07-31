@@ -150,12 +150,23 @@ def evento_detalle_pub(pid):
     except Exception:
         mostrar = []
     rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.asc()).all()
-    return render_template('evento_detalle.html', pub=pub, mostrar=mostrar, rifas=rifas, mp3_files=_mp3_list())
+    
+    # Generar enlace de Google Calendar
+    from helpers.google_calendar import generate_google_calendar_link_pub
+    google_calendar_link = generate_google_calendar_link_pub(pub)
+    
+    return render_template('evento_detalle.html', pub=pub, mostrar=mostrar, rifas=rifas, mp3_files=_mp3_list(), google_calendar_link=google_calendar_link)
 
 
 @bp.route('/eventos')
 def eventos_publicos():
     items = Publicacion.query.filter_by(is_active=True).order_by(Publicacion.fecha_inicio.asc()).all()
+    
+    # Generar enlaces de Google Calendar para cada evento
+    from helpers.google_calendar import generate_google_calendar_link_pub
+    for item in items:
+        item.google_calendar_link = generate_google_calendar_link_pub(item)
+    
     return render_template('eventos_lista.html', items=items)
 
 

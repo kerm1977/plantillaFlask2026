@@ -35,6 +35,10 @@ async function loadResponseByToken(token) {
     if (document.getElementById('pf_enfermedades')) document.getElementById('pf_enfermedades').value = data.enfermedades_cronicas || '';
     if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
     if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
+    if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+    if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
+    if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
+    if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
     for (const f of formFields) {
         const val = data.answers[String(f.id)];
         if (val === undefined || val === null) continue;
@@ -228,6 +232,10 @@ async function checkExistingResponse(nombre) {
         if (document.getElementById('pf_enfermedades')) document.getElementById('pf_enfermedades').value = data.enfermedades_cronicas || '';
         if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
         if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
+        if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+        if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
+        if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
+        if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
         for (const f of formFields) {
             const val = data.answers[String(f.id)];
             if (val === undefined || val === null) continue;
@@ -257,6 +265,30 @@ async function submitForm(e) {
         telEl.focus();
         return;
     }
+    
+    // Validar edad mínima de 15 años
+    const diaEl = document.getElementById('pf_fecha_nacimiento_dia');
+    const mesEl = document.getElementById('pf_fecha_nacimiento_mes');
+    const anioEl = document.getElementById('pf_fecha_nacimiento_anio');
+    if (diaEl && mesEl && anioEl) {
+        const dia = parseInt(diaEl.value);
+        const mes = parseInt(mesEl.value);
+        const anio = parseInt(anioEl.value);
+        if (dia && mes && anio) {
+            const fechaNacimiento = new Date(anio, mes - 1, dia);
+            const hoy = new Date();
+            const edadMinima = 15;
+            const fechaMinima = new Date(hoy.getFullYear() - edadMinima, hoy.getMonth(), hoy.getDate());
+            
+            if (fechaNacimiento > fechaMinima) {
+                alert('Debe tener al menos 15 años para completar este formulario');
+                anioEl.classList.add('is-invalid');
+                anioEl.focus();
+                return;
+            }
+        }
+    }
+    
     const btn = document.getElementById('btnSubmit');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
@@ -299,6 +331,10 @@ async function submitForm(e) {
         enfermedades_cronicas: document.getElementById('pf_enfermedades')?.value || '',
         contacto_emergencia_nombre: document.getElementById('pf_contacto_nombre')?.value || '',
         contacto_emergencia_telefono: document.getElementById('pf_contacto_telefono')?.value || '',
+        pasaporte: document.getElementById('pf_pasaporte')?.value || '',
+        fecha_nacimiento_dia: document.getElementById('pf_fecha_nacimiento_dia')?.value || '',
+        fecha_nacimiento_mes: document.getElementById('pf_fecha_nacimiento_mes')?.value || '',
+        fecha_nacimiento_anio: document.getElementById('pf_fecha_nacimiento_anio')?.value || '',
     };
 
     let res;
@@ -364,7 +400,7 @@ async function submitForm(e) {
 }
 
 function resetForNewEntry() {
-    ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono'].forEach(id => {
+    ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono','pf_pasaporte','pf_fecha_nacimiento_dia','pf_fecha_nacimiento_mes','pf_fecha_nacimiento_anio'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });

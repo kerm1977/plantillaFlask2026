@@ -109,7 +109,11 @@
             grid.innerHTML += `
                 <div class="${colClass}">
                     <div class="mes-card shadow">
-                        <h2 class="mes-titulo">${mes}</h2>
+                        <h2 class="mes-titulo">
+                            <i class="bi bi-person-walking text-orange me-2" style="font-size:0.85em;"></i>
+                            ${mes}
+                            <span class="badge rounded-pill ms-2" style="background:#ff8c00;color:#fff;font-size:0.55em;vertical-align:middle;">${eventos.length}</span>
+                        </h2>
                         <div class="eventos-lista">
                             ${eventosHTML}
                         </div>

@@ -2,6 +2,7 @@ from flask import jsonify, session, make_response
 from models import Event
 from db import db
 from routes import bp
+from helpers.google_calendar import generate_google_calendar_link_event
 
 
 @bp.route('/api/get_events')
@@ -27,6 +28,9 @@ def get_events():
             precio_val = 0
             
         precio_mostrar = f"{e.moneda or ''}{precio_val}" if precio_val > 0 else "PENDIENTE"
+        
+        # Generar enlace de Google Calendar
+        google_calendar_link = generate_google_calendar_link_event(e)
                 
         output.append({
             "id": e.id,
@@ -41,7 +45,8 @@ def get_events():
             "fecha": e.fecha_unica if e.dias == 1 else f"{e.fecha_inicio} al {e.fecha_regreso}",
             "solo_chat": e.solo_chat, 
             "capacidad": e.capacidad,
-            "is_sold_out": e.is_sold_out # Mandamos el booleano al frontend
+            "is_sold_out": e.is_sold_out,
+            "google_calendar_link": google_calendar_link
         })
     response = make_response(jsonify(output))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'

@@ -29,8 +29,12 @@
               </div>
             </div>
             {% if p.descripcion %}
-            <p class="small text-muted mb-0" style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ p.descripcion }}</p>
+            <p class="small text-muted mb-2" style="overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ p.descripcion }}</p>
             {% endif %}
+            <a href="{{ p.google_calendar_link }}" target="_blank" class="btn btn-sm rounded-pill px-3 py-1 fw-bold text-white"
+               style="background:#4285F4;border:none;" onclick="event.stopPropagation()">
+              <i class="bi bi-google me-1"></i>Agregar a G.Calendar
+            </a>
           </div>
         </div>
       </a>

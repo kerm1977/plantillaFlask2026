@@ -28,22 +28,29 @@ def rifa_detalle(raffle_id):
     if not rifa.is_active:
         flash('Esta rifa no está activa', 'warning')
         return redirect(url_for('main.list_rifas'))
-    selections = RaffleSelection.query.filter_by(raffle_id=raffle_id, is_canceled=False).all()
-    selected_numbers = [s.number for s in selections]
-    grouped_selections = {}
+    selections = RaffleSelection.query.filter_by(raffle_id=raffle_id).all()
+    selected_numbers = [s.number for s in selections if not s.is_canceled]
+    grouped = {}
     for s in selections:
         key = s.customer_phone
-        if key not in grouped_selections:
+        if key not in grouped:
             # Ocultar solo el contenido entre paréntesis (cedula)
             display_name = s.customer_name
             if display_name:
                 import re
                 # Eliminar todo lo que esté entre paréntesis
                 display_name = re.sub(r'\([^)]*\)', '', display_name).strip()
-            grouped_selections[key] = {'name': display_name, 'phone': s.customer_phone,
-                                        'numbers': [], 'total': 0, 'is_paid': s.is_paid, 'is_canceled': False}
-        grouped_selections[key]['numbers'].append(s.number)
-        grouped_selections[key]['total'] += rifa.price
+            grouped[key] = {'name': display_name, 'phone': s.customer_phone, 'items': []}
+        grouped[key]['items'].append(s)
+    grouped_selections = {}
+    for key, g in grouped.items():
+        numbers = [s.number for s in g['items']]
+        total = sum(rifa.price for s in g['items'] if not s.is_canceled)
+        is_paid = all(s.is_paid for s in g['items'])
+        is_canceled = any(s.is_canceled for s in g['items'])
+        grouped_selections[key] = {'name': g['name'], 'phone': g['phone'],
+                                   'numbers': numbers, 'total': total,
+                                   'is_paid': is_paid, 'is_canceled': is_canceled}
     available_numbers = [f"{i:02d}" for i in range(100) if f"{i:02d}" not in selected_numbers]
     try:
         winners = json.loads(rifa.winning_numbers) if rifa.winning_numbers else []

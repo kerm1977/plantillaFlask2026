@@ -68,6 +68,8 @@ def api_create_form():
         name=name, slug=_unique_slug(name),
         form_type=data.get('form_type', 'registro'),
         allow_edit=data.get('allow_edit', False),
+        has_reservation_numbers=data.get('has_reservation_numbers', False),
+        reservation_numbers=data.get('reservation_numbers', ''),
         show_nombre=data.get('show_nombre', True),
         show_cedula=data.get('show_cedula', False),
         show_fecha=data.get('show_fecha', False),
@@ -91,10 +93,13 @@ def api_get_form(form_id):
     return jsonify({
         'id': form.id, 'name': form.name, 'slug': form.slug,
         'form_type': form.form_type, 'is_active': form.is_active,
-        'allow_edit': form.allow_edit, 'show_nombre': form.show_nombre,
+        'allow_edit': form.allow_edit, 'has_reservation_numbers': form.has_reservation_numbers,
+        'reservation_numbers': form.reservation_numbers,
+        'show_nombre': form.show_nombre,
         'show_cedula': form.show_cedula, 'show_fecha': form.show_fecha,
         'show_email': form.show_email, 'show_edad': form.show_edad,
         'show_telefono': form.show_telefono, 'show_ficha_medica': form.show_ficha_medica,
+        'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses)
     })
@@ -113,6 +118,8 @@ def api_update_form(form_id):
     form.form_type    = data.get('form_type', form.form_type)
     form.is_active    = data.get('is_active', form.is_active)
     form.allow_edit   = data.get('allow_edit', form.allow_edit)
+    form.has_reservation_numbers = data.get('has_reservation_numbers', form.has_reservation_numbers)
+    form.reservation_numbers = data.get('reservation_numbers', form.reservation_numbers)
     form.show_nombre  = data.get('show_nombre', form.show_nombre)
     form.show_cedula  = data.get('show_cedula', form.show_cedula)
     form.show_fecha   = data.get('show_fecha', form.show_fecha)
@@ -120,6 +127,8 @@ def api_update_form(form_id):
     form.show_edad    = data.get('show_edad', form.show_edad)
     form.show_telefono= data.get('show_telefono', form.show_telefono)
     form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
+    form.show_pasaporte = data.get('show_pasaporte', form.show_pasaporte)
+    form.show_fecha_nacimiento = data.get('show_fecha_nacimiento', form.show_fecha_nacimiento)
     db.session.commit()
     return jsonify({'ok': True})
 

@@ -14,19 +14,23 @@ async function togglePayment(phone) {
                 btn.className = 'btn btn-sm rounded-pill me-1 btn-success';
                 btn.innerHTML = '<i class="bi bi-cash-stack"></i>';
                 btn.title = 'Marcar como no pagado';
-                const stamp = card.querySelector('.position-absolute');
-                if (stamp) stamp.remove();
+                // Mostrar sello PAGADO y quitar cancelado si existiera
+                const cancelado = card.querySelector('.cancelado-stamp');
+                if (cancelado) cancelado.remove();
+                const oldPagado = card.querySelector('.pagado-stamp');
+                if (oldPagado) oldPagado.remove();
+                const stamp = document.createElement('div');
+                stamp.className = 'position-absolute top-50 start-50 translate-middle pagado-stamp';
+                stamp.style.cssText = 'z-index:10;transform:translate(-50%,-50%) rotate(-15deg);pointer-events:none;';
+                stamp.innerHTML = '<span class="badge rounded-pill" style="font-size:1.5rem;padding:0.5rem 1rem;background:rgba(40,167,69,0.15);color:#28a745;border:3px solid #28a745;font-weight:800;letter-spacing:2px;">PAGADO</span>';
+                card.appendChild(stamp);
             } else {
                 btn.className = 'btn btn-sm rounded-pill me-1 btn-outline-secondary';
                 btn.innerHTML = '<i class="bi bi-cash"></i>';
                 btn.title = 'Marcar como pagado';
-                if (!card.querySelector('.position-absolute')) {
-                    const stamp = document.createElement('div');
-                    stamp.className = 'position-absolute top-50 start-50 translate-middle';
-                    stamp.style.cssText = 'z-index:10;transform:translate(-50%,-50%) rotate(-15deg);pointer-events:none;';
-                    stamp.innerHTML = '<span class="badge rounded-pill" style="font-size:1.5rem;padding:0.5rem 1rem;background:rgba(220,53,69,0.15);color:#dc3545;border:3px solid #dc3545;font-weight:800;letter-spacing:2px;">CANCELADO</span>';
-                    card.appendChild(stamp);
-                }
+                // Quitar sello PAGADO, sin mostrar cancelado
+                const pagado = card.querySelector('.pagado-stamp');
+                if (pagado) pagado.remove();
             }
         } else {
             alert(data.error || 'Error al actualizar estado de pago');

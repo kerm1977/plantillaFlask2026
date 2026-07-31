@@ -105,6 +105,66 @@ def _migrate_forms_ficha_medica():
         print(f"[Migration] Error en _migrate_forms_ficha_medica: {e}")
 
 
+def _migrate_forms_pasaporte_fecha_nacimiento():
+    """Agrega columnas de pasaporte y fecha de nacimiento a las tablas form y form_response."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "show_pasaporte" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_pasaporte BOOLEAN DEFAULT 0")
+        if "show_fecha_nacimiento" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_fecha_nacimiento BOOLEAN DEFAULT 0")
+
+        cursor.execute("PRAGMA table_info(form_response)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        migrations = [
+            ("pasaporte",               "VARCHAR(50)"),
+            ("fecha_nacimiento_dia",    "INTEGER"),
+            ("fecha_nacimiento_mes",    "INTEGER"),
+            ("fecha_nacimiento_anio",   "INTEGER"),
+        ]
+        for col, definition in migrations:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE form_response ADD COLUMN {col} {definition}")
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_forms_pasaporte_fecha_nacimiento: {e}")
+
+
+def _migrate_hiker_pasaporte():
+    """Agrega columna pasaporte a la tabla hiker."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(hiker)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "pasaporte" not in existing_cols:
+            cursor.execute("ALTER TABLE hiker ADD COLUMN pasaporte VARCHAR(50)")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_hiker_pasaporte: {e}")
+
+
+def _migrate_form_response_reservation_number():
+    """Agrega columna reservation_number a la tabla form_response."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form_response)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "reservation_number" not in existing_cols:
+            cursor.execute("ALTER TABLE form_response ADD COLUMN reservation_number VARCHAR(100)")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_form_response_reservation_number: {e}")
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -132,6 +192,12 @@ def create_app():
         _migrate_publicacion()
         # Migración: ficha médica en formularios
         _migrate_forms_ficha_medica()
+        # Migración: pasaporte y fecha de nacimiento en formularios
+        _migrate_forms_pasaporte_fecha_nacimiento()
+        # Migración: pasaporte en hiker
+        _migrate_hiker_pasaporte()
+        # Migración: reservation_number en form_response
+        _migrate_form_response_reservation_number()
         
         # Inyecta automáticamente los superusuarios
         inject_superusers()
