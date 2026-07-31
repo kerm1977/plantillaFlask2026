@@ -8,7 +8,7 @@ cd ~/plantillaFlask2026 || { echo "[!] No se encontro ~/plantillaFlask2026"; exi
 command -v termux-wake-lock >/dev/null && termux-wake-lock
 
 # Instalar herramientas basicas si faltan
-for pkg in python git procps tmux; do
+for pkg in python git procps tmux wget; do
     if ! command -v $pkg >/dev/null 2>&1; then
         echo "[*] Instalando $pkg..."
         pkg install -y $pkg
@@ -33,6 +33,13 @@ pip install -r requirements.txt
 echo "[*] Iniciando Flask en segundo plano..."
 tmux kill-session -t tribu_app 2>/dev/null || true
 tmux new -d -s tribu_app "cd ~/plantillaFlask2026 && python app.py"
+
+echo "[*] Verificando cloudflared..."
+if [ ! -f ./cloudflared ]; then
+    echo "[*] Descargando cloudflared..."
+    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64 -O cloudflared
+    chmod +x cloudflared
+fi
 
 echo "[*] Iniciando Cloudflare Tunnel..."
 if [ -f ~/.cloudflared_token ]; then
