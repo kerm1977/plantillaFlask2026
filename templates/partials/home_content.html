@@ -77,14 +77,6 @@
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#divisasModal" title="Calculadora de Divisas">
                         <i class="bi bi-currency-exchange fs-5"></i>
                     </button>
-                    {% if session.get('role') == 'Superusuario' %}
-                    <a href="/formularios" class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" title="Formularios">
-                        <i class="bi bi-ui-checks-grid fs-5"></i>
-                    </a>
-                    <a href="/rifas" class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" title="Rifas">
-                        <i class="bi bi-ticket-perforated fs-5"></i>
-                    </a>
-                    {% endif %}
                 </div>
 
                 <div class="d-flex align-items-center flex-wrap gap-2 justify-content-end">
