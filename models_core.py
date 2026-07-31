@@ -59,6 +59,14 @@ class Event(db.Model):
     organicmaps_url = db.Column(db.String(500))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+class EventDateChange(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
+    fecha_anterior = db.Column(db.String(50))
+    fecha_nueva = db.Column(db.String(50))
+    usuario = db.Column(db.String(200))
+    cambiado_at = db.Column(db.DateTime, default=datetime.utcnow)
+
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     image = db.Column(db.String(255))

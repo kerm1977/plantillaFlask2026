@@ -21,25 +21,17 @@
                    oninput="filtrarEventos()" style="max-width:400px;">
         </div>
 
-        <!-- Tabla -->
+        <!-- Calendario de actividad -->
+        <div id="calendarioActividades" class="mb-4"></div>
+
+        <!-- Tarjetas responsivas -->
         <div id="sinEventos" class="d-none text-center py-5 text-muted">
             <i class="bi bi-calendar-x fs-1 d-block mb-2 text-orange opacity-50"></i>
             No hay caminatas registradas aún.
         </div>
 
-        <div class="rounded-3 overflow-hidden" id="contenedorTabla" style="border: 1px solid #e0e0e0;">
-            <table class="table table-hover mb-0 align-middle" id="tablaEventos">
-                <thead style="background:#fff7ee; border-bottom:2px solid #ffe0b2;">
-                    <tr>
-                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">#</th>
-                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Caminata</th>
-                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Fecha actual</th>
-                        <th class="py-3 px-3 text-orange fw-semibold" style="font-size:.85rem;">Nueva fecha</th>
-                        <th class="py-3 px-3 text-orange fw-semibold text-center" style="font-size:.85rem;">Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyEventos"></tbody>
-            </table>
+        <div id="contenedorTabla">
+            <div class="row g-3" id="contenedorCards"></div>
         </div>
 
         <!-- Toast de confirmación -->
@@ -64,19 +56,126 @@
 .btn-outline-orange{ border:1.5px solid #ff8c00; color:#ff8c00; background:transparent; }
 .btn-outline-orange:hover{ background:#ff8c00; color:#fff; }
 .text-orange       { color:#ff8c00 !important; }
-.fila-editando td  { background:#fff7ee !important; }
+.fila-editando     { background:#fff7ee !important; }
+.fila-editando .card { background:#fff7ee !important; }
 .input-fecha       { border:1.5px solid #ff8c00; border-radius:8px; padding:4px 10px; font-size:.9rem; }
 .input-fecha:focus { outline:none; box-shadow:0 0 0 3px rgba(255,140,0,.2); }
 .badge-fecha       { background:rgba(255,140,0,.12); color:#c85a00;
                      border-radius:20px; padding:4px 12px; font-size:.82rem; font-weight:600; }
+.calendario-grid   { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.calendario-dia    { padding: 10px 0; border-radius: 10px; font-size: .9rem; background: rgba(0,0,0,.04); color: #333; cursor: default; transition: all .2s; }
+.calendario-dia-header { font-weight: 700; font-size: .75rem; color: #ff8c00; padding: 6px 0; text-transform: uppercase; }
+.con-actividad     { background: #ff8c00 !important; color: #fff !important; font-weight: 700; }
 </style>
 
 <script>
 const eventosDB = {{ eventos | tojson | safe }};
+const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let calendarioActual = new Date();
+let idBorrar = null;
+
+function fechasConActividad() {
+    return new Set(eventosDB.map(ev => ev.fecha_completa).filter(f => f));
+}
+
+function renderCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const anio = calendarioActual.getFullYear();
+    const mes = calendarioActual.getMonth();
+    const primerDia = new Date(anio, mes, 1).getDay();
+    const diasMes = new Date(anio, mes + 1, 0).getDate();
+    const fechas = fechasConActividad();
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="cambiarMes(-1)"><i class="bi bi-chevron-left"></i></button>
+            <h5 class="fw-bold text-orange mb-0">${nombresMes[mes]} ${anio}</h5>
+            <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="cambiarMes(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="calendario-grid">
+            <div class="calendario-dia-header">Dom</div>
+            <div class="calendario-dia-header">Lun</div>
+            <div class="calendario-dia-header">Mar</div>
+            <div class="calendario-dia-header">Mié</div>
+            <div class="calendario-dia-header">Jue</div>
+            <div class="calendario-dia-header">Vie</div>
+            <div class="calendario-dia-header">Sáb</div>
+    `;
+    for (let i = 0; i < primerDia; i++) html += '<div></div>';
+    for (let d = 1; d <= diasMes; d++) {
+        const mesStr = String(mes + 1).padStart(2, '0');
+        const diaStr = String(d).padStart(2, '0');
+        const fechaStr = `${anio}-${mesStr}-${diaStr}`;
+        const clases = fechas.has(fechaStr) ? 'calendario-dia con-actividad' : 'calendario-dia';
+        html += `<a href="/eventos?fecha=${fechaStr}" class="${clases}" style="color:inherit;text-decoration:none;">${d}</a>`;
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+}
+
+function cambiarMes(delta) {
+    calendarioActual.setMonth(calendarioActual.getMonth() + delta);
+    renderCalendario();
+}
+
+function pedirBorrarFecha(id, nombre) {
+    idBorrar = id;
+    document.getElementById('borrarNombre').textContent = nombre;
+    new bootstrap.Modal(document.getElementById('confirmBorrarModal')).show();
+}
+
+async function confirmarBorrarFecha() {
+    if (!idBorrar) return;
+    const btn = document.getElementById('btnConfirmarBorrar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando…';
+    try {
+        const res = await fetch(`/api/eventos/${idBorrar}/borrar-fecha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.ok) {
+            const ev = eventosDB.find(e => e.id === idBorrar);
+            const fechaAnterior = ev ? ev.fecha_completa : '';
+            if (ev) {
+                ev.fecha_completa = '';
+                ev.fecha_anterior = fechaAnterior;
+                ev.historial_fechas = ev.historial_fechas || [];
+                ev.historial_fechas.unshift({
+                    fecha: '',
+                    cambiado_at: new Date().toLocaleString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                });
+            }
+            document.getElementById(`badge-${idBorrar}`).textContent = '—';
+            const antEl = document.getElementById(`anterior-${idBorrar}`);
+            if (antEl && fechaAnterior) {
+                const antFmt = new Date(fechaAnterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+                antEl.textContent = `Fecha anterior: ${antFmt}`;
+                antEl.classList.remove('d-none');
+            }
+            renderHistorial(idBorrar);
+            document.getElementById(`input-${idBorrar}`).value = '';
+            document.getElementById(`fila-${idBorrar}`).classList.remove('fila-editando');
+            document.getElementById(`btn-${idBorrar}`).classList.add('d-none');
+            document.getElementById(`listo-${idBorrar}`).textContent = '✓ Fecha borrada';
+            document.getElementById(`listo-${idBorrar}`).className = 'text-success small fw-semibold';
+            renderCalendario();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmBorrarModal'));
+            if (modal) modal.hide();
+        } else {
+            alert(data.error || 'Error al borrar la fecha.');
+        }
+    } catch (err) {
+        alert('Error de conexión.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Sí, borrar';
+    }
+}
 
 function renderTabla(lista) {
-    const tbody = document.getElementById('tbodyEventos');
-    tbody.innerHTML = '';
+    const grid = document.getElementById('contenedorCards');
+    grid.innerHTML = '';
 
     if (lista.length === 0) {
         document.getElementById('sinEventos').classList.remove('d-none');
@@ -91,31 +190,45 @@ function renderTabla(lista) {
             ? new Date(ev.fecha_completa + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'})
             : '—';
 
-        const tr = document.createElement('tr');
-        tr.id = `fila-${ev.id}`;
-        tr.innerHTML = `
-            <td class="px-3 text-muted" style="font-size:.85rem;">${idx + 1}</td>
-            <td class="px-3 fw-semibold text-dark" style="font-size:.9rem;">
-                <a href="/detalles_evento/${ev.id}" class="text-dark text-decoration-none hover-orange">${ev.nombre}</a>
-            </td>
-            <td class="px-3">
-                <span class="badge-fecha" id="badge-${ev.id}">${fechaFormateada}</span>
-            </td>
-            <td class="px-3">
-                <input type="date" class="input-fecha" id="input-${ev.id}"
-                       value="${ev.fecha_completa || ''}"
-                       onchange="marcarCambio(${ev.id})" />
-            </td>
-            <td class="px-3 text-center">
-                <button class="btn btn-outline-orange btn-sm rounded-pill px-3 d-none"
-                        id="btn-${ev.id}"
-                        onclick="guardarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
-                    <i class="bi bi-check2 me-1"></i>Guardar
-                </button>
-                <span class="text-muted small" id="listo-${ev.id}">—</span>
-            </td>
+        const col = document.createElement('div');
+        col.className = 'col-12 col-md-6 col-lg-4';
+        col.innerHTML = `
+            <div class="card h-100 border-0 rounded-4 shadow-sm" id="fila-${ev.id}" style="border:1px solid #e0e0e0;">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="text-muted small">#${idx + 1}</span>
+                        <span class="badge-fecha" id="badge-${ev.id}">${fechaFormateada}</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-3 flex-grow-1" style="font-size:.95rem;">
+                        <a href="/detalles_evento/${ev.id}" class="text-dark text-decoration-none hover-orange">${ev.nombre}</a>
+                    </h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Nueva fecha</label>
+                        <input type="date" class="input-fecha w-100" id="input-${ev.id}"
+                               value="${ev.fecha_completa || ''}"
+                               onchange="marcarCambio(${ev.id})" />
+                        <small class="text-muted d-block mt-1 ${(ev.fecha_anterior || '') ? '' : 'd-none'}" style="font-size:.75rem;" id="anterior-${ev.id}">Fecha anterior: ${ev.fecha_anterior ? new Date(ev.fecha_anterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'}) : '—'}</small>
+                        <div class="mt-2 ${(ev.historial_fechas || []).length ? '' : 'd-none'}" id="historial-${ev.id}" style="font-size:.75rem;"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-auto gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-orange btn-sm rounded-pill px-3 d-none"
+                                    id="btn-${ev.id}"
+                                    onclick="guardarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
+                                <i class="bi bi-check2 me-1"></i>Guardar
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                    onclick="pedirBorrarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
+                                <i class="bi bi-trash me-1"></i>Borrar
+                            </button>
+                        </div>
+                        <span class="text-muted small" id="listo-${ev.id}">—</span>
+                    </div>
+                </div>
+            </div>
         `;
-        tbody.appendChild(tr);
+        grid.appendChild(col);
+        renderHistorial(ev.id);
     });
 }
 
@@ -123,6 +236,24 @@ function marcarCambio(id) {
     document.getElementById(`fila-${id}`).classList.add('fila-editando');
     document.getElementById(`btn-${id}`).classList.remove('d-none');
     document.getElementById(`listo-${id}`).classList.add('d-none');
+}
+
+function renderHistorial(id) {
+    const ev = eventosDB.find(e => e.id === id);
+    const cont = document.getElementById(`historial-${id}`);
+    if (!cont || !ev) return;
+    const historial = ev.historial_fechas || [];
+    if (historial.length > 0) {
+        cont.classList.remove('d-none');
+        const items = historial.map(h => {
+            const f = h.fecha ? new Date(h.fecha + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+            return `<li class="d-flex justify-content-between align-items-center mb-1"><span class="text-muted" style="font-size:.7rem;">${h.cambiado_at}</span><span class="fw-semibold">${f}</span></li>`;
+        }).join('');
+        cont.innerHTML = `<small class="fw-bold text-orange d-block mb-1" style="font-size:.8rem;">Fechas asignadas:</small><ul class="list-unstyled mb-0">${items}</ul>`;
+    } else {
+        cont.classList.add('d-none');
+        cont.innerHTML = '';
+    }
 }
 
 async function guardarFecha(id, nombre) {
@@ -153,9 +284,28 @@ async function guardarFecha(id, nombre) {
             document.getElementById(`listo-${id}`).classList.remove('d-none');
             document.getElementById(`listo-${id}`).className = 'text-success small fw-semibold';
 
-            // Actualizar datos locales
+            // Actualizar referencia visual de fecha anterior
             const ev = eventosDB.find(e => e.id === id);
-            if (ev) ev.fecha_completa = nuevaFecha;
+            const fechaAnterior = ev ? ev.fecha_completa : '';
+            if (ev) {
+                ev.fecha_completa = nuevaFecha;
+                ev.fecha_anterior = fechaAnterior;
+                ev.historial_fechas = ev.historial_fechas || [];
+                ev.historial_fechas.unshift({
+                    fecha: nuevaFecha,
+                    cambiado_at: new Date().toLocaleString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                });
+            }
+            const antEl = document.getElementById(`anterior-${id}`);
+            if (antEl && fechaAnterior) {
+                const antFmt = new Date(fechaAnterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+                antEl.textContent = `Fecha anterior: ${antFmt}`;
+                antEl.classList.remove('d-none');
+            }
+            renderHistorial(id);
+
+            // Refrescar calendario
+            renderCalendario();
 
             // Mostrar toast
             document.getElementById('toastMsg').textContent = `"${nombre}" → ${fechaFmt}`;
@@ -179,5 +329,25 @@ function filtrarEventos() {
 }
 
 renderTabla(eventosDB);
+renderCalendario();
 </script>
+
+<!-- Modal confirmar borrar fecha -->
+<div class="modal fade" id="confirmBorrarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3 shadow-lg">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold text-dark">¿Borrar fecha?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">¿Estás seguro de eliminar la fecha de <strong id="borrarNombre" class="text-orange"></strong>?</p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill" id="btnConfirmarBorrar" onclick="confirmarBorrarFecha()">Sí, borrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
