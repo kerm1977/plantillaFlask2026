@@ -1,0 +1,168 @@
+============================================================
+ TENER LATRIBU.TOP CORRIENDO DESDE EL CELULAR CON TERMUX
+============================================================
+
+RESUMEN
+---------
+
+Para que https://latribu.top funcione desde tu celular, el celular debe:
+
+1. Tener la app corriendo localmente en el puerto 5050.
+2. Tener un tunel de Cloudflare apuntando ese puerto a internet.
+3. Mantener ambos procesos vivos todo el tiempo.
+
+Esto es igual que en Windows, solo que en Termux los programas son
+.sh en lugar de .bat.
+
+============================================================
+
+1. INSTALAR TERMUX Y DEPENDENCIAS
+----------------------------------
+
+Instala Termux desde F-Droid.
+
+En Termux ejecuta:
+
+    pkg update
+    pkg install python git build-essential libjpeg-turbo libwebp libpng freetype procps
+    pkg install termux-api termux-services
+
+Crea la carpeta de la app:
+
+    cd ~
+    git clone https://github.com/kerm1977/plantillaFlask2026.git
+    cd plantillaFlask2026
+
+Instala dependencias Python:
+
+    pip install -r requirements.txt
+
+Si alguno falla, prueba:
+
+    pip install bcrypt --prefer-binary
+    pip install Pillow --no-cache-dir
+
+2. DESCARGAR CLOUDFLARED
+-------------------------
+
+Descarga el binario de Cloudflare para Android 64 bits:
+
+    cd ~/plantillaFlask2026
+    wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-arm64
+    chmod +x cloudflared-linux-arm64
+    mv cloudflared-linux-arm64 cloudflared
+
+Comprueba que funciona:
+
+    ./cloudflared --version
+
+3. CONFIGURAR EL TOKEN DE CLOUDFLARE
+-------------------------------------
+
+El token es el mismo que ya tienes en Windows en ejecutarR.bat.
+Copialo desde esa linea que empieza con:
+
+    cloudflared.exe tunnel run --token
+
+En Termux crea el archivo con el token:
+
+    echo "PegaAquiTuToken" > ~/.cloudflared_token
+
+ATENCION: este archivo queda oculto en tu celular, nadie del repo lo vera.
+
+4. USAR EL SCRIPT reiniciar_tribu.sh
+-------------------------------------
+
+El script ya esta en el repo. Dale permisos y correlo:
+
+    cd ~/plantillaFlask2026
+    chmod +x reiniciar_tribu.sh
+    ./reiniciar_tribu.sh
+
+Esto hace:
+- Mata el proceso anterior de Flask y cloudflared
+- Limpia cache
+- Hace git pull
+- Levanta Flask en el puerto 5050
+- Levanta el tunel de Cloudflare con tu token
+
+5. VERIFICAR QUE ANDA
+----------------------
+
+En el navegador del celular:
+
+    https://localhost:5050
+
+Desde otro dispositivo o red externa:
+
+    https://latribu.top
+
+Si latribu.top aun apunta al servidor viejo de Windows,
+cambia el DNS en Cloudflare para que apunte al tunel nuevo.
+
+6. MANTENERLO SIEMPRE CORRIENDO
+----------------------------------
+
+Opcion A: tmux (manual pero sencilla)
+
+    pkg install tmux
+    tmux new -s latribu
+    ./reiniciar_tribu.sh
+    # Ctrl+B, luego D para salir sin matar
+
+Para volver:
+
+    tmux attach -t latribu
+
+Opcion B: inicio automatico al encender el celular
+
+Instala Termux:Boot desde F-Droid y ejecútalo una vez.
+
+    pkg install termux-boot
+    mkdir -p ~/.termux/boot
+
+Crea el archivo de arranque:
+
+    cat > ~/.termux/boot/start_latribu.sh << 'EOF'
+    #!/data/data/com.termux/files/usr/bin/sh
+    termux-wake-lock
+    sleep 15
+    cd ~/plantillaFlask2026
+    ./reiniciar_tribu.sh
+    EOF
+
+    chmod +x ~/.termux/boot/start_latribu.sh
+
+Ahora cada vez que reinicies el celular se levanta todo.
+
+7. PARAR O REVIVIR
+-------------------
+
+Ver logs:
+
+    cat flask.log
+    cat cloudflared.log
+
+Detener todo:
+
+    pkill -f "python app.py"
+    pkill -f "cloudflared"
+
+Revivir (reiniciar):
+
+    cd ~/plantillaFlask2026
+    ./reiniciar_tribu.sh
+
+8. NOTAS IMPORTANTES
+---------------------
+
+- Deja Termux sin restricciones de bateria:
+  Android > Aplicaciones > Termux > Bateria > Sin restricciones
+- El certificado local puede marcar advertencia; aceptala.
+- Si latribu.top no carga, verifica en Cloudflare Dashboard
+  que el tunel este activo y el DNS apunte al tunel.
+- Si usas un token nuevo, asegurate de que el tunel en Cloudflare
+  tenga una ruta a http://localhost:5050 y el DNS latribu.top
+  apunte a ese tunel.
+
+============================================================
