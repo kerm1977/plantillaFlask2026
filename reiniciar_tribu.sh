@@ -27,6 +27,9 @@ rm -rf routes/__pycache__
 echo "[*] Actualizando desde GitHub..."
 git pull
 
+echo "[*] Instalando dependencias Python..."
+pip install -r requirements.txt
+
 echo "[*] Iniciando Flask en segundo plano..."
 tmux kill-session -t tribu_app 2>/dev/null || true
 tmux new -d -s tribu_app "cd ~/plantillaFlask2026 && python app.py"
