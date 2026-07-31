@@ -54,7 +54,9 @@ def api_list_forms():
         'show_edad': f.show_edad, 'show_telefono': f.show_telefono,
         'show_ficha_medica': f.show_ficha_medica,
         'created_at': f.created_at.strftime('%d/%m/%Y %H:%M') if f.created_at else '',
-        'fields_count': len(f.fields), 'responses_count': len(f.responses)
+        'fields_count': len(f.fields), 'responses_count': len(f.responses),
+        'has_reservation_numbers': f.has_reservation_numbers,
+        'reservation_numbers': f.reservation_numbers or ''
     } for f in forms])
 
 

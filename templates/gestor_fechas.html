@@ -22,7 +22,16 @@
         </div>
 
         <!-- Calendario de actividad -->
-        <div id="calendarioActividades" class="mb-4"></div>
+        <div id="calendarioWrapper" class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold text-orange mb-0"><i class="bi bi-calendar3 me-2"></i>Calendario de actividad</h5>
+                <button id="btnToggleCalendario" class="btn btn-sm btn-outline-orange rounded-pill" onclick="toggleCalendario()">
+                    <i class="bi bi-chevron-up" id="iconToggleCalendario"></i>
+                    <span id="textToggleCalendario" class="ms-1">Ocultar</span>
+                </button>
+            </div>
+            <div id="calendarioActividades"></div>
+        </div>
 
         <!-- Tarjetas responsivas -->
         <div id="sinEventos" class="d-none text-center py-5 text-muted">
@@ -120,6 +129,28 @@ function renderCalendario() {
 function cambiarMes(delta) {
     calendarioActual.setMonth(calendarioActual.getMonth() + delta);
     renderCalendario();
+}
+
+function toggleCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const icon = document.getElementById('iconToggleCalendario');
+    const text = document.getElementById('textToggleCalendario');
+    const collapsed = cont.classList.toggle('d-none');
+    localStorage.setItem('gestorFechasCalendario', collapsed ? 'collapsed' : 'expanded');
+    icon.className = collapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+    text.textContent = collapsed ? 'Mostrar' : 'Ocultar';
+}
+
+function aplicarEstadoCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const icon = document.getElementById('iconToggleCalendario');
+    const text = document.getElementById('textToggleCalendario');
+    const estado = localStorage.getItem('gestorFechasCalendario');
+    const collapsed = estado === 'collapsed';
+    if (collapsed) cont.classList.add('d-none');
+    else cont.classList.remove('d-none');
+    icon.className = collapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+    text.textContent = collapsed ? 'Mostrar' : 'Ocultar';
 }
 
 function pedirBorrarFecha(id, nombre) {
@@ -335,6 +366,7 @@ function filtrarEventos() {
 
 renderTabla(eventosDB);
 renderCalendario();
+aplicarEstadoCalendario();
 </script>
 
 <!-- Modal confirmar borrar fecha -->
