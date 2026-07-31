@@ -1,0 +1,2 @@
+# Forzar finales de linea LF en shell scripts para Termux
+*.sh text eol=lf

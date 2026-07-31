@@ -1,0 +1,95 @@
+============================================================
+ FAILOVER: QUE LA PC Y EL CELULAR TRABAJEN COMO RESPALDO
+============================================================
+
+IMPORTANTE BASICO
+------------------
+
+El dominio https://latribu.top puede apuntar a UN solo dispositivo a la vez.
+No se puede apuntar a los dos simultaneamente sin un balanceador de carga.
+
+La forma simple y barata es tener ambos listos y cambiar manualmente
+a quien apunta el DNS cuando uno se apaga.
+
+OPCION 1: CAMBIO MANUAL (recomendada)
+----------------------------------------
+
+PC encendida -> usar Cloudflare Tunnel de la PC:
+    ejecutarR.bat (opcion 1) en Windows
+
+PC apagada -> activar el celular:
+    cd ~/plantillaFlask2026
+    ./reiniciar_tribu.sh
+
+Luego entra en la app de Cloudflare o en https://dash.cloudflare.com,
+busca el registro DNS de latribu.top y cambialo al tunel del celular.
+
+OPCION 2: DOS TUNELES Y CAMBIAR TOKEN
+--------------------------------------
+
+Si tienes dos tuneles (uno en PC y otro en celular):
+- Guarda el token del celular en ~/.cloudflared_token
+- Guarda el token de la PC en el ejecutarR.bat
+
+Solo corre UNO a la vez. El que este corriendo sera el que responde.
+
+OPCION 3: AUTOMATICO CON PING (avanzado)
+-----------------------------------------
+
+Para que el celular detecte que la PC se apago y tome el control:
+
+1. En la PC crea un archivo accesible, por ejemplo un ping constante
+   o un webhook que responda.
+
+2. En el celular corre un cron o un while cada 30 segundos:
+
+    while true; do
+        if ! ping -c 1 -W 3 IP_DE_TU_PC; then
+            # PC caida, activar tunel del celular
+            cd ~/plantillaFlask2026
+            ./reiniciar_tribu.sh
+        fi
+        sleep 30
+    done
+
+Reemplaza IP_DE_TU_PC por la IP local de tu computadora en la red Wi-Fi.
+
+Este metodo no cambia automaticamente el DNS, pero levanta el servidor
+en el celular para que tu lo actives manualmente en Cloudflare.
+
+OPCION 4: CAMBIO DE DNS AUTOMATICO (mas complejo)
+--------------------------------------------------
+
+Requiere un token de la API de Cloudflare y un script. El script detecta
+si la PC cayo y actualiza el registro DNS A/CNAME de latribu.top.
+
+Pasos basicos:
+- Crea un token de API en Cloudflare con permiso de editar DNS.
+- Guardalo en ~/.cloudflare_api_token en el celular.
+- Corre un script como este cada 60 segundos:
+
+    TOKEN=$(cat ~/.cloudflare_api_token)
+    ZONE_ID=TU_ZONE_ID
+    RECORD_ID=TU_RECORD_ID
+    IP_CELULAR=$(ip route get 1.1.1.1 | head -1 | awk '{print $7}')
+
+    if ! ping -c 1 -W 3 IP_DE_TU_PC; then
+        curl -X PUT "https://api.cloudflare.com/client/v4/zones/$ZONE_ID/dns_records/$RECORD_ID" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "{\"type\":\"A\",\"name\":\"latribu.top\",\"content\":\"$IP_CELULAR\",\"ttl\":120}"
+    fi
+
+Este es un ejemplo basico. Configurar todo correctamente lleva tiempo.
+
+RECOMENDACION PRACTICA
+-----------------------
+
+Para empezar, usa la OPCION 1:
+- Apaga la PC.
+- Corre ./reiniciar_tribu.sh en el celular.
+- Si latribu.top no responde, abre Cloudflare y apunta el DNS al tunel del celular.
+
+Con el tiempo, si ves que lo necesitas seguido, podemos automatizarlo mas.
+
+============================================================
