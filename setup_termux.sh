@@ -38,13 +38,8 @@ pip install -r requirements.txt
 
 echo "[*] Verificando token de Cloudflare..."
 if [ ! -f ~/.cloudflared_token ]; then
-    echo ""
-    echo "[!] ATENCION: falta el token de Cloudflare."
-    echo "    Crea el archivo con el token de ejecutarR.bat:"
-    echo "    echo \"PegaAquiElToken\" > ~/.cloudflared_token"
-    echo ""
-    echo "    Luego vuelve a correr: ./setup_termux.sh"
-    exit 1
+    echo "[*] Creando ~/.cloudflared_token..."
+    echo "eyJhIjoiZmZhMDJmYjFkYjUwMzBhMGYzMjBlYjAxMTIxYzJjZmEiLCJ0IjoiZTY3YjVhYWQtMTVjZi00N2M4LTk3YzctZjQzNTlhMDIwNzExIiwicyI6Ik56WmlNRFpqWW1NdFkyWTRZaTAwTVdNMExXRXpPRE10WVdFeVltVTNZbUpoTkRjdyJ9" > ~/.cloudflared_token
 fi
 
 echo "[*] Iniciando La Tribu..."
