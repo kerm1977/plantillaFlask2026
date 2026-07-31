@@ -1,0 +1,137 @@
+============================================================
+ GUÍA: CORRER LA TRIBU COMO SERVIDOR EN ANDROID CON TERMUX
+============================================================
+
+1. INSTALAR TERMUX Y PAQUETES BÁSICOS
+--------------------------------------
+
+Instala Termux desde F-Droid (la de Play Store ya no se actualiza).
+
+Abre Termux y ejecuta:
+
+    pkg update
+    pkg install python git build-essential libjpeg-turbo libwebp libpng freetype
+
+2. DESCARGAR EL PROYECTO
+------------------------
+
+    cd ~
+    git clone https://github.com/kerm1977/plantillaFlask2026.git
+    cd plantillaFlask2026
+
+3. INSTALAR DEPENDENCIAS DE PYTHON
+-----------------------------------
+
+    pip install -r requirements.txt
+
+Si falla alguno, prueba por separado:
+
+    pip install bcrypt --prefer-binary
+    pip install Pillow --no-cache-dir
+
+Si sigue fallando Pillow, instala también:
+
+    pkg install libtiff libwebp libpng freetype
+    pip install Pillow --no-cache-dir
+
+4. PROBAR QUE ARRANCA
+----------------------
+
+    cd ~/plantillaFlask2026
+    python app.py
+
+Si ves algo como:
+
+    Running on https://0.0.0.0:5050
+
+El servidor ya está levantado. En el navegador del celular entra a:
+
+    https://localhost:5050
+
+Para detenerlo presiona Ctrl + C.
+
+5. MANTENERLO CORRIENDO CON TMUX
+---------------------------------
+
+Para que no se cierre al minimizar Termux, usa tmux:
+
+    pkg install tmux
+    tmux new -s latribu
+
+Dentro de tmux corre:
+
+    cd ~/plantillaFlask2026
+    python app.py
+
+Para salir SIN detener el servidor, presiona:
+
+    Ctrl + B, luego D
+
+Para volver a la sesión:
+
+    tmux attach -t latribu
+
+Para ver las sesiones:
+
+    tmux ls
+
+Para matar la sesión:
+
+    tmux kill-session -t latribu
+
+6. REVIVIR AUTOMÁTICAMENTE AL REINICIAR EL CELULAR
+---------------------------------------------------
+
+Instala Termux:Boot desde F-Droid y ejecútalo una vez.
+
+En Termux:
+
+    pkg install termux-boot
+    mkdir -p ~/.termux/boot
+
+Crea el script de arranque automático:
+
+    cat > ~/.termux/boot/start_latribu.sh << 'EOF'
+    #!/data/data/com.termux/files/usr/bin/sh
+    termux-wake-lock
+    sleep 10
+    tmux new -d -s latribu "cd ~/plantillaFlask2026 && python app.py"
+    EOF
+
+Dale permisos:
+
+    chmod +x ~/.termux/boot/start_latribu.sh
+
+Ahora cada vez que enciendas el celular el servidor se levantará solo.
+
+7. ACCEDER DESDE OTROS DISPOSITIVOS
+------------------------------------
+
+En la misma red Wi-Fi, otros dispositivos entran a:
+
+    https://<IP-DEL-CELULAR>:5050
+
+Para ver la IP del celular:
+
+    ifconfig
+
+Busca la IP que empieza con 192.168.x.x o 10.x.x.x.
+
+8. NOTAS IMPORTANTES
+---------------------
+
+- El navegador puede marcar el sitio como inseguro porque usa certificados locales. Acepta y continúa.
+- Si no hay Wi-Fi, desde el mismo celular funciona con https://localhost:5050.
+- Termux debe tener permiso de batería sin restricciones para no matar el proceso en segundo plano (configuración de Android > Aplicaciones > Termux > Batería > Sin restricciones).
+- Para detener el servidor manualmente: entra a tmux y presiona Ctrl + C.
+
+9. COMANDOS RÁPIDOS DE REFERENCIA
+----------------------------------
+
+    tmux attach -t latribu          # Ver el servidor
+    tmux kill-session -t latribu    # Detener el servidor
+    python app.py                   # Levantar el servidor manualmente
+    ifconfig                        # Ver IP del celular
+    git pull                        # Actualizar la app desde GitHub
+
+============================================================
