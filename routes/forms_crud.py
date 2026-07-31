@@ -2,6 +2,7 @@ import re
 import json
 from flask import request, jsonify, session, render_template, redirect, url_for
 from models import Form, FormField, FormResponse
+from models_forms import ReservationConfig
 from db import db
 from routes import bp
 
@@ -46,6 +47,8 @@ def api_list_forms():
     if session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     forms = Form.query.order_by(Form.created_at.desc()).all()
+    global_config = ReservationConfig.query.first()
+    global_reservation_numbers = (global_config.reservation_numbers or '').strip() if global_config else ''
     return jsonify([{
         'id': f.id, 'name': f.name, 'slug': f.slug, 'form_type': f.form_type,
         'is_active': f.is_active, 'allow_edit': f.allow_edit,
@@ -55,8 +58,7 @@ def api_list_forms():
         'show_ficha_medica': f.show_ficha_medica,
         'created_at': f.created_at.strftime('%d/%m/%Y %H:%M') if f.created_at else '',
         'fields_count': len(f.fields), 'responses_count': len(f.responses),
-        'has_reservation_numbers': f.has_reservation_numbers,
-        'reservation_numbers': f.reservation_numbers or ''
+        'reservation_numbers': (f.reservation_numbers or global_reservation_numbers).strip()
     } for f in forms])
 
 
