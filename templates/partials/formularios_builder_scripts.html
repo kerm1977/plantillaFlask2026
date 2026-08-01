@@ -1,4 +1,11 @@
 <script>
+function onFormTypeChange() {
+    const formType = document.getElementById('formType').value;
+    const allowEdit = document.getElementById('formAllowEdit');
+    if (formType === 'cotizador') {
+        allowEdit.value = 'true';
+    }
+}
 function addField(type) {
     fields.push({field_type: type, label: '', options: [], correct_answer: ''});
     renderFields(); updatePreview();
@@ -76,7 +83,11 @@ function updatePreview() {
     const formType = document.getElementById('formType').value;
     const allowEdit= document.getElementById('formAllowEdit').value === 'true';
     let html = `<h4 class="fw-bold mb-1" style="color:#ff8c00;">${formName}</h4>`;
-    html += `<span class="badge ${formType==='examen'?'bg-warning text-dark':'bg-info'} rounded-pill mb-3">${formType==='examen'?'Examen':'Registro'}</span>`;
+    let badgeClass = 'bg-info';
+    let badgeText = 'Registro';
+    if (formType === 'examen') { badgeClass = 'bg-warning text-dark'; badgeText = 'Examen'; }
+    else if (formType === 'cotizador') { badgeClass = 'bg-success'; badgeText = 'Cotizador'; }
+    html += `<span class="badge ${badgeClass} rounded-pill mb-3">${badgeText}</span>`;
     if (!allowEdit) html += `<div class="alert alert-warning py-1 small mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Una vez enviada la respuesta <strong>no podrá modificarse</strong>.</div>`;
     if (document.getElementById('trigNombre').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Nombre Completo <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" disabled placeholder="Juan Pérez"></div>`;
     if (document.getElementById('trigCedula').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Cédula</label><input type="text" class="form-control form-control-sm" disabled placeholder="1-2345-6789"></div>`;
