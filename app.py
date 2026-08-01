@@ -165,6 +165,31 @@ def _migrate_form_response_reservation_number():
         print(f"[Migration] Error en _migrate_form_response_reservation_number: {e}")
 
 
+def _migrate_cotizador_fields():
+    """Agrega columnas específicas para cotizador a la tabla form_response."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form_response)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        migrations = [
+            ("cotizador_lugar", "VARCHAR(500)"),
+            ("cotizador_maps_ida", "VARCHAR(1000)"),
+            ("cotizador_maps_regreso", "VARCHAR(1000)"),
+            ("cotizador_fecha", "VARCHAR(20)"),
+            ("cotizador_hora_salida", "VARCHAR(10)"),
+            ("cotizador_moneda", "VARCHAR(20) DEFAULT 'colones'"),
+            ("cotizador_precio", "FLOAT"),
+        ]
+        for col, definition in migrations:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE form_response ADD COLUMN {col} {definition}")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_cotizador_fields: {e}")
+
+
 def _migrate_event_date_changes():
     """Crea tabla event_date_change si no existe."""
     try:
@@ -226,6 +251,8 @@ def create_app():
         _migrate_hiker_pasaporte()
         # Migración: reservation_number en form_response
         _migrate_form_response_reservation_number()
+        # Migración: campos específicos para cotizador
+        _migrate_cotizador_fields()
         # Migración: historial de cambios de fechas de eventos
         _migrate_event_date_changes()
         

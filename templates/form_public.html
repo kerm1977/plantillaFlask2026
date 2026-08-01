@@ -5,8 +5,8 @@
     <div class="card glass-panel border-0 shadow-sm">
         <div class="card-body">
             <h3 class="fw-bold text-orange mb-1">{{ form.name }}</h3>
-            <span class="badge {{ 'bg-warning text-dark' if form.form_type == 'examen' else 'bg-info' }} rounded-pill mb-3">
-                {{ 'Examen' if form.form_type == 'examen' else 'Registro' }}
+            <span class="badge {% if form.form_type == 'examen' %}bg-warning text-dark{% elif form.form_type == 'cotizador' %}bg-success{% else %}bg-info{% endif %} rounded-pill mb-3">
+                {% if form.form_type == 'examen' %}Examen{% elif form.form_type == 'cotizador' %}Cotizador{% else %}Registro{% endif %}
             </span>
 
             {% if not form.allow_edit %}
@@ -108,6 +108,54 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Teléfono del Contacto</label>
                     <input type="tel" class="form-control" id="pf_contacto_telefono">
+                </div>
+                {% endif %}
+
+                <!-- Campos específicos para Cotizador -->
+                {% if form.form_type == 'cotizador' %}
+                <hr>
+                <div class="p-3 rounded-3" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-currency-dollar me-1"></i>Campos del Cotizador</h6>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Nombre del Lugar <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="pf_cotizador_lugar" required placeholder="Ej: Volcán Irazú">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Enlace de Google Maps (Ida) <span class="text-danger">*</span></label>
+                        <input type="url" class="form-control" id="pf_cotizador_maps_ida" required placeholder="https://maps.google.com/...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Enlace de Google Maps (Regreso)</label>
+                        <input type="url" class="form-control" id="pf_cotizador_maps_regreso" placeholder="https://maps.google.com/...">
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Fecha (Opcional)</label>
+                            <input type="date" class="form-control" id="pf_cotizador_fecha">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Hora de Salida (Opcional)</label>
+                            <input type="time" class="form-control" id="pf_cotizador_hora_salida">
+                        </div>
+                    </div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Moneda</label>
+                            <select class="form-select" id="pf_cotizador_moneda">
+                                <option value="colones">Colones (₡)</option>
+                                <option value="dolares">Dólares ($)</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="pf_cotizador_precio" required placeholder="0.00" step="0.01">
+                        </div>
+                    </div>
                 </div>
                 {% endif %}
 
