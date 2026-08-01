@@ -1,0 +1,99 @@
+<!-- Vista: ver_evento.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<!-- LÓGICA JINJA PARA SEGURIDAD Y FORMATO -->
+{% set is_super = session.get('role') == 'Superusuario' %}
+{% set is_logistica_segura = evento.lugar_salida and evento.lugar_salida.startswith('SEGURO_') %}
+{% set is_private = evento.solo_chat or is_logistica_segura or evento.logistica_segura %}
+{% set lugar_real = evento.lugar_salida|replace('SEGURO_', '') if is_logistica_segura else evento.lugar_salida %}
+{% set is_sold_out = evento.is_sold_out or (evento.capacidad and evento.capacidad.startswith('AGOTADO')) %}
+{% set is_super_user = session.get('role') == 'Superusuario' %}
+
+{% if is_private and not is_super %}
+    {% set dest_text = "📍 Info exclusiva en el Chat" %}
+    {% set time_text = "⏰ Info exclusiva en el Chat" %}
+{% else %}
+    {% set dest_text = lugar_real or 'Por definir' %}
+    {% set time_text = evento.hora_salida or 'Por definir' %}
+{% endif %}
+
+{% set precio_val = evento.precio | default(0, true) | int %}
+{% set precio_mostrar = evento.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+
+<!-- Formato de Fecha Hermosa "XX de Mes del Año" -->
+{% set meses_nombres = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"] %}
+
+{% set fecha_str = evento.fecha_unica %}
+{% set fecha_formateada = "Por definir" %}
+{% if fecha_str %}
+    {% set p = fecha_str.split('-') %}
+    {% if p|length == 3 %}
+        {% set fecha_formateada = p[2]|int ~ " de " ~ meses_nombres[p[1]|int - 1] ~ " del " ~ p[0] %}
+    {% else %}
+        {% set fecha_formateada = fecha_str %}
+    {% endif %}
+{% endif %}
+
+{% set inicio_str = evento.fecha_inicio %}
+{% set inicio_formateada = evento.fecha_inicio %}
+{% if inicio_str %}
+    {% set pi = inicio_str.split('-') %}
+    {% if pi|length == 3 %}
+        {% set inicio_formateada = pi[2]|int ~ " de " ~ meses_nombres[pi[1]|int - 1] ~ " del " ~ pi[0] %}
+    {% endif %}
+{% endif %}
+
+{% set regreso_str = evento.fecha_regreso %}
+{% set regreso_formateada = evento.fecha_regreso %}
+{% if regreso_str %}
+    {% set pr = regreso_str.split('-') %}
+    {% if pr|length == 3 %}
+        {% set regreso_formateada = pr[2]|int ~ " de " ~ meses_nombres[pr[1]|int - 1] ~ " del " ~ pr[0] %}
+    {% endif %}
+{% endif %}
+
+{% set date_display = fecha_formateada if evento.dias == 1 else inicio_formateada ~ ' al ' ~ regreso_formateada %}
+{% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+
+{% include 'partials/ver_evento_styles.html' %}
+
+<div class="container animate__animated animate__fadeIn pb-5 pt-3">
+    <div class="row justify-content-center">
+        <div class="col-lg-12">
+            <div class="mb-4 d-flex justify-content-start hide-on-export">
+                <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; font-size: 0.9rem;">
+                    <i class="bi bi-arrow-left me-2"></i>Volver a Eventos
+                </a>
+            </div>
+
+            <div class="row g-4 g-lg-5">
+
+                <div class="col-12 {% if is_super_user %}col-lg-7{% else %}col-lg-8 mx-auto{% endif %}">
+                    <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-4 mb-4 position-relative border-0 shadow-lg {{ 'sold-out-card' if is_sold_out else '' }}">
+
+                        {% include 'partials/ver_evento_card_main.html' %}
+                        {% include 'partials/ver_evento_gpx_share.html' %}
+
+                    </div>
+                </div>
+
+                {% include 'partials/ver_evento_editor.html' %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if is_super_user %}
+{% include 'partials/ver_evento_modals_admin.html' %}
+{% include 'partials/ver_evento_modal_editar_campos.html' %}
+{% include 'partials/ver_evento_modal_editar_fechas.html' %}
+{% include 'partials/ver_evento_modal_editar_incluye.html' %}
+{% endif %}
+{% include 'partials/ver_evento_script_flyer.html' %}
+{% include 'partials/ver_evento_script_edit_init.html' %}
+{% include 'partials/ver_evento_script_super_fns.html' %}
+{% include 'partials/ver_evento_script_public.html' %}
+
+{% endblock %}

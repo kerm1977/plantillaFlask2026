@@ -1,0 +1,150 @@
+<script>
+    // 1. DATA: Aquí simulo los eventos. En tu entorno real, pásalos desde Flask a JSON.
+    // Ejemplo Jinja real: const eventosDB = {{ eventos | tojson | safe }};
+    const eventosDB = [
+        { mes: 'Mayo', dia: '15', nombre: 'Volcán Irazú', categoria: 'Volcanes', dificultad: 'Fácil' },
+        { mes: 'Mayo', dia: '28', nombre: 'P.N. Manuel Antonio', categoria: 'Parques Nacionales', dificultad: 'Medio' },
+        { mes: 'Junio', dia: '10', nombre: 'Corcovado Extremo', categoria: 'Parques Nacionales', dificultad: 'Avanzado' },
+        { mes: 'Junio', dia: '24', nombre: 'Volcán Arenal', categoria: 'Volcanes', dificultad: 'Medio' },
+        { mes: 'Julio', dia: '05', nombre: 'Playa Conchal', categoria: 'Playas', dificultad: 'Fácil' },
+        { mes: 'Julio', dia: '18', nombre: 'Cerro Chirripó', categoria: 'Montaña', dificultad: 'Experto' }
+    ];
+
+    // 2. LÓGICA DEL LIENZO Y ESCALA
+    const wrapper = document.getElementById('flyer-wrapper');
+    const lienzo = document.getElementById('lienzo-16-9');
+
+    function ajustarEscalaWrapper() {
+        // Obliga al wrapper a tener formato 16:9 basado en su ancho actual
+        const currentWidth = wrapper.clientWidth;
+        const targetHeight = (currentWidth * 9) / 16;
+        wrapper.style.height = targetHeight + 'px';
+
+        // Escala el lienzo interno (1920x1080) para que quepa en el wrapper
+        const scale = currentWidth / 1920;
+        lienzo.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', ajustarEscalaWrapper);
+
+    // 3. HERRAMIENTAS DEL EDITOR (IMAGEN)
+    const bgImg = document.getElementById('flyer-bg-img');
+    const sliderScale = document.getElementById('sliderScale');
+    const sliderX = document.getElementById('sliderX');
+    const sliderY = document.getElementById('sliderY');
+
+    function actualizarTransformacionFondo() {
+        const scale = sliderScale.value;
+        const x = sliderX.value;
+        const y = sliderY.value;
+        
+        document.getElementById('valScale').innerText = scale;
+        document.getElementById('valX').innerText = x + 'px';
+        document.getElementById('valY').innerText = y + 'px';
+
+        bgImg.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+    }
+
+    sliderScale.addEventListener('input', actualizarTransformacionFondo);
+    sliderX.addEventListener('input', actualizarTransformacionFondo);
+    sliderY.addEventListener('input', actualizarTransformacionFondo);
+
+    // Carga de imagen local
+    document.getElementById('bgImageUpload').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                bgImg.src = event.target.result;
+                // Resetear sliders
+                sliderScale.value = 1; sliderX.value = 0; sliderY.value = 0;
+                actualizarTransformacionFondo();
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // 4. GENERACIÓN DE CONTENIDO
+    function actualizarTextos() {
+        document.getElementById('flyer-titulo').innerText = document.getElementById('inputTitulo').value;
+    }
+
+    function renderizarCalendario() {
+        const categoriaSeleccionada = document.getElementById('filtroCategoria').value;
+        document.getElementById('flyer-subtitulo').innerText = categoriaSeleccionada === 'Todas' ? 'Todas las Caminatas' : `Especial: ${categoriaSeleccionada}`;
+
+        // Filtrar
+        const filtrados = eventosDB.filter(ev => categoriaSeleccionada === 'Todas' || ev.categoria === categoriaSeleccionada);
+
+        // Agrupar por mes
+        const agrupados = {};
+        filtrados.forEach(ev => {
+            if (!agrupados[ev.mes]) agrupados[ev.mes] = [];
+            agrupados[ev.mes].push(ev);
+        });
+
+        // Limpiar y renderizar
+        const grid = document.getElementById('grid-meses');
+        grid.innerHTML = '';
+
+        // Definir tamaño de columnas según la cantidad de meses (max 4 por fila para que se vea bien)
+        const totalMeses = Object.keys(agrupados).length;
+        let colClass = 'col-4'; // Por defecto 3 meses por fila
+        if (totalMeses === 1) colClass = 'col-8 mx-auto';
+        if (totalMeses === 2) colClass = 'col-6';
+        if (totalMeses >= 4) colClass = 'col-3';
+
+        for (const [mes, eventos] of Object.entries(agrupados)) {
+            let eventosHTML = eventos.map(ev => `
+                <div class="evento-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-white">${ev.nombre}</h4>
+                        <small class="text-white-50"><i class="bi bi-geo-alt-fill text-orange"></i> ${ev.dificultad}</small>
+                    </div>
+                    <div class="bg-darker text-orange fw-bold rounded px-3 py-2 fs-4 border border-secondary">
+                        ${ev.dia}
+                    </div>
+                </div>
+            `).join('');
+
+            grid.innerHTML += `
+                <div class="${colClass}">
+                    <div class="mes-card shadow">
+                        <h2 class="mes-titulo">
+                            <i class="bi bi-person-walking text-orange me-2" style="font-size:0.85em;"></i>
+                            ${mes}
+                            <span class="badge rounded-pill ms-2" style="background:#ff8c00;color:#fff;font-size:0.55em;vertical-align:middle;">${eventos.length}</span>
+                        </h2>
+                        <div class="eventos-lista">
+                            ${eventosHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    // 5. DESCARGA
+    function descargarArte() {
+        // Quitar escala temporalmente para capturar en calidad original 1920x1080
+        lienzo.style.transform = 'scale(1)';
+        
+        html2canvas(lienzo, { 
+            scale: 1,
+            useCORS: true,
+            backgroundColor: null
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Calendario_LaTribu_${document.getElementById('filtroCategoria').value}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            
+            // Restaurar escala responsiva
+            ajustarEscalaWrapper();
+        });
+    }
+
+    // Inicializar
+    actualizarTextos();
+    renderizarCalendario();
+    setTimeout(ajustarEscalaWrapper, 100); // Pequeño delay para asegurar carga del DOM
+</script>

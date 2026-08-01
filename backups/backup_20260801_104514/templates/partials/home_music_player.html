@@ -1,0 +1,141 @@
+<!-- REPRODUCTOR DE MÚSICA - MODAL                              -->
+<!-- ============================================================ -->
+<div class="modal fade" id="musicPlayerModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" style="max-width:440px;">
+    <div class="modal-content border-0 shadow-lg text-white" style="background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%); border-radius:1.25rem; overflow:hidden;">
+
+      <!-- HEADER -->
+      <div class="modal-header border-0 px-4 pt-4 pb-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-music-note-beamed text-orange fs-5"></i>
+          <span class="fw-bold fs-6">Canciones de La Tribu</span>
+        </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- REPRODUCTOR ACTUAL -->
+      <div class="px-4 pb-3">
+        <!-- Nombre de canción actual -->
+        <div class="text-center mb-3">
+          <div id="mpCurrentName" class="fw-bold text-white" style="font-size:1rem; min-height:1.4rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            — Sin canción —
+          </div>
+          <div id="mpIndexInfo" class="text-secondary" style="font-size:0.75rem;"></div>
+        </div>
+
+        <!-- Barra de progreso -->
+        <div class="mb-2">
+          <input type="range" id="mpProgress" min="0" max="100" value="0"
+                 class="form-range w-100" style="accent-color:#ff8c00; height:4px;"
+                 oninput="seekTo(this.value)">
+          <div class="d-flex justify-content-between" style="font-size:0.72rem; color:#aaa; margin-top:-2px;">
+            <span id="mpCurrentTime">0:00</span>
+            <span id="mpDuration">0:00</span>
+          </div>
+        </div>
+
+        <!-- Controles principales -->
+        <div class="d-flex align-items-center justify-content-center gap-3 mt-1">
+          <button class="btn p-0 text-white" style="font-size:1.6rem; opacity:0.85;" onclick="mpPrev()" title="Anterior">
+            <i class="bi bi-skip-start-fill"></i>
+          </button>
+          <button id="mpPlayBtn" class="btn p-0" style="font-size:2.4rem; color:#ff8c00;" onclick="mpTogglePlay()" title="Play/Pausa">
+            <i class="bi bi-play-circle-fill"></i>
+          </button>
+          <button class="btn p-0 text-white" style="font-size:1.6rem; opacity:0.85;" onclick="mpNext()" title="Siguiente">
+            <i class="bi bi-skip-end-fill"></i>
+          </button>
+          <button class="btn p-0 text-danger" style="font-size:1.4rem; opacity:0.85;" onclick="mpStop()" title="Detener">
+            <i class="bi bi-stop-fill"></i>
+          </button>
+        </div>
+      </div>
+
+      <hr class="border-secondary opacity-25 my-0 mx-3">
+
+      <!-- LISTA DE CANCIONES -->
+      <div class="modal-body px-3 py-2" style="max-height:300px; overflow-y:auto;">
+        <div id="mpSongList">
+          <div class="text-secondary text-center py-4 small">Cargando canciones...</div>
+        </div>
+      </div>
+
+      {% if session.get('role') == 'Superusuario' %}
+      <!-- SUBIR CANCIONES (solo superusuarios) -->
+      <div class="px-3 pb-3 pt-2" style="border-top:1px solid rgba(255,255,255,0.08);">
+        <div id="mpUploadStatus" class="d-none mb-2">
+          <div class="progress" style="height:6px;border-radius:4px;">
+            <div id="mpUploadBar" class="progress-bar bg-orange" style="width:0%;transition:width .3s;"></div>
+          </div>
+          <small id="mpUploadMsg" class="text-secondary d-block mt-1 text-center"></small>
+        </div>
+        <label for="mpUploadInput"
+               class="btn btn-sm rounded-pill w-100 fw-bold d-flex align-items-center justify-content-center gap-2"
+               style="background:rgba(255,140,0,0.15);border:1px dashed rgba(255,140,0,0.5);color:#ff8c00;cursor:pointer;">
+          <i class="bi bi-plus-circle-fill"></i>Agregar Canciones
+        </label>
+        <input type="file" id="mpUploadInput" accept="audio/*" multiple class="d-none"
+               onchange="mpUploadFiles(this.files)">
+        <small class="text-secondary d-block text-center mt-1" style="font-size:0.7rem;">
+          MP3, OGG, WAV, FLAC, M4A, AAC
+        </small>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- MINI-PLAYER VERTICAL (barra derecha)                        -->
+<!-- ============================================================ -->
+<div id="miniPlayerBar"
+     style="position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:1055; display:none; transition:opacity .3s;">
+  <div class="d-flex flex-column align-items-center gap-3 py-4 px-2 shadow-lg"
+       style="background:rgba(15,20,50,0.92); backdrop-filter:blur(16px); border-radius:1rem 0 0 1rem;
+              border:1px solid rgba(255,255,255,0.12); border-right:none; width:68px;">
+    <!-- Nombre rotado -->
+    <div id="miniSongName"
+         style="writing-mode:vertical-rl; text-orientation:mixed; font-size:0.8rem; color:#ff8c00;
+                max-height:155px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                font-weight:bold; letter-spacing:0.03em; cursor:pointer;"
+         onclick="openMusicPlayer()" title="Abrir reproductor"></div>
+    <!-- Controles -->
+    <button onclick="mpPrev()" class="btn p-0" style="color:#ccc; font-size:1.55rem; line-height:1;" title="Anterior">
+      <i class="bi bi-skip-start-fill"></i>
+    </button>
+    <button id="miniPlayBtn" onclick="mpTogglePlay()" class="btn p-0" style="color:#ff8c00; font-size:2rem; line-height:1;" title="Play/Pausa">
+      <i class="bi bi-play-circle-fill"></i>
+    </button>
+    <button onclick="mpNext()" class="btn p-0" style="color:#ccc; font-size:1.55rem; line-height:1;" title="Siguiente">
+      <i class="bi bi-skip-end-fill"></i>
+    </button>
+    <button onclick="mpStop()" class="btn p-0" style="color:#dc3545; font-size:1.45rem; line-height:1;" title="Detener">
+      <i class="bi bi-stop-fill"></i>
+    </button>
+  </div>
+</div>
+
+<!-- MODAL PARA RENOMBRAR CANCIÓN -->
+<div class="modal fade" id="renameModal" tabindex="-1" data-bs-backdrop="false" style="z-index:1070;">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow-lg" style="background:#1a1a2e; color:white; border-radius:1rem;">
+      <div class="modal-header border-0 pb-1">
+        <span class="fw-bold"><i class="bi bi-pencil-fill text-orange me-2"></i>Renombrar canción</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-1">
+        <input type="text" id="renameInput" class="form-control bg-dark text-white border-secondary rounded-pill px-3"
+               placeholder="Nuevo nombre" style="font-size:0.9rem;">
+        <input type="hidden" id="renameFilename">
+        <input type="hidden" id="renameIndex">
+      </div>
+      <div class="modal-footer border-0 pt-0 gap-2">
+        <button class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-orange btn-sm rounded-pill px-4 fw-bold" onclick="confirmRename()">
+          <i class="bi bi-check2 me-1"></i>Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

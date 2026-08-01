@@ -1,0 +1,11 @@
+<script>
+// Variables de configuración de la rifa (inyectadas por Flask)
+window.RIFA_CONFIG = {
+    id: {{ rifa.id }},
+    price: {{ rifa.price }},
+    name: '{{ rifa.name|e }}'
+};
+</script>
+<script src="/static/js/rifa_detalle_ui.js?v=9.5"></script>
+<script src="/static/js/rifa_detalle_modals.js?v=9.5"></script>
+<script src="/static/js/rifa_detalle_admin.js?v=10"></script>

@@ -1,0 +1,20 @@
+<!-- MODAL GENERADOR DE CALENDARIO -->
+{% if session.get('role') == 'Superusuario' %}
+<div class="modal fade" id="calendarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal shadow-lg border-0 bg-light">
+            <div class="modal-header border-bottom border-secondary border-opacity-25 pb-3">
+                <h5 class="modal-title fw-bold text-dark w-100"><i class="bi bi-calendar3 text-orange me-2"></i>Generador de Calendario HD</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-4">
+                    {% include 'partials/base_calendar_modal_tools.html' %}
+                    {% include 'partials/base_calendar_modal_canvas.html' %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% include 'partials/base_calendar_modal_script.html' %}
+{% endif %}

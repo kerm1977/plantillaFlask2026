@@ -1,0 +1,154 @@
+    <!-- Modal Login (Glassmorphic) -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Iniciar Sesión</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-4">
+                    <div id="loginMessage" class="mb-3"></div>
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 py-2 force-lowercase" id="logEmail" required placeholder="tu@email.com">
+                        </div>
+                        <div class="mb-4 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                            <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('logPass', this)"></i>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">Ingresar</button>
+                        <p class="mt-3 text-center"><a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#forgotModal" class="text-orange text-decoration-none small">¿Olvidaste tu contraseña?</a></p>
+                        <p class="mt-1 text-center text-secondary">¿No tienes cuenta? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-orange fw-bold text-decoration-none">Regístrate</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Olvidé Contraseña -->
+    <div class="modal fade" id="forgotModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Recuperar Contraseña</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <p class="text-secondary small text-center mb-4">Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.</p>
+                    <div id="forgotMsg" class="mb-3"></div>
+                    <div id="forgotForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Correo electrónico</label>
+                            <input type="email" id="forgotEmail" class="form-control glass-input rounded-3 py-2 force-lowercase" placeholder="tu@email.com">
+                        </div>
+                        <button type="button" class="btn btn-orange w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="submitForgotPassword()">Enviar enlace de recuperación</button>
+                    </div>
+                    <div id="forgotResult" class="d-none">
+                        <div class="text-center mb-3">
+                            <div style="font-size:2.5rem;">🔐</div>
+                            <p class="fw-bold mt-2 mb-1">Enlace generado</p>
+                            <p class="text-secondary small">Copia el enlace o envíalo por WhatsApp al usuario.</p>
+                        </div>
+                        <input type="text" id="forgotLink" class="form-control form-control-sm rounded-3 mb-2" readonly onclick="this.select()">
+                        <a id="forgotWA" href="#" target="_blank" class="btn btn-success w-100 rounded-pill py-2 fw-bold d-none">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar por WhatsApp al usuario
+                        </a>
+                        <button class="btn btn-outline-secondary w-100 rounded-pill py-1 mt-2 small" onclick="copyResetLink()">📋 Copiar enlace</button>
+                    </div>
+                    <p class="mt-3 text-center"><a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-orange text-decoration-none small">← Volver al login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registro (Glassmorphic) -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Registro de Usuario</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <div id="registerMessage" class="mb-3"></div>
+
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                <img id="avatarPreviewImg" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar-preview bg-secondary" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                            </div>
+                            <label for="avatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
+                            </label>
+                            <input type="file" id="avatarUpload" class="d-none" accept="image/*">
+                            
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="scaleSlider" min="1" max="3" step="0.1" value="1">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="posXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="posYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block text-center mt-1" style="font-size: 0.65rem;">*Ajuste visual para previsualización.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="registerForm">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Nombre</label>
+                                <input type="text" class="form-control glass-input validate-name" id="regName" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Primer Apellido</label>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Segundo Apellido</label>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName2" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
+                        </div>
+                        
+                        <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
+                            <label class="text-orange fw-bold mb-2"><i class="bi bi-plus-circle me-2"></i>Agregar Información Adicional</label>
+                            <select class="form-select glass-input rounded-3 mb-3" id="dynamicSelect" onchange="handleDynamicSelect()">
+                                <option value="">Seleccione el tipo de dato...</option>
+                                <option value="Telefono">Teléfono</option>
+                                <option value="Whatsapp">Whatsapp</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <div id="dynamicContainer"></div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPass" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPass', this)"></i>
+                            </div>
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Verificar Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPassVerify" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPassVerify', this)"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm mt-2">Crear mi cuenta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    

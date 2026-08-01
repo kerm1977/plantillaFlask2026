@@ -1,0 +1,17 @@
+<!-- Vista: perfil.html -->
+{% extends "base.html" %}
+
+{% block content %}
+
+{% set avatar_file = user.avatar or 'default.png' %}
+{% if avatar_file != 'default.png' and not avatar_file.startswith('uploads/') %}
+    {% set avatar_file = 'uploads/' + avatar_file %}
+{% endif %}
+
+{% include 'partials/perfil_styles.html' %}
+
+{% include 'partials/perfil_content.html' %}
+
+{% include 'partials/perfil_script.html' %}
+
+{% endblock %}

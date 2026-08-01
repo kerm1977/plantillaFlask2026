@@ -1,0 +1,153 @@
+<script>
+    let allHikers = [];
+    let currentHikerId = null;
+    let deleteClilksAgenda = 0;
+    cet deleteClicksAgenda = 0;
+    const PAGE_SIZE = 25;
+    let currentPage = 1;
+    let filteredHikers = [];
+
+    async function loadHikers() {
+        const listContainer = document.getElementById('hikersList');
+        listContainer.innerHTML = '<div class="text-center py-4"><span class="spinner-border text-orange"></span></div>';
+        try {
+            const res  = await fetch('/api/admin/all_contacts');
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            const conteoCedulas = {};
+            data.forEach(h => { const ced = (h.crm_cedula||'').trim().toLowerCase(); if(ced) conteoCedulas[ced]=(conteoCedulas[ced]||0)+1; });
+            const duplicadas = new Set(Object.keys(conteoCedulas).filter(k => conteoCedulas[k] > 1));
+            allHikers = data.map(h => { const ced=(h.crm_cedula||'').trim().toLowerCase(); h.is_duplicate=ced&&duplicadas.has(ced); return h; });
+            renderHikers(allHikers);
+        } catch (error) {
+            listContainer.innerHTML = `<div class="text-center text-danger fw-bold py-4">Error cargando datos: ${error.message}</div>`;
+        }
+    }
+
+    function renderHikers(hikers, page) {
+        page = page || 1; currentPage = page;
+        filteredHikers = [...hikers].sort((a,b)=>(a.display_name||'').localeCompare(b.display_name||''));
+        const listContainer = document.getElementById('hikersList');
+        listContainer.innerHTML = '';
+        if (!filteredHikers.length) {
+            listContainer.innerHTML = '<p class="text-center text-muted fw-bold py-4">No se encontraron caminantes.</p>';
+            document.getElementById('paginationBar').innerHTML = ''; return;
+        }
+        const totalPages = Math.ceil(filteredHikers.length / PAGE_SIZE);
+        const start      = (page - 1) * PAGE_SIZE;
+        const pageSlice  = filteredHikers.slice(start, start + PAGE_SIZE);
+        let currentLetter = '';
+        pageSlice.forEach(h => {
+            const firstLetter = (h.display_name||'').charAt(0).toLowerCase();
+            if (firstLetter !== currentLetter) {
+                currentLetter = firstLetter;
+                const lh = document.createElement('div'); lh.className = 'mt-3';
+                lh.innerHTML = `<h3 class="fw-black text-orange mb-0 ms-1" style="font-size:1.8rem;text-transform:lowercase;">${currentLetter}</h3><hr class="border-orange border-2 opacity-50 mt-0 mb-1">`;
+                listContainer.appendChild(lh);
+            }
+            const badgeDuplicado = h.is_duplicate ? `<span class="badge bg-danger shadow-sm ms-2 flex-shrink-0" style="font-size:0.65rem;" title="Cédula repetida">DUPLICADO</span>` : '';
+            const isHiker  = h.type === 'hiker' || !!h.crm_cedula;
+            const typeIcon = h.type === 'user' ? `<i class="bi bi-person-circle text-orange me-2 flex-shrink-0" style="font-size:1rem;"></i>` : `<i class="bi bi-card-list text-primary me-2 flex-shrink-0" style="font-size:1rem;"></i>`;
+            const badgeId  = h.crm_cedula || h.email || '';
+            const modalAttr = isHiker ? `data-bs-toggle="modal" data-bs-target="#hikerModal"` : '';
+            const editLink  = h.crm_cedula ? `<a href="/editar_caminante/${h.crm_cedula}" class="btn btn-sm btn-outline-warning text-dark border-0 rounded-circle ms-2 flex-shrink-0" title="Editar Ficha"><i class="bi bi-pencil-square fs-5"></i></a>` : '';
+            const item = document.createElement('div');
+            item.className = 'px-1 hiker-list-item d-flex align-items-center border-bottom border-secondary border-opacity-10';
+            item.innerHTML = `<a href="#" class="text-dark fw-bold text-decoration-none d-flex justify-content-between align-items-center py-2 flex-grow-1" style="font-size:1.15rem;min-width:0;" ${modalAttr} onclick="openHikerCard('${h.id}')">
+                <div class="name-truncate-container d-flex align-items-center me-2" style="overflow:hidden;">${typeIcon}<span class="text-truncate">${h.display_name}</span>${badgeDuplicado}</div>
+                <span class="badge bg-light text-secondary border fw-normal flex-shrink-0" style="font-size:0.75rem;">${badgeId}</span></a>${editLink}`;
+            listContainer.appendChild(item);
+        });
+        renderPagination(totalPages, page, filteredHikers.length);
+    }
+
+    function renderPagination(totalPages, page, total) {
+        const bar = document.getElementById('paginationBar');
+        if (totalPages <= 1) { bar.innerHTML = ''; return; }
+        let html = `<small class="text-muted align-self-center me-2">${total} caminantes</small>`;
+        if (page > 1) html += `<button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="renderHikers(filteredHikers,${page-1});window.scrollTo(0,0)">‹ Anterior</button>`;
+        const delta = 2;
+        for (let i = 1; i <= totalPages; i++) {
+            if (i===1||i===totalPages||(i>=page-delta&&i<=page+delta))
+                html += `<button class="btn btn-sm ${i===page?'btn-orange':'btn-outline-secondary'} rounded-pill px-3" onclick="renderHikers(filteredHikers,${i});window.scrollTo(0,0)">${i}</button>`;
+            else if (i===page-delta-1||i===page+delta+1)
+                html += `<span class="align-self-center px-1 text-muted">…</span>`;
+        }
+        if (page < totalPages) html += `<button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="renderHikers(filteredHikers,${page+1});window.scrollTo(0,0)">Siguiente ›</button>`;
+        bar.innerHTML = html;
+    }
+
+    document.getElementById('searchInput') && document.getElementById('searchInput').addEventListener('input', function(e) {
+        const term = e.target.value.toLowerCase();
+        renderHikers(allHikers.filter(h =>
+            (h.display_name||'').toLowerCase().includes(term) ||
+            (h.crm_cedula  ||'').toLowerCase().includes(term) ||
+            (h.phone       ||'').toLowerCase().includes(term) ||
+            (h.email       ||'').toLowerCase().includes(term)), 1);
+    });
+
+    function openHikerCard(id) {
+        const hiker = allHikers.find(h => String(h.id) === String(id));
+        if (!hiker) return;
+        const isHiker   = hiker.type === 'hiker' || !!hiker.crm_cedula;
+        currentHikerId  = hiker.hiker_id || (hiker.type === 'hiker' ? hiker.id : null);
+        const btnDelete = document.getElementById('btnDeleteHiker');
+        const btnEdit   = document.getElementById('btnEditHiker');
+        if (isHiker) {
+            btnDelete.classList.remove('d-none'); btnDelete.disabled = false;
+            btnDelete.className = 'btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100';
+            btnDelete.innerHTML = '<i class="bi bi-trash-fill me-1"></i> Eliminar';
+            if (btnEdit) { btnEdit.classList.remove('d-none'); btnEdit.href = `/editar_caminante/${hiker.crm_cedula}`; }
+        } else {
+            btnDelete.classList.add('d-none');
+            if (btnEdit) btnEdit.classList.add('d-none');
+        }
+        const parts = (hiker.display_name||'').trim().split(' ');
+        let nombre = parts[0], apellidos = '';
+        if (parts.length===4) { nombre=parts[0]+' '+parts[1]; apellidos=parts[2]+' '+parts[3]; }
+        else if (parts.length===3) { apellidos=parts[1]+' '+parts[2]; }
+        else if (parts.length>1)   { apellidos=parts.slice(1).join(' '); }
+        const subtituloTribu = `<span class="text-muted fw-bold" style="font-size:0.4em;display:block;margin-top:-2px;text-transform:uppercase;letter-spacing:1.5px;">La Tribu de Los Libres</span>`;
+        const nombreHTML = apellidos ? `${nombre}<br><span class="text-secondary fw-bold" style="font-size:0.7em;display:block;margin-top:-5px;">${apellidos}</span>${subtituloTribu}` : `${nombre}<br>${subtituloTribu}`;
+        const fechaNac = hiker.crm_fecha_nac || hiker.fecha_nacimiento || '';
+        document.getElementById('modalPin').innerText         = `PIN: ${hiker.pin_secreto || '—'}`;
+        document.getElementById('modalNombre').innerHTML      = nombreHTML;
+        document.getElementById('modalCedula').innerText      = hiker.crm_cedula || hiker.email || '—';
+        document.getElementById('modalEdad').innerText        = fechaNac ? calcularEdad(fechaNac) : '--';
+        document.getElementById('modalFechaNacSutil').innerText = fechaNac;
+        document.getElementById('modalTelefono').innerText    = hiker.phone || hiker.telefono || '—';
+        document.getElementById('modalSangre').innerText      = hiker.crm_tipo_sangre || hiker.tipo_sangre || '—';
+        document.getElementById('modalAlergias').innerText    = hiker.crm_alergias || hiker.alergias || 'Ninguna';
+        document.getElementById('modalEnfermedades').innerText = hiker.crm_enfermedades || hiker.enfermedades_cronicas || 'Ninguna';
+        document.getElementById('modalEmergencia').innerText  = `${hiker.crm_emergencia_nombre||hiker.contacto_emergencia_nombre||'—'}\n(${hiker.crm_emergencia_tel||hiker.contacto_emergencia_telefono||'—'})`;
+    }
+
+    function descargarTarjeta() {
+        const nombre = document.getElementById('modalNombre').innerText.replace(/<[^>]*>?/gm,'').replace(/\s+/g,'_');
+        html2canvas(document.getElementById('tarjetaExportable'), {scale:2,useCORS:true,backgroundColor:null}).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `MedID_LaTribu_${nombre}.png`; link.href = canvas.toDataURL('image/png'); link.click();
+        });
+    }
+
+    async function deleteHiker() {
+        const btn = document.getElementById('btnDeleteHiker');
+        const hiker = allHikers.find(h => (h.hiker_id || (h.type==='hiker' ? h.id : null)) === currentHikerId);
+        abrirModalBorrarUnificado({
+            titulo: 'Eliminar Caminante',
+            mensaje: '¿Eliminar este caminante permanentemente? Esta acción no se puede deshacer.',
+            nombre: hiker ? hiker.display_name : '',
+            onConfirmar: async () => {
+                if (btn) { btn.disabled=true; btn.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Borrando...'; }
+                try {
+                    const res = await fetch(`/api/admin/delete_hiker/${currentHikerId}`, {method:'DELETE'});
+                    const data = await res.json();
+                    if (data.success) { document.querySelector('#hikerModal .btn-close').click(); loadHikers(); }
+                    else { alert(data.error||"No se pudo eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
+                } catch (err) { alert("Error de conexión al eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHikers);
+</script>

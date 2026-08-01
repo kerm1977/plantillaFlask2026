@@ -1,0 +1,15 @@
+<!-- Vista: calendario.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Librería para capturar el Flyer -->
+<script src="{{ url_for('static', filename='js/html2canvas.js') }}"></script>
+
+
+{% include 'partials/calendario_styles.html' %}
+
+{% include 'partials/calendario_content.html' %}
+
+{% include 'partials/calendario_script.html' %}
+
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="glass-panel rounded-5 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+            <h2 class="fw-bold text-orange mb-0"><i class="bi bi-ticket-perforated me-2"></i>Administración de Rifas</h2>
+            <a href="{{ url_for('main.crear_rifa') }}" class="btn btn-orange rounded-pill px-4">
+                <i class="bi bi-plus-lg me-1"></i>Nueva Rifa
+            </a>
+        </div>
+        
+        {% if not rifas %}
+        <div class="text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay rifas creadas.
+        </div>
+        {% else %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre</th>
+                        <th class="d-none d-md-table-cell">Precio</th>
+                        <th class="d-none d-md-table-cell">Fecha</th>
+                        <th class="d-none d-md-table-cell">Vendidos</th>
+                        <th class="d-none d-md-table-cell">Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rifa in rifas %}
+                    <tr>
+                        <td>{{ rifa.raffle_number }}</td>
+                        <td>{{ rifa.name }}</td>
+                        <td class="d-none d-md-table-cell">₡{{ rifa.price }}</td>
+                        <td class="d-none d-md-table-cell">{{ rifa.raffle_date }}</td>
+                        <td class="d-none d-md-table-cell">
+                            <span class="badge bg-success">{{ rifa.total_sold }}</span>
+                            {% if rifa.total_canceled > 0 %}
+                            <span class="badge bg-secondary">{{ rifa.total_canceled }} cancelados</span>
+                            {% endif %}
+                        </td>
+                        <td class="d-none d-md-table-cell">
+                            {% if rifa.is_active %}
+                            <span class="badge bg-success">Activa</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Cerrada</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex gap-1 flex-wrap">
+                                <a href="{{ url_for('main.rifa_detalle', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-info rounded-pill" title="Ver">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-primary rounded-pill" title="Selecciones">
+                                    <i class="bi bi-list-check"></i>
+                                </a>
+                                <a href="{{ url_for('main.editar_rifa', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-warning rounded-pill" title="Editar">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button onclick="eliminarRifa({{ rifa.id }})" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function eliminarRifa(id) {
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Rifa',
+        mensaje: '¿Eliminar esta rifa? Esta acción no se puede deshacer.',
+        onConfirmar: () => {
+            fetch(`/admin/rifas/${id}/eliminar`, { method: 'DELETE' })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        window.location.reload();
+                    } else {
+                        alert(data.error || 'Error al eliminar');
+                    }
+                });
+        }
+    });
+}
+</script>
+{% endblock %}

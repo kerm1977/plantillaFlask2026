@@ -1,0 +1,36 @@
+    <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
+    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-evenly gap-3 px-3">
+        <a href="/" class="mobile-nav-item">
+            <i class="bi bi-house-door-fill fs-3 mb-1"></i>
+            <span>Inicio</span>
+        </a>
+        <!-- Logo de Sueños -->
+        <a id="logoSuenosMobileLink" href="#" target="_blank" class="d-none d-md-none">
+            <img id="logoSuenosMobile" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-mobile animate-heartbeat">
+        </a>
+        <img id="logoSuenosMobileNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-mobile d-block d-md-none animate-heartbeat">
+        {% if request.endpoint == 'main.rifa_detalle' %}
+        <button id="mobileSelectBtn" onclick="toggleMobileSelection()" class="mobile-nav-item border-0 bg-transparent">
+            <i class="bi bi-cart-plus fs-3 mb-1"></i>
+            <span>Seleccionar</span>
+        </button>
+        {% endif %}
+        {% if session.get('user_id') %}
+            {% set nav_avatar = session.get('avatar') or '' %}
+            <a href="{{ url_for('main.profile') }}" class="mobile-nav-item">
+                <div class="rounded-circle overflow-hidden border border-2 border-white shadow-sm mb-1 d-flex align-items-center justify-content-center bg-orange" style="width:34px;height:34px;">
+                    {% if nav_avatar and nav_avatar != 'default.png' %}
+                        <img src="{{ url_for('static', filename=nav_avatar) }}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+                    {% else %}
+                        <i class="bi bi-person-fill text-white"></i>
+                    {% endif %}
+                </div>
+                <span>Perfil</span>
+            </a>
+        {% else %}
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-box-arrow-in-right fs-3 mb-1"></i>
+                <span>Ingresar</span>
+            </a>
+        {% endif %}
+    </div>

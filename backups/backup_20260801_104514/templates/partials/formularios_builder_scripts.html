@@ -1,0 +1,125 @@
+<script>
+function addField(type) {
+    fields.push({field_type: type, label: '', options: [], correct_answer: ''});
+    renderFields(); updatePreview();
+}
+function removeField(index) { fields.splice(index, 1); renderFields(); updatePreview(); }
+function moveField(index, dir) {
+    const newIdx = index + dir;
+    if (newIdx < 0 || newIdx >= fields.length) return;
+    [fields[index], fields[newIdx]] = [fields[newIdx], fields[index]];
+    renderFields(); updatePreview();
+}
+
+function renderFields() {
+    const container = document.getElementById('fieldsContainer');
+    const isExamen = document.getElementById('formType').value === 'examen';
+    container.innerHTML = fields.map((f, i) => {
+        let optionsHtml = '';
+        if (f.field_type === 'radio' || f.field_type === 'checkbox') {
+            const opts = (f.options || []).map((o, oi) => `
+                <div class="input-group input-group-sm mb-1">
+                    <input type="text" class="form-control" value="${o}" onchange="updateOption(${i},${oi},this.value);updatePreview()" placeholder="Opción ${oi+1}">
+                    <button class="btn btn-outline-danger" onclick="removeOption(${i},${oi});updatePreview()"><i class="bi bi-x"></i></button>
+                </div>`).join('');
+            optionsHtml = `<div class="mt-2 ms-3">
+                <small class="text-muted fw-semibold">Opciones:</small>${opts}
+                <button class="btn btn-sm btn-outline-secondary rounded-pill mt-1" onclick="addOption(${i});updatePreview()"><i class="bi bi-plus"></i> Opción</button></div>`;
+        }
+        let correctHtml = '';
+        if (isExamen && f.field_type !== 'file') {
+            correctHtml = `<div class="mt-2 ms-3">
+                <small class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Respuesta correcta:</small>
+                <input type="text" class="form-control form-control-sm mt-1" value="${f.correct_answer || ''}"
+                       onchange="fields[${i}].correct_answer = this.value"
+                       placeholder="${f.field_type === 'checkbox' ? 'Separar con comas: Opción1, Opción2' : 'Respuesta correcta'}"></div>`;
+        }
+        return `<div class="border rounded-3 p-2 mb-2 bg-white">
+            <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                <select class="form-select form-select-sm py-0" style="max-width:160px;font-size:0.72rem;height:26px;" onchange="changeFieldType(${i},this.value)">
+                    <option value="text"     ${f.field_type==='text'    ?'selected':''}>Resp. corta</option>
+                    <option value="textarea" ${f.field_type==='textarea'?'selected':''}>Resp. larga</option>
+                    <option value="radio"    ${f.field_type==='radio'   ?'selected':''}>Unica seleccion</option>
+                    <option value="checkbox" ${f.field_type==='checkbox'?'selected':''}>Multiple seleccion</option>
+                    <option value="file"     ${f.field_type==='file'    ?'selected':''}>Archivo</option>
+                </select>
+                <span class="text-muted" style="font-size:0.7rem;">#${i+1}</span>
+                <div class="ms-auto d-flex gap-1">
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="moveField(${i},-1)" ${i===0?'disabled':''}><i class="bi bi-arrow-up" style="font-size:0.7rem;"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="moveField(${i},1)" ${i===fields.length-1?'disabled':''}><i class="bi bi-arrow-down" style="font-size:0.7rem;"></i></button>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-1" onclick="removeField(${i})"><i class="bi bi-trash3" style="font-size:0.7rem;"></i></button>
+                </div>
+            </div>
+            <input type="text" class="form-control form-control-sm" value="${f.label}"
+                   onchange="fields[${i}].label=this.value;updatePreview()"
+                   oninput="fields[${i}].label=this.value;updatePreview()"
+                   placeholder="Escribir la pregunta...">
+            ${optionsHtml}${correctHtml}
+        </div>`;
+    }).join('');
+}
+
+function changeFieldType(index, newType) {
+    const keepOpts = (newType==='radio'||newType==='checkbox') && (fields[index].field_type==='radio'||fields[index].field_type==='checkbox');
+    fields[index].field_type = newType;
+    if (!keepOpts) fields[index].options = [];
+    fields[index].correct_answer = '';
+    renderFields(); updatePreview();
+}
+function addOption(fieldIdx) { fields[fieldIdx].options.push(''); renderFields(); }
+function removeOption(fieldIdx, optIdx) { fields[fieldIdx].options.splice(optIdx, 1); renderFields(); }
+function updateOption(fieldIdx, optIdx, value) { fields[fieldIdx].options[optIdx] = value; }
+
+function updatePreview() {
+    const preview  = document.getElementById('livePreview');
+    const formName = document.getElementById('formName').value || 'Formulario sin título';
+    const formType = document.getElementById('formType').value;
+    const allowEdit= document.getElementById('formAllowEdit').value === 'true';
+    let html = `<h4 class="fw-bold mb-1" style="color:#ff8c00;">${formName}</h4>`;
+    html += `<span class="badge ${formType==='examen'?'bg-warning text-dark':'bg-info'} rounded-pill mb-3">${formType==='examen'?'Examen':'Registro'}</span>`;
+    if (!allowEdit) html += `<div class="alert alert-warning py-1 small mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Una vez enviada la respuesta <strong>no podrá modificarse</strong>.</div>`;
+    if (document.getElementById('trigNombre').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Nombre Completo <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" disabled placeholder="Juan Pérez"></div>`;
+    if (document.getElementById('trigCedula').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Cédula</label><input type="text" class="form-control form-control-sm" disabled placeholder="1-2345-6789"></div>`;
+    if (document.getElementById('trigEmail').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Email</label><input type="email" class="form-control form-control-sm" disabled placeholder="correo@ejemplo.com"></div>`;
+    if (document.getElementById('trigEdad').checked)     html += `<div class="mb-3"><label class="form-label fw-semibold small">Edad</label><input type="number" class="form-control form-control-sm" disabled placeholder="25"></div>`;
+    if (document.getElementById('trigTelefono').checked) html += `<div class="mb-3"><label class="form-label fw-semibold small">Teléfono</label><input type="tel" class="form-control form-control-sm" disabled placeholder="88881234"></div>`;
+    if (document.getElementById('trigFecha').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha</label><input type="date" class="form-control form-control-sm" disabled></div>`;
+    if (document.getElementById('trigFichaMedica').checked) {
+        html += `<div class="mt-2 mb-3 pt-2 border-top"><small class="fw-bold text-secondary d-block mb-2">Ficha Médica</small>`;
+        html += `<div class="mb-2"><label class="form-label small">Tipo de Sangre</label><select class="form-select form-select-sm" disabled><option>No lo sé</option><option>No recibo transfusiones</option><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>AB+</option><option>AB-</option><option>O+</option><option>O-</option></select></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<small class="fw-semibold text-muted d-block mb-1">Contacto de Emergencia</small>`;
+        html += `<div class="mb-2"><label class="form-label small">Nombre del Contacto</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+        html += `<div class="mb-2"><label class="form-label small">Teléfono del Contacto</label><input type="tel" class="form-control form-control-sm" disabled></div>`;
+        html += `</div>`;
+    }
+    if (document.getElementById('trigPasaporte').checked) html += `<div class="mb-3"><label class="form-label fw-semibold small">Pasaporte</label><input type="text" class="form-control form-control-sm" disabled placeholder="Ej: 123456789"></div>`;
+    if (document.getElementById('trigFechaNacimiento').checked) {
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha de Nacimiento</label><div class="row g-2">`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Día" min="1" max="31"></div>`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Mes" min="1" max="12"></div>`;
+        html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Año" min="1900" max="2025"></div>`;
+        html += `</div></div>`;
+    }
+    if (fields.length > 0) html += '<hr class="my-3">';
+    fields.forEach((f, i) => {
+        const label = f.label || `Pregunta ${i+1}`;
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">${i+1}. ${label}</label>`;
+        if (f.field_type === 'text')     html += `<input type="text" class="form-control form-control-sm" disabled placeholder="Respuesta corta...">`;
+        else if (f.field_type === 'textarea') html += `<textarea class="form-control form-control-sm" rows="3" disabled placeholder="Respuesta larga..."></textarea>`;
+        else if (f.field_type === 'radio') {
+            (f.options.length ? f.options : ['Opción 1','Opción 2']).forEach(o => {
+                html += `<div class="form-check"><input class="form-check-input" type="radio" disabled><label class="form-check-label small">${o||'Opción'}</label></div>`;
+            });
+        } else if (f.field_type === 'checkbox') {
+            (f.options.length ? f.options : ['Opción 1','Opción 2']).forEach(o => {
+                html += `<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label small">${o||'Opción'}</label></div>`;
+            });
+        } else if (f.field_type === 'file') { html += `<input type="file" class="form-control form-control-sm" disabled>`; }
+        html += '</div>';
+    });
+    html += `<button class="btn w-100 rounded-pill mt-3 text-white fw-bold" style="background-color:#ff8c00;" disabled><i class="bi bi-send me-1"></i>Enviar Respuesta</button>`;
+    preview.innerHTML = html;
+}
+</script>

@@ -1,0 +1,28 @@
+    <!-- ========================================== -->
+    <!-- ZONA DE SCRIPTS DEL SISTEMA                -->
+    <!-- ========================================== -->
+
+    <!-- PUENTE DE VARIABLES (JINJA A JS): Debe ir SIEMPRE antes de los .js separados -->
+    <script>
+        window.APP_VARS = {
+            isGlobalSuperUser: {{ 'true' if session.get('role') == 'Superusuario' else 'false' }},
+            emptyImageBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        };
+    </script>
+
+    <!-- LIBRERÍAS EXTERNAS LOCALIZADAS -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/html2canvas.js') }}"></script>
+
+    <!-- MÓDULOS DE APLICACIÓN (Carga modularizada en el orden correcto) -->
+    <script src="{{ url_for('static', filename='js/validaciones.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/setup_global.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/auth_ui.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendario_motor.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendario_export.js') }}"></script>
+
+    <!-- PWA y Configuración del Logo -->
+    <script src="{{ url_for('static', filename='js/pwa_service.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/logo_config.js') }}?v=10"></script>
+</body>
+</html>

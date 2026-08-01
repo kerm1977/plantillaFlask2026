@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Calendario</title>
+</head>
+<body>
+    <h1>CALENDARIO INTERACTIVO - TEST</h1>
+    <p>Eventos: {{ eventos | length }}</p>
+    <ul>
+    {% for ev in eventos %}
+        <li>{{ ev.nombre }} - {{ ev.fecha_completa }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>

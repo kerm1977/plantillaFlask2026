@@ -1,0 +1,188 @@
+<script>
+let currentFormId = null;
+let currentFormSlug = null;
+let fields = [];
+
+async function loadForms() {
+    const res = await fetch('/api/forms');
+    const data = await res.json();
+    const container = document.getElementById('formsList');
+    if (!data.length) {
+        container.innerHTML = `<div class="col-12 text-center text-muted py-5">
+            <i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay formularios creados aún.</div>`;
+        return;
+    }
+    container.innerHTML = data.map(f => {
+        const accent = f.form_type === 'examen' ? '#ff8c00' : '#0d6efd';
+        const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : 'bi-clipboard-data';
+        const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
+        const reservedNums = (f.reservation_numbers || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        return `<div class="col-12 col-sm-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+                <div class="card-body p-4 d-flex flex-column">
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-3" style="min-width:0;">
+                            <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:linear-gradient(135deg, ${accent}15, ${accent}25);box-shadow:0 4px 12px ${accent}20;">
+                                <i class="bi ${typeIcon}" style="color:${accent};font-size:1.4rem;"></i>
+                            </div>
+                            <div style="min-width:0;">
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge rounded-pill fw-bold" style="font-size:0.7rem;background:${accent}15;color:${accent};border:1px solid ${accent}30;">#${f.id}</span>
+                                    <h5 class="fw-bold mb-0 text-truncate" style="font-size:1.05rem;color:#212529;">${f.name}</h5>
+                                </div>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge rounded-pill px-2 py-1" style="font-size:0.7rem;background:${accent}15;color:${accent};border:1px solid ${accent}30;font-weight:600;">${typeLabel}</span>
+                                    <span class="badge rounded-pill px-2 py-1 ${f.is_active?'bg-success':'bg-secondary'} bg-opacity-10 ${f.is_active?'text-success':'text-secondary'}" style="font-size:0.7rem;border:1px solid ${f.is_active?'rgba(25,135,84,0.25)':'rgba(108,117,125,0.25)'};font-weight:600;">${f.is_active?'Activo':'Cerrado'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        ${f.responses_count > 0 ? `<div class="rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width:36px;height:36px;background:linear-gradient(135deg, #dc3545, #c82333);box-shadow:0 4px 10px rgba(220,53,69,0.3);"><span class="text-white fw-bold" style="font-size:0.9rem;">${f.responses_count}</span></div>` : ''}
+                    </div>
+                    <div class="d-flex align-items-center gap-4 mb-3" style="font-size:0.85rem;color:#6c757d;">
+                        <span class="d-flex align-items-center"><i class="bi bi-calendar3 me-2" style="color:${accent};"></i>${f.created_at}</span>
+                        <span class="d-flex align-items-center"><i class="bi bi-list-check me-2" style="color:${accent};"></i>${f.fields_count} preguntas</span>
+                    </div>
+                    <div class="mb-3 rounded-4 px-3 py-2" style="background:linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,140,0,0.1));border:1px solid rgba(255,140,0,0.15);">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="small fw-bold text-secondary"><i class="bi bi-ticket-perforated me-1" style="color:${accent};"></i>Números de reserva (${reservedNums.length})</div>
+                            <div class="d-flex gap-1">
+                                ${reservedNums.length ? `<button class="btn btn-sm rounded-pill p-1" style="width:28px;height:28px;background:${accent}15;color:${accent};border:1px solid ${accent}30;" onclick="copyReservationNumbers('${f.reservation_numbers.replace(/'/g, "\\'")}')" title="Copiar para WhatsApp"><i class="bi bi-copy" style="font-size:0.7rem;"></i></button>` : ''}
+                                <button class="btn btn-sm rounded-pill p-1" style="width:28px;height:28px;background:${accent}15;color:${accent};border:1px solid ${accent}30;" onclick="editReservationNumbers(${f.id})" title="Editar reservas"><i class="bi bi-pencil" style="font-size:0.7rem;"></i></button>
+                            </div>
+                        </div>
+                        <div class="d-flex flex-wrap gap-1" style="font-size:0.75rem;">
+                            ${reservedNums.length ? reservedNums.map(n => `<span class="badge rounded-pill" style="background:${accent}15;color:${accent};border:1px solid ${accent}40;">${n}</span>`).join('') : '<span class="small text-muted">Sin números de reserva</span>'}
+                        </div>
+                    </div>
+                    <div class="rounded-4 px-3 py-2 mb-3 d-flex align-items-center justify-content-between" style="background:linear-gradient(135deg, rgba(13,110,253,0.05), rgba(13,110,253,0.1));border:1px solid rgba(13,110,253,0.15);">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-link-45deg" style="color:${accent};font-size:1rem;"></i>
+                            <span class="text-truncate" style="color:#495057;font-size:0.85rem;font-weight:500;">/form/${f.slug}</span>
+                        </div>
+                        <button class="btn btn-sm rounded-pill px-2 py-1" style="font-size:0.75rem;background:${accent}15;color:${accent};border:1px solid ${accent}30;" onclick="copyLink('${f.slug}')"><i class="bi bi-copy"></i></button>
+                    </div>
+                    <div class="mt-auto pt-3 d-flex gap-2 flex-wrap border-top" style="border-color:rgba(0,0,0,0.08) !important;">
+                        <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.15));color:#0d6efd;border:1px solid rgba(13,110,253,0.2);" onclick="editForm(${f.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                        <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(25,135,84,0.1), rgba(25,135,84,0.15));color:#198754;border:1px solid rgba(25,135,84,0.2);" onclick="viewResponses(${f.id})"><i class="bi bi-eye me-1"></i>Respuestas</button>
+                        <a href="/form/${f.slug}" target="_blank" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.15));color:#0dcaf0;border:1px solid rgba(13,202,240,0.2);"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir</a>
+                        <button class="btn btn-sm rounded-pill px-3 py-2 ms-auto fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(220,53,69,0.1), rgba(220,53,69,0.15));color:#dc3545;border:1px solid rgba(220,53,69,0.2);" onclick="deleteForm(${f.id})"><i class="bi bi-trash3 me-1"></i>Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function backToList() {
+    document.getElementById('formEditor').classList.add('d-none');
+    document.getElementById('responsesViewer').classList.add('d-none');
+    document.getElementById('formsList').classList.remove('d-none');
+    loadForms();
+}
+
+function showCreateForm() {
+    currentFormId = null; currentFormSlug = null; fields = [];
+    document.getElementById('formName').value = '';
+    document.getElementById('formType').value = 'registro';
+    document.getElementById('formAllowEdit').value = 'false';
+    document.getElementById('trigNombre').checked = true;
+    document.getElementById('trigCedula').checked = false;
+    document.getElementById('trigFecha').checked = false;
+    document.getElementById('trigEmail').checked = false;
+    document.getElementById('trigEdad').checked = false;
+    document.getElementById('trigTelefono').checked = false;
+    document.getElementById('trigFichaMedica').checked = false;
+    document.getElementById('trigPasaporte').checked = false;
+    document.getElementById('trigFechaNacimiento').checked = false;
+    document.getElementById('formReservationNumbers').value = '';
+    renderFields(); updatePreview();
+    document.getElementById('formsList').classList.add('d-none');
+    document.getElementById('formEditor').classList.remove('d-none');
+}
+
+async function editForm(id) {
+    const form = await (await fetch(`/api/forms/${id}`)).json();
+    currentFormId = id; currentFormSlug = form.slug;
+    document.getElementById('formName').value = form.name;
+    document.getElementById('formType').value = form.form_type;
+    document.getElementById('formAllowEdit').value = form.allow_edit ? 'true' : 'false';
+    document.getElementById('trigNombre').checked = form.show_nombre;
+    document.getElementById('trigCedula').checked = form.show_cedula;
+    document.getElementById('trigFecha').checked = form.show_fecha;
+    document.getElementById('trigEmail').checked = form.show_email;
+    document.getElementById('trigEdad').checked = form.show_edad;
+    document.getElementById('trigTelefono').checked = form.show_telefono;
+    document.getElementById('trigFichaMedica').checked = form.show_ficha_medica;
+    document.getElementById('trigPasaporte').checked = form.show_pasaporte;
+    document.getElementById('trigFechaNacimiento').checked = form.show_fecha_nacimiento;
+    document.getElementById('formReservationNumbers').value = form.reservation_numbers || '';
+    fields = form.fields.map(f => ({...f}));
+    renderFields(); updatePreview();
+    document.getElementById('formsList').classList.add('d-none');
+    document.getElementById('formEditor').classList.remove('d-none');
+}
+
+async function saveForm() {
+    const payload = {
+        name: document.getElementById('formName').value.trim() || 'Sin título',
+        form_type: document.getElementById('formType').value,
+        allow_edit: document.getElementById('formAllowEdit').value === 'true',
+        show_nombre: document.getElementById('trigNombre').checked,
+        show_cedula: document.getElementById('trigCedula').checked,
+        show_fecha: document.getElementById('trigFecha').checked,
+        show_email: document.getElementById('trigEmail').checked,
+        show_edad: document.getElementById('trigEdad').checked,
+        show_telefono: document.getElementById('trigTelefono').checked,
+        show_ficha_medica: document.getElementById('trigFichaMedica').checked,
+        show_pasaporte: document.getElementById('trigPasaporte').checked,
+        show_fecha_nacimiento: document.getElementById('trigFechaNacimiento').checked,
+        reservation_numbers: document.getElementById('formReservationNumbers').value
+    };
+    let formId = currentFormId;
+    if (!formId) {
+        const res = await fetch('/api/forms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const data = await res.json();
+        if (!data.ok) { alert(data.error || 'Error'); return; }
+        formId = data.id; currentFormId = formId; currentFormSlug = data.slug;
+    } else {
+        await fetch(`/api/forms/${formId}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    }
+    await fetch(`/api/forms/${formId}/fields`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({fields: fields})});
+    alert('Formulario guardado correctamente');
+    backToList();
+}
+
+async function deleteForm(id) {
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Formulario',
+        mensaje: '¿Eliminar este formulario y todas sus respuestas?',
+        onConfirmar: async () => {
+            await fetch(`/api/forms/${id}`, {method:'DELETE'});
+            loadForms();
+        }
+    });
+}
+
+function copyLink(slug) {
+    const url = `${window.location.origin}/form/${slug}`;
+    document.getElementById('shareLinkInput').value = url;
+    new bootstrap.Modal(document.getElementById('shareLinkModal')).show();
+}
+
+function copyShareLink() {
+    const input = document.getElementById('shareLinkInput');
+    const feedback = document.getElementById('shareCopyFeedback');
+    input.select();
+    input.setSelectionRange(0, 99999);
+    const doFeedback = () => {
+        if (feedback) {
+            feedback.classList.remove('d-none');
+            setTimeout(() => feedback.classList.add('d-none'), 2500);
+        }
+    };
+    navigator.clipboard.writeText(input.value).then(doFeedback).catch(() => {
+        document.execCommand('copy');
+        doFeedback();
+    });
+}
+</script>

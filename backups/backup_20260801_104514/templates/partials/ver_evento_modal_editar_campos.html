@@ -1,0 +1,118 @@
+<!-- Modal Editar Evento -->
+<div class="modal fade" id="editEventModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-pencil-square text-orange me-2"></i>Editar Evento</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-2 text-start">
+                <form id="editEventForm">
+                    
+                    <div class="text-center mb-5">
+                        <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento (9:16)</label>
+                        <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
+                            {% set edit_poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
+                            <img id="editEventImagePreview" src="{{ edit_poster_url }}" alt="Póster" style="width: 100%; height: 100%; object-fit: cover;">
+                            <label for="editEventImageUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
+                            </label>
+                            <input type="file" id="editEventImageUpload" name="poster" class="d-none" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-muted small mb-1">Nombre del Lugar</label>
+                            <input type="text" id="editNombreLugar" name="nombreLugar" required class="form-control glass-input rounded-3 fw-bold" value="{{ evento.nombre_lugar }}">
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Dificultad</label>
+                            <select id="editDificultad" name="dificultad" class="form-select glass-input rounded-3">
+                                <option value="Paseo" {% if evento.dificultad == 'Paseo' %}selected{% endif %}>Paseo</option>
+                                <option value="Básico" {% if evento.dificultad == 'Básico' %}selected{% endif %}>Básico</option>
+                                <option value="Intermedio" {% if evento.dificultad == 'Intermedio' %}selected{% endif %}>Intermedio</option>
+                                <option value="Dificil" {% if evento.dificultad == 'Dificil' %}selected{% endif %}>Dificil</option>
+                                <option value="Avanzado" {% if evento.dificultad == 'Avanzado' %}selected{% endif %}>Avanzado</option>
+                                <option value="Técnico" {% if evento.dificultad == 'Técnico' %}selected{% endif %}>Técnico</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Actividad</label>
+                            <select id="editActividad" name="actividad" class="form-select glass-input rounded-3" onchange="toggleEditActividad()">
+                                <option value="Caminata" {% if evento.actividad == 'Caminata' %}selected{% endif %}>Caminata</option>
+                                <option value="Internacional" {% if evento.actividad == 'Internacional' %}selected{% endif %}>Internacional</option>
+                                <option value="Parque Nacional" {% if evento.actividad == 'Parque Nacional' %}selected{% endif %}>Parque Nacional</option>
+                                <option value="El Camino de Costa Rica" {% if evento.actividad == 'El Camino de Costa Rica' %}selected{% endif %}>El Camino de Costa Rica</option>
+                                <option value="Fiesta" {% if evento.actividad == 'Fiesta' %}selected{% endif %}>Fiesta</option>
+                                <option value="Convivio" {% if evento.actividad == 'Convivio' %}selected{% endif %}>Convivio</option>
+                                <option value="Reunión" {% if evento.actividad == 'Reunión' %}selected{% endif %}>Reunión</option>
+                            </select>
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Moneda</label>
+                            <select id="editMoneda" name="moneda" class="form-select glass-input rounded-3">
+                                <option value="¢" {% if evento.moneda == '¢' %}selected{% endif %}>Colones (¢)</option>
+                                <option value="$" {% if evento.moneda == '$' %}selected{% endif %}>Dólares ($)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Precio (Dejar en 0 si Pendiente)</label>
+                            <input type="number" id="editPrecio" name="precio" required class="form-control glass-input rounded-3" value="{{ evento.precio or 0 }}">
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Reserva con (0 si Pendiente)</label>
+                            <input type="number" id="editReserva" name="reserva" required class="form-control glass-input rounded-3" value="{{ evento.reserva or 0 }}">
+                        </div>
+                        
+                        <div class="col-6 col-md-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
+                            {% set cap_limpia = evento.capacidad|replace('AGOTADO_', '') %}
+                            <select id="editCapacidad" name="capacidad" required class="form-select glass-input rounded-3">
+                                <option value="14-17" {% if cap_limpia == '14-17' %}selected{% endif %}>14-17</option>
+                                <option value="17-28" {% if cap_limpia == '17-28' %}selected{% endif %}>17-28</option>
+                                <option value="17-31" {% if cap_limpia == '17-31' %}selected{% endif %}>17-31</option>
+                                <option value="MÁS DE 31" {% if cap_limpia == 'MÁS DE 31' %}selected{% endif %}>MÁS DE 31</option>
+                                <option value="NO APLICA" {% if cap_limpia == 'NO APLICA' %}selected{% endif %}>NO APLICA</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">SINPE</label>
+                            <select id="editSinpe" name="sinpe" class="form-select glass-input rounded-3">
+                                <option {% if evento.sinpe == '86529837 - Jenny Ceciliano Cordoba' %}selected{% endif %}>86529837 - Jenny Ceciliano Cordoba</option>
+                                <option {% if evento.sinpe == '87984232 - Jenny Ceciliano Cordoba' %}selected{% endif %}>87984232 - Jenny Ceciliano Cordoba</option>
+                                <option {% if evento.sinpe == '86227500 - Kenneth Ruiz Matamoros' %}selected{% endif %}>86227500 - Kenneth Ruiz Matamoros</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">CUENTAS</label>
+                            <select id="editCuenta" name="cuenta" class="form-select glass-input rounded-3">
+                                <option value="Ninguna" {% if evento.cuenta == 'Ninguna' %}selected{% endif %}>-- Ninguna / Solo usar SINPE --</option>
+                                <option {% if evento.cuenta == 'Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103' %}selected{% endif %}>Jenny Ceciliano Cordoba (Colones MUCAP) - CR66080402010100715103</option>
+                                <option {% if evento.cuenta == 'Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163' %}selected{% endif %}>Jenny Ceciliano Cordoba (Colones BCR) - CR62015202001268129163</option>
+                                <option {% if evento.cuenta == 'Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778' %}selected{% endif %}>Kenneth Ruiz Matamoros (Colones MUCAP) - CR19080403012501524778</option>
+                                <option {% if evento.cuenta == 'Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793' %}selected{% endif %}>Juan Carlos Ruiz (Colones BCR) - CR61015202001292863793</option>
+                                <option {% if evento.cuenta == 'Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158' %}selected{% endif %}>Juan Carlos Ruiz (Dolares BCR) - CR50015202001410361158</option>
+                            </select>
+                        </div>
+
+                        <!-- NUEVO SWITCH: ZONA DE ALTO RIESGO (MODAL DE EDICIÓN) -->
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch m-0 border border-danger border-opacity-50 rounded-3 p-3 d-flex justify-content-between align-items-center" style="background: rgba(220, 53, 69, 0.05);">
+                                <div>
+                                    <label class="form-check-label fw-bold text-danger mb-0 d-block" for="editAltoRiesgoToggle" style="cursor: pointer; font-size: 1.05rem;">
+                                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Marcar como "Zona de Alto Riesgo"
+                                    </label>
+                                    <small class="text-danger opacity-75">Agrega una alerta visual obligatoria sobre la dificultad técnica del terreno.</small>
+                                </div>
+                                <input class="form-check-input m-0 shadow-sm" type="checkbox" id="editAltoRiesgoToggle" style="width: 3rem; height: 1.5rem; cursor: pointer;" {% if evento.zona_alto_riesgo %}checked{% endif %}>
+                            </div>
+                        </div>
+                    </div>

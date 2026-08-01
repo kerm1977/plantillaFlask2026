@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    /* Diseño Minimalista y Plano - Cero sombras espantosas, cero bordes toscos */
+    .modal-glass-transparent {
+        background: rgba(255, 255, 255, 0.9) !important;
+        border-radius: 1.5rem;
+        border: none;
+        box-shadow: none; 
+    }
+
+    .form-label-huge {
+        font-size: 1.05rem !important;
+        font-weight: 600 !important;
+        color: #495057 !important;
+        margin-bottom: 0.4rem;
+        display: block;
+    }
+    
+    .input-huge {
+        font-size: 1.15rem !important;
+        padding: 0.8rem 1rem !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 1rem !important;
+        color: #212529 !important;
+        background-color: #f8f9fa !important;
+        transition: border-color 0.2s ease;
+        box-shadow: none !important;
+    }
+    .input-huge:focus {
+        border-color: #ff8c00 !important;
+        background-color: #fff !important;
+        box-shadow: none !important;
+        outline: none;
+    }
+    
+    .btn-huge {
+        font-size: 1.2rem !important;
+        padding: 1rem !important;
+        border-radius: 1rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: none !important;
+        border: none;
+    }
+
+    .section-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #1a2a40;
+        border-bottom: none;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+</style>
+
+<div class="container py-4 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            
+            <div class="modal-glass-transparent p-4 mt-2 border">
+                <!-- CABECERA -->
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu" class="mb-3" style="max-height: 70px;">
+                    <h1 class="fw-black text-dark mb-1" style="font-size: 1.8rem; line-height: 1.2;">Actualizar Mis Datos</h1>
+                    <p class="text-muted fw-bold mt-2">Modifica la información necesaria y guarda los cambios para mantener tu ficha al día.</p>
+                </div>
+
+                <form id="editForm">
+                    <!-- CAMPO CLAVE: CÉDULA (Bloqueado por seguridad para evitar pérdida de historial) -->
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="cedula">Número de Cédula (No editable)</label>
+                        <input type="text" class="form-control input-huge text-center fw-bold text-muted bg-light" id="cedula" value="{{ hiker.cedula }}" readonly>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="nombre_completo">Nombre Completo</label>
+                        <input type="text" class="form-control input-huge" id="nombre_completo" value="{{ hiker.nombre_completo }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="telefono">Número de Teléfono (WhatsApp)</label>
+                        <input type="tel" class="form-control input-huge" id="telefono" value="{{ hiker.telefono }}" required inputmode="tel">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="fecha_nacimiento">Fecha de Nacimiento</label>
+                        <input type="date" class="form-control input-huge fw-bold text-dark text-center" id="fecha_nacimiento" 
+                               value="{% if hiker.fecha_nacimiento %}{{ hiker.fecha_nacimiento.strftime('%Y-%m-%d') }}{% endif %}" required>
+                    </div>
+
+                    <!-- SECCIÓN MÉDICA -->
+                    <h3 class="section-title"><i class="bi bi-heart-pulse text-danger me-2"></i> Ficha Médica</h3>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="tipo_sangre">Tipo de Sangre</label>
+                        <select class="form-select input-huge" id="tipo_sangre" required>
+                            <option value="O+" {% if hiker.tipo_sangre == 'O+' %}selected{% endif %}>O Positivo (O+)</option>
+                            <option value="O-" {% if hiker.tipo_sangre == 'O-' %}selected{% endif %}>O Negativo (O-)</option>
+                            <option value="A+" {% if hiker.tipo_sangre == 'A+' %}selected{% endif %}>A Positivo (A+)</option>
+                            <option value="A-" {% if hiker.tipo_sangre == 'A-' %}selected{% endif %}>A Negativo (A-)</option>
+                            <option value="B+" {% if hiker.tipo_sangre == 'B+' %}selected{% endif %}>B Positivo (B+)</option>
+                            <option value="B-" {% if hiker.tipo_sangre == 'B-' %}selected{% endif %}>B Negativo (B-)</option>
+                            <option value="AB+" {% if hiker.tipo_sangre == 'AB+' %}selected{% endif %}>AB Positivo (AB+)</option>
+                            <option value="AB-" {% if hiker.tipo_sangre == 'AB-' %}selected{% endif %}>AB Negativo (AB-)</option>
+                            <option value="No sabe" {% if hiker.tipo_sangre == 'No sabe' %}selected{% endif %}>No lo sé</option>
+                            <option value="No transfusiones" {% if hiker.tipo_sangre == 'No transfusiones' %}selected{% endif %}>NO RECIBO TRANSFUSIONES</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="alergias">Alergias Conocidas</label>
+                        <textarea class="form-control input-huge" id="alergias" rows="2">{{ hiker.alergias if hiker.alergias != 'Ninguna' else '' }}</textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="enfermedades_cronicas">Enfermedades Crónicas</label>
+                        <textarea class="form-control input-huge" id="enfermedades_cronicas" rows="2">{{ hiker.enfermedades_cronicas if hiker.enfermedades_cronicas != 'Ninguna' else '' }}</textarea>
+                    </div>
+
+                    <!-- CONTACTO DE EMERGENCIA -->
+                    <h3 class="section-title"><i class="bi bi-telephone text-success me-2"></i> Contacto de Emergencia</h3>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="emergencia_nombre">Nombre del Contacto</label>
+                        <input type="text" class="form-control input-huge" id="emergencia_nombre" value="{{ hiker.contacto_emergencia_nombre }}" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="emergencia_telefono">Teléfono del Contacto</label>
+                        <input type="tel" class="form-control input-huge" id="emergencia_telefono" value="{{ hiker.contacto_emergencia_telefono }}" required inputmode="tel">
+                    </div>
+
+                    <!-- BOTONES DE ACCIÓN -->
+                    <div class="mt-5 text-center d-flex flex-column gap-3">
+                        <button type="submit" class="btn btn-warning btn-huge w-100 text-dark" id="btnSubmit">
+                            <i class="bi bi-save-fill me-2"></i> Guardar Cambios
+                        </button>
+                        <button type="button" class="btn btn-light fw-bold rounded-pill shadow-sm py-2" onclick="window.history.back()">
+                            Cancelar y volver
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('editForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const btnSubmit = document.getElementById('btnSubmit');
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> GUARDANDO...';
+
+        const payload = {
+            // El event_id va vacío porque esta ruta es puramente para actualizar al usuario
+            event_id: "", 
+            cedula: document.getElementById('cedula').value.trim(),
+            nombre_completo: document.getElementById('nombre_completo').value.trim(),
+            telefono: document.getElementById('telefono').value.trim(),
+            fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
+            tipo_sangre: document.getElementById('tipo_sangre').value,
+            alergias: document.getElementById('alergias').value.trim() || 'Ninguna',
+            enfermedades_cronicas: document.getElementById('enfermedades_cronicas').value.trim() || 'Ninguna',
+            contacto_emergencia_nombre: document.getElementById('emergencia_nombre').value.trim(),
+            contacto_emergencia_telefono: document.getElementById('emergencia_telefono').value.trim()
+        };
+
+        try {
+            // Reutilizamos la API de registro que diseñamos para "Upsert" (Actualizar si existe)
+            const response = await fetch('/api/hiker/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+
+            if(response.ok && data.success) {
+                alert("✅ ¡Ficha Médica actualizada con éxito!");
+                
+                // Redirigir inteligentemente
+                if(window.history.length > 1 && document.referrer.includes(window.location.host)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/';
+                }
+            } else {
+                alert("❌ Error al guardar: " + (data.error || "Desconocido"));
+                btnSubmit.disabled = false;
+                btnSubmit.innerHTML = '<i class="bi bi-save-fill me-2"></i> Guardar Cambios';
+            }
+        } catch (error) {
+            alert("Error de conexión. Intenta nuevamente.");
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = '<i class="bi bi-save-fill me-2"></i> Guardar Cambios';
+        }
+    });
+</script>
+{% endblock %}

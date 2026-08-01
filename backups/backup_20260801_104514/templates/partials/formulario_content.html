@@ -1,0 +1,155 @@
+
+<div class="container py-4 animate__animated animate__fadeIn">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            
+            <div class="modal-glass-transparent p-4 mt-2">
+                <!-- CABECERA -->
+                <div class="text-center mb-4">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu" class="mb-3" style="max-height: 70px;">
+                    <h1 class="fw-black text-dark mb-1" style="font-size: 1.8rem; line-height: 1.2;">Inscripción a Caminata</h1>
+                    <h2 class="text-orange fw-bold" style="font-size: 1.4rem;">{{ evento.nombre_lugar }}</h2>
+                    
+                    <div class="alert huge-alert mt-3 text-start text-md-center" role="alert">
+                        <i class="bi bi-info-circle text-orange fs-4 d-block mb-1 text-center"></i>
+                        Complete sus datos. Si ya viajó con nosotros, digite su cédula y el proceso será automático. ESTE FORMULARIO SE LLENA UNA ÚNICA VEZ.. LA PRÓXIMA VEZ SOLO CON LA CÉDULA QUEDA REGISTRAD@.
+                    </div>
+                </div>
+
+                <!-- ALERTA SI ESTÁ AGOTADO -->
+                {% if evento.is_sold_out %}
+                <div class="alert huge-alert text-center mb-4" style="background-color: rgba(220,53,69,0.1) !important; color: #b02a37 !important;" role="alert">
+                    <i class="bi bi-x-octagon fs-1 d-block mb-2"></i>
+                    LO SENTIMOS, LOS CUPOS ESTÁN AGOTADOS.
+                </div>
+                {% else %}
+                <form id="inscripcionForm">
+                    <input type="hidden" id="event_id" value="{{ evento.id }}">
+                    <input type="hidden" id="nombreEvento" value="{{ evento.nombre_lugar }}">
+
+                    <!-- CAMPO CLAVE: CÉDULA -->
+                    <div class="mb-4">
+                        <label class="form-label form-label-huge" for="cedula">Número de Cédula</label>
+                        <input type="text" class="form-control input-huge text-center fw-bold text-dark" id="cedula" placeholder="Ej: 112340567" required autocomplete="off" inputmode="numeric">
+                        
+                        <!-- Aviso de Autocompletado (Limpio y sutil) -->
+                        <div id="cedulaAviso" class="alert alert-success-soft huge-alert d-none mt-3 text-center" role="alert">
+                            <!-- El JS inyecta el saludo "Hola Nombre" aquí -->
+                        </div>
+                    </div>
+
+                    <!-- CONTENEDOR QUE SE OCULTA SI EL USUARIO YA EXISTE -->
+                    <div id="camposAdicionales" class="animate__animated animate__fadeIn">
+                        
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="nombre_completo">Nombre Completo</label>
+                            <input type="text" class="form-control input-huge" id="nombre_completo" required placeholder="Nombre y Apellidos">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="telefono">Número de Teléfono (WhatsApp)</label>
+                            <input type="tel" class="form-control input-huge" id="telefono" required inputmode="tel" placeholder="88889999">
+                        </div>
+
+                        <!-- AQUÍ SE COLOCA LA FECHA DE NACIMIENTO -->
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="fecha_nacimiento">Fecha de Nacimiento</label>
+                            <input type="date" class="form-control input-huge fw-bold text-dark text-center" id="fecha_nacimiento" required>
+                            <small class="text-muted d-block mt-1 text-center fw-bold">Día / Mes / Año</small>
+                        </div>
+
+                        <!-- SECCIÓN 2: DATOS MÉDICOS -->
+                        <h3 class="section-title"><i class="bi bi-heart-pulse text-danger me-2"></i> Ficha Médica</h3>
+
+                        <div class="mb-4">
+                            <!-- ETIQUETA CORREGIDA -->
+                            <label class="form-label form-label-huge" for="tipo_sangre">Su (RH)Tipo de Sangre</label>
+                            <select class="form-select input-huge" id="tipo_sangre" required>
+                                <option value="" selected disabled>Seleccione una opción...</option>
+                                <option value="O+">O Positivo (O+)</option>
+                                <option value="O-">O Negativo (O-)</option>
+                                <option value="A+">A Positivo (A+)</option>
+                                <option value="A-">A Negativo (A-)</option>
+                                <option value="B+">B Positivo (B+)</option>
+                                <option value="B-">B Negativo (B-)</option>
+                                <option value="AB+">AB Positivo (AB+)</option>
+                                <option value="AB-">AB Negativo (AB-)</option>
+                                <option value="No sabe">No lo sé</option>
+                                <!-- NUEVA OPCIÓN AGREGADA -->
+                                <option value="No transfusiones">NO RECIBO TRANSFUSIONES</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="alergias">Alergias Conocidas</label>
+                            <textarea class="form-control input-huge" id="alergias" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="enfermedades_cronicas">Enfermedades Crónicas</label>
+                            <textarea class="form-control input-huge" id="enfermedades_cronicas" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                        </div>
+
+                        <!-- SECCIÓN 3: CONTACTO DE EMERGENCIA -->
+                        <h3 class="section-title"><i class="bi bi-telephone text-success me-2"></i> Contacto de Emergencia</h3>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="emergencia_nombre">Nombre del Contacto</label>
+                            <input type="text" class="form-control input-huge" id="emergencia_nombre" placeholder="Ej: María (Esposa)" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label form-label-huge" for="emergencia_telefono">Teléfono del Contacto</label>
+                            <input type="tel" class="form-control input-huge" id="emergencia_telefono" required inputmode="tel" placeholder="88889999">
+                        </div>
+
+                    </div> <!-- FIN DEL CONTENEDOR OCULTABLE -->
+
+                    <!-- SECCIÓN OPCIONAL: CREAR CUENTA EN LA TRIBU -->
+                    <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="crearCuentaCheck" onchange="toggleCamposCuenta(this.checked)">
+                            <label class="form-check-label fw-bold text-dark" for="crearCuentaCheck" style="font-size:1rem;">
+                                <i class="bi bi-person-plus-fill text-orange me-1"></i> Crear mi cuenta en La Tribu
+                            </label>
+                            <div class="text-muted small mt-1">Opcional — para iniciar sesión en la app y ver tu perfil.</div>
+                        </div>
+
+                        <div id="camposCuenta" class="d-none animate__animated animate__fadeIn">
+                            <div class="row g-3 mb-3">
+                                <div class="col-12 col-sm-4">
+                                    <input type="text" class="form-control input-huge" id="reg_name" placeholder="Nombre">
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <input type="text" class="form-control input-huge" id="reg_ln1" placeholder="Primer apellido">
+                                </div>
+                                <div class="col-12 col-sm-4">
+                                    <input type="text" class="form-control input-huge" id="reg_ln2" placeholder="Segundo apellido">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <input type="email" class="form-control input-huge" id="reg_email" placeholder="Correo electrónico" autocomplete="off">
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" class="form-control input-huge" id="reg_password" placeholder="Contraseña (mín. 6 caracteres)" autocomplete="new-password">
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" class="form-control input-huge" id="reg_password2" placeholder="Confirmar contraseña">
+                            </div>
+                            <div id="regAccountMsg" class="d-none mb-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÓN DE ENVÍO -->
+                    <div class="mt-4 text-center">
+                        <button type="submit" class="btn btn-success btn-huge w-100 text-white" id="btnSubmit">
+                            Enviar información a La Tribu
+                        </button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>

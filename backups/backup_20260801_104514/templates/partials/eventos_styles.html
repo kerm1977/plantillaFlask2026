@@ -1,0 +1,42 @@
+<style>
+    .glass-table-container {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .text-warning-custom { color: #ff8c00 !important; }
+    
+    /* NUEVOS ESTILOS ROBUSTOS PARA CHECKBOXES INCLUYE */
+    .btn-check-custom {
+        display: none !important; /* Fuerza a ocultar el cuadrito original 100% seguro */
+    }
+    .lbl-check-custom {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        color: #495057 !important;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        cursor: pointer;
+        user-select: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .lbl-check-custom:hover {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .btn-check-custom:checked + .lbl-check-custom {
+        background-color: #ff8c00 !important;
+        color: white !important;
+        border-color: #ff8c00 !important;
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3) !important;
+    }
+    
+    /* Estilos para inputs de fecha divididos */
+    .date-split input, .date-split select {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        text-align: center;
+        font-weight: bold;
+    }
+</style>

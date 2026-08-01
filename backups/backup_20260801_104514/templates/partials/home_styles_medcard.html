@@ -1,0 +1,70 @@
+<style>
+    /* ESTILOS: BUSCADOR DE PIN Y TARJETA MÉDICA */
+    .pin-search-bar {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(15px);
+        border: 2px solid #ff8c00;
+        border-radius: 50px;
+        padding: 8px 15px;
+        box-shadow: 0 10px 25px rgba(255, 140, 0, 0.15);
+        display: flex;
+        align-items: center;
+        transition: all 0.3s ease;
+    }
+    .pin-search-bar:focus-within {
+        box-shadow: 0 10px 30px rgba(255, 140, 0, 0.3);
+        transform: scale(1.02);
+    }
+    .pin-input {
+        border: none;
+        background: transparent;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #000;
+        width: 100%;
+        outline: none;
+        text-transform: none !important;
+    }
+    .pin-input::placeholder {
+        color: #6c757d;
+        font-weight: 600;
+        text-transform: none;
+    }
+
+    .id-card {
+        background: #ffffff;
+        border-radius: 15px;
+        border: 3px solid #1a2a40;
+        position: relative;
+        overflow: hidden;
+    }
+    .id-card-header {
+        background: #1a2a40;
+        color: white;
+        padding: 15px;
+        text-align: center;
+        border-bottom: 4px solid #ff8c00;
+    }
+    .pin-badge {
+        background: #ff8c00;
+        color: #fff;
+        font-weight: 900;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 1.2rem;
+        letter-spacing: 2px;
+    }
+    .data-label {
+        font-size: 0.85rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 0px;
+    }
+    .data-value {
+        font-size: 1.2rem;
+        color: #000;
+        font-weight: 800;
+        margin-bottom: 10px;
+    }
+</style>

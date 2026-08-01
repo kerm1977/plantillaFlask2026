@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport seguro para evitar solapamientos en dispositivos móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    
+    <title>Caminatas La Tribu</title>
+
+    <!-- PWA: Manifest y metadatos -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8c00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="La Tribu">
+    <link rel="apple-touch-icon" href="/static/logo.png">
+    
+    <!-- SIN CDNs: Carga directa de Bootstrap Local -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=2">
+    
+    <!-- Carga de CSS Global, Principal y Base separado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=2">
+
+    {% include 'partials/base_styles.html' %}
+</head>
+<body>
+    <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
+    <div class="container mt-4">
+        <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
+            <div class="container-fluid">
+                <!-- Marca de la Navbar SÚPER LIMPIA -->
+                <a class="navbar-brand text-orange fw-bold fs-4 d-flex align-items-center gap-2" href="/">
+                    <i class="bi bi-compass"></i> La Tribu
+                </a>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    {% if session.get('user_id') %}
+                        {% set nav_avatar = session.get('avatar') or '' %}
+                        <a href="{{ url_for('main.profile') }}" class="d-flex align-items-center text-decoration-none" title="Mi Perfil">
+                            <div class="rounded-circle overflow-hidden border border-2 border-white shadow-sm d-flex align-items-center justify-content-center bg-orange" style="width:42px;height:42px;flex-shrink:0;">
+                                {% if nav_avatar and nav_avatar != 'default.png' %}
+                                    <img src="{{ url_for('static', filename=nav_avatar) }}" alt="Avatar" style="width:100%;height:100%;object-fit:cover;">
+                                {% else %}
+                                    <i class="bi bi-person-fill text-white fs-5"></i>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% else %}
+                        <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right me-2 fs-5"></i> Ingresar
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="container mt-2 mt-md-5 mb-5 pb-5 content-wrapper">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Botón Volver Atrás Global (OCULTO EN INICIO) -->
+    {% if request.path != '/' %}
+    <button id="btnBack" class="btn-global-back" onclick="if(document.referrer.includes(window.location.host) && window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }" title="Volver Atrás">
+        <i class="bi bi-arrow-left fs-4"></i>
+    </button>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- LOGO DE SUEÑOS FLOTANTE EN PC -->
+    <!-- ========================================== -->
+    <a id="logoSuenosDesktopLink" href="#" target="_blank" class="d-none d-md-block" style="display: none !important;">
+        <img id="logoSuenosDesktop" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed animate-heartbeat">
+    </a>
+    <img id="logoSuenosDesktopNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed d-none d-md-block animate-heartbeat" style="display: none !important;">
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
+    <!-- ========================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="dropdown dropup">
+        <!-- El botón flotante ahora abre un menú desplegable (Dropup para que suba) -->
+        <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none;">
+            <i class="bi bi-tools fs-4"></i>
+        </a>
+        
+        <!-- Menú desplegable Glassmorphic -->
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mb-2 p-2" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border-radius: 1rem; right: 20px;">
+            <!-- Opción 1: Crear Caminata -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/eventos">
+                    <i class="bi bi-plus-circle text-orange me-2 fs-5"></i> Crear Caminata
+                </a>
+            </li>
+            
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 2: Generar Calendario (ABRE EL MODAL) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" data-bs-toggle="modal" data-bs-target="#calendarioModal">
+                    <i class="bi bi-easel text-orange me-2 fs-5"></i> Arte de Calendario
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- NUEVA Opción 3: Link de Inscripción (ABRE EL MODAL DE GENERADOR) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="abrirGeneradorLinks()">
+                    <i class="bi bi-link-45deg text-orange me-2 fs-5"></i> Link de Inscripción
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 4: Gestor de Fechas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/gestor-fechas">
+                    <i class="bi bi-calendar-check text-orange me-2 fs-5"></i> Gestor de Fechas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 5: Agenda / Directorio -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard">
+                    <i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 5: Evento Social -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/publicaciones">
+                    <i class="bi bi-calendar-event text-orange me-2 fs-5"></i> Evento Social
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 6: Formularios -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/formularios">
+                    <i class="bi bi-clipboard-data text-orange me-2 fs-5"></i> Formularios
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 7: Rifas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/rifas">
+                    <i class="bi bi-ticket-perforated text-orange me-2 fs-5"></i> Rifas
+                </a>
+            </li>
+        </ul>
+    </div>
+    
+    <style>
+        /* Elimina la flechita por defecto del dropdown en el botón flotante */
+        .btn-global-add.dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
+    {% endif %}
+
+
+{% include 'partials/base_mobile_bar.html' %}
+
+{% include 'partials/base_auth_modals.html' %}
+
+{% include 'partials/base_calendar_modal.html' %}
+
+{% include 'partials/base_links_modal.html' %}
+
+<!-- MODAL: CONFIGURACIÓN LOGO SUEÑOS -->
+{% if session.get('role') == 'Superusuario' %}
+<div class="modal fade" id="configLogoSuenosModal" tabindex="-1" style="z-index:1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-gear-fill text-orange me-2"></i>Configurar Logo Sueños</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <!-- Mostrar/Ocultar -->
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" id="logoMostrarToggle" style="cursor: pointer;">
+                    <label class="form-check-label fw-bold" for="logoMostrarToggle" style="cursor: pointer;">Mostrar Logo</label>
+                </div>
+
+                <!-- Enlace -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Enlace al hacer clic</label>
+                    <input type="url" id="logoEnlace" class="form-control glass-input" placeholder="https://ejemplo.com">
+                </div>
+
+                <!-- Selector de eventos activos -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">O seleccionar un evento activo</label>
+                    <select id="logoEventoSelect" class="form-select glass-input" onchange="seleccionarEvento()">
+                        <option value="">-- Seleccionar evento --</option>
+                    </select>
+                </div>
+
+                <!-- Tamaño PC -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Tamaño en PC (px)</label>
+                    <input type="number" id="logoTamañoPC" class="form-control glass-input" value="150" min="50" max="500">
+                </div>
+
+                <!-- Tamaño Móvil -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Tamaño en Móvil (px)</label>
+                    <input type="number" id="logoTamañoMobile" class="form-control glass-input" value="120" min="30" max="300">
+                </div>
+
+                <!-- Posición PC -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Posición desde borde PC (px)</label>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <input type="number" id="logoPosicionLeft" class="form-control glass-input" value="20" placeholder="Izquierda">
+                        </div>
+                        <div class="col-6">
+                            <input type="number" id="logoPosicionBottom" class="form-control glass-input" value="100" placeholder="Abajo">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nombre del archivo -->
+                <div class="mb-3">
+                    <label class="form-label small text-secondary fw-bold">Nombre del archivo de imagen</label>
+                    <input type="text" id="logoNombreArchivo" class="form-control glass-input" value="logosueños.png" placeholder="ejemplo.png">
+                </div>
+
+                <button class="btn btn-orange fw-bold w-100 py-3 shadow rounded-pill" onclick="guardarConfigLogoSuenos()">
+                    <i class="bi bi-check-lg me-2"></i>Guardar Configuración
+                </button>
+
+                <button class="btn btn-outline-secondary fw-bold w-100 py-3 shadow rounded-pill mt-2" onclick="limpiarCachéChrome()">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar Caché y Recargar PWA
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% include 'partials/modal_borrar_unificado.html' %}
+
+{% include 'partials/base_scripts.html' %}

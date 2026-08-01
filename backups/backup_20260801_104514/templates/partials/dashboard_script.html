@@ -1,0 +1,115 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    loadAllUsers();
+    document.getElementById('searchUserInput').addEventListener('input', function() {
+        const term = this.value.toLowerCase();
+        filteredContacts = term
+            ? allContacts.filter(u =>
+                u.display_name.toLowerCase().includes(term) ||
+                (u.email      && u.email.toLowerCase().includes(term)) ||
+                (u.crm_cedula && u.crm_cedula.toLowerCase().includes(term)) ||
+                (u.phone      && u.phone.includes(term)))
+            : [...allContacts];
+        renderContactsPage(1);
+    });
+    const editAvatarUpload    = document.getElementById('editAvatarUpload');
+    const editAvatarPreviewImg= document.getElementById('editAvatarPreviewImg');
+    const editScaleSlider     = document.getElementById('editScaleSlider');
+    const editPosXSlider      = document.getElementById('editPosXSlider');
+    const editPosYSlider      = document.getElementById('editPosYSlider');
+    if (editScaleSlider && editPosXSlider && editPosYSlider) {
+        function updateEditImageTransform() {
+            editAvatarPreviewImg.style.transform =
+                `scale(${editScaleSlider.value}) translate(${editPosXSlider.value}px, ${editPosYSlider.value}px)`;
+        }
+        editScaleSlider.addEventListener('input', updateEditImageTransform);
+        editPosXSlider.addEventListener('input', updateEditImageTransform);
+        editPosYSlider.addEventListener('input', updateEditImageTransform);
+        if (editAvatarUpload) {
+            editAvatarUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        editAvatarPreviewImg.src = e.target.result;
+                        editScaleSlider.value = 1; editPosXSlider.value = 0; editPosYSlider.value = 0;
+                        updateEditImageTransform();
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    }
+    document.getElementById('adminEditUserForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        try {
+            const btnSubmit = this.querySelector('button[type="submit"]');
+            const originalHTML = btnSubmit.innerHTML;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+            btnSubmit.disabled = true;
+            const response = await fetch(`/api/admin/update_user/${currentSelectedUserId}`, {method:'POST', body:formData});
+            const result   = await response.json();
+            if (response.ok && result.success) {
+                bootstrap.Modal.getInstance(document.getElementById('adminEditUserModal'))?.hide();
+                showGlassAlert('Los datos del usuario han sido actualizados correctamente.', '<i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>');
+                showUsersList(); loadAllUsers();
+            } else { alert("Error al actualizar: " + (result.error || 'Desconocido')); }
+            btnSubmit.innerHTML = originalHTML; btnSubmit.disabled = false;
+        } catch(err) { alert("Error de conexión al guardar los datos."); }
+    });
+});
+
+let currentSelectedUserId = null, currentSelectedUserName = "", currentSelectedUserObj = null;
+let allContacts = [], filteredContacts = [];
+const DASH_PAGE_SIZE = 25;
+
+function showGlassAlert(message, iconHTML = '<i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i>') {
+    document.getElementById('actionModalIcon').innerHTML    = iconHTML;
+    document.getElementById('actionModalMessage').innerText = message;
+    new bootstrap.Modal(document.getElementById('actionModal')).show();
+}
+
+function _dashMsg(cls, html) {
+    const el = document.getElementById('dashDbMsg'); if (!el) return;
+    el.className = `alert ${cls} rounded-3 py-2 small`; el.innerHTML = html; el.classList.remove('d-none');
+}
+async function dashExportJSON() {
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando exportación');
+    try {
+        const r = await fetch('/api/admin/db/export');
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error); }
+        const blob = await r.blob(), cd = r.headers.get('Content-Disposition')||'';
+        const name = (cd.match(/filename="?([^"]+)"?/)||[])[1]||'db_export.json';
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+        _dashMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>JSON descargado.');
+    } catch(e) { _dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`); }
+}
+async function dashExportExcel() {
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando Excel');
+    try {
+        const r=await fetch('/api/admin/db/export'); if(!r.ok){const d=await r.json();throw new Error(d.error);}
+        const data=await r.json(), wb=XLSX.utils.book_new();
+        const names={users:'Usuarios',hikers:'CRM Caminantes',events:'Eventos',event_registrations:'Inscripciones',notifications:'Notificaciones',site_content:'Contenido Sitio'};
+        Object.entries(data.tables).forEach(([k,rows])=>{if(rows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),names[k]||k);});
+        XLSX.writeFile(wb,`db_export_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.xlsx`);
+        _dashMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>Excel descargado.');
+    } catch(e) { _dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`); }
+}
+async function dashImportJSON(input) {
+    const file=input.files[0]; if(!file) return;
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Importando datos');
+    try {
+        const json=JSON.parse(await file.text());
+        const r=await fetch('/api/admin/db/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(json)});
+        const d=await r.json();
+        if(d.ok){const summary=Object.entries(d.stats).map(([t,v])=>`<b>${t}</b>: +${v.added} nuevos, ${v.skipped} existentes`).join(' · ');
+            _dashMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado  ${summary}`); loadAllUsers();}
+        else{throw new Error(d.error||'Error desconocido');}
+    } catch(e){_dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+    input.value='';
+}
+</script>
+
+{% include 'partials/dashboard_users_list.html' %}
+{% include 'partials/dashboard_users_detail.html' %}

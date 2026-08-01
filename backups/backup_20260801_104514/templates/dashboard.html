@@ -1,0 +1,13 @@
+<!-- Vista: dashboard.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<script src="{{ url_for('static', filename='js/xlsx.full.min.js') }}"></script>
+
+{% include 'partials/dashboard_styles.html' %}
+
+{% include 'partials/dashboard_content.html' %}
+
+{% include 'partials/dashboard_script.html' %}
+
+{% endblock %}

@@ -1,0 +1,164 @@
+<!-- AUDIO ELEMENT -->
+<audio id="mpAudio" preload="auto"></audio>
+
+<script>
+// REPRODUCTOR DE MÚSICA - LA TRIBU
+const IS_MUSIC_SUPER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+
+const MP = {
+    songs: [],
+    currentIndex: -1,
+    isPlaying: false,
+    audio: document.getElementById('mpAudio')
+};
+
+MP.audio.addEventListener('timeupdate', () => {
+    if (!MP.audio.duration) return;
+    const pct = (MP.audio.currentTime / MP.audio.duration) * 100;
+    const prog = document.getElementById('mpProgress');
+    if (prog) prog.value = pct;
+    document.getElementById('mpCurrentTime').textContent = fmtTime(MP.audio.currentTime);
+});
+MP.audio.addEventListener('loadedmetadata', () => {
+    document.getElementById('mpDuration').textContent = fmtTime(MP.audio.duration);
+});
+MP.audio.addEventListener('ended', () => { mpNext(); });
+MP.audio.addEventListener('play', () => { mpUpdatePlayBtns(true); });
+MP.audio.addEventListener('pause', () => { mpUpdatePlayBtns(false); });
+
+function fmtTime(s) {
+    const m = Math.floor(s / 60), sec = Math.floor(s % 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+}
+
+async function openMusicPlayer() {
+    const modal = new bootstrap.Modal(document.getElementById('musicPlayerModal'));
+    modal.show();
+    if (!MP.songs.length) await mpLoadSongs();
+}
+
+async function mpLoadSongs() {
+    const res = await fetch('/api/musica');
+    MP.songs = await res.json();
+    mpRenderList();
+}
+
+function mpRenderList() {
+    const container = document.getElementById('mpSongList');
+    if (!MP.songs.length) {
+        container.innerHTML = '<p class="text-secondary text-center py-3 small">No hay canciones en la carpeta</p>';
+        return;
+    }
+    container.innerHTML = MP.songs.map((s, i) => {
+        const isActive = i === MP.currentIndex;
+        const bg = isActive ? 'rgba(255,140,0,0.18)' : 'transparent';
+        const nameColor = isActive ? '#ff8c00' : '#ddd';
+        const iconClass = isActive && MP.isPlaying ? 'bi-soundwave text-orange' : 'bi-music-note';
+        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row"
+                     style="cursor:pointer; background:${bg}; border:1px solid ${isActive ? 'rgba(255,140,0,0.3)' : 'transparent'}; transition:all .15s;"
+                     onmouseenter="this.style.background='rgba(255,255,255,0.07)'"
+                     onmouseleave="this.style.background='${bg}'"
+                     onclick="mpPlay(${i})">
+            <span class="text-secondary" style="font-size:0.7rem; min-width:22px; text-align:right;">${i + 1}</span>
+            <i class="bi ${iconClass}" style="font-size:0.85rem; min-width:16px;"></i>
+            <span id="mpName-${i}" class="flex-grow-1 fw-${isActive ? 'bold' : 'normal'}"
+                  style="font-size:0.85rem; color:${nameColor}; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"
+                  title="${s.display_name}">${s.display_name}</span>
+            <a href="${s.url}" download="${s.display_name}.mp3"
+               class="btn p-0 px-1" style="color:#56b4e9; font-size:0.78rem;" title="Descargar"
+               onclick="event.stopPropagation()">
+                <i class="bi bi-download"></i>
+            </a>
+            ${IS_MUSIC_SUPER ? `
+            <button class="btn p-0 px-1" style="color:#888; font-size:0.78rem;" title="Renombrar"
+                    onclick="event.stopPropagation(); mpStartRename(${i})">
+                <i class="bi bi-pencil-fill"></i>
+            </button>
+            <button class="btn p-0 px-1" style="color:#dc3545; font-size:0.78rem;" title="Eliminar"
+                    onclick="event.stopPropagation(); mpDeleteSong(${i})">
+                <i class="bi bi-trash-fill"></i>
+            </button>` : ''}
+        </div>`;
+    }).join('');
+}
+
+function mpPlay(index) {
+    if (index < 0 || index >= MP.songs.length) return;
+    MP.currentIndex = index;
+    const song = MP.songs[index];
+    MP.audio.src = song.url;
+    MP.audio.load();
+    MP.audio.play().then(() => {
+        MP.isPlaying = true;
+        mpUpdateUI();
+        mpShowMiniPlayer();
+    }).catch(err => {
+        console.error('Error reproduciendo audio:', err);
+        alert('Error al reproducir: ' + err.message);
+    });
+}
+
+function mpTogglePlay() {
+    if (MP.currentIndex < 0 && MP.songs.length) { mpPlay(0); return; }
+    if (MP.audio.paused) {
+        MP.audio.play();
+        MP.isPlaying = true;
+    } else {
+        MP.audio.pause();
+        MP.isPlaying = false;
+    }
+    mpUpdateUI();
+}
+
+function mpPrev() {
+    if (!MP.songs.length) return;
+    const idx = MP.currentIndex <= 0 ? MP.songs.length - 1 : MP.currentIndex - 1;
+    mpPlay(idx);
+}
+
+function mpNext() {
+    if (!MP.songs.length) return;
+    const idx = MP.currentIndex >= MP.songs.length - 1 ? 0 : MP.currentIndex + 1;
+    mpPlay(idx);
+}
+
+function mpStop() {
+    MP.audio.pause();
+    MP.audio.currentTime = 0;
+    MP.isPlaying = false;
+    mpUpdateUI();
+    mpHideMiniPlayer();
+}
+
+function seekTo(val) {
+    if (MP.audio.duration) MP.audio.currentTime = (val / 100) * MP.audio.duration;
+}
+
+function mpUpdatePlayBtns(playing) {
+    MP.isPlaying = playing;
+    const icon = playing ? 'bi-pause-circle-fill' : 'bi-play-circle-fill';
+    const btn = document.getElementById('mpPlayBtn');
+    const mini = document.getElementById('miniPlayBtn');
+    if (btn) btn.innerHTML = `<i class="bi ${icon}"></i>`;
+    if (mini) mini.innerHTML = `<i class="bi ${icon}"></i>`;
+}
+
+function mpUpdateUI() {
+    const song = MP.currentIndex >= 0 ? MP.songs[MP.currentIndex] : null;
+    document.getElementById('mpCurrentName').textContent = song ? song.display_name : '— Sin canción —';
+    document.getElementById('mpIndexInfo').textContent = song ? `${MP.currentIndex + 1} / ${MP.songs.length}` : '';
+    const mini = document.getElementById('miniSongName');
+    if (mini) mini.textContent = song ? song.display_name : '';
+    mpRenderList();
+}
+
+function mpShowMiniPlayer() {
+    const bar = document.getElementById('miniPlayerBar');
+    if (bar) { bar.style.display = 'block'; }
+}
+
+function mpHideMiniPlayer() {
+    const bar = document.getElementById('miniPlayerBar');
+    if (bar) { bar.style.display = 'none'; }
+}
+</script>

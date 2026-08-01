@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Formularios - La Tribu{% endblock %}
+{% block content %}
+<div class="container-fluid py-4 px-3 px-md-4">
+    <!-- HEADER -->
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+        <h2 class="fw-bold text-orange mb-0"><i class="bi bi-ui-checks-grid me-2"></i>Formularios</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="/admin/rifas" class="btn btn-warning-orange rounded-pill px-4">
+                <i class="bi bi-ticket-perforated me-1"></i>Administrar Rifas
+            </a>
+            <button class="btn btn-orange rounded-pill px-4 shadow-sm" onclick="showCreateForm()">
+                <i class="bi bi-plus-lg me-1"></i>Nuevo Formulario
+            </button>
+        </div>
+    </div>
+
+    <!-- LISTA DE FORMULARIOS -->
+    <div id="formsList" class="row g-3"></div>
+
+    <!-- EDITOR CON VISTA PREVIA EN VIVO -->
+    <div id="formEditor" class="d-none">
+        <div class="row g-4">
+            <!-- PANEL IZQUIERDO: Constructor -->
+            <div class="col-lg-6">
+                <div class="card glass-panel border-0 shadow-sm sticky-top" style="top: 80px;">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <h5 class="fw-bold mb-0 fs-5"><i class="bi bi-hammer text-orange me-2"></i>Constructor</h5>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-2 fw-semibold" onclick="backToList()">
+                                <i class="bi bi-arrow-left me-1"></i>Volver
+                            </button>
+                        </div>
+
+                        <!-- Config -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2">Configuración del Formulario</label>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <input type="text" id="formName" class="form-control form-control-lg fw-bold rounded-3" placeholder="Nombre del Formulario" oninput="updatePreview()">
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-semibold small text-muted d-block mb-1">Tipo</label>
+                                    <select id="formType" class="form-select form-select-sm rounded-3" onchange="updatePreview()">
+                                        <option value="registro">Registro</option>
+                                        <option value="examen">Examen</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label class="fw-semibold small text-muted d-block mb-1">Edición</label>
+                                    <select id="formAllowEdit" class="form-select form-select-sm rounded-3">
+                                        <option value="false">No editable</option>
+                                        <option value="true">Editable</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Triggers -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-eye me-1"></i>Campos visibles</label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigNombre" checked onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigNombre">Nombre</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigFecha" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigFecha">Fecha</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigEmail" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigEmail">Email</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigEdad" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigEdad">Edad</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigTelefono" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigTelefono">Teléfono</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigCedula" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigCedula">Cédula</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigFichaMedica" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigFichaMedica">Ficha Médica</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigPasaporte" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigPasaporte">Pasaporte</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigFechaNacimiento" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigFechaNacimiento">Fecha Nacimiento</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Preguntas -->
+                        <div class="mb-4">
+                            <label class="fw-semibold small text-muted d-block mb-2">Preguntas del Formulario</label>
+                            <div id="fieldsContainer" style="max-height: 35vh; overflow-y: auto;"></div>
+                        </div>
+
+                        <!-- Botones de agregar campo -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+                            <label class="fw-semibold small text-muted d-block mb-2">Agregar Campo</label>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button class="btn btn-outline-primary btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('text')">
+                                    <i class="bi bi-type me-1"></i>Respuesta corta
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('textarea')">
+                                    <i class="bi bi-text-paragraph me-1"></i>Respuesta larga
+                                </button>
+                                <button class="btn btn-outline-success btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('radio')">
+                                    <i class="bi bi-record-circle me-1"></i>Única selección
+                                </button>
+                                <button class="btn btn-outline-info btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('checkbox')">
+                                    <i class="bi bi-check2-square me-1"></i>Múltiple selección
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm rounded-pill px-3 py-2 fw-semibold" onclick="addField('file')">
+                                    <i class="bi bi-paperclip me-1"></i>Archivo
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Números de reserva -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(255,140,0,0.05);border:1px solid rgba(255,140,0,0.12);">
+                            <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-ticket-perforated text-orange me-1"></i>Números de Reserva</label>
+                            <p class="small text-secondary mb-2">Ingresa los números de reserva disponibles para este formulario. Puedes escribirlos uno por línea o separados por comas.</p>
+                            <textarea id="formReservationNumbers" class="form-control rounded-3 mb-2" rows="4" placeholder="Ejemplo:&#10;RES-001&#10;RES-002&#10;RES-003"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2 justify-content-end border-top pt-3">
+                            <button class="btn btn-orange rounded-pill px-5 py-2 fw-bold shadow-sm" onclick="saveForm()">
+                                <i class="bi bi-check-lg me-1"></i>Guardar Formulario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: Vista Previa en Vivo -->
+            <div class="col-lg-6">
+                <div class="sticky-top" style="top: 80px;">
+                    <div class="d-flex align-items-center mb-2">
+                        <small class="fw-bold text-secondary"><i class="bi bi-phone me-1"></i>VISTA PREVIA EN VIVO</small>
+                    </div>
+                    <div class="card border-0 shadow" style="border-radius: 16px; max-height: 85vh; overflow-y: auto; background: linear-gradient(135deg, #fff8f0, #ffffff);">
+                        <div class="card-body p-4" id="livePreview">
+                            <!-- Se renderiza dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISOR DE RESPUESTAS -->
+    <div id="responsesViewer" class="d-none">
+        <div class="card glass-panel border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                    <h4 class="fw-bold mb-0" id="responsesTitle">Respuestas</h4>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="addMembrete" checked>
+                            <label class="form-check-label small fw-semibold" for="addMembrete">Agregar Membrete</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="includeFecha" checked>
+                            <label class="form-check-label small fw-semibold" for="includeFecha">Incluir Fecha</label>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="includeFichaMedica" checked>
+                            <label class="form-check-label small fw-semibold" for="includeFichaMedica">Incluir Ficha Médica</label>
+                        </div>
+                        <button class="btn btn-sm btn-outline-warning rounded-pill" onclick="openReservationModal()">
+                            <i class="bi bi-list-check me-1"></i>Números de Reserva
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="exportResponses('pdf')">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+                        </button>
+                        <button class="btn btn-sm btn-outline-info rounded-pill" onclick="exportResponses('txt')">
+                            <i class="bi bi-file-earmark-text me-1"></i>TXT
+                        </button>
+                        <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportResponses('xlsx')">
+                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="copyResponsesTSV()" id="btnCopyTSV">
+                            <i class="bi bi-clipboard-data me-1"></i>Copiar tabla
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="exportResponses('json')">
+                            <i class="bi bi-filetype-json me-1"></i>JSON
+                        </button>
+                        <button class="btn btn-sm btn-outline-success rounded-pill" onclick="exportResponses('whatsapp')">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
+                            <i class="bi bi-arrow-left me-1"></i>Volver
+                        </button>
+                    </div>
+                </div>
+                <div id="responsesTable" class="table-responsive"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Responsive table for small screens (250px - 550px) */
+@media (max-width: 550px) and (min-width: 250px) {
+    #responsesTable table,
+    #responsesTable thead,
+    #responsesTable tbody,
+    #responsesTable th,
+    #responsesTable td,
+    #responsesTable tr {
+        display: block;
+    }
+    
+    #responsesTable thead {
+        display: none;
+    }
+    
+    #responsesTable tr {
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 10px;
+        background: #fff;
+    }
+    
+    #responsesTable td {
+        position: relative;
+        padding-left: 50%;
+        padding-top: 8px;
+        padding-bottom: 8px;
+        border: none;
+        border-bottom: 1px solid #f0f0f0;
+    }
+    
+    #responsesTable td:last-child {
+        border-bottom: none;
+    }
+    
+    #responsesTable td:before {
+        position: absolute;
+        left: 10px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        font-weight: bold;
+        content: attr(data-label);
+        color: #6c757d;
+    }
+    
+    #responsesTable .d-flex {
+        flex-direction: column;
+        gap: 5px !important;
+    }
+    
+    #responsesTable .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+</style>
+
+{% include 'partials/formularios_modals.html' %}
+
+{% include 'partials/formularios_scripts.html' %}
+{% endblock %}

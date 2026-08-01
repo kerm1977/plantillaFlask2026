@@ -1,0 +1,93 @@
+<script>
+// Rename
+function mpStartRename(index) {
+    const song = MP.songs[index];
+    document.getElementById('renameInput').value = song.display_name;
+    document.getElementById('renameFilename').value = song.filename;
+    document.getElementById('renameIndex').value = index;
+    const renameModal = new bootstrap.Modal(document.getElementById('renameModal'));
+    renameModal.show();
+}
+
+async function confirmRename() {
+    const filename = document.getElementById('renameFilename').value;
+    const newName = document.getElementById('renameInput').value.trim();
+    const index = parseInt(document.getElementById('renameIndex').value);
+    if (!newName) return;
+    const res = await fetch('/api/musica/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, new_name: newName })
+    });
+    const data = await res.json();
+    if (data.ok) {
+        MP.songs[index].display_name = newName;
+        bootstrap.Modal.getInstance(document.getElementById('renameModal')).hide();
+        mpUpdateUI();
+    }
+}
+
+// Upload
+async function mpUploadFiles(files) {
+    if (!files || !files.length) return;
+    const status = document.getElementById('mpUploadStatus');
+    const bar    = document.getElementById('mpUploadBar');
+    const msg    = document.getElementById('mpUploadMsg');
+    const input  = document.getElementById('mpUploadInput');
+
+    status.classList.remove('d-none');
+    bar.style.width = '20%';
+    msg.textContent = `Subiendo ${files.length} archivo(s)...`;
+
+    const form = new FormData();
+    for (const f of files) form.append('files', f);
+
+    try {
+        bar.style.width = '60%';
+        const res  = await fetch('/api/musica/upload', { method: 'POST', body: form });
+        const data = await res.json();
+        bar.style.width = '100%';
+        if (data.ok) {
+            msg.textContent = `✅ ${data.count} canción(es) agregada(s)`;
+            msg.style.color = '#4caf50';
+            await mpLoadSongs();
+        } else {
+            msg.textContent = '❌ ' + (data.error || 'Error al subir');
+            msg.style.color = '#dc3545';
+        }
+    } catch (e) {
+        msg.textContent = '❌ Error de conexión';
+        msg.style.color = '#dc3545';
+    }
+
+    input.value = '';
+    setTimeout(() => {
+        status.classList.add('d-none');
+        bar.style.width = '0%';
+        msg.style.color = '';
+    }, 3000);
+}
+
+// Delete
+async function mpDeleteSong(index) {
+    const song = MP.songs[index];
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Canción',
+        mensaje: `¿Eliminar "${song.display_name}"?`,
+        onConfirmar: async () => {
+            const res = await fetch('/api/musica/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filename: song.filename })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                if (index === MP.currentIndex) mpStop();
+                else if (index < MP.currentIndex) MP.currentIndex--;
+                MP.songs.splice(index, 1);
+                mpUpdateUI();
+            }
+        }
+    });
+}
+</script>

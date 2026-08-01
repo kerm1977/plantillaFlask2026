@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block title %}{{ form.name }} - La Tribu{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width: 700px;">
+    <div class="card glass-panel border-0 shadow-sm">
+        <div class="card-body">
+            <h3 class="fw-bold text-orange mb-1">{{ form.name }}</h3>
+            <span class="badge {{ 'bg-warning text-dark' if form.form_type == 'examen' else 'bg-info' }} rounded-pill mb-3">
+                {{ 'Examen' if form.form_type == 'examen' else 'Registro' }}
+            </span>
+
+            {% if not form.allow_edit %}
+            <div class="alert alert-warning py-2 small"><i class="bi bi-exclamation-triangle me-1"></i>Una vez enviada la respuesta <strong>no podrá modificarse</strong>.</div>
+            {% endif %}
+
+            <form id="publicForm" onsubmit="submitForm(event)">
+                {% if form.show_nombre %}
+                <div class="mb-3 position-relative">
+                    <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="pf_nombre" required autocomplete="off" placeholder="Nombre completo...">
+                    <div id="autocompleteList" class="list-group position-absolute w-100 shadow-sm" style="z-index: 100; display:none; max-height:200px; overflow-y:auto;"></div>
+                </div>
+                {% endif %}
+                {% if form.show_cedula %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Cédula <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="pf_cedula" placeholder="Ej: 1-2345-6789">
+                </div>
+                {% endif %}
+                {% if form.show_email %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Email</label>
+                    <input type="email" class="form-control" id="pf_email">
+                </div>
+                {% endif %}
+                {% if form.show_edad %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Edad</label>
+                    <input type="number" class="form-control" id="pf_edad" min="1" max="120">
+                </div>
+                {% endif %}
+                {% if form.show_telefono %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teléfono</label>
+                    <input type="tel" class="form-control" id="pf_telefono" placeholder="88881234">
+                </div>
+                {% endif %}
+                {% if form.show_fecha %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fecha</label>
+                    <input type="date" class="form-control" id="pf_fecha">
+                </div>
+                {% endif %}
+                {% if form.show_pasaporte %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Pasaporte</label>
+                    <input type="text" class="form-control" id="pf_pasaporte" placeholder="Ej: 123456789">
+                </div>
+                {% endif %}
+                {% if form.show_fecha_nacimiento %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Fecha de Nacimiento <span class="text-danger">*</span></label>
+                    <div class="row g-2">
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="pf_fecha_nacimiento_dia" placeholder="Día" min="1" max="31" required>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="pf_fecha_nacimiento_mes" placeholder="Mes" min="1" max="12" required>
+                        </div>
+                        <div class="col-4">
+                            <input type="number" class="form-control" id="pf_fecha_nacimiento_anio" placeholder="Año" min="1900" max="2025" required>
+                        </div>
+                    </div>
+                    <small class="text-muted">Debe tener al menos 15 años para completar este formulario</small>
+                </div>
+                {% endif %}
+                {% if form.show_ficha_medica %}
+                <hr>
+                <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</h6>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Tipo de Sangre</label>
+                    <select class="form-select" id="pf_tipo_sangre">
+                        <option value="">No lo sé</option>
+                        <option value="No recibo transfusiones">No recibo transfusiones</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Alergias</label>
+                    <input type="text" class="form-control" id="pf_alergias" placeholder="Ej: Ninguna">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Enfermedades Crónicas</label>
+                    <input type="text" class="form-control" id="pf_enfermedades" placeholder="Ej: Ninguna">
+                </div>
+                <label class="form-label fw-semibold small text-muted d-block mb-1">Contacto de Emergencia</label>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Contacto</label>
+                    <input type="text" class="form-control" id="pf_contacto_nombre">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Teléfono del Contacto</label>
+                    <input type="tel" class="form-control" id="pf_contacto_telefono">
+                </div>
+                {% endif %}
+
+                <hr>
+                <div id="dynamicFields"></div>
+
+                <!-- Banner de edición -->
+                <div id="editBanner" class="alert alert-info py-2 small d-none">
+                    <i class="bi bi-pencil-square me-1"></i>Estás editando tu respuesta anterior.
+                </div>
+
+                <!-- Advertencia de duplicado -->
+                <div id="duplicateWarning" class="d-none mt-3">
+                    <div class="alert alert-danger border-danger mb-0">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-exclamation-octagon-fill fs-5 flex-shrink-0 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <strong>¡Ya existe un registro con este nombre!</strong>
+                                <p class="mb-1 small" id="duplicateMsg"></p>
+                                {% if session.get('role') == 'Superusuario' %}
+                                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill mt-1" onclick="overrideDuplicate()">
+                                    <i class="bi bi-shield-exclamation me-1"></i>Enviar de todas formas
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-orange rounded-pill px-5 w-100 mt-3 shadow-sm" id="btnSubmit">
+                    <i class="bi bi-send me-1"></i>Enviar Respuesta
+                </button>
+            </form>
+
+            <div id="resultPanel" class="d-none py-4">
+                <div class="text-center">
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <h4 class="fw-bold mt-2">¡Respuesta enviada!</h4>
+                    <p id="resultMsg" class="text-muted"></p>
+                    <div id="scorePanel" class="d-none">
+                        <div class="display-4 fw-bold text-orange" id="scoreValue"></div>
+                        <p class="text-muted" id="scoreDetail"></p>
+                    </div>
+                </div>
+
+                <!-- Resumen de respuestas -->
+                <div id="summaryPanel" class="d-none mt-4">
+                    <div class="alert alert-light border">
+                        <h6 class="fw-bold mb-2"><i class="bi bi-card-checklist me-1"></i>Tu selección registrada:</h6>
+                        <pre id="summaryText" class="mb-0 small" style="white-space: pre-wrap; font-family: inherit;"></pre>
+                    </div>
+                </div>
+
+                <!-- Botones para enviar a admins -->
+                <div id="adminSendPanel" class="d-none mt-3">
+                    <p class="text-muted small text-center mb-2">
+                        <i class="bi bi-info-circle me-1"></i>El sistema ya registró tu selección. Si deseas, puedes enviar tu solicitud a:
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        <a id="btnSendJenny" href="#" target="_blank" class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar a Jenny
+                        </a>
+                        <a id="btnSendKenneth" href="#" target="_blank" class="btn btn-success rounded-pill px-4">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar a Kenneth
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Enlace para editar la selección -->
+                <div id="editLinkPanel" class="d-none mt-3 text-center">
+                    <a href="#" id="btnEditSelection" class="btn btn-outline-primary rounded-pill px-4" onclick="editMySelection(); return false;">
+                        <i class="bi bi-pencil-square me-1"></i>Editar mi selección
+                    </a>
+                </div>
+
+                {% if session.get('role') == 'Superusuario' %}
+                <!-- Botón superusuario: llenar otro formulario -->
+                <div class="mt-4 pt-3 border-top text-center">
+                    <button class="btn btn-orange rounded-pill px-5" onclick="resetForNewEntry()">
+                        <i class="bi bi-plus-circle me-2"></i>Llenar otro formulario
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'partials/form_public_scripts.html' %}
+{% endblock %}

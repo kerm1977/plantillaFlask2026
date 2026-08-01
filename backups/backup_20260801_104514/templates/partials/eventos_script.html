@@ -1,0 +1,181 @@
+<!-- SCRIPT DE SINCRONIZACIÓN LOCAL Y SERVIDOR -->
+<script>
+// Inicializar Base de datos Local para Modo Offline
+const DB_NAME = "EventosLocalDB";
+const DB_VERSION = 2;
+let localDB;
+const request = indexedDB.open(DB_NAME, DB_VERSION);
+request.onupgradeneeded = (e) => {
+    let db = e.target.result;
+    if (!db.objectStoreNames.contains("eventos")) {
+        db.createObjectStore("eventos", { keyPath: "id", autoIncrement: true });
+    }
+};
+request.onsuccess = (e) => localDB = e.target.result;
+
+document.addEventListener("DOMContentLoaded", () => {
+    // Precargar fecha desde parámetro URL (?fecha=YYYY-MM-DD)
+    const params = new URLSearchParams(window.location.search);
+    const fechaParam = params.get('fecha');
+    if (fechaParam) {
+        const [y, m, d] = fechaParam.split('-');
+        const dayUnica = document.getElementById('dayUnica');
+        const monthUnica = document.getElementById('monthUnica');
+        const yearUnica = document.getElementById('yearUnica');
+        if (dayUnica && d) dayUnica.value = parseInt(d, 10);
+        if (monthUnica && m) monthUnica.value = m;
+        if (yearUnica && y) yearUnica.value = y;
+    }
+
+    const eventImageUpload = document.getElementById('eventImageUpload');
+    if (eventImageUpload) {
+        eventImageUpload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('eventImagePreview').src = evt.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
+    document.getElementById('createEventForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // --- NUEVO: ESTADO DE CARGA Y BLOQUEO DEL BOTÓN ---
+        const submitBtn = document.getElementById('submitEventBtn');
+        const originalBtnText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Publicando...';
+        // --------------------------------------------------
+
+        // 1. Recolectar todos los datos del formulario automáticamente usando "name"
+        const formData = new FormData(this);
+        
+        // 2. Adjuntar los valores de seguridad independientes
+        const isSecureDia = document.getElementById('diaSeguroToggle').checked;
+        formData.set('solo_chat', isSecureDia);
+
+        const isSecureLog = document.getElementById('logisticaSeguraToggle').checked;
+        if (isSecureLog) {
+            const lugar = formData.get('lugarSalida');
+            formData.set('lugarSalida', 'SEGURO_' + lugar);
+        }
+        
+        // Lógica para capturar la "Zona de Alto Riesgo"
+        const isAltoRiesgo = document.getElementById('altoRiesgoToggle').checked;
+        formData.set('zona_alto_riesgo', isAltoRiesgo);
+
+        // 3. Procesar los checkboxes de 'incluye'
+        const incluyeArr = [];
+        document.querySelectorAll('input[name="incluye_check"]:checked').forEach(cb => {
+            if(cb.value === "Otros") {
+                const desc = document.getElementById('otrosDescripcion').value;
+                if(desc) incluyeArr.push(desc);
+            } else {
+                incluyeArr.push(cb.value);
+            }
+        });
+        formData.set('incluye', incluyeArr.join(', '));
+
+        // 4. LÓGICA INTELIGENTE DE FECHAS SEPARADAS
+        const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0'+v : v)); };
+        
+        if (document.getElementById('actividad').value === 'Internacional') {
+            formData.set('fechaUnica', document.getElementById('fechaIda').value);
+        } else {
+            const dias = parseInt(document.getElementById('dias').value) || 1;
+            if (dias === 1) {
+                const y = document.getElementById('yearUnica').value;
+                const m = document.getElementById('monthUnica').value;
+                // Si es modo seguro (Día), fuerza el día a '01' internamente
+                const d = isSecureDia ? '01' : pad(document.getElementById('dayUnica').value);
+                formData.set('fechaUnica', `${y}-${m}-${d}`);
+            } else {
+                const yI = document.getElementById('yearInicio').value;
+                const mI = document.getElementById('monthInicio').value;
+                const dI = isSecureDia ? '01' : pad(document.getElementById('dayInicio').value);
+                formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
+                
+                const yR = document.getElementById('yearRegreso').value;
+                const mR = document.getElementById('monthRegreso').value;
+                const dR = isSecureDia ? '01' : pad(document.getElementById('dayRegreso').value);
+                formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
+            }
+        }
+
+        try {
+            // ENVIAR A SQLITE (BACKEND FLASK)
+            const response = await fetch('/api/create_event', { method: 'POST', body: formData });
+            const result = await response.json();
+            
+            if (response.ok && result.success) {
+                
+                // Mostrar Éxito y redirigir
+                document.getElementById('actionModalIcon').innerHTML = '<i class="bi bi-calendar-check text-success" style="font-size: 3rem;"></i>';
+                document.getElementById('actionModalMessage').innerText = '¡El evento ha sido publicado exitosamente!';
+                const actionModal = new bootstrap.Modal(document.getElementById('actionModal'));
+                actionModal.show();
+
+                setTimeout(() => { window.location.href = '/'; }, 1500);
+            } else {
+                alert("Error al guardar en el servidor: " + (result.error || "Desconocido"));
+                // --- NUEVO: RESTAURAR BOTÓN EN CASO DE ERROR ---
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnText;
+            }
+        } catch (err) { 
+            console.error(err);
+            alert("Error de conexión al intentar guardar el evento."); 
+            // --- NUEVO: RESTAURAR BOTÓN EN CASO DE ERROR ---
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalBtnText;
+        }
+    });
+});
+
+/* ----------------------------------------------------
+   FUNCIONES VISUALES DEL FORMULARIO
+---------------------------------------------------- */
+function toggleActividad() {
+    const act = document.getElementById('actividad').value;
+    document.getElementById('nationalFields').classList.toggle('d-none', act === 'Internacional');
+    document.getElementById('internationalFields').classList.toggle('d-none', act !== 'Internacional');
+}
+
+function toggleDateInputs() {
+    const dias = parseInt(document.getElementById('dias').value) || 1;
+    document.getElementById('singleDateGroup').classList.toggle('d-none', dias > 1);
+    document.getElementById('rangeDateGroup').classList.toggle('d-none', dias <= 1);
+}
+
+function updateTimePreview() {
+    const time = document.getElementById('horaSalida').value;
+    if (!time) return;
+    let [h, m] = time.split(':');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('timePreview').innerText = `${h}:${m} ${ampm}`;
+}
+
+function toggleOtherDesc() {
+    document.getElementById('otrosDescContainer').classList.toggle('d-none', !document.getElementById('checkOtros').checked);
+}
+
+// LOGICA MODO SEGURO PARA EL DÍA
+function toggleDiaSeguro() {
+    const isSecure = document.getElementById('diaSeguroToggle').checked;
+    
+    document.querySelectorAll('.normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+// LÓGICA MODO SEGURO PARA LA LOGÍSTICA
+function toggleLogisticaSegura() {
+    const isSecure = document.getElementById('logisticaSeguraToggle').checked;
+    
+    document.querySelectorAll('.normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+</script>

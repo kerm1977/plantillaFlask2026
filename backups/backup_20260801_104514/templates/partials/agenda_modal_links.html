@@ -1,0 +1,30 @@
+<!-- ========================================================== -->
+<!-- MODAL: GENERADOR DE LINKS DE INSCRIPCIÓN -->
+<!-- ========================================================== -->
+<div class="modal fade" id="linkGeneratorModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-share-fill text-orange me-2"></i>Link de Inscripción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="text-dark fw-bold mb-4">Seleccione la caminata activa a la que desea invitar a los participantes.</p>
+                
+                <select id="selectEventosActivos" class="form-select form-select-lg mb-4 fw-bold text-center shadow-sm" style="border-radius: 1rem; border: 2px solid #ff8c00; cursor: pointer; background-color: #f8f9fa;">
+                    <option value="">Cargando caminatas...</option>
+                </select>
+
+                <div id="linkResultContainer" class="d-none animate__animated animate__fadeIn">
+                    <div class="input-group mb-3 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                        <span class="input-group-text bg-light border-end-0 text-orange"><i class="bi bi-link-45deg fs-4"></i></span>
+                        <input type="text" id="generatedLinkUrl" class="form-control border-start-0 bg-light text-dark fw-bold" readonly>
+                    </div>
+                    <button class="btn btn-success fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
+                        <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

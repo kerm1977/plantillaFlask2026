@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="glass-panel rounded-5 p-4">
+        <a href="{{ url_for('main.list_rifas') }}" class="btn btn-outline-secondary rounded-pill mb-3">
+            <i class="bi bi-arrow-left me-1"></i>Volver a Rifas
+        </a>
+        
+        <h2 class="fw-bold text-orange mb-4"><i class="bi bi-ticket me-2"></i>Mi Selección</h2>
+        
+        <div class="row g-4">
+            <div class="col-12 col-md-6">
+                <div class="rounded-4 p-4" style="background: rgba(255,140,0,0.1); border: 2px solid #ff8c00;">
+                    <h4 class="fw-bold text-orange mb-3">Número: {{ selection.number }}</h4>
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary">Rifa:</small>
+                        <div class="fw-bold">{{ selection.raffle.name }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary">Tu nombre:</small>
+                        <div class="fw-bold">{{ selection.customer_name }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary">Teléfono:</small>
+                        <div class="fw-bold">{{ selection.customer_phone }}</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary">Método de pago:</small>
+                        <div class="fw-bold">{{ selection.payment_method }}</div>
+                    </div>
+                    
+                    {% if selection.payment_method == 'Sinpe' and selection.raffle.sinpe_name_default %}
+                    <div class="alert alert-info rounded-3">
+                        <small><strong>Pagar a:</strong></small><br>
+                        {{ selection.raffle.sinpe_name_default }}<br>
+                        {{ selection.raffle.sinpe_phone_default }}
+                    </div>
+                    {% endif %}
+                    
+                    <div class="mb-3">
+                        <small class="text-secondary">Fecha de selección:</small>
+                        <div>{{ selection.created_at.strftime('%d/%m/%Y %H:%M') }}</div>
+                    </div>
+                    
+                    {% if selection.is_canceled %}
+                    <div class="alert alert-danger rounded-3">
+                        Esta selección ha sido cancelada.
+                    </div>
+                    {% elif is_winner %}
+                    <div class="alert alert-warning rounded-3">
+                        <strong>🎉 ¡FELICIDADES! ¡GANADOR!</strong>
+                    </div>
+                    {% else %}
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Cancelar selección (requiere tu teléfono + PIN)</label>
+                        <input type="text" id="cancelPhone" class="form-control mb-2" placeholder="Tu teléfono">
+                        <input type="text" id="cancelPin" class="form-control mb-2" placeholder="Tu PIN (4 caracteres)" maxlength="4" pattern="[A-Za-z0-9]{4}">
+                        <button onclick="cancelarSeleccion()" class="btn btn-danger rounded-pill">
+                            <i class="bi bi-x-circle me-1"></i>Cancelar Selección
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-12 col-md-6">
+                <img src="{{ url_for('static', filename='uploads/rifas/' + selection.raffle.image_filename) }}" 
+                     class="rounded-4 w-100" style="max-height: 400px; object-fit: cover;" alt="{{ selection.raffle.name }}">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelarSeleccion() {
+    const phone = document.getElementById('cancelPhone').value;
+    const pin = document.getElementById('cancelPin').value;
+    if (!phone || !pin) {
+        alert('Ingresa tu teléfono y PIN');
+        return;
+    }
+    
+    abrirModalBorrarUnificado({
+        titulo: 'Cancelar Selección',
+        mensaje: '¿Cancelar esta selección?',
+        onConfirmar: () => {
+            fetch(`/api/rifas/seleccion/{{ selection.id }}/cancelar`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: phone, pin: pin })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    alert('Selección cancelada');
+                    window.location.href = '/rifas';
+                } else {
+                    alert(data.error || 'Error al cancelar');
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

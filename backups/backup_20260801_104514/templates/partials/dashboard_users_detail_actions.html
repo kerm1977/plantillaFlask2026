@@ -1,0 +1,88 @@
+<script>
+function showUsersList() {
+    currentSelectedUserId = null; currentSelectedUserName = ""; currentSelectedUserObj = null;
+    document.getElementById('adminUserDetails').classList.add('d-none');
+    document.getElementById('adminUsersList').classList.remove('d-none');
+}
+
+function openEditUserModal() {
+    if (!currentSelectedUserObj) return;
+    document.getElementById('editName').value       = currentSelectedUserObj.name;
+    document.getElementById('editLastName1').value  = currentSelectedUserObj.last_name_1;
+    document.getElementById('editLastName2').value  = currentSelectedUserObj.last_name_2;
+    document.getElementById('editEmail').value      = currentSelectedUserObj.email;
+    document.getElementById('editRole').value       = currentSelectedUserObj.role;
+    const avatarPath = currentSelectedUserObj.avatar && currentSelectedUserObj.avatar.startsWith('uploads')
+        ? currentSelectedUserObj.avatar : (currentSelectedUserObj.avatar === 'default.png' ? 'default.png' : 'uploads/' + currentSelectedUserObj.avatar);
+    document.getElementById('editAvatarPreviewImg').src = "/static/" + avatarPath;
+    const dynSelect = document.getElementById('editDynamicSelect');
+    const dynContainer = document.getElementById('editDynamicContainer');
+    if (currentSelectedUserObj.phone && currentSelectedUserObj.phone !== "No registrado") {
+        dynSelect.value = 'Telefono';
+        dynContainer.innerHTML = `<div class="input-group"><span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
+            <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" maxlength="15" value="${currentSelectedUserObj.phone.replace(/[^0-9]/g, '')}"></div>`;
+    } else { dynSelect.value = ''; dynContainer.innerHTML = ''; }
+    new bootstrap.Modal(document.getElementById('adminEditUserModal')).show();
+}
+
+function handleEditDynamicSelect() {
+    const select    = document.getElementById('editDynamicSelect').value;
+    const container = document.getElementById('editDynamicContainer');
+    container.innerHTML = '';
+    if (select === 'Telefono' || select === 'Whatsapp') {
+        container.innerHTML = `<div class="input-group"><span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-phone"></i></span>
+            <input type="text" name="phone" class="form-control glass-input py-2" placeholder="Digite el número telefónico"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" maxlength="15"></div>
+            <small class="text-muted mt-1 d-block ps-2">Solo números permitidos.</small>`;
+    } else if (select === 'Facebook' || select === 'Instagram' || select === 'Direccion') {
+        const fieldName = select === 'Direccion' ? 'address' : select.toLowerCase();
+        container.innerHTML = `<div class="input-group mt-2"><span class="input-group-text glass-input border-end-0 text-orange"><i class="bi bi-link-45deg"></i></span>
+            <input type="url" name="${fieldName}" class="form-control glass-input" placeholder="https://ejemplo.com/perfil"></div>`;
+    } else if (select === 'Fecha') {
+        container.innerHTML = `<label class="form-label small text-secondary fw-bold">Fecha Especial</label>
+            <input type="date" name="dob" class="form-control glass-input">`;
+    } else if (select === 'Institucion') {
+        container.innerHTML = `<input type="text" name="institution" class="form-control glass-input mb-2" placeholder="Nombre de la Institución/Empresa">`;
+    } else if (select === 'Otro') {
+        container.innerHTML = `<input type="text" name="other_info" class="form-control glass-input mt-2" placeholder="Descripción General" style="text-transform:capitalize;">`;
+    }
+}
+
+async function toggleUserStatus() {
+    if (!currentSelectedUserId) return;
+    try {
+        const response = await fetch(`/api/admin/toggle_status/${currentSelectedUserId}`, { method: 'POST' });
+        const result   = await response.json();
+        if (response.ok && result.success) {
+            showGlassAlert(`El estado del usuario ahora es: <b>${result.new_status}</b>`, '<i class="bi bi-arrow-repeat text-warning" style="font-size:3rem;"></i>');
+            showUsersList(); loadAllUsers();
+        } else { alert(result.error || "No se pudo cambiar el estado del usuario."); }
+    } catch(err) { alert("Error de red al intentar comunicarse con el servidor."); }
+}
+
+async function confirmDeleteUser() {
+    if (!currentSelectedUserId) return;
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Usuario',
+        mensaje: '¿Eliminar este usuario permanentemente? Esta acción no se puede deshacer.',
+        nombre: currentSelectedUserName || '',
+        onConfirmar: async () => {
+            const btn = document.getElementById('btnDeleteUser');
+            if (btn) { btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando...'; btn.disabled = true; }
+            try {
+                const response = await fetch(`/api/admin/delete_user/${currentSelectedUserId}`, { method: 'DELETE' });
+                const result   = await response.json();
+                if (response.ok && result.success) {
+                    showGlassAlert('Usuario eliminado permanentemente.', '<i class="bi bi-trash-fill text-danger" style="font-size:3rem;"></i>');
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario'; }
+                    showUsersList(); loadAllUsers();
+                } else {
+                    alert(result.error || "No se pudo eliminar el usuario.");
+                    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Borrar Usuario'; }
+                }
+            } catch(err) { alert("Error al intentar eliminar el usuario."); if (btn) btn.disabled = false; }
+        }
+    });
+}
+</script>

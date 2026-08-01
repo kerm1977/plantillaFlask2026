@@ -1,0 +1,102 @@
+<script>
+    async function buscarPinPublico() {
+        const pinInput = document.getElementById('publicPinInput');
+        const pin = pinInput.value.trim();
+        
+        if(!pin) {
+            alert("Por favor, ingresa tu PIN.");
+            return;
+        }
+
+        const btn = pinInput.nextElementSibling;
+        const originalBtnText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.disabled = true;
+
+        try {
+            const res = await fetch(`/api/hiker/pin/${pin}`);
+            const hiker = await res.json();
+
+            if(hiker.found) {
+                // Llenar los datos de la tarjeta pública
+                document.getElementById('publicModalPin').innerText = `PIN: ${pin}`;
+                document.getElementById('publicModalNombre').innerText = hiker.nombre_completo;
+                document.getElementById('publicModalCedula').innerText = hiker.cedula;
+                document.getElementById('publicModalTelefono').innerText = hiker.telefono;
+                document.getElementById('publicModalSangre').innerText = hiker.tipo_sangre;
+                document.getElementById('publicModalAlergias').innerText = hiker.alergias || 'Ninguna';
+                document.getElementById('publicModalEnfermedades').innerText = hiker.enfermedades_cronicas || 'Ninguna';
+                document.getElementById('publicModalEmergencia').innerText = `${hiker.contacto_emergencia_nombre} - ${hiker.contacto_emergencia_telefono}`;
+
+                // NUEVO: Enlazar el botón de edición con el PIN de este caminante
+                document.getElementById('publicBtnEditHiker').href = `/editar_caminante/${pin}`;
+
+                // Mostrar el Modal
+                new bootstrap.Modal(document.getElementById('publicHikerModal')).show();
+                pinInput.value = ''; // Limpiar el input
+            } else {
+                alert("PIN incorrecto o no encontrado. Por favor, verifica e intenta nuevamente.");
+            }
+        } catch (e) {
+            alert("Error de conexión. Revisa tu internet.");
+        } finally {
+            btn.innerHTML = originalBtnText;
+            btn.disabled = false;
+        }
+    }
+
+    function descargarTarjetaPublica() {
+        const elemento = document.getElementById('tarjetaExportablePublica');
+        const nombre = document.getElementById('publicModalNombre').innerText.replace(/\s+/g, '_');
+        
+        html2canvas(elemento, { scale: 2, useCORS: true, backgroundColor: null }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `MedID_LaTribu_${nombre}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    // Buscar con Enter
+    document.getElementById('publicPinInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            buscarPinPublico();
+        }
+    });
+
+    // Evitar autocapitalización del input PIN - enfoque radical
+    document.getElementById('publicPinInput').addEventListener('keydown', function (e) {
+        // Permitir teclas especiales
+        if (e.key === 'Backspace' || e.key === 'Delete' || e.key === 'Tab' || e.key === 'Enter' || 
+            e.key === 'ArrowLeft' || e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'ArrowDown' ||
+            e.ctrlKey || e.metaKey || e.altKey) {
+            return;
+        }
+        
+        // Si es una letra, prevenir el comportamiento por defecto e insertar manualmente
+        if (e.key.length === 1 && /[a-zA-Z]/.test(e.key)) {
+            e.preventDefault();
+            const cursorPosition = this.selectionStart;
+            const currentValue = this.value;
+            const newValue = currentValue.slice(0, cursorPosition) + e.key + currentValue.slice(cursorPosition);
+            this.value = newValue;
+            this.setSelectionRange(cursorPosition + 1, cursorPosition + 1);
+        }
+    });
+</script>
+
+<!-- Scripts de Lógica de Datos EXTERNOS -->
+<script>
+    // Variables globales inyectadas por Flask para uso en home.js
+    window.IS_SUPER_USER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+</script>
+<!-- Módulos de home.js divididos por funcionalidad -->
+<script src="{{ url_for('static', filename='js/home_db.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_events.js') }}?v=10"></script>
+<script src="{{ url_for('static', filename='js/home_filters.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render_utils.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render_cards.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_render.js') }}?v=9.8"></script>
+<script src="{{ url_for('static', filename='js/home_init.js') }}"></script>
+
+<!-- ============================================ -->

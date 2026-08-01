@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+{% block title %}{{ pub.nombre }}{% endblock %}
+
+{% block content %}
+<style>
+  .ql-editor strong, .ql-editor b { font-weight: 700 !important; }
+  .ql-editor em, .ql-editor i { font-style: italic !important; }
+  .ql-editor u { text-decoration: underline !important; }
+  .ql-editor s { text-decoration: line-through !important; }
+</style>
+{% set show_all = not mostrar %}
+
+{% if pub.audio_filename %}
+<audio id="bgAudio" src="{{ url_for('static', filename='musica/' + pub.audio_filename) }}" preload="auto"></audio>
+{% endif %}
+
+{% include 'partials/evento_detalle_styles.html' %}
+{% include 'partials/evento_detalle_header.html' %}
+
+<!-- ══ CONTENIDO PRINCIPAL ══════════════════════════════════════════════ -->
+<div class="container-lg px-3 px-md-4 py-3 mb-5 ev-section">
+
+  <!-- FECHAS -->
+  {% if show_all or 'fecha' in mostrar %}
+  <div class="d-flex flex-wrap gap-3 mt-3 mb-3">
+    <div class="ev-chip">
+      <i class="bi bi-calendar3 text-orange fs-5"></i>
+      <div>
+        <small>Fecha</small>
+        <span>{{ pub.fecha_inicio.strftime('%d/%m/%Y') }}{% if pub.fecha_fin %} → {{ pub.fecha_fin.strftime('%d/%m/%Y') }}{% endif %}</span>
+      </div>
+    </div>
+    {% if pub.hora_encuentro and (show_all or 'hora' in mostrar) %}
+    <div class="ev-chip">
+      <i class="bi bi-clock text-orange fs-5"></i>
+      <div><small>Hora</small><span>{{ pub.hora_encuentro }}</span></div>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- BOTONES DE RIFA + SOLO COLABORAR -->
+  {% if pub.tipo_evento == 'Rifa' and (show_all or 'rifa' in mostrar) %}
+  <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    {% if pub.rifa_url %}
+    {% set rifa_link = pub.rifa_url.replace('/rifa/', '/rifas/') %}
+    <a href="{{ rifa_link }}" class="btn btn-orange rounded-pill px-4 py-2 fw-bold fs-5">
+      <i class="bi bi-ticket-perforated me-2"></i>{% if pub.rifa_url_2 %}Primera Rifa{% else %}Ir a la Rifa{% endif %}
+    </a>
+    {% endif %}
+    {% if pub.rifa_url_2 %}
+    {% set rifa_link2 = pub.rifa_url_2.replace('/rifa/', '/rifas/') %}
+    <a href="{{ rifa_link2 }}" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(255,140,0,0.15);color:#cc6e00;border:2px solid rgba(255,140,0,0.4);">
+      <i class="bi bi-ticket-perforated me-2"></i>Segunda Rifa
+    </a>
+    {% endif %}
+    {% if session.get('role') == 'Superusuario' %}
+    <button class="btn btn-outline-primary rounded-pill px-4 py-2 fw-bold fs-5" onclick="abrirModalMontoRecaudado()">
+      <i class="bi bi-cash-coin me-2"></i>Editar Monto
+    </button>
+    {% endif %}
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
+    <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+            style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
+            data-bs-toggle="modal" data-bs-target="#modalColaborar">
+      <i class="bi bi-heart-fill me-2"></i>Colaborar
+    </button>
+  </div>
+  {% elif (pub.sinpe_info and (show_all or 'sinpe' in mostrar)) or (pub.cuenta_info and (show_all or 'cuenta' in mostrar)) %}
+  <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
+    <button type="button" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+            style="background:rgba(25,135,84,0.1);color:#0d6832;border:2px solid rgba(25,135,84,0.3);"
+            data-bs-toggle="modal" data-bs-target="#modalColaborar">
+      <i class="bi bi-heart-fill me-2"></i>Colaborar
+    </button>
+  </div>
+  {% else %}
+  <div class="d-flex flex-wrap gap-3 mb-4 align-items-center">
+    <a href="{{ google_calendar_link }}" target="_blank" class="btn rounded-pill px-4 py-2 fw-bold fs-5"
+       style="background:rgba(59,89,152,0.1);color:#3b5998;border:2px solid rgba(59,89,152,0.3);">
+      <i class="bi bi-google me-2"></i>Agregar a G.Calendar
+    </a>
+  </div>
+  {% endif %}
+
+  <div class="row g-4 mt-1">
+    <div class="col-12 col-lg-8">
+
+      <!-- DESCRIPCIÓN -->
+      {% if pub.descripcion and (show_all or 'descripcion' in mostrar) %}
+      <div class="mb-4 ql-editor" style="font-size:1.1rem;line-height:1.85;color:#333;">{{ pub.descripcion | safe }}</div>
+      {% endif %}
+
+      <!-- CAMINATA -->
+      {% if pub.tipo_evento == 'Caminata' %}
+        {% if (pub.lugar or pub.punto_salida) and (show_all or 'lugar' in mostrar) %}
+        <div class="mb-4 p-4 rounded-4" style="background:rgba(13,110,253,0.05);border:1px solid rgba(13,110,253,0.12);">
+          <h5 class="fw-bold mb-3"><i class="bi bi-map-fill text-primary me-2"></i>Ubicación</h5>
+          {% if pub.lugar %}
+          <div class="d-flex gap-2 mb-2">
+            <i class="bi bi-geo-alt-fill text-orange mt-1 flex-shrink-0"></i>
+            <div><small class="text-muted d-block">Lugar</small><strong>{{ pub.lugar }}</strong></div>
+          </div>
+          {% endif %}
+          {% if pub.punto_salida %}
+          <div class="d-flex gap-2">
+            <i class="bi bi-pin-map-fill text-orange mt-1 flex-shrink-0"></i>
+            <div><small class="text-muted d-block">Punto de salida</small><strong>{{ pub.punto_salida }}</strong></div>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if pub.recomendaciones and (show_all or 'recomendaciones' in mostrar) %}
+        <div class="mb-4 p-4 rounded-4" style="background:rgba(25,135,84,0.06);border:1px solid rgba(25,135,84,0.15);">
+          <h5 class="fw-bold mb-2 text-success"><i class="bi bi-lightbulb-fill me-2"></i>Recomendaciones</h5>
+          <p class="mb-0" style="white-space:pre-line;">{{ pub.recomendaciones }}</p>
+        </div>
+        {% endif %}
+        {% if pub.desc_caminata and (show_all or 'desc_caminata' in mostrar) %}
+        <p class="mb-4" style="line-height:1.8;color:#555;white-space:pre-line;">{{ pub.desc_caminata }}</p>
+        {% endif %}
+      {% endif %}
+
+      <!-- DIRECCIÓN + URL -->
+      {% if pub.direccion and (show_all or 'direccion' in mostrar) %}
+      <div class="d-flex gap-2 mb-3">
+        <i class="bi bi-house-fill text-orange fs-5 mt-1 flex-shrink-0"></i>
+        <div><small class="text-muted d-block">Dirección</small><strong>{{ pub.direccion }}</strong></div>
+      </div>
+      {% endif %}
+      {% if pub.url_externa and (show_all or 'url' in mostrar) %}
+      <div class="mb-4">
+        <a href="{{ pub.url_externa }}" target="_blank" class="btn btn-outline-primary rounded-pill px-4">
+          <i class="bi bi-box-arrow-up-right me-2"></i>Más información
+        </a>
+      </div>
+      {% endif %}
+    </div>
+
+    {% include 'partials/evento_detalle_pago.html' %}
+  </div>
+
+  <!-- FLYER COMPLETO — fuera del row, siempre debajo de todo el contenido -->
+  {% if pub.flyer_filename %}
+  {% set flyer_url = url_for('static', filename='uploads/publicaciones/' + pub.flyer_filename) %}
+  <div class="mt-4 flyer-shimmer" style="max-width:520px;margin-left:auto;margin-right:auto;"
+       onclick="document.getElementById('flyerModal').querySelector('img').src='{{ flyer_url }}'; new bootstrap.Modal(document.getElementById('flyerModal')).show();">
+    <img src="{{ flyer_url }}" alt="{{ pub.nombre }}">
+  </div>
+  <p class="text-center mt-2 small text-muted"><i class="bi bi-zoom-in me-1"></i>Toca el flyer para verlo completo</p>
+  {% endif %}
+
+  <div class="mt-4 pt-3 border-top d-flex gap-3 align-items-center flex-wrap">
+    <button onclick="compartirEvento()" class="btn btn-orange rounded-pill px-4 fw-semibold">
+      <i class="bi bi-share me-2"></i>Compartir este evento
+    </button>
+    <a href="https://www.latribu.top" class="btn btn-outline-secondary rounded-pill px-4">
+      <i class="bi bi-arrow-left me-1"></i>Ver caminatas de la tribu
+    </a>
+  </div>
+</div>
+
+{% include 'partials/evento_detalle_modals.html' %}
+
+{% if session.get('role') == 'Superusuario' %}
+{% include 'partials/pub_edit_modal.html' %}
+
+<!-- Modal para editar monto recaudado -->
+<div class="modal fade" id="montoRecaudadoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 rounded-5 glass-panel p-4 text-center">
+      <div class="modal-header border-0 pb-0 justify-content-center">
+        <div class="rounded-circle d-flex align-items-center justify-content-center mb-3" style="width: 72px; height: 72px; background: linear-gradient(135deg, rgba(25,135,84,0.15), rgba(25,135,84,0.08)); border: 2px solid rgba(25,135,84,0.25);">
+          <i class="bi bi-cash-coin" style="font-size: 2.5rem; color: #198754;"></i>
+        </div>
+      </div>
+      <div class="modal-body pb-0">
+        <h5 class="fw-bold mb-3" style="color: #212529;">Editar Monto Recaudado</h5>
+        <div class="mb-3">
+          <input type="number" id="montoRecaudadoInput" class="form-control glass-input text-center fw-bold fs-5" step="1" min="0" placeholder="0">
+        </div>
+        <div class="mb-4">
+          <textarea id="paymentJustificationInput" class="form-control glass-input" rows="3" placeholder="Justificación de pagos (de dónde proviene el dinero)..."></textarea>
+          <small class="text-muted" style="font-size: 0.75rem;">Describe el origen de los fondos recaudados</small>
+        </div>
+        <div class="d-flex flex-column gap-2">
+          <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm w-100 text-white" style="background: linear-gradient(135deg, #198754, #157347);" onclick="guardarMontoRecaudado()">
+            <i class="bi bi-check-lg me-2"></i>Guardar Monto
+          </button>
+          <button type="button" class="btn fw-bold rounded-pill px-4 shadow-sm w-100" data-bs-dismiss="modal" style="background: rgba(108,117,125,0.08); color: #6c757d; border: 1px solid rgba(108,117,125,0.2);">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% include 'partials/evento_detalle_scripts.html' %}
+{% endblock %}

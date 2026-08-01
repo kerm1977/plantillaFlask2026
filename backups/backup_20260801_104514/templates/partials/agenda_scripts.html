@@ -1,0 +1,125 @@
+<script>
+    function calcularEdad(fechaString) {
+        if (!fechaString || fechaString === "") return '--';
+        try {
+            const [year, month, day] = fechaString.split('-');
+            const birthDate = new Date(year, month - 1, day);
+            if (isNaN(birthDate.getTime())) return '--';
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+            return age;
+        } catch (e) { return '--'; }
+    }
+
+    function exportarExcel() {
+        if (!allHikers || allHikers.length === 0) { alert("No hay caminantes para exportar."); return; }
+        const dataParaExcel = allHikers.map(h => ({
+            'Cedula': h.cedula, 'Nombre Completo': h.nombre_completo,
+            'Edad': h.fecha_nacimiento ? calcularEdad(h.fecha_nacimiento) : 'N/A',
+            'Fecha Nac.': h.fecha_nacimiento || 'N/A', 'Telefono': h.telefono,
+            'Tipo de Sangre': h.tipo_sangre, 'Alergias': h.alergias || 'Ninguna',
+            'Enfermedades Cronicas': h.enfermedades_cronicas || 'Ninguna',
+            'Contacto Emergencia': h.contacto_emergencia_nombre,
+            'Tel. Emergencia': h.contacto_emergencia_telefono, 'PIN Secreto': h.pin_secreto
+        }));
+        const worksheet = XLSX.utils.json_to_sheet(dataParaExcel);
+        const workbook  = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Directorio_LaTribu");
+        const max_width = dataParaExcel.reduce((w,r)=>Math.max(w,r["Nombre Completo"].length),10);
+        worksheet["!cols"] = [{wch:15},{wch:max_width+5},{wch:10},{wch:15},{wch:15},{wch:15},{wch:25},{wch:25},{wch:20},{wch:15},{wch:15}];
+        XLSX.writeFile(workbook, "Directorio_LaTribu.xlsx");
+    }
+
+    function exportarTxt() {
+        if (!allHikers || allHikers.length === 0) { alert("No hay caminantes para exportar."); return; }
+        let contenido = "DIRECTORIO DE CAMINANTES - LA TRIBU\n===================================\n\n";
+        allHikers.forEach(h => {
+            contenido += `Nombre:       ${h.nombre_completo}\nCedula:       ${h.cedula}\nEdad:         ${h.fecha_nacimiento?calcularEdad(h.fecha_nacimiento)+' anios':'N/A'}\n`;
+            contenido += `Telefono:     ${h.telefono}\nSangre:       ${h.tipo_sangre}\nAlergias:     ${h.alergias||'Ninguna'}\n`;
+            contenido += `Enfermedades: ${h.enfermedades_cronicas||'Ninguna'}\nEmergencia:   ${h.contacto_emergencia_nombre} (${h.contacto_emergencia_telefono})\nPIN Secreto:  ${h.pin_secreto}\n-----------------------------------\n`;
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(new Blob([contenido],{type:"text/plain;charset=utf-8"}));
+        link.download = "Directorio_LaTribu.txt"; link.click();
+    }
+
+    async function abrirGeneradorLinks() {
+        const select = document.getElementById('selectEventosActivos');
+        const linkContainer = document.getElementById('linkResultContainer');
+        select.innerHTML = '<option value="">Buscando caminatas activas...</option>';
+        linkContainer.classList.add('d-none');
+        try {
+            const eventos = await (await fetch('/api/get_events')).json();
+            select.innerHTML = '<option value="" selected disabled>-- Toque aqui para seleccionar --</option>';
+            let opcionesValidas = 0;
+            eventos.forEach(ev => {
+                if (!ev.is_sold_out) { select.innerHTML+=`<option value="${ev.id}" data-name="${ev.nombreLugar}">${ev.nombreLugar} - ${ev.fecha}</option>`; opcionesValidas++; }
+            });
+            if (!opcionesValidas) select.innerHTML = '<option value="" disabled>No hay caminatas con espacio en este momento</option>';
+            select.onchange = function() {
+                if (this.value) {
+                    linkContainer.classList.remove('d-none');
+                    const slug = this.options[this.selectedIndex].getAttribute('data-name').normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+                    document.getElementById('generatedLinkUrl').value = window.location.origin + '/inscripcion/' + slug + '-' + this.value;
+                } else { linkContainer.classList.add('d-none'); }
+            };
+        } catch (error) { select.innerHTML = '<option value="" disabled>Error de conexion al buscar caminatas.</option>'; }
+    }
+
+    function copyGeneratedLink() {
+        const input = document.getElementById('generatedLinkUrl');
+        input.select(); input.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(input.value).then(()=>{ alert("Enlace Copiado!"); }).catch(()=>{ document.execCommand('copy'); alert("Enlace Copiado!"); });
+    }
+
+    function _dbMsg(cls, html) {
+        const el = document.getElementById('agendaDbMsg'); if(!el) return;
+        el.className=`mt-2 alert ${cls} rounded-3 py-2 small`; el.innerHTML=html; el.classList.remove('d-none');
+    }
+    async function dbExportJSON() {
+        _dbMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando exportacion...');
+        try {
+            const r=await fetch('/api/admin/db/export'); if(!r.ok){const d=await r.json();throw new Error(d.error);}
+            const blob=await r.blob(), cd=r.headers.get('Content-Disposition')||'';
+            const name=(cd.match(/filename="?([^"]+)"?/)||[])[1]||'db_export.json';
+            const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+            _dbMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>Exportacion JSON descargada.');
+        } catch(e){_dbMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+    }
+    async function dbExportExcel() {
+        _dbMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando Excel...');
+        try {
+            const r=await fetch('/api/admin/db/export'); if(!r.ok){const d=await r.json();throw new Error(d.error);}
+            const data=await r.json(), wb=XLSX.utils.book_new();
+            const names={users:'Usuarios',hikers:'CRM Caminantes',events:'Eventos',event_registrations:'Inscripciones',notifications:'Notificaciones',site_content:'Contenido Sitio'};
+            Object.entries(data.tables).forEach(([k,rows])=>{if(rows.length)XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(rows),names[k]||k);});
+            XLSX.writeFile(wb,`db_export_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.xlsx`);
+            _dbMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>Archivo Excel descargado.');
+        } catch(e){_dbMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+    }
+    async function importarContactosJson() {
+        _dbMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Cargando contactos.json...');
+        try {
+            const r=await fetch('/api/admin/import/contactos',{method:'POST'}); const d=await r.json();
+            if(d.ok){_dbMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado: <b>+${d.added}</b> nuevos, ${d.skipped} ya existian.`); loadHikers();}
+            else{throw new Error(d.error);}
+        } catch(e){_dbMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+    }
+    async function dbImportJSON(input) {
+        const file=input.files[0]; if(!file) return;
+        _dbMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Importando datos...');
+        try {
+            const json=JSON.parse(await file.text());
+            const r=await fetch('/api/admin/db/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(json)});
+            const d=await r.json();
+            if(d.ok){const summary=Object.entries(d.stats).map(([t,v])=>`<b>${t}</b>: +${v.added} nuevos, ${v.skipped} existentes`).join(' . ');
+                _dbMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado - ${summary}`);}
+            else{throw new Error(d.error||'Error desconocido');}
+        } catch(e){_dbMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+        input.value='';
+    }
+</script>
+
+{% include 'partials/agenda_crm_scripts.html' %}

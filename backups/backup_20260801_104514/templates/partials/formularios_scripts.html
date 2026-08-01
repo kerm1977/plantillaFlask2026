@@ -1,0 +1,387 @@
+{% include 'partials/formularios_list_scripts.html' %}
+{% include 'partials/formularios_builder_scripts.html' %}
+
+<script>
+let currentResponsesFormId = null;
+
+async function viewResponses(formId) {
+    currentResponsesFormId = formId;
+    // Cargar números de reserva de ESTE formulario
+    try {
+        const res = await fetch(`/api/forms/${formId}/reservation-numbers`);
+        const data = await res.json();
+        reservationNumbers = data.reservation_numbers || '';
+    } catch (e) {
+        console.error('Error cargando números de reserva:', e);
+        reservationNumbers = '';
+    }
+    const data = await (await fetch(`/api/forms/${formId}/responses`)).json();
+    window._responsesData = data;
+    document.getElementById('responsesTitle').textContent = `Respuestas (${data.responses.length})`;
+    if (!data.responses.length) {
+        document.getElementById('responsesTable').innerHTML = '<p class="text-muted text-center py-4">Sin respuestas aun.</p>';
+    } else {
+        const hasScore = data.responses.some(r => r.score !== null && r.score !== undefined);
+        const showCedula = data.show_cedula;
+        let headers = '<th style="width:32px" data-label="#">#</th><th data-label="Nombre">Nombre</th>';
+        if (showCedula) headers += '<th data-label="Cédula">Cédula</th>';
+        headers += '<th data-label="Número de Reserva">Número de Reserva</th>';
+        if (hasScore) headers += '<th data-label="Nota">Nota</th>';
+        headers += '<th data-label="Acciones" class="text-center">Acciones</th>';
+        let rows = data.responses.map((r, i) => {
+            let row = `<td class="text-muted small" data-label="#">${i+1}</td>
+                <td data-label="Nombre"><span class="text-primary fw-semibold" style="cursor:pointer;" onclick="viewResponseDetail(${i})">${r.nombre_completo || 'Sin nombre'}</span>
+                ${r.email ? `<br><small class="text-muted">${r.email}</small>` : ''}</td>`;
+            if (showCedula) row += `<td class="text-muted small" data-label="Cédula">${r.cedula || '-'}</td>`;
+            // Dropdown de números de reserva
+            const reservationOptions = reservationNumbers.split('\n').filter(n => n.trim()).map(n => 
+                `<option value="${n.trim()}" ${r.reservation_number === n.trim() ? 'selected' : ''}>${n.trim()}</option>`
+            ).join('');
+            row += `<td data-label="Número de Reserva"><select class="form-select form-select-sm" onchange="assignReservationNumber(${r.id}, this.value)" style="font-size:0.8rem;">
+                <option value="">Sin asignar</option>
+                ${reservationOptions}
+            </select></td>`;
+            if (hasScore) row += `<td data-label="Nota"><span class="badge rounded-pill ${r.score>=70?'bg-success':'bg-danger'}">${r.score !== null ? r.score+'%' : '-'}</span></td>`;
+            row += `<td data-label="Acciones"><div class="d-flex gap-1 justify-content-center">
+                <button class="btn btn-sm rounded-pill py-0 px-2" style="background:rgba(13,110,253,0.1);color:#0d6efd;border:1px solid rgba(13,110,253,0.2);" onclick="viewResponseDetail(${i})"><i class="bi bi-eye" style="font-size:0.75rem;"></i></button>
+                <button class="btn btn-sm rounded-pill py-0 px-2" style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.2);" onclick="editResponseAdmin(${i})"><i class="bi bi-pencil" style="font-size:0.75rem;"></i></button>
+                <button class="btn btn-sm rounded-pill py-0 px-2" style="background:rgba(220,53,69,0.08);color:#dc3545;border:1px solid rgba(220,53,69,0.15);" onclick="deleteResponse(${r.id})"><i class="bi bi-trash3" style="font-size:0.75rem;"></i></button>
+            </div></td>`;
+            return `<tr>${row}</tr>`;
+        }).join('');
+        document.getElementById('responsesTable').innerHTML = `
+            <table class="table table-sm table-hover align-middle">
+                <thead class="table-light"><tr>${headers}</tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+    document.getElementById('formsList').classList.add('d-none');
+    document.getElementById('responsesViewer').classList.remove('d-none');
+}
+
+function viewResponseDetail(index) {
+    const data = window._responsesData, r = data.responses[index];
+    let html = '';
+    
+    // Header info card
+    html += `<div class="text-center mb-4">
+        <div class="fw-bold fs-4 text-dark mb-1">${r.nombre_completo || 'Sin nombre'}</div>
+        ${r.reservation_number ? `<div class="badge bg-warning text-dark rounded-pill px-3 py-1 mb-2"><i class="bi bi-ticket-perforated me-1"></i>Reserva: ${r.reservation_number}</div>` : ''}
+        <div class="text-secondary small">${r.submitted_at}</div>
+    </div>`;
+    
+    // Contact info section
+    html += `<div class="row g-3 mb-4">`;
+    if (r.cedula) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Cédula</label><div class="form-control glass-input rounded-3 py-2">${r.cedula}</div></div>`;
+    if (r.email) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Email</label><div class="form-control glass-input rounded-3 py-2">${r.email}</div></div>`;
+    if (r.telefono) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Teléfono</label><div class="form-control glass-input rounded-3 py-2">${r.telefono}</div></div>`;
+    if (r.edad) html += `<div class="col-6"><label class="form-label fw-semibold text-secondary">Edad</label><div class="form-control glass-input rounded-3 py-2">${r.edad}</div></div>`;
+    if (r.score !== null && r.score !== undefined) html += `<div class="col-6"><label class="form-label fw-semibold text-secondary">Nota</label><div class="form-control glass-input rounded-3 py-2 ${r.score>=70?'text-success':'text-danger'}">${r.score}%</div></div>`;
+    html += `</div>`;
+    
+    // Passport info
+    if (data.show_pasaporte) {
+        html += `<div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-passport me-2"></i>Pasaporte</h6>
+            <label class="form-label fw-semibold text-secondary">Número</label>
+            <div class="form-control glass-input rounded-3 py-2">${r.pasaporte || '-'}</div>
+        </div>`;
+    }
+    
+    // Birth date
+    if (data.show_fecha_nacimiento) {
+        const fechaNac = r.fecha_nacimiento_dia && r.fecha_nacimiento_mes && r.fecha_nacimiento_anio 
+            ? `${r.fecha_nacimiento_dia}/${r.fecha_nacimiento_mes}/${r.fecha_nacimiento_anio}` 
+            : '-';
+        html += `<div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-calendar3 me-2"></i>Fecha de Nacimiento</h6>
+            <div class="form-control glass-input rounded-3 py-2">${fechaNac}</div>
+        </div>`;
+    }
+    
+    // Medical info
+    if (data.show_ficha_medica) {
+        html += `<div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-heart-pulse me-2"></i>Ficha Médica</h6>
+            <div class="row g-3">
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Tipo de Sangre</label><div class="form-control glass-input rounded-3 py-2">${r.tipo_sangre || '-'}</div></div>
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Alergias</label><div class="form-control glass-input rounded-3 py-2">${r.alergias || '-'}</div></div>
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Enfermedades Crónicas</label><div class="form-control glass-input rounded-3 py-2">${r.enfermedades_cronicas || '-'}</div></div>
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Contacto de Emergencia</label><div class="form-control glass-input rounded-3 py-2">${r.contacto_emergencia_nombre || '-'} ${r.contacto_emergencia_telefono ? '• '+r.contacto_emergencia_telefono : ''}</div></div>
+            </div>
+        </div>`;
+    }
+    
+    // Form fields section
+    html += `<div class="mb-2">
+        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-ui-checks me-2"></i>Respuestas del Formulario</h6>
+        <div class="row g-3">`;
+    data.fields.forEach(f => {
+        let val = r.answers[String(f.id)];
+        if (Array.isArray(val)) val = val.join(', ');
+        val = (val !== undefined && val !== null && val !== '') ? val : '-';
+        html += `<div class="col-12">
+            <label class="form-label fw-semibold text-secondary">${f.label}</label>
+            <div class="form-control glass-input rounded-3 py-2 fw-medium">${val}</div>
+        </div>`;
+    });
+    html += `</div></div>`;
+    
+    document.getElementById('responseDetailBody').innerHTML = html;
+    document.getElementById('responseDetailName').textContent = r.nombre_completo || 'Detalle';
+    const rdModal = document.getElementById('responseDetailModal');
+    if (rdModal.parentElement !== document.body) document.body.appendChild(rdModal);
+    new bootstrap.Modal(rdModal).show();
+}
+
+function editResponseAdmin(index) {
+    const data = window._responsesData, r = data.responses[index];
+    window._editingResponse = {id: r.id, formId: currentResponsesFormId};
+    let html = `<div class="row g-2 mb-3">
+        <div class="col-12"><label class="fw-semibold small text-muted">Nombre completo</label>
+            <input type="text" class="form-control form-control-sm" id="erNombre" value="${r.nombre_completo || ''}"></div>
+        ${data.show_cedula ? `<div class="col-6"><label class="fw-semibold small text-muted">Cédula</label>
+            <input type="text" class="form-control form-control-sm" id="erCedula" value="${r.cedula || ''}"></div>` : ''}
+        <div class="col-6"><label class="fw-semibold small text-muted">Email</label>
+            <input type="email" class="form-control form-control-sm" id="erEmail" value="${r.email || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Telefono</label>
+            <input type="tel" class="form-control form-control-sm" id="erTelefono" value="${r.telefono || ''}"></div>
+        ${data.show_ficha_medica ? `
+        <div class="col-12"><hr class="my-1"><small class="fw-bold text-danger"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</small></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Tipo de Sangre</label>
+            <select class="form-select form-select-sm" id="erTipoSangre">
+                <option value="">No lo sé</option>
+                <option value="No recibo transfusiones" ${r.tipo_sangre==='No recibo transfusiones'?'selected':''}>No recibo transfusiones</option>
+                <option value="A+" ${r.tipo_sangre==='A+'?'selected':''}>A+</option>
+                <option value="A-" ${r.tipo_sangre==='A-'?'selected':''}>A-</option>
+                <option value="B+" ${r.tipo_sangre==='B+'?'selected':''}>B+</option>
+                <option value="B-" ${r.tipo_sangre==='B-'?'selected':''}>B-</option>
+                <option value="AB+" ${r.tipo_sangre==='AB+'?'selected':''}>AB+</option>
+                <option value="AB-" ${r.tipo_sangre==='AB-'?'selected':''}>AB-</option>
+                <option value="O+" ${r.tipo_sangre==='O+'?'selected':''}>O+</option>
+                <option value="O-" ${r.tipo_sangre==='O-'?'selected':''}>O-</option>
+            </select></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Alergias</label>
+            <input type="text" class="form-control form-control-sm" id="erAlergias" value="${r.alergias || ''}"></div>
+        <div class="col-12"><label class="fw-semibold small text-muted">Enfermedades Crónicas</label>
+            <input type="text" class="form-control form-control-sm" id="erEnfermedades" value="${r.enfermedades_cronicas || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Nombre Contacto Emergencia</label>
+            <input type="text" class="form-control form-control-sm" id="erContactoNombre" value="${r.contacto_emergencia_nombre || ''}"></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Teléfono Contacto Emergencia</label>
+            <input type="tel" class="form-control form-control-sm" id="erContactoTelefono" value="${r.contacto_emergencia_telefono || ''}"></div>` : ''}
+        ${data.show_pasaporte ? `
+        <div class="col-12"><hr class="my-1"><small class="fw-bold text-primary"><i class="bi bi-passport me-1"></i>Pasaporte</small></div>
+        <div class="col-12"><label class="fw-semibold small text-muted">Número de Pasaporte</label>
+            <input type="text" class="form-control form-control-sm" id="erPasaporte" value="${r.pasaporte || ''}"></div>` : ''}
+        ${data.show_fecha_nacimiento ? `
+        <div class="col-12"><hr class="my-1"><small class="fw-bold text-success"><i class="bi bi-calendar3 me-1"></i>Fecha de Nacimiento</small></div>
+        <div class="col-4"><label class="fw-semibold small text-muted">Día</label>
+            <input type="number" class="form-control form-control-sm" id="erFechaNacimientoDia" value="${r.fecha_nacimiento_dia || ''}" min="1" max="31"></div>
+        <div class="col-4"><label class="fw-semibold small text-muted">Mes</label>
+            <input type="number" class="form-control form-control-sm" id="erFechaNacimientoMes" value="${r.fecha_nacimiento_mes || ''}" min="1" max="12"></div>
+        <div class="col-4"><label class="fw-semibold small text-muted">Año</label>
+            <input type="number" class="form-control form-control-sm" id="erFechaNacimientoAnio" value="${r.fecha_nacimiento_anio || ''}" min="1900" max="2025"></div>` : ''}
+    </div><hr class="my-2">`;
+    data.fields.forEach(f => {
+        const rawVal = r.answers[String(f.id)];
+        let fieldHtml = '';
+        if (f.field_type === 'radio' && f.options && f.options.length) {
+            const currentVal = Array.isArray(rawVal) ? rawVal[0] : (rawVal || '');
+            fieldHtml = f.options.map(o => `<div class="form-check"><input class="form-check-input" type="radio" name="field_er_${f.id}" data-field-id="${f.id}" value="${o}" ${currentVal===o?'checked':''}><label class="form-check-label small">${o}</label></div>`).join('');
+        } else if (f.field_type === 'checkbox' && f.options && f.options.length) {
+            const currentVals = Array.isArray(rawVal) ? rawVal : (rawVal ? [rawVal] : []);
+            fieldHtml = f.options.map(o => `<div class="form-check"><input class="form-check-input" type="checkbox" name="field_er_${f.id}" data-field-id="${f.id}" value="${o}" ${currentVals.includes(o)?'checked':''}><label class="form-check-label small">${o}</label></div>`).join('');
+        } else {
+            const textVal = Array.isArray(rawVal) ? rawVal.join(', ') : (rawVal || '');
+            fieldHtml = `<input type="text" class="form-control form-control-sm" data-field-id="${f.id}" value="${String(textVal).replace(/"/g,'&quot;')}">`;
+        }
+        html += `<div class="mb-3 p-2 rounded-3" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
+            <label class="fw-semibold small text-muted d-block mb-1">${f.label}</label>${fieldHtml}</div>`;
+    });
+    document.getElementById('editResponseBody').innerHTML = html;
+    const erModal = document.getElementById('editResponseModal');
+    if (erModal.parentElement !== document.body) document.body.appendChild(erModal);
+    new bootstrap.Modal(erModal).show();
+}
+
+async function saveEditedResponse() {
+    const ctx = window._editingResponse; if (!ctx) return;
+    const answers = {}, fieldIds = new Set();
+    document.querySelectorAll('#editResponseBody [data-field-id]').forEach(el => fieldIds.add(el.dataset.fieldId));
+    fieldIds.forEach(fid => {
+        const inputs = document.querySelectorAll(`#editResponseBody [data-field-id="${fid}"]`);
+        if (!inputs.length) return;
+        const t = inputs[0].type;
+        if (t === 'radio') { const ch = document.querySelector(`#editResponseBody [data-field-id="${fid}"]:checked`); answers[fid] = ch ? ch.value : ''; }
+        else if (t === 'checkbox') { answers[fid] = Array.from(document.querySelectorAll(`#editResponseBody [data-field-id="${fid}"]:checked`)).map(c=>c.value); }
+        else { answers[fid] = inputs[0].value; }
+    });
+    const res = await fetch(`/api/forms/admin/responses/${ctx.id}`, {
+        method:'PUT', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({
+            nombre_completo: document.getElementById('erNombre').value,
+            cedula: document.getElementById('erCedula')?.value || '',
+            email: document.getElementById('erEmail').value,
+            telefono: document.getElementById('erTelefono').value,
+            tipo_sangre: document.getElementById('erTipoSangre')?.value || '',
+            alergias: document.getElementById('erAlergias')?.value || '',
+            enfermedades_cronicas: document.getElementById('erEnfermedades')?.value || '',
+            contacto_emergencia_nombre: document.getElementById('erContactoNombre')?.value || '',
+            contacto_emergencia_telefono: document.getElementById('erContactoTelefono')?.value || '',
+            pasaporte: document.getElementById('erPasaporte')?.value || '',
+            fecha_nacimiento_dia: document.getElementById('erFechaNacimientoDia')?.value || '',
+            fecha_nacimiento_mes: document.getElementById('erFechaNacimientoMes')?.value || '',
+            fecha_nacimiento_anio: document.getElementById('erFechaNacimientoAnio')?.value || '',
+            answers
+        })
+    });
+    const d = await res.json();
+    if (d.ok) { bootstrap.Modal.getInstance(document.getElementById('editResponseModal')).hide(); viewResponses(ctx.formId); }
+    else { alert(d.error || 'Error al guardar'); }
+}
+
+async function deleteResponse(responseId) {
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar Respuesta',
+        mensaje: '¿Eliminar esta respuesta?',
+        onConfirmar: async () => {
+            const data = await (await fetch(`/api/forms/responses/${responseId}`, {method:'DELETE'})).json();
+            if (data.ok) { viewResponses(currentResponsesFormId); }
+            else { alert(data.error || 'Error al eliminar'); }
+        }
+    });
+}
+
+function copyResponsesTSV() {
+    const data = window._responsesData;
+    if (!data || !data.responses.length) { alert('Sin respuestas para copiar'); return; }
+    // Construir encabezados
+    const headers = ['Nombre'];
+    if (data.show_cedula) headers.push('Cédula');
+    headers.push('Email', 'Teléfono', 'Edad', 'Fecha');
+    if (data.responses.some(r => r.score !== null && r.score !== undefined)) headers.push('Nota (%)');
+    if (data.show_ficha_medica) headers.push('Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas', 'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono');
+    data.fields.forEach(f => headers.push(f.label));
+    // Construir filas
+    const rows = data.responses.map(r => {
+        const row = [r.nombre_completo || ''];
+        if (data.show_cedula) row.push(r.cedula || '');
+        row.push(r.email || '', r.telefono || '', r.edad || '', r.submitted_at || '');
+        if (data.responses.some(x => x.score !== null && x.score !== undefined)) {
+            row.push(r.score !== null && r.score !== undefined ? r.score + '%' : '');
+        }
+        if (data.show_ficha_medica) {
+            row.push(r.tipo_sangre || '', r.alergias || '', r.enfermedades_cronicas || '', r.contacto_emergencia_nombre || '', r.contacto_emergencia_telefono || '');
+        }
+        data.fields.forEach(f => {
+            let val = r.answers[String(f.id)];
+            if (Array.isArray(val)) val = val.join(', ');
+            row.push(val !== undefined && val !== null ? String(val) : '');
+        });
+        return row;
+    });
+    // Unir con tabuladores (TSV — pega perfecto en Excel)
+    const tsv = [headers, ...rows].map(row => row.map(c => String(c).replace(/\t/g, ' ')).join('\t')).join('\n');
+    const btn = document.getElementById('btnCopyTSV');
+    navigator.clipboard.writeText(tsv).then(() => {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>¡Copiado!';
+        btn.classList.replace('btn-outline-secondary', 'btn-success');
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-secondary'); }, 2500);
+    }).catch(() => alert('No se pudo copiar al portapapeles'));
+}
+
+// Variables globales para números de reserva
+let reservationNumbers = '';
+
+async function openReservationModal() {
+    if (!currentResponsesFormId) return;
+    const modal = new bootstrap.Modal(document.getElementById('reservationModal'));
+    document.getElementById('reservationModalLabel').textContent = `Números de Reserva - Formulario #${currentResponsesFormId}`;
+    try {
+        const res = await fetch(`/api/forms/${currentResponsesFormId}/reservation-numbers`);
+        const data = await res.json();
+        reservationNumbers = data.reservation_numbers || '';
+        document.getElementById('reservationNumbersInput').value = reservationNumbers;
+    } catch (e) {
+        console.error('Error cargando números de reserva:', e);
+    }
+    modal.show();
+}
+
+async function saveReservationNumbers() {
+    if (!currentResponsesFormId) return;
+    reservationNumbers = document.getElementById('reservationNumbersInput').value.trim();
+    try {
+        const res = await fetch(`/api/forms/${currentResponsesFormId}/reservation-numbers`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reservation_numbers: reservationNumbers })
+        });
+        const data = await res.json();
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('reservationModal')).hide();
+            alert('Números de reserva guardados');
+            if (reservationNumbers) viewResponses(currentResponsesFormId);
+        }
+    } catch (e) {
+        console.error('Error guardando números de reserva:', e);
+        alert('Error al guardar números de reserva');
+    }
+}
+
+function clearReservationNumbers() {
+    document.getElementById('reservationNumbersInput').value = '';
+}
+
+function editReservationNumbers(formId) {
+    currentResponsesFormId = formId;
+    openReservationModal();
+}
+
+function copyReservationNumbers(text) {
+    const numbers = (text || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true})).join(', ');
+    if (!numbers) return;
+    navigator.clipboard.writeText(numbers).then(() => alert('Números de reserva copiados')).catch(() => alert('No se pudo copiar'));
+}
+
+async function assignReservationNumber(responseId, reservationNumber) {
+    try {
+        const res = await fetch(`/api/responses/${responseId}/reservation-number`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reservation_number: reservationNumber })
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Recargar la tabla para mostrar el cambio
+            if (currentResponsesFormId) {
+                viewResponses(currentResponsesFormId);
+            }
+        } else {
+            alert('Error al asignar número de reserva');
+        }
+    } catch (e) {
+        console.error('Error asignando número de reserva:', e);
+        alert('Error al asignar número de reserva');
+    }
+}
+
+async function exportResponses(fmt) {
+    if (!currentResponsesFormId) return;
+    const addMembrete = document.getElementById('addMembrete')?.checked || false;
+    const includeFecha = document.getElementById('includeFecha')?.checked || false;
+    const includeFichaMedica = document.getElementById('includeFichaMedica')?.checked || false;
+    if (fmt === 'whatsapp') {
+        const url = `/api/forms/${currentResponsesFormId}/export/whatsapp?include_fecha=${includeFecha}&include_ficha_medica=${includeFichaMedica}`;
+        const data = await (await fetch(url)).json();
+        if (data.text) navigator.clipboard.writeText(data.text).then(() => alert('Texto copiado. Pegalo en WhatsApp.'));
+    } else {
+        const url = `/api/forms/${currentResponsesFormId}/export/${fmt}?membrete=${addMembrete}&include_fecha=${includeFecha}&include_ficha_medica=${includeFichaMedica}`;
+        const fullUrl = reservationNumbers ? `${url}&reservation_numbers=${encodeURIComponent(reservationNumbers)}` : url;
+        window.open(fullUrl, '_blank');
+    }
+}
+
+loadForms();
+</script>

@@ -1,0 +1,395 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid mt-4 px-4">
+    <div class="glass-panel rounded-4 p-4">
+
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="fw-bold text-orange mb-1"><i class="bi bi-calendar-check me-2"></i>Gestor de Fechas</h2>
+                <p class="text-muted mb-0 small">Cambia la fecha de cualquier caminata directamente desde aquí.</p>
+            </div>
+            <a href="/eventos" class="btn btn-orange rounded-pill px-4">
+                <i class="bi bi-plus-circle me-2"></i>Crear nueva caminata
+            </a>
+        </div>
+
+        <!-- Buscador -->
+        <div class="mb-3">
+            <input type="text" id="buscador" class="form-control rounded-pill"
+                   placeholder="🔍  Buscar por nombre de caminata..."
+                   oninput="filtrarEventos()" style="max-width:400px;">
+        </div>
+
+        <!-- Calendario de actividad -->
+        <div id="calendarioWrapper" class="mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 class="fw-bold text-orange mb-0"><i class="bi bi-calendar3 me-2"></i>Calendario de actividad</h5>
+                <button id="btnToggleCalendario" class="btn btn-sm btn-outline-orange rounded-pill" onclick="toggleCalendario()">
+                    <i class="bi bi-chevron-up" id="iconToggleCalendario"></i>
+                    <span id="textToggleCalendario" class="ms-1">Ocultar</span>
+                </button>
+            </div>
+            <div id="calendarioActividades"></div>
+        </div>
+
+        <!-- Tarjetas responsivas -->
+        <div id="sinEventos" class="d-none text-center py-5 text-muted">
+            <i class="bi bi-calendar-x fs-1 d-block mb-2 text-orange opacity-50"></i>
+            No hay caminatas registradas aún.
+        </div>
+
+        <div id="contenedorTabla">
+            <div class="row g-3" id="contenedorCards"></div>
+        </div>
+
+        <!-- Toast de confirmación -->
+        <div class="position-fixed bottom-0 end-0 p-3" style="z-index:1100">
+            <div id="toastOk" class="toast align-items-center text-white border-0 rounded-3"
+                 style="background:#28a745;" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="d-flex">
+                    <div class="toast-body fw-semibold">
+                        <i class="bi bi-check-circle me-2"></i><span id="toastMsg">Fecha actualizada</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+.btn-orange        { background:#ff8c00; color:#fff; border:none; }
+.btn-orange:hover  { background:#e07800; color:#fff; }
+.btn-outline-orange{ border:1.5px solid #ff8c00; color:#ff8c00; background:transparent; }
+.btn-outline-orange:hover{ background:#ff8c00; color:#fff; }
+.text-orange       { color:#ff8c00 !important; }
+.fila-editando     { background:#fff7ee !important; }
+.fila-editando .card { background:#fff7ee !important; }
+.input-fecha       { border:1.5px solid #ff8c00; border-radius:8px; padding:4px 10px; font-size:.9rem; }
+.input-fecha:focus { outline:none; box-shadow:0 0 0 3px rgba(255,140,0,.2); }
+.badge-fecha       { background:rgba(255,140,0,.12); color:#c85a00;
+                     border-radius:20px; padding:4px 12px; font-size:.82rem; font-weight:600; }
+.calendario-grid   { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.calendario-dia    { padding: 10px 0; border-radius: 10px; font-size: .9rem; background: rgba(0,0,0,.04); color: #333; cursor: default; transition: all .2s; }
+.calendario-dia-header { font-weight: 700; font-size: .75rem; color: #ff8c00; padding: 6px 0; text-transform: uppercase; }
+.con-actividad     { background: #ff8c00 !important; color: #fff !important; font-weight: 700; }
+.dia-hoy           { outline: 3px solid #0dcaf0; outline-offset: -3px; font-weight: 700; }
+</style>
+
+<script>
+const eventosDB = {{ eventos | tojson | safe }};
+const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+let calendarioActual = new Date();
+let idBorrar = null;
+
+function fechasConActividad() {
+    return new Set(eventosDB.map(ev => ev.fecha_completa).filter(f => f));
+}
+
+function renderCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const anio = calendarioActual.getFullYear();
+    const mes = calendarioActual.getMonth();
+    const primerDia = new Date(anio, mes, 1).getDay();
+    const diasMes = new Date(anio, mes + 1, 0).getDate();
+    const fechas = fechasConActividad();
+    const hoy = new Date();
+    const hoyStr = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+    let html = `
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="cambiarMes(-1)"><i class="bi bi-chevron-left"></i></button>
+            <h5 class="fw-bold text-orange mb-0">${nombresMes[mes]} ${anio}</h5>
+            <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="cambiarMes(1)"><i class="bi bi-chevron-right"></i></button>
+        </div>
+        <div class="calendario-grid">
+            <div class="calendario-dia-header">Dom</div>
+            <div class="calendario-dia-header">Lun</div>
+            <div class="calendario-dia-header">Mar</div>
+            <div class="calendario-dia-header">Mié</div>
+            <div class="calendario-dia-header">Jue</div>
+            <div class="calendario-dia-header">Vie</div>
+            <div class="calendario-dia-header">Sáb</div>
+    `;
+    for (let i = 0; i < primerDia; i++) html += '<div></div>';
+    for (let d = 1; d <= diasMes; d++) {
+        const mesStr = String(mes + 1).padStart(2, '0');
+        const diaStr = String(d).padStart(2, '0');
+        const fechaStr = `${anio}-${mesStr}-${diaStr}`;
+        let clases = 'calendario-dia';
+        if (fechas.has(fechaStr)) clases += ' con-actividad';
+        if (fechaStr === hoyStr) clases += ' dia-hoy';
+        html += `<a href="/eventos?fecha=${fechaStr}" class="${clases}" style="color:inherit;text-decoration:none;">${d}</a>`;
+    }
+    html += '</div>';
+    cont.innerHTML = html;
+}
+
+function cambiarMes(delta) {
+    calendarioActual.setMonth(calendarioActual.getMonth() + delta);
+    renderCalendario();
+}
+
+function toggleCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const icon = document.getElementById('iconToggleCalendario');
+    const text = document.getElementById('textToggleCalendario');
+    const collapsed = cont.classList.toggle('d-none');
+    localStorage.setItem('gestorFechasCalendario', collapsed ? 'collapsed' : 'expanded');
+    icon.className = collapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+    text.textContent = collapsed ? 'Mostrar' : 'Ocultar';
+}
+
+function aplicarEstadoCalendario() {
+    const cont = document.getElementById('calendarioActividades');
+    const icon = document.getElementById('iconToggleCalendario');
+    const text = document.getElementById('textToggleCalendario');
+    const estado = localStorage.getItem('gestorFechasCalendario');
+    const collapsed = estado === 'collapsed';
+    if (collapsed) cont.classList.add('d-none');
+    else cont.classList.remove('d-none');
+    icon.className = collapsed ? 'bi bi-chevron-down' : 'bi bi-chevron-up';
+    text.textContent = collapsed ? 'Mostrar' : 'Ocultar';
+}
+
+function pedirBorrarFecha(id, nombre) {
+    idBorrar = id;
+    document.getElementById('borrarNombre').textContent = nombre;
+    new bootstrap.Modal(document.getElementById('confirmBorrarModal')).show();
+}
+
+async function confirmarBorrarFecha() {
+    if (!idBorrar) return;
+    const btn = document.getElementById('btnConfirmarBorrar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Borrando…';
+    try {
+        const res = await fetch(`/api/eventos/${idBorrar}/borrar-fecha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.ok) {
+            const ev = eventosDB.find(e => e.id === idBorrar);
+            const fechaAnterior = ev ? ev.fecha_completa : '';
+            if (ev) {
+                ev.fecha_completa = '';
+                ev.fecha_anterior = fechaAnterior;
+                ev.historial_fechas = ev.historial_fechas || [];
+                ev.historial_fechas.unshift({
+                    fecha: '',
+                    cambiado_at: new Date().toLocaleString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                });
+            }
+            document.getElementById(`badge-${idBorrar}`).textContent = '—';
+            const antEl = document.getElementById(`anterior-${idBorrar}`);
+            if (antEl && fechaAnterior) {
+                const antFmt = new Date(fechaAnterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+                antEl.textContent = `Fecha anterior: ${antFmt}`;
+                antEl.classList.remove('d-none');
+            }
+            renderHistorial(idBorrar);
+            document.getElementById(`input-${idBorrar}`).value = '';
+            document.getElementById(`fila-${idBorrar}`).classList.remove('fila-editando');
+            document.getElementById(`btn-${idBorrar}`).classList.add('d-none');
+            document.getElementById(`listo-${idBorrar}`).textContent = '✓ Fecha borrada';
+            document.getElementById(`listo-${idBorrar}`).className = 'text-success small fw-semibold';
+            renderCalendario();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmBorrarModal'));
+            if (modal) modal.hide();
+        } else {
+            alert(data.error || 'Error al borrar la fecha.');
+        }
+    } catch (err) {
+        alert('Error de conexión.');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Sí, borrar';
+    }
+}
+
+function renderTabla(lista) {
+    const grid = document.getElementById('contenedorCards');
+    grid.innerHTML = '';
+
+    if (lista.length === 0) {
+        document.getElementById('sinEventos').classList.remove('d-none');
+        document.getElementById('contenedorTabla').classList.add('d-none');
+        return;
+    }
+    document.getElementById('sinEventos').classList.add('d-none');
+    document.getElementById('contenedorTabla').classList.remove('d-none');
+
+    lista.forEach((ev, idx) => {
+        const fechaFormateada = ev.fecha_completa
+            ? new Date(ev.fecha_completa + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'})
+            : '—';
+
+        const col = document.createElement('div');
+        col.className = 'col-12 col-md-6 col-lg-4';
+        col.innerHTML = `
+            <div class="card h-100 border-0 rounded-4 shadow-sm" id="fila-${ev.id}" style="border:1px solid #e0e0e0;">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="text-muted small">#${idx + 1}</span>
+                        <span class="badge-fecha" id="badge-${ev.id}">${fechaFormateada}</span>
+                    </div>
+                    <h6 class="fw-bold text-dark mb-3 flex-grow-1" style="font-size:.95rem;">
+                        <a href="/detalles_evento/${ev.id}" class="text-dark text-decoration-none hover-orange">${ev.nombre}</a>
+                    </h6>
+                    <div class="mb-2">
+                        <label class="form-label small text-muted mb-1">Nueva fecha</label>
+                        <input type="date" class="input-fecha w-100" id="input-${ev.id}"
+                               value="${ev.fecha_completa || ''}"
+                               onchange="marcarCambio(${ev.id})" />
+                        <small class="text-muted d-block mt-1 ${(ev.fecha_anterior || '') ? '' : 'd-none'}" style="font-size:.75rem;" id="anterior-${ev.id}">Fecha anterior: ${ev.fecha_anterior ? new Date(ev.fecha_anterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'}) : '—'}</small>
+                        <div class="mt-2 ${(ev.historial_fechas || []).length ? '' : 'd-none'}" id="historial-${ev.id}" style="font-size:.75rem;"></div>
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between mt-auto gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="btn btn-outline-orange btn-sm rounded-pill px-3 d-none"
+                                    id="btn-${ev.id}"
+                                    onclick="guardarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
+                                <i class="bi bi-check2 me-1"></i>Guardar
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                    onclick="pedirBorrarFecha(${ev.id}, '${ev.nombre.replace(/'/g,"\\'")}')">
+                                <i class="bi bi-trash me-1"></i>Borrar
+                            </button>
+                        </div>
+                        <span class="text-muted small" id="listo-${ev.id}">—</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        grid.appendChild(col);
+        renderHistorial(ev.id);
+    });
+}
+
+function marcarCambio(id) {
+    document.getElementById(`fila-${id}`).classList.add('fila-editando');
+    document.getElementById(`btn-${id}`).classList.remove('d-none');
+    document.getElementById(`listo-${id}`).classList.add('d-none');
+}
+
+function renderHistorial(id) {
+    const ev = eventosDB.find(e => e.id === id);
+    const cont = document.getElementById(`historial-${id}`);
+    if (!cont || !ev) return;
+    const historial = ev.historial_fechas || [];
+    if (historial.length > 0) {
+        cont.classList.remove('d-none');
+        const items = historial.map(h => {
+            const f = h.fecha ? new Date(h.fecha + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'}) : '—';
+            return `<li class="d-flex justify-content-between align-items-center mb-1"><span class="text-muted" style="font-size:.7rem;">${h.cambiado_at}</span><span class="fw-semibold">${f}</span></li>`;
+        }).join('');
+        cont.innerHTML = `<small class="fw-bold text-orange d-block mb-1" style="font-size:.8rem;">Fechas asignadas:</small><ul class="list-unstyled mb-0">${items}</ul>`;
+    } else {
+        cont.classList.add('d-none');
+        cont.innerHTML = '';
+    }
+}
+
+async function guardarFecha(id, nombre) {
+    const input = document.getElementById(`input-${id}`);
+    const nuevaFecha = input.value;
+    if (!nuevaFecha) { alert('Selecciona una fecha válida'); return; }
+
+    const btn = document.getElementById(`btn-${id}`);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Guardando…';
+
+    try {
+        const res = await fetch(`/api/eventos/${id}/mover-fecha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nueva_fecha: nuevaFecha })
+        });
+
+        if (res.ok) {
+            const fechaFmt = new Date(nuevaFecha + 'T00:00:00')
+                .toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+            document.getElementById(`badge-${id}`).textContent = fechaFmt;
+            document.getElementById(`fila-${id}`).classList.remove('fila-editando');
+            btn.classList.add('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+            document.getElementById(`listo-${id}`).textContent = '✓ Guardado';
+            document.getElementById(`listo-${id}`).classList.remove('d-none');
+            document.getElementById(`listo-${id}`).className = 'text-success small fw-semibold';
+
+            // Actualizar referencia visual de fecha anterior
+            const ev = eventosDB.find(e => e.id === id);
+            const fechaAnterior = ev ? ev.fecha_completa : '';
+            if (ev) {
+                ev.fecha_completa = nuevaFecha;
+                ev.fecha_anterior = fechaAnterior;
+                ev.historial_fechas = ev.historial_fechas || [];
+                ev.historial_fechas.unshift({
+                    fecha: nuevaFecha,
+                    cambiado_at: new Date().toLocaleString('es-ES', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'})
+                });
+            }
+            const antEl = document.getElementById(`anterior-${id}`);
+            if (antEl && fechaAnterior) {
+                const antFmt = new Date(fechaAnterior + 'T00:00:00').toLocaleDateString('es-ES', {day:'2-digit', month:'short', year:'numeric'});
+                antEl.textContent = `Fecha anterior: ${antFmt}`;
+                antEl.classList.remove('d-none');
+            }
+            renderHistorial(id);
+
+            // Refrescar calendario
+            renderCalendario();
+
+            // Mostrar toast
+            document.getElementById('toastMsg').textContent = `"${nombre}" → ${fechaFmt}`;
+            new bootstrap.Toast(document.getElementById('toastOk'), { delay: 3000 }).show();
+        } else {
+            alert('Error al guardar la fecha. Intenta de nuevo.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+        }
+    } catch (err) {
+        alert('Error de conexión.');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check2 me-1"></i>Guardar';
+    }
+}
+
+function filtrarEventos() {
+    const q = document.getElementById('buscador').value.toLowerCase();
+    const filtrados = q ? eventosDB.filter(ev => ev.nombre.toLowerCase().includes(q)) : eventosDB;
+    renderTabla(filtrados);
+}
+
+renderTabla(eventosDB);
+renderCalendario();
+aplicarEstadoCalendario();
+</script>
+
+<!-- Modal confirmar borrar fecha -->
+<div class="modal fade" id="confirmBorrarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-trash text-danger me-2"></i>Borrar Fecha</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-5 pt-2 text-start">
+                <p class="text-secondary mb-3 text-center">¿Estás seguro de eliminar la fecha del evento?</p>
+                <p class="fw-bold text-dark mb-4 text-center" id="borrarNombre"></p>
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-danger w-100 rounded-pill fw-bold py-3 shadow" id="btnConfirmarBorrar" onclick="confirmarBorrarFecha()">
+                        <i class="bi bi-trash me-1"></i>Sí, borrar
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 rounded-pill fw-bold py-3" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,82 @@
+{% if birthday_hikers %}
+<!-- MODAL CUMPLEAÑOS -->
+<div class="modal fade" id="birthdayModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel p-3">
+            <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
+                <div style="font-size:3rem;">🎂</div>
+                <h4 class="fw-bold text-dark mt-1 mb-0">¡Feliz Cumpleaños!</h4>
+                <p class="text-secondary small mb-0">Hoy celebramos a quienes cumplen años</p>
+            </div>
+            <div class="modal-body pt-3 pb-2">
+                {% for hiker in birthday_hikers %}
+                {% set partes = hiker.nombre_completo.split(' ') %}
+                {% set primer_nombre = partes[0] %}
+                {% set apellidos = partes[1:] | join(' ') %}
+                <div class="rounded-4 p-3 mb-2 text-center"
+                     style="background:rgba(255,193,7,0.12);border:1px solid rgba(255,193,7,0.4);">
+                    <div class="mb-2">
+                        <div class="fw-black" style="font-size:2rem;line-height:1.1;">🎉 {{ primer_nombre }}</div>
+                        {% if apellidos %}
+                        <div class="fw-semibold text-secondary" style="font-size:1rem;">{{ apellidos }}</div>
+                        {% endif %}
+                    </div>
+                    {% if hiker.telefono %}
+                    <a href="https://wa.me/506{{ hiker.telefono | replace(' ','') | replace('-','') }}?text={{ ('🎂 ¡Feliz Cumpleaños ' + hiker.nombre_completo + '! 🎉 Que tengas un día lleno de alegría. Con cariño, La Tribu 🏔️') | urlencode }}"
+                       target="_blank"
+                       class="btn btn-success btn-sm rounded-pill px-4">
+                        <i class="bi bi-whatsapp me-1"></i>Felicitar
+                    </a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <div class="modal-footer border-0 pt-0 flex-column gap-2">
+                <div class="form-check w-100">
+                    <input class="form-check-input" type="checkbox" id="birthdayNoShow">
+                    <label class="form-check-label small text-secondary" for="birthdayNoShow">
+                        No volver a mostrar hoy
+                    </label>
+                </div>
+                <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold" onclick="closeBirthdayModal()">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+<script>
+(function() {
+    const BDAY_KEY = 'birthdayDismissed';
+    const today = new Date().toISOString().slice(0, 10);
+
+    function launchConfetti() {
+        const end = Date.now() + 2500;
+        (function frame() {
+            confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'], zIndex: 9999 });
+            confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#ffc107','#ff8c00','#ff4081','#00bcd4','#4caf50'], zIndex: 9999 });
+            if (Date.now() < end) requestAnimationFrame(frame);
+        }());
+    }
+
+    function closeBirthdayModal() {
+        if (document.getElementById('birthdayNoShow').checked) {
+            localStorage.setItem(BDAY_KEY, today);
+        }
+        bootstrap.Modal.getInstance(document.getElementById('birthdayModal')).hide();
+    }
+    window.closeBirthdayModal = closeBirthdayModal;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem(BDAY_KEY) === today) return;
+        setTimeout(function() {
+            const modal = new bootstrap.Modal(document.getElementById('birthdayModal'));
+            document.getElementById('birthdayModal').addEventListener('shown.bs.modal', launchConfetti, { once: true });
+            modal.show();
+        }, 1200);
+    });
+})();
+</script>
+{% endif %}

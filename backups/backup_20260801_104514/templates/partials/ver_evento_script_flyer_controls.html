@@ -1,0 +1,187 @@
+<script src="{{ url_for('static', filename='js/html-to-image.min.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    {% if is_super_user %}
+    
+    const FLYER_STORE_KEY = 'flyer_prefs_{{ evento.id }}';
+    const toggleSwitches = document.querySelectorAll('.flyer-toggle');
+    
+    const img = document.getElementById('flyerBgImg');
+    const imgClone = document.getElementById('flyerBgImgClone');
+    const blurContainer = document.getElementById('flyerBgBlurContainer');
+    const overlay = document.getElementById('flyerOverlay');
+
+    function scalePreview() {
+        const wrapper = document.getElementById('flyerPreviewWrapper');
+        const area = document.getElementById('flyerCaptureArea');
+        if(!wrapper || !area) return;
+        const scale = Math.min((wrapper.clientWidth - 20) / 360, (wrapper.clientHeight - 20) / 640);
+        area.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', scalePreview);
+    scalePreview();
+    
+    const scScale = document.getElementById('flyerScale');
+    const scRot = document.getElementById('flyerRot');
+    const scX = document.getElementById('flyerPosX');
+    const scY = document.getElementById('flyerPosY');
+    const scBlur = document.getElementById('flyerBlur');
+    const scOp = document.getElementById('flyerOpacity');
+
+    const ovScale = document.getElementById('overlayScale');
+    const ovWidth = document.getElementById('overlayWidth');
+    const ovX = document.getElementById('overlayPosX');
+    const ovY = document.getElementById('overlayPosY');
+    const ovBlur = document.getElementById('overlayBlur');
+    const ovOp = document.getElementById('overlayOpacity');
+    const ovFontSize = document.getElementById('overlayFontSize');
+
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) : 0;
+    }
+    function setLabel(id, text) {
+        const label = document.getElementById('val_' + id);
+        if(label) label.innerText = text;
+    }
+
+    function loadFlyerState() {
+        try {
+            const saved = localStorage.getItem(FLYER_STORE_KEY);
+            if (!saved) return;
+            const state = JSON.parse(saved);
+            if(state.bgScale !== undefined) scScale.value = state.bgScale;
+            if(state.bgRot !== undefined) scRot.value = state.bgRot;
+            if(state.bgX !== undefined) scX.value = state.bgX;
+            if(state.bgY !== undefined) scY.value = state.bgY;
+            if(state.bgBlur !== undefined) scBlur.value = state.bgBlur;
+            if(state.bgOp !== undefined) scOp.value = state.bgOp;
+            if(state.ovScale !== undefined) ovScale.value = state.ovScale;
+            if(state.ovWidth !== undefined) ovWidth.value = state.ovWidth;
+            if(state.ovX !== undefined) ovX.value = state.ovX;
+            if(state.ovY !== undefined) ovY.value = state.ovY;
+            if(state.ovBlur !== undefined) ovBlur.value = state.ovBlur;
+            if(state.ovOp !== undefined) ovOp.value = state.ovOp;
+            if(state.ovFontSize !== undefined && ovFontSize) ovFontSize.value = state.ovFontSize;
+            if(state.toggles) {
+                toggleSwitches.forEach(t => {
+                    if(state.toggles[t.id] !== undefined) t.checked = state.toggles[t.id];
+                });
+            }
+        } catch(e) { console.error("Error cargando caché", e); }
+    }
+
+    function saveFlyerState() {
+        const state = {
+            bgScale: getVal('flyerScale'), bgRot: getVal('flyerRot'), 
+            bgX: getVal('flyerPosX'), bgY: getVal('flyerPosY'),
+            bgBlur: getVal('flyerBlur'), bgOp: getVal('flyerOpacity'),
+            ovScale: getVal('overlayScale'), ovWidth: getVal('overlayWidth'), 
+            ovX: getVal('overlayPosX'), ovY: getVal('overlayPosY'),
+            ovBlur: getVal('overlayBlur'), ovOp: getVal('overlayOpacity'),
+            ovFontSize: getVal('overlayFontSize'),
+            toggles: {}
+        };
+        toggleSwitches.forEach(t => { state.toggles[t.id] = t.checked; });
+        localStorage.setItem(FLYER_STORE_KEY, JSON.stringify(state));
+    }
+
+    function syncBlurMask() {
+        const captureArea = document.getElementById('flyerCaptureArea');
+        if(!captureArea || !overlay || !blurContainer) return;
+        const currentOvBlur = Math.max(0, 15 + (getVal('overlayBlur') * 0.15));
+        if (currentOvBlur === 0) {
+            blurContainer.style.display = 'none';
+            return;
+        } else {
+            blurContainer.style.display = 'block';
+        }
+        const cBox = captureArea.getBoundingClientRect();
+        const oBox = overlay.getBoundingClientRect();
+        const globalScale = cBox.width / 360; 
+        const top = Math.max(0, (oBox.top - cBox.top) / globalScale);
+        const left = Math.max(0, (oBox.left - cBox.left) / globalScale);
+        const right = Math.max(0, (cBox.right - oBox.right) / globalScale);
+        const bottom = Math.max(0, (cBox.bottom - oBox.bottom) / globalScale);
+        const tScale = Math.max(0.1, 1 + (getVal('overlayScale') / 100));
+        const radius = 1.0 * 16 * tScale; 
+        const clipPathVal = `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius}px)`;
+        blurContainer.style.clipPath = clipPathVal;
+        blurContainer.style.webkitClipPath = clipPathVal;
+    }
+
+    function updateFlyer() {
+        const vBgScale = getVal('flyerScale');
+        const bgScaleReal = Math.max(0.1, 1 + (vBgScale / 100));
+        setLabel('flyerScale', vBgScale > 0 ? '+' + vBgScale + '%' : vBgScale + '%');
+        const vBgRot = getVal('flyerRot');
+        const bgRotReal = vBgRot * 1.8; 
+        setLabel('flyerRot', Math.round(bgRotReal) + '°');
+        const bgXReal = getVal('flyerPosX'); setLabel('flyerPosX', bgXReal > 0 ? '+' + bgXReal + '%' : bgXReal + '%');
+        const bgYReal = getVal('flyerPosY'); setLabel('flyerPosY', bgYReal > 0 ? '+' + bgYReal + '%' : bgYReal + '%');
+        const vBgBlur = getVal('flyerBlur');
+        const bgBlurReal = Math.max(0, 15 + (vBgBlur * 0.15)); 
+        setLabel('flyerBlur', vBgBlur > 0 ? '+' + vBgBlur + '%' : vBgBlur + '%');
+        const vBgOp = getVal('flyerOpacity');
+        const bgOpReal = Math.max(0, Math.min(1, 0.5 + (vBgOp * 0.005)));
+        setLabel('flyerOpacity', vBgOp > 0 ? '+' + vBgOp + '%' : vBgOp + '%');
+        const vOvScale = getVal('overlayScale');
+        const ovScaleReal = Math.max(0.1, 1 + (vOvScale / 100));
+        setLabel('overlayScale', vOvScale > 0 ? '+' + vOvScale + '%' : vOvScale + '%');
+        const vOvWidth = getVal('overlayWidth');
+        const ovWidthReal = vOvWidth < 0 ? 90 - (Math.abs(vOvWidth)/100 * 40) : Math.min(100, 90 + (vOvWidth/100 * 10));
+        setLabel('overlayWidth', vOvWidth > 0 ? '+' + vOvWidth + '%' : vOvWidth + '%');
+        const vOvX = getVal('overlayPosX');
+        const ovXReal = vOvX * 1.5; 
+        setLabel('overlayPosX', vOvX > 0 ? '+' + vOvX + '%' : vOvX + '%');
+        const vOvY = getVal('overlayPosY');
+        const ovYReal = vOvY * 2.5; 
+        setLabel('overlayPosY', vOvY > 0 ? '+' + vOvY + '%' : vOvY + '%');
+        const vOvBlur = getVal('overlayBlur');
+        const ovBlurReal = Math.max(0, 15 + (vOvBlur * 0.15)); 
+        setLabel('overlayBlur', vOvBlur > 0 ? '+' + vOvBlur + '%' : vOvBlur + '%');
+        const vOvOp = getVal('overlayOpacity');
+        const ovOpReal = Math.max(0, Math.min(0.95, 0.4 + (vOvOp * 0.005)));
+        setLabel('overlayOpacity', vOvOp > 0 ? '+' + vOvOp + '%' : vOvOp + '%');
+        const vOvFontSize = getVal('overlayFontSize');
+        const ovFontSizeReal = Math.max(0.5, 1 + (vOvFontSize / 100));
+        setLabel('overlayFontSize', vOvFontSize > 0 ? '+' + vOvFontSize + '%' : vOvFontSize + '%');
+
+        if (img) {
+            const tf = `translate(${bgXReal}%, ${bgYReal}%) scale(${bgScaleReal}) rotate(${bgRotReal}deg)`;
+            img.style.transform = tf;
+            img.style.filter = `blur(${bgBlurReal}px) opacity(${bgOpReal})`;
+            if(imgClone) {
+                imgClone.style.transform = tf;
+                imgClone.style.filter = `blur(${bgBlurReal + ovBlurReal}px) opacity(${bgOpReal})`;
+            }
+        }
+        if (overlay) {
+            overlay.style.width = `${ovWidthReal}%`;
+            overlay.style.transform = `translate(${ovXReal}px, ${ovYReal}px) scale(${ovScaleReal})`;
+            overlay.style.backgroundColor = `rgba(0, 0, 0, ${ovOpReal})`;
+            overlay.style.setProperty('--text-scale', ovFontSizeReal);
+            syncBlurMask();
+        }
+        saveFlyerState();
+    }
+
+    loadFlyerState();
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const targetElement = document.getElementById(this.getAttribute('data-target'));
+            if (targetElement) {
+                if (this.checked) targetElement.classList.remove('d-none');
+                else targetElement.classList.add('d-none');
+            }
+            setTimeout(updateFlyer, 50); 
+        });
+        toggle.dispatchEvent(new Event('change'));
+    });
+    [scScale, scX, scY, scRot, scBlur, scOp, ovScale, ovWidth, ovX, ovY, ovBlur, ovOp, ovFontSize].forEach(el => {
+        if(el) el.addEventListener('input', updateFlyer);
+    });
+    updateFlyer();
+    {% endif %}
+});
+</script>

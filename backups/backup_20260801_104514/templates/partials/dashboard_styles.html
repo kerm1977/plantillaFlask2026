@@ -1,0 +1,57 @@
+<style>
+    .glass-table-container {
+        background: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+    .info-item {
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.8);
+        border-radius: 12px;
+        padding: 12px 16px;
+    }
+    /* Estilizar la tabla para que no tenga fondos sólidos oscuros */
+    .table-glass th {
+        background: rgba(255, 140, 0, 0.15) !important;
+        color: #333 !important;
+        border-bottom: 2px solid rgba(255, 140, 0, 0.3) !important;
+    }
+    .table-glass td {
+        background: transparent !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    }
+    .table-hover tbody tr:hover td {
+        background: rgba(255, 255, 255, 0.5) !important;
+    }
+    
+    /* Mejoras de responsividad para pantallas pequeñas (538px o menos) */
+    @media (max-width: 538px) {
+        .glass-panel {
+            padding: 1.5rem 1rem !important; /* Reducir padding exterior */
+        }
+        .glass-table-container {
+            padding: 1rem !important;
+        }
+        h2.fw-bold {
+            font-size: 1.4rem; /* Titulo más compacto */
+        }
+        .table-glass th, .table-glass td {
+            font-size: 0.85rem; /* Texto de tabla más pequeño */
+            white-space: nowrap; /* Evitar que el texto de la tabla se rompa bruscamente */
+        }
+        .info-item {
+            padding: 10px 12px;
+        }
+        .info-item .fs-5 {
+            font-size: 1.1rem !important;
+        }
+        .info-item .fs-6 {
+            font-size: 0.95rem !important;
+        }
+        .btn-action-mobile {
+            width: 100% !important;
+            margin-bottom: 0.5rem !important;
+        }
+    }
+</style>

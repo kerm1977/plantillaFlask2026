@@ -1,0 +1,423 @@
+/* Estilos base para el efecto Glassmorphism */
+body {
+    background: linear-gradient(to right, #ffe0bd 0%, #ffcc99 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.glass-panel {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+}
+
+.glass-modal {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 1.5rem;
+}
+
+.glass-input {
+    background: rgba(255, 255, 255, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    color: #333 !important;
+}
+
+.glass-input:focus {
+    background: rgba(255, 255, 255, 0.95) !important;
+    box-shadow: 0 0 0 0.25rem rgba(255, 140, 0, 0.25) !important;
+    border-color: var(--primary-orange, #ff8c00) !important;
+}
+
+/* Botones personalizados */
+.btn-orange {
+    background-color: var(--primary-orange, #ff8c00);
+    color: #fff;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-orange:hover, .btn-orange:focus {
+    background-color: #e07b00;
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 140, 0, 0.4);
+}
+
+/* Ajustes de Navbar Desktop */
+.custom-navbar {
+    padding: 0.8rem 2rem;
+    z-index: 1040;
+}
+
+/* Ajustes de Mobile Bottom Bar */
+.mobile-bottom-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--nav-mobile-height, 70px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 1030;
+    padding-bottom: env(safe-area-inset-bottom);
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.mobile-nav-item {
+    color: #495057;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.8rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.mobile-nav-item:hover, .mobile-nav-item:active {
+    color: var(--primary-orange, #ff8c00);
+    transform: translateY(-2px);
+}
+
+/* Botón Global Volver */
+.btn-global-back {
+    position: fixed;
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
+    left: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 140, 0, 0.8);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+    z-index: 1045;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.btn-global-back:hover {
+    background: rgba(255, 140, 0, 1);
+    transform: scale(1.05);
+}
+
+/* Botón Global Crear (A la derecha) */
+.btn-global-add {
+    position: fixed;
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255, 140, 0, 0.8);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+    z-index: 1045;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.btn-global-add:hover {
+    background: rgba(255, 140, 0, 1);
+    transform: scale(1.05);
+}
+
+/* Logo de Sueños en Navbar Desktop */
+.logo-suenos-navbar {
+    height: 40px;
+    width: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.logo-suenos-navbar:hover {
+    transform: scale(1.05);
+}
+
+/* Logo de Sueños en Móvil */
+.logo-suenos-mobile {
+    height: 120px;
+    width: auto;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 70px;
+}
+.logo-suenos-mobile:hover {
+    transform: scale(1.05);
+}
+
+/* Logo de Sueños Flotante en PC */
+.logo-suenos-desktop-fixed {
+    position: fixed;
+    bottom: 100px;
+    left: 20px;
+    height: 150px;
+    width: auto;
+    z-index: 1045;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.logo-suenos-desktop-fixed:hover {
+    transform: scale(1.05);
+}
+
+.modal-alert {
+    backdrop-filter: blur(5px);
+    border: none;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.image-editor-controls input[type=range] {
+    height: 25px;
+    -webkit-appearance: none;
+    margin: 10px 0;
+    width: 100%;
+    background: transparent;
+}
+.image-editor-controls input[type=range]:focus {
+    outline: none;
+}
+.image-editor-controls input[type=range]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 5px;
+    cursor: pointer;
+    box-shadow: 0px 0px 0px #000000;
+    background: rgba(255, 140, 0, 0.5);
+    border-radius: 5px;
+    border: 0px solid #000000;
+}
+.image-editor-controls input[type=range]::-webkit-slider-thumb {
+    box-shadow: 0px 0px 0px #000000;
+    border: 2px solid var(--primary-orange);
+    height: 18px;
+    width: 18px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -7px;
+}
+
+/* ========================================== */
+/* ESTILOS NUEVOS: REPRODUCTOR Y GLASSMORPHISM */
+/* ========================================== */
+
+/* MiniPlayer Glassmorphism y Posicionamiento Seguro */
+.miniplayer-glass {
+    background: rgba(25, 25, 30, 0.85) !important;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+#miniPlayer {
+    bottom: calc(var(--nav-mobile-height, 70px) + 12px);
+}
+@media (min-width: 768px) {
+    #miniPlayer { bottom: 25px; }
+}
+
+/* Reproductor Grande (Offcanvas 100% Pantalla) Glassmorphism */
+.offcanvas-glass {
+    background: rgba(15, 15, 20, 0.92) !important;
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    border: none !important;
+}
+
+/* Indicador de arrastre táctil (Píldora superior) */
+.drag-indicator {
+    width: 40px;
+    height: 5px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    margin: 0 auto;
+}
+
+/* Ocultar barra de scroll para un aspecto más limpio en el reproductor */
+.player-scroll::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+/* Botones Perfectamente Redondos (Previene deformaciones de Bootstrap) */
+.btn-circle-player {
+    width: 75px;
+    height: 75px;
+    border-radius: 50% !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+}
+.btn-circle-player-sm {
+    width: 50px;
+    height: 50px;
+    border-radius: 50% !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    padding: 0;
+}
+
+/* Efecto de giro para las imágenes */
+.spin-animation {
+    animation: spin 6s linear infinite;
+}
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+/* Playlist Item Hover Effect */
+.playlist-item {
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.playlist-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    transform: translateX(4px);
+}
+
+/* Personalización sutil del input range del reproductor */
+.glass-range {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+}
+.glass-range::-webkit-slider-runnable-track {
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    height: 6px;
+}
+.glass-range::-webkit-slider-thumb {
+    background: var(--primary-orange);
+    border: 2px solid white;
+    height: 16px;
+    width: 16px;
+    border-radius: 50%;
+    margin-top: -5px;
+    -webkit-appearance: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* ESTILOS PARA EL GENERADOR DE CALENDARIO */
+.editor-tools {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 1rem;
+}
+
+#flyer-wrapper {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    background-color: var(--bg-darker, #121212);
+}
+
+/* AHORA EL LIENZO ES DINÁMICO Y PURO */
+#lienzo-arte {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: top left;
+    background-color: #2a2a2a;
+    overflow: hidden;
+    color: white;
+    width: 1920px;
+    height: 1080px;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Arial, sans-serif; /* Fallback universal */
+}
+
+.overlay-oscuro {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Solo opacidad */
+    z-index: 2;
+}
+
+.calendario-contenido {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    padding: 60px 80px;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.mes-card {
+    background: rgba(30, 30, 30, 0.7);
+    border: 1px solid rgba(255, 140, 0, 0.3);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    height: 100%;
+    /* NO AGREGAR BOX-SHADOW AQUI PARA EVITAR BUGS EN HTML2CANVAS */
+}
+
+.mes-titulo {
+    color: var(--primary-orange, #ff8c00);
+    border-bottom: 2px solid var(--primary-orange, #ff8c00);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.evento-item {
+    background: rgba(255, 255, 255, 0.05);
+    border-left: 4px solid var(--primary-orange, #ff8c00);
+    padding: 10px 15px;
+    margin-bottom: 12px;
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+/* ==========================================
+   GLOBAL: ELIMINAR TODAS LAS SOMBRAS DEL SITIO
+   ========================================== */
+*,
+*::before,
+*::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+/* Mantener text-shadow solo en el flyer overlay */
+.flyer-glass-overlay,
+.flyer-glass-overlay * {
+    text-shadow: 0 2px 5px rgba(0,0,0,0.6) !important;
+}
+/* Mantener focus ring para accesibilidad de formularios */
+.form-control:focus,
+.form-select:focus,
+.glass-input:focus,
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
+}

@@ -1,0 +1,125 @@
+                        <h5 class="fw-bold mb-0 text-warning-custom">Logística de Salida</h5>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input m-0" type="checkbox" id="logisticaSeguraToggle" onchange="toggleLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="logisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
+                            <div class="d-flex align-items-center gap-2 normal-logistics">
+                                <input type="time" id="horaSalida" name="horaSalida" class="form-control glass-input rounded-3" onchange="updateTimePreview()">
+                                <span id="timePreview" class="small fw-bold text-warning-custom text-nowrap" style="min-width: 70px;"></span>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
+                            <div class="normal-logistics">
+                                <select id="lugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
+                                    <option value="Parque de Tres Ríos - Escuela">Parque de Tres Ríos - Escuela</option>
+                                    <option value="Parque de Tres Ríos - Cruz Roja">Parque de Tres Ríos - Cruz Roja</option>
+                                    <option value="Parque de Tres Ríos - Letras">Parque de Tres Ríos - Letras</option>
+                                    <option value="San José">San José (Sabana)</option>
+                                </select>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <label class="form-label fw-bold text-muted small mb-1">Pasamos a recoger en (Separar por comas):</label>
+                        <div class="normal-logistics">
+                            <textarea id="puntosRecogidaInput" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3" placeholder="Ej: Cartago, Plaza del Sol, Outlet Mall, Sabana..."></textarea>
+                            <div class="form-text text-secondary" style="font-size: 0.75rem;">Escriba los lugares donde pasará la buseta, separados por comas.</div>
+                        </div>
+                        <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                    </div>
+                </div>
+
+                <!-- Internacional -->
+                <div id="internationalFields" class="glass-table-container p-3 p-md-4 rounded-4 mb-4 d-none">
+                    <h5 class="fw-bold mb-3 text-warning-custom"><i class="bi bi-airplane-fill me-2"></i>Logística Internacional y Vuelos</h5>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">País Destino</label>
+                            <select id="pais" name="pais" class="form-select glass-input rounded-3">
+                                <option value="Panamá">Panamá</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="España">España</option>
+                                <option value="Perú">Perú</option>
+                                <option value="Colombia">Colombia</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
+                            <input type="text" id="destinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" placeholder="Ej: Ciudad de México, Machu Picchu...">
+                        </div>
+                    </div>
+
+                    <!-- VUELO IDA -->
+                    <div class="glass-panel p-3 rounded-3 mb-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                        <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">✈️ Vuelo de IDA</h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha</label>
+                                <input type="date" id="fechaIda" name="fechaIda" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Salida</label>
+                                <input type="time" id="horaIda" name="horaIda" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Aerolínea</label>
+                                <select id="aerolineaIda" name="aerolineaIda" class="form-select form-select-sm glass-input rounded-2">
+                                    <option>Avianca</option><option>Copa Airlines</option><option>Volaris</option>
+                                    <option>Aeroméxico</option><option>Iberia</option><option>LATAM</option>
+                                    <option>Wingo</option><option>Sansa</option><option>American Airlines</option>
+                                    <option>United Airlines</option><option>Delta</option><option>Air France</option>
+                                    <option>KLM</option><option>Edelweiss</option><option>Arajet</option><option>Otra</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;"># Vuelo</label>
+                                <input type="text" id="vueloIda" name="vueloIda" class="form-control form-control-sm glass-input rounded-2" placeholder="Ej: CM 115">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VUELO REGRESO -->
+                    <div class="glass-panel p-3 rounded-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                        <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">🛬 Vuelo de REGRESO</h6>
+                        <div class="row g-2">
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha Regreso</label>
+                                <input type="date" id="fechaRegresoInt" name="fechaRegresoInt" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Regreso</label>
+                                <input type="time" id="horaRegresoInt" name="horaRegresoInt" class="form-control form-control-sm glass-input rounded-2">
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Aerolínea</label>
+                                <select id="aerolineaRegreso" name="aerolineaRegreso" class="form-select form-select-sm glass-input rounded-2">
+                                    <option>Avianca</option><option>Copa Airlines</option><option>Volaris</option>
+                                    <option>Aeroméxico</option><option>Iberia</option><option>LATAM</option>
+                                    <option>Wingo</option><option>Sansa</option><option>American Airlines</option>
+                                    <option>United Airlines</option><option>Delta</option><option>Air France</option>
+                                    <option>KLM</option><option>Edelweiss</option><option>Arajet</option><option>Otra</option>
+                                </select>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;"># Vuelo</label>
+                                <input type="text" id="vueloRegreso" name="vueloRegreso" class="form-control form-control-sm glass-input rounded-2" placeholder="Ej: AV 631">
+                            </div>
+                        </div>
+                    </div>
+                </div>

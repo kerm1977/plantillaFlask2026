@@ -1,0 +1,72 @@
+<script>
+let winnerModal;
+let winnerData = null;
+
+function openWinnerModal(raffleId, raffleName, event) {
+    event.stopPropagation();
+    if (!winnerModal) winnerModal = new bootstrap.Modal(document.getElementById('winnerModal'));
+    document.getElementById('winnerRaffleSelect').value = raffleId;
+    document.getElementById('winnerNumber').value = '';
+    resetWinnerSearch();
+    winnerModal.show();
+}
+
+function resetWinnerSearch() {
+    winnerData = null;
+    document.getElementById('winnerResult').classList.add('d-none');
+    document.getElementById('winnerNotFound').classList.add('d-none');
+    document.getElementById('sendCongratBtn').classList.add('d-none');
+    document.getElementById('saveWinnerBtn').classList.add('d-none');
+}
+
+function buscarGanador() {
+    const raffleId = document.getElementById('winnerRaffleSelect').value;
+    const raw = document.getElementById('winnerNumber').value.trim();
+    const number = raw.padStart(2, '0');
+    if (!raw) { alert('Ingresa el número ganador'); return; }
+
+    fetch(`/api/rifas/${raffleId}/find-winner/${number}`)
+        .then(r => r.json())
+        .then(data => {
+            if (data.winner) {
+                winnerData = data;
+                document.getElementById('winnerName').textContent = data.winner.name;
+                document.getElementById('winnerPhone').textContent = 'Tel: ' + data.winner.phone;
+                document.getElementById('winnerResult').classList.remove('d-none');
+                document.getElementById('winnerNotFound').classList.add('d-none');
+                document.getElementById('sendCongratBtn').classList.remove('d-none');
+                document.getElementById('saveWinnerBtn').classList.remove('d-none');
+            } else {
+                winnerData = null;
+                document.getElementById('winnerResult').classList.add('d-none');
+                document.getElementById('winnerNotFound').classList.remove('d-none');
+                document.getElementById('sendCongratBtn').classList.add('d-none');
+            }
+        })
+        .catch(() => alert('Error al buscar el ganador'));
+}
+
+function guardarGanador() {
+    if (!winnerData) return;
+    const raffleId = document.getElementById('winnerRaffleSelect').value;
+    const number = document.getElementById('winnerNumber').value.trim().padStart(2, '0');
+    fetch(`/admin/rifas/${raffleId}/ganadores`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winners: [number] })
+    }).then(() => {
+        if (winnerModal) winnerModal.hide();
+        setTimeout(() => location.reload(), 500);
+    });
+}
+
+function enviarFelicitaciones() {
+    if (!winnerData) return;
+    const select = document.getElementById('winnerRaffleSelect');
+    const raffleName = select.options[select.selectedIndex].dataset.name;
+    const number = document.getElementById('winnerNumber').value.trim().padStart(2, '0');
+    const phone = winnerData.winner.phone.replace(/\D/g, '');
+    const msg = `\uD83C\uDF89 \u00a1Felicitaciones ${winnerData.winner.name}! \uD83C\uDFC6\n\nHas ganado la rifa *${raffleName}* con el n\u00famero *${number}*.\n\n\u00a1Eres el ganador! Por favor cont\u00e1ctanos para coordinar la entrega de tu premio. \uD83C\uDF81`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+</script>

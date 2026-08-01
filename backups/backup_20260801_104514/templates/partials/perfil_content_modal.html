@@ -1,0 +1,94 @@
+<!-- Modal Editar Perfil -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center">Editar Información</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-5 pt-2">
+                <form id="editProfileForm" enctype="multipart/form-data">
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                <img id="editAvatarPreviewImg" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" onerror="this.src='{{ url_for('static', filename='default.png') }}'" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                            </div>
+                            <label for="editAvatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
+                            </label>
+                            <input type="file" name="avatar" id="editAvatarUpload" class="d-none" accept=".png, .jpg, .jpeg, .webp, .gif">
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="editScaleSlider" min="1" max="3" step="0.1" value="1">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="editPosXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="editPosYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block text-center mt-1" style="font-size: 0.65rem;">*Ajuste visual para previsualización.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">Nombre</label>
+                            <input type="text" name="name" class="form-control glass-input validate-name" id="editName" value="{{ user.name }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">1° Apellido</label>
+                            <input type="text" name="last_name_1" class="form-control glass-input validate-lastname" id="editLastName1" value="{{ user.last_name_1 }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-secondary">2° Apellido</label>
+                            <input type="text" name="last_name_2" class="form-control glass-input validate-lastname" id="editLastName2" value="{{ user.last_name_2 }}" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-secondary">Email</label>
+                        <input type="email" name="email" class="form-control glass-input rounded-3 force-lowercase" id="editEmail" value="{{ user.email }}" required>
+                    </div>
+
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.15);">
+                        <label class="text-orange fw-bold mb-3 d-block"><i class="bi bi-plus-circle-dotted me-2"></i>Información Adicional</label>
+                        <select class="form-select glass-input rounded-3 mb-3" id="editDynamicSelect" onchange="handleEditDynamicSelect()">
+                            <option value="">Seleccione para agregar...</option>
+                            <option value="Telefono">Teléfono</option>
+                            <option value="Whatsapp">Whatsapp</option>
+                            <option value="Facebook">Facebook (URL)</option>
+                            <option value="Instagram">Instagram (URL)</option>
+                            <option value="Direccion">Dirección (Google Maps)</option>
+                            <option value="Fecha">Fecha Especial</option>
+                            <option value="Institucion">Institución/Empresa</option>
+                            <option value="Otro">Otros</option>
+                        </select>
+                        <div id="editDynamicContainer" class="animate__animated animate__fadeIn"></div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Nueva Contraseña (Opcional)</label>
+                            <input type="password" class="form-control glass-input rounded-3 pe-5" id="editPass">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('editPass', this)"></i>
+                        </div>
+                        <div class="col-md-6 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Verificar Contraseña</label>
+                            <input type="password" class="form-control glass-input rounded-3 pe-5" id="editPassVerify">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('editPassVerify', this)"></i>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-orange rounded-pill py-3 fw-bold fs-5 shadow-sm">Guardar Cambios</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,128 @@
+<style>
+    /* Buscador Gigante */
+    .search-input {
+        font-size: 1.3rem;
+        padding: 1rem 1.5rem;
+        border-radius: 2rem;
+        border: 2px solid #ff8c00;
+        box-shadow: 0 5px 15px rgba(255, 140, 0, 0.2);
+        background: rgba(255, 255, 255, 0.9);
+        max-width: 100%;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        box-shadow: 0 5px 20px rgba(255, 140, 0, 0.4);
+        background: #ffffff;
+    }
+
+    /* PREVENCIÓN DE DESBORDAMIENTO GLOBAL */
+    .container {
+        max-width: 100%;
+        overflow-x: hidden;
+    }
+
+    /* TARJETA MÉDICA - Diseño Plano, Blanco y EXPANDIDO (Ancho libre) */
+    .id-card {
+        background: #ffffff;
+        position: relative;
+        overflow: hidden;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        border: none;
+    }
+    
+    /* SELLO DE AGUA (WATERMARK) RESPONSIVO */
+    .watermark-logo {
+        position: absolute;
+        top: -10px;
+        left: -30px;
+        width: 80%; /* Adaptable */
+        max-width: 280px; 
+        height: auto;
+        opacity: 0.10;
+        z-index: 0;
+        pointer-events: none;
+        transform: rotate(-20deg);
+    }
+
+    .id-card-header {
+        background: transparent;
+        padding: 10px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #ff8c00;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .id-card-body {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-evenly;
+        padding: 1rem; /* Padding adaptable para móviles */
+        background: transparent;
+        position: relative;
+        z-index: 1;
+        word-wrap: break-word; 
+        overflow-wrap: break-word; /* Obliga a romper palabras largas */
+        white-space: normal;
+    }
+
+    /* Padding extra solo en pantallas más grandes */
+    @media (min-width: 576px) {
+        .id-card-body {
+            padding: 1rem 2rem; 
+        }
+    }
+
+    .pin-badge {
+        background: #ff8c00;
+        color: #fff;
+        font-weight: 900;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: clamp(0.9rem, 3vw, 1.1rem); /* Fluido */
+        letter-spacing: 2px;
+    }
+    
+    .data-label {
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        font-weight: 700;
+        margin-bottom: 0px;
+    }
+    
+    .data-value {
+        font-size: clamp(1rem, 4vw, 1.2rem); /* Tamaño de fuente fluido para evitar desbordes */
+        color: #000;
+        font-weight: 800;
+        margin-bottom: 10px;
+        line-height: 1.2;
+        word-wrap: break-word; 
+        overflow-wrap: break-word;
+        white-space: normal;
+    }
+
+    /* Efecto hover para los enlaces de la lista alfabética */
+    .hiker-list-item {
+        transition: transform 0.2s ease, padding-left 0.2s ease;
+        max-width: 100%;
+    }
+    .hiker-list-item:hover {
+        transform: translateX(5px);
+        padding-left: 10px !important;
+        background: rgba(255, 140, 0, 0.05);
+        border-radius: 8px;
+    }
+    
+    /* Contenedores de nombres para truncar y no desbordar */
+    .name-truncate-container {
+        min-width: 0; /* Regla de oro flexbox para truncar */
+        flex: 1 1 auto;
+    }
+</style>

@@ -1,0 +1,90 @@
+<script>
+async function loadAllUsers() {
+    const tbody = document.getElementById('usersTableBody');
+    tbody.innerHTML = '<tr><td colspan="4" class="text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-orange me-2"></div>Cargando base de datos...</td></tr>';
+    try {
+        const response = await fetch('/api/admin/all_contacts');
+        const data = await response.json();
+        if (data.error) {
+            tbody.innerHTML = `<tr><td colspan="4" class="text-center py-4 text-danger">${data.error}</td></tr>`;
+            return;
+        }
+        const cUsers  = data.filter(d => d.type === 'user').length;
+        const cHikers = data.filter(d => d.type === 'hiker').length;
+        document.getElementById('countTotal').textContent  = data.length;
+        document.getElementById('countUsers').textContent  = cUsers;
+        document.getElementById('countHikers').textContent = cHikers;
+        allContacts = [...data].sort((a, b) => {
+            if (a.type === b.type) return a.display_name.localeCompare(b.display_name);
+            return a.type === 'user' ? -1 : 1;
+        });
+        filteredContacts = [...allContacts];
+        renderContactsPage(1);
+    } catch (err) {
+        document.getElementById('usersTableBody').innerHTML =
+            '<tr><td colspan="4" class="text-center py-4 text-danger">Fallo de conexión al servidor</td></tr>';
+    }
+}
+
+function _buildRow(u) {
+    const safeUser = JSON.stringify(u).replace(/'/g, "&apos;");
+    let typeBadge, statusBadge, subtext, icon;
+    if (u.type === 'user') {
+        icon      = '<i class="bi bi-person-circle text-orange me-2 fs-5"></i>';
+        subtext   = `<div class="text-secondary small ms-4" style="word-break:break-all;">${u.email || ''}</div>`;
+        typeBadge = u.role === 'Superusuario'
+            ? '<span class="badge bg-warning text-dark rounded-pill px-2 shadow-sm"><i class="bi bi-shield-lock-fill"></i> Super</span>'
+            : `<span class="badge bg-secondary rounded-pill px-2 shadow-sm">${u.role}</span>`;
+        statusBadge = u.status === 'Activo'
+            ? '<span class="badge bg-success rounded-pill px-2 shadow-sm">Activo</span>'
+            : '<span class="badge bg-danger rounded-pill px-2 shadow-sm">Bloqueado</span>';
+    } else {
+        icon        = '<i class="bi bi-card-list text-primary me-2 fs-5"></i>';
+        subtext     = `<div class="text-secondary small ms-4">${u.crm_cedula || ''} · ${u.phone || ''}</div>`;
+        typeBadge   = '<span class="badge bg-primary bg-opacity-75 rounded-pill px-2 shadow-sm">CRM</span>';
+        statusBadge = '<span class="badge bg-light text-secondary border rounded-pill px-2">—</span>';
+    }
+    return `<tr style="cursor:pointer;" onclick='viewUserDetails(${safeUser})' class="bg-white bg-opacity-50 user-row">
+        <td class="py-3">
+            <div class="fw-bold text-dark d-flex align-items-center">${icon}<span class="text-truncate">${u.display_name}</span></div>
+            ${subtext}
+            <div class="d-sm-none mt-2 ms-4 d-flex flex-wrap gap-2">${typeBadge} ${statusBadge}</div>
+        </td>
+        <td class="py-3 d-none d-sm-table-cell">${typeBadge}</td>
+        <td class="py-3 d-none d-sm-table-cell">${statusBadge}</td>
+        <td class="text-end text-sm-center py-3"><button class="btn btn-sm btn-orange rounded-circle shadow-sm" title="Ver detalle"><i class="bi bi-eye-fill"></i></button></td>
+    </tr>`;
+}
+
+function renderContactsPage(page) {
+    const tbody = document.getElementById('usersTableBody');
+    if (!filteredContacts.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">No se encontraron contactos.</td></tr>';
+        document.getElementById('dashPaginationBar').innerHTML = '';
+        return;
+    }
+    const total      = filteredContacts.length;
+    const totalPages = Math.ceil(total / DASH_PAGE_SIZE);
+    const start      = (page - 1) * DASH_PAGE_SIZE;
+    tbody.innerHTML  = filteredContacts.slice(start, start + DASH_PAGE_SIZE).map(_buildRow).join('');
+    renderDashPagination(totalPages, page, total);
+}
+
+function renderDashPagination(totalPages, page, total) {
+    const bar = document.getElementById('dashPaginationBar');
+    if (totalPages <= 1) { bar.innerHTML = ''; return; }
+    let html = `<small class="text-muted align-self-center me-2">${total} contactos</small>`;
+    if (page > 1)
+        html += `<button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="renderContactsPage(${page-1});window.scrollTo(0,0)">‹ Anterior</button>`;
+    const delta = 2;
+    for (let i = 1; i <= totalPages; i++) {
+        if (i===1 || i===totalPages || (i>=page-delta && i<=page+delta))
+            html += `<button class="btn btn-sm ${i===page?'btn-orange':'btn-outline-secondary'} rounded-pill px-3" onclick="renderContactsPage(${i});window.scrollTo(0,0)">${i}</button>`;
+        else if (i===page-delta-1 || i===page+delta+1)
+            html += `<span class="align-self-center px-1 text-muted">…</span>`;
+    }
+    if (page < totalPages)
+        html += `<button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="renderContactsPage(${page+1});window.scrollTo(0,0)">Siguiente ›</button>`;
+    bar.innerHTML = html;
+}
+</script>

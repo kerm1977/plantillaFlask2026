@@ -1,0 +1,40 @@
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    {% if is_super_user %}
+    const btnExportFlyer = document.getElementById('btnExportFlyer');
+    if (btnExportFlyer) {
+        btnExportFlyer.addEventListener('click', async function() {
+            if (typeof htmlToImage === 'undefined') {
+                alert("La librería de exportación no se ha cargado. Verifica tu conexión a internet.");
+                return;
+            }
+            const captureArea = document.getElementById('flyerCaptureArea');
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando Alta Resolución...';
+            this.disabled = true;
+            try {
+                const currentTransform = captureArea.style.transform;
+                captureArea.style.transform = 'none';
+                const dataUrl = await htmlToImage.toPng(captureArea, { 
+                    pixelRatio: 4,
+                    backgroundColor: 'transparent',
+                    style: { transform: 'none' } 
+                });
+                captureArea.style.transform = currentTransform;
+                const link = document.createElement('a');
+                const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                link.download = `Flyer_${safeName}.png`;
+                link.href = dataUrl;
+                link.click();
+            } catch(e) {
+                console.error(e);
+                alert("Error al generar el flyer. Intenta de nuevo.");
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
+        });
+    }
+    {% endif %}
+});
+</script>

@@ -1,0 +1,434 @@
+<script>
+const FORM_ID = {{ form.id }};
+const FORM_TYPE = "{{ form.form_type }}";
+const ALLOW_EDIT = {{ 'true' if form.allow_edit else 'false' }};
+const EDIT_TOKEN = "{{ edit_token|default('', true) }}";
+const EDIT_RESPONSE_ID = {{ edit_response_id|default('null', true) }};
+const IS_SUPER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
+let formFields = [];
+let editingResponseId = EDIT_RESPONSE_ID;
+let acTimeout = null;
+let duplicateBlocked = false;
+
+async function loadFields() {
+    const res = await fetch(`/api/forms/${FORM_ID}`);
+    const data = await res.json();
+    formFields = data.fields;
+    renderDynamicFields();
+    if (EDIT_TOKEN) {
+        await loadResponseByToken(EDIT_TOKEN);
+    }
+}
+
+async function loadResponseByToken(token) {
+    const res = await fetch(`/api/forms/response_by_token/${token}`);
+    const data = await res.json();
+    if (!data.found) return;
+    editingResponseId = data.response_id;
+    if (document.getElementById('pf_nombre')) document.getElementById('pf_nombre').value = data.nombre_completo || '';
+    if (document.getElementById('pf_cedula')) document.getElementById('pf_cedula').value = data.cedula || '';
+    if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email || '';
+    if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono || '';
+    if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
+    if (document.getElementById('pf_tipo_sangre')) document.getElementById('pf_tipo_sangre').value = data.tipo_sangre || '';
+    if (document.getElementById('pf_alergias')) document.getElementById('pf_alergias').value = data.alergias || '';
+    if (document.getElementById('pf_enfermedades')) document.getElementById('pf_enfermedades').value = data.enfermedades_cronicas || '';
+    if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
+    if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
+    if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+    if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
+    if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
+    if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
+    for (const f of formFields) {
+        const val = data.answers[String(f.id)];
+        if (val === undefined || val === null) continue;
+        if (f.field_type === 'text' || f.field_type === 'textarea') {
+            const input = document.querySelector(`[data-field-id="${f.id}"]`);
+            if (input) input.value = val;
+        } else if (f.field_type === 'radio') {
+            const radio = document.querySelector(`input[name="field_${f.id}"][value="${val}"]`);
+            if (radio) radio.checked = true;
+        } else if (f.field_type === 'checkbox' && Array.isArray(val)) {
+            val.forEach(v => {
+                const cb = document.querySelector(`input[name="field_${f.id}"][value="${v}"]`);
+                if (cb) cb.checked = true;
+            });
+        }
+    }
+    document.getElementById('editBanner').classList.remove('d-none');
+    document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+}
+
+function renderDynamicFields() {
+    const container = document.getElementById('dynamicFields');
+    container.innerHTML = formFields.map((f, i) => {
+        let html = `<div class="mb-3"><label class="form-label fw-semibold">${i+1}. ${f.label}</label>`;
+        if (f.field_type === 'text') {
+            html += `<input type="text" class="form-control" data-field-id="${f.id}">`;
+        } else if (f.field_type === 'textarea') {
+            html += `<textarea class="form-control" rows="4" data-field-id="${f.id}" placeholder="Escribe tu respuesta..."></textarea>`;
+        } else if (f.field_type === 'radio') {
+            html += f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="radio" name="field_${f.id}" value="${o}" data-field-id="${f.id}">
+                    <label class="form-check-label">${o}</label>
+                </div>`).join('');
+        } else if (f.field_type === 'checkbox') {
+            html += f.options.map(o => `
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="field_${f.id}" value="${o}" data-field-id="${f.id}">
+                    <label class="form-check-label">${o}</label>
+                </div>`).join('');
+        } else if (f.field_type === 'file') {
+            html += `<input type="file" class="form-control" data-field-id="${f.id}" data-type="file">`;
+        }
+        html += '</div>';
+        return html;
+    }).join('');
+}
+
+async function checkDuplicate(nombre) {
+    if (!nombre || editingResponseId) return;
+    const res = await fetch(`/api/forms/${FORM_ID}/my_response?nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (data.found) {
+        document.getElementById('duplicateMsg').textContent = `Registrado el ${data.submitted_at || ''}.`;
+        document.getElementById('duplicateWarning').classList.remove('d-none');
+        if (!IS_SUPER) {
+            document.getElementById('btnSubmit').disabled = true;
+            duplicateBlocked = true;
+        }
+    } else {
+        clearDuplicate();
+    }
+}
+
+function clearDuplicate() {
+    duplicateBlocked = false;
+    document.getElementById('duplicateWarning').classList.add('d-none');
+    if (!editingResponseId) {
+        document.getElementById('btnSubmit').disabled = false;
+    }
+}
+
+function overrideDuplicate() {
+    duplicateBlocked = false;
+    document.getElementById('duplicateWarning').classList.add('d-none');
+    document.getElementById('btnSubmit').disabled = false;
+}
+
+function toTitleCase(str) {
+    return str.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+function applyTitleCase(input) {
+    const pos = input.selectionStart;
+    input.value = toTitleCase(input.value);
+    input.setSelectionRange(pos, pos);
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target && (e.target.id === 'pf_nombre')) {
+        applyTitleCase(e.target);
+        clearDuplicate();
+    }
+});
+
+const nombreDupInput = document.getElementById('pf_nombre');
+if (nombreDupInput) {
+    nombreDupInput.addEventListener('blur', function() {
+        const val = this.value.trim();
+        if (val.length >= 3) checkDuplicate(val);
+    });
+}
+
+const telefonoInput = document.getElementById('pf_telefono');
+if (telefonoInput) {
+    telefonoInput.setAttribute('maxlength', '8');
+    telefonoInput.setAttribute('inputmode', 'numeric');
+    telefonoInput.setAttribute('pattern', '[0-9]{8}');
+    telefonoInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '').slice(0, 8);
+    });
+    telefonoInput.addEventListener('keypress', function(e) {
+        if (!/[0-9]/.test(e.key)) e.preventDefault();
+    });
+    telefonoInput.addEventListener('blur', function() {
+        if (this.value && this.value.length !== 8) {
+            this.classList.add('is-invalid');
+            let fb = document.getElementById('pf_telefono_feedback');
+            if (!fb) {
+                fb = document.createElement('div');
+                fb.id = 'pf_telefono_feedback';
+                fb.className = 'invalid-feedback';
+                fb.textContent = 'El teléfono debe tener exactamente 8 dígitos.';
+                this.parentNode.appendChild(fb);
+            }
+        } else {
+            this.classList.remove('is-invalid');
+            this.classList.add('is-valid');
+        }
+    });
+    telefonoInput.addEventListener('input', function() {
+        this.classList.remove('is-invalid', 'is-valid');
+    });
+}
+
+const nombreInput = document.getElementById('pf_nombre');
+const acList = document.getElementById('autocompleteList');
+
+if (nombreInput && acList) {
+    nombreInput.addEventListener('input', function() {
+        const q = this.value.trim();
+        clearTimeout(acTimeout);
+        if (q.length < 2) { acList.style.display = 'none'; return; }
+        acTimeout = setTimeout(async () => {
+            const res = await fetch(`/api/forms/search_hikers?q=${encodeURIComponent(q)}`);
+            const results = await res.json();
+            if (!results.length) { acList.style.display = 'none'; return; }
+            acList.innerHTML = results.map(r => `
+                <button type="button" class="list-group-item list-group-item-action py-2" onclick="selectHiker(this)" 
+                        data-nombre="${r.nombre_completo}" data-telefono="${r.telefono}" data-cedula="${r.cedula}">
+                    <strong>${r.nombre_completo}</strong>
+                    <small class="text-muted ms-2">${r.cedula}</small>
+                </button>
+            `).join('');
+            acList.style.display = 'block';
+        }, 300);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!acList.contains(e.target) && e.target !== nombreInput) acList.style.display = 'none';
+    });
+}
+
+function selectHiker(el) {
+    const nombre = el.dataset.nombre;
+    const telefono = el.dataset.telefono;
+    const cedula = el.dataset.cedula;
+    document.getElementById('pf_nombre').value = nombre;
+    if (document.getElementById('pf_telefono') && telefono) {
+        document.getElementById('pf_telefono').value = telefono;
+    }
+    if (document.getElementById('pf_cedula') && cedula) {
+        document.getElementById('pf_cedula').value = cedula;
+    }
+    document.getElementById('autocompleteList').style.display = 'none';
+    if (ALLOW_EDIT && FORM_TYPE !== 'examen') {
+        checkExistingResponse(nombre);
+    }
+}
+
+async function checkExistingResponse(nombre) {
+    const res = await fetch(`/api/forms/${FORM_ID}/my_response?nombre=${encodeURIComponent(nombre)}`);
+    const data = await res.json();
+    if (data.found) {
+        editingResponseId = data.response_id;
+        if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email;
+        if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono;
+        if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
+        if (document.getElementById('pf_tipo_sangre')) document.getElementById('pf_tipo_sangre').value = data.tipo_sangre || '';
+        if (document.getElementById('pf_alergias')) document.getElementById('pf_alergias').value = data.alergias || '';
+        if (document.getElementById('pf_enfermedades')) document.getElementById('pf_enfermedades').value = data.enfermedades_cronicas || '';
+        if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
+        if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
+        if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+        if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
+        if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
+        if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
+        for (const f of formFields) {
+            const val = data.answers[String(f.id)];
+            if (val === undefined || val === null) continue;
+            if (f.field_type === 'text' || f.field_type === 'textarea') {
+                const input = document.querySelector(`[data-field-id="${f.id}"]`);
+                if (input) input.value = val;
+            } else if (f.field_type === 'radio') {
+                const radio = document.querySelector(`input[name="field_${f.id}"][value="${val}"]`);
+                if (radio) radio.checked = true;
+            } else if (f.field_type === 'checkbox' && Array.isArray(val)) {
+                val.forEach(v => {
+                    const cb = document.querySelector(`input[name="field_${f.id}"][value="${v}"]`);
+                    if (cb) cb.checked = true;
+                });
+            }
+        }
+        document.getElementById('editBanner').classList.remove('d-none');
+        document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+    }
+}
+
+async function submitForm(e) {
+    e.preventDefault();
+    const telEl = document.getElementById('pf_telefono');
+    if (telEl && telEl.value && telEl.value.replace(/\D/g,'').length !== 8) {
+        telEl.classList.add('is-invalid');
+        telEl.focus();
+        return;
+    }
+    
+    // Validar edad mínima de 15 años
+    const diaEl = document.getElementById('pf_fecha_nacimiento_dia');
+    const mesEl = document.getElementById('pf_fecha_nacimiento_mes');
+    const anioEl = document.getElementById('pf_fecha_nacimiento_anio');
+    if (diaEl && mesEl && anioEl) {
+        const dia = parseInt(diaEl.value);
+        const mes = parseInt(mesEl.value);
+        const anio = parseInt(anioEl.value);
+        if (dia && mes && anio) {
+            const fechaNacimiento = new Date(anio, mes - 1, dia);
+            const hoy = new Date();
+            const edadMinima = 15;
+            const fechaMinima = new Date(hoy.getFullYear() - edadMinima, hoy.getMonth(), hoy.getDate());
+            
+            if (fechaNacimiento > fechaMinima) {
+                alert('Debe tener al menos 15 años para completar este formulario');
+                anioEl.classList.add('is-invalid');
+                anioEl.focus();
+                return;
+            }
+        }
+    }
+    
+    const btn = document.getElementById('btnSubmit');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Enviando...';
+
+    const answers = {};
+    for (const f of formFields) {
+        if (f.field_type === 'text' || f.field_type === 'textarea') {
+            const input = document.querySelector(`[data-field-id="${f.id}"]`);
+            answers[f.id] = input ? input.value : '';
+        } else if (f.field_type === 'radio') {
+            const checked = document.querySelector(`input[name="field_${f.id}"]:checked`);
+            answers[f.id] = checked ? checked.value : '';
+        } else if (f.field_type === 'checkbox') {
+            const checked = document.querySelectorAll(`input[name="field_${f.id}"]:checked`);
+            answers[f.id] = Array.from(checked).map(c => c.value);
+        } else if (f.field_type === 'file') {
+            const fileInput = document.querySelector(`[data-field-id="${f.id}"][data-type="file"]`);
+            if (fileInput && fileInput.files.length > 0) {
+                const fd = new FormData();
+                fd.append('file', fileInput.files[0]);
+                fd.append('field_id', f.id);
+                const uploadRes = await fetch(`/api/forms/${FORM_ID}/submit_file`, { method: 'POST', body: fd });
+                const uploadData = await uploadRes.json();
+                answers[f.id] = uploadData.path || '';
+            } else {
+                answers[f.id] = '';
+            }
+        }
+    }
+
+    const payload = {
+        answers: answers,
+        nombre_completo: document.getElementById('pf_nombre')?.value || '',
+        cedula: document.getElementById('pf_cedula')?.value || '',
+        email: document.getElementById('pf_email')?.value || '',
+        telefono: document.getElementById('pf_telefono')?.value || '',
+        edad: document.getElementById('pf_edad')?.value || '',
+        tipo_sangre: document.getElementById('pf_tipo_sangre')?.value || '',
+        alergias: document.getElementById('pf_alergias')?.value || '',
+        enfermedades_cronicas: document.getElementById('pf_enfermedades')?.value || '',
+        contacto_emergencia_nombre: document.getElementById('pf_contacto_nombre')?.value || '',
+        contacto_emergencia_telefono: document.getElementById('pf_contacto_telefono')?.value || '',
+        pasaporte: document.getElementById('pf_pasaporte')?.value || '',
+        fecha_nacimiento_dia: document.getElementById('pf_fecha_nacimiento_dia')?.value || '',
+        fecha_nacimiento_mes: document.getElementById('pf_fecha_nacimiento_mes')?.value || '',
+        fecha_nacimiento_anio: document.getElementById('pf_fecha_nacimiento_anio')?.value || '',
+    };
+
+    let res;
+    if (editingResponseId) {
+        res = await fetch(`/api/forms/${FORM_ID}/response/${editingResponseId}`, {
+            method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+    } else {
+        res = await fetch(`/api/forms/${FORM_ID}/submit`, {
+            method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload)
+        });
+    }
+    const data = await res.json();
+
+    if (data.ok) {
+        document.getElementById('publicForm').classList.add('d-none');
+        document.getElementById('resultPanel').classList.remove('d-none');
+
+        if (FORM_TYPE === 'examen' && data.score !== undefined) {
+            document.getElementById('scorePanel').classList.remove('d-none');
+            document.getElementById('scoreValue').textContent = data.score + '%';
+            document.getElementById('scoreDetail').textContent = `${data.correct} de ${data.total} correctas`;
+        }
+
+        let msg = editingResponseId
+            ? 'Tu respuesta ha sido actualizada correctamente.'
+            : 'Tu información ha sido registrada exitosamente.';
+        document.getElementById('resultMsg').textContent = msg;
+
+        if (data.answers_summary) {
+            document.getElementById('summaryText').textContent = data.answers_summary;
+            document.getElementById('summaryPanel').classList.remove('d-none');
+        }
+
+        if (data.admin_msg) {
+            const JENNY_PHONE = '50686529837';
+            const KENNETH_PHONE = '50686227500';
+            document.getElementById('btnSendJenny').href = `https://wa.me/${JENNY_PHONE}?text=${data.admin_msg}`;
+            document.getElementById('btnSendKenneth').href = `https://wa.me/${KENNETH_PHONE}?text=${data.admin_msg}`;
+            document.getElementById('adminSendPanel').classList.remove('d-none');
+        }
+
+        if (ALLOW_EDIT && FORM_TYPE !== 'examen') {
+            if (!editingResponseId && data.response_id) {
+                editingResponseId = data.response_id;
+            }
+            if (data.edit_token) {
+                window._lastEditToken = data.edit_token;
+            }
+            document.getElementById('editLinkPanel').classList.remove('d-none');
+        }
+
+        if (data.whatsapp_url) {
+            setTimeout(() => { window.open(data.whatsapp_url, '_blank'); }, 1500);
+        }
+    } else {
+        alert(data.error || 'Error al enviar');
+        btn.disabled = false;
+        btn.innerHTML = editingResponseId
+            ? '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta'
+            : '<i class="bi bi-send me-1"></i>Enviar Respuesta';
+    }
+}
+
+function resetForNewEntry() {
+    ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono','pf_pasaporte','pf_fecha_nacimiento_dia','pf_fecha_nacimiento_mes','pf_fecha_nacimiento_anio'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+    document.querySelectorAll('#dynamicFields input, #dynamicFields textarea').forEach(el => {
+        if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+        else el.value = '';
+    });
+    editingResponseId = null;
+    document.getElementById('editBanner').classList.add('d-none');
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-send me-1"></i>Enviar Respuesta';
+    document.getElementById('resultPanel').classList.add('d-none');
+    document.getElementById('publicForm').classList.remove('d-none');
+    window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function editMySelection() {
+    const token = window._lastEditToken || EDIT_TOKEN;
+    if (token) {
+        window.location.href = `${window.location.origin}/form/{{ form.slug or form.id }}/editar/${token}`;
+        return;
+    }
+    document.getElementById('resultPanel').classList.add('d-none');
+    document.getElementById('publicForm').classList.remove('d-none');
+    document.getElementById('editBanner').classList.remove('d-none');
+    document.getElementById('btnSubmit').disabled = false;
+    document.getElementById('btnSubmit').innerHTML = '<i class="bi bi-pencil-square me-1"></i>Actualizar Respuesta';
+}
+
+loadFields();
+</script>

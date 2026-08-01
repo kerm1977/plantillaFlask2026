@@ -1,0 +1,182 @@
+
+<div class="container animate__animated animate__fadeIn">
+
+    <!-- BUSCADOR DE PIN MÉDICO (Visible para todos) -->
+    <div class="row justify-content-center mb-4 mt-2">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="text-center mb-2">
+                <p class="text-dark fw-bold mb-1"><i class="bi bi-shield-plus text-orange"></i> Credencial Médica La Tribu</p>
+            </div>
+            <div class="pin-search-bar">
+                <i class="bi bi-person-vcard-fill text-orange fs-3 mx-2"></i>
+                <!-- CORRECCIÓN DE PLACEHOLDER -->
+                <input type="search" id="publicPinInput" class="pin-input ms-2" placeholder="PIN" autocomplete="off" style="text-transform: none !important;" autocapitalize="none" spellcheck="false" autocorrect="off">
+                <button class="btn btn-warning rounded-pill px-4 fw-bold shadow-sm" style="background-color: #ff8c00; color: white; border: none;" onclick="buscarPinPublico()">
+                    Buscar
+                </button>
+            </div>
+            <div class="text-center mt-2">
+                <small class="text-muted fw-bold">Si ya te inscribiste, digita tu PIN para descargar tu tarjeta de emergencia.</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- NOTIFICACIONES -->
+    {% if notifications %}
+    <div class="row mb-4">
+        <div class="col-12 col-lg-10 mx-auto">
+            {% for notif in notifications %}
+            <div class="glass-panel rounded-4 p-3 mb-3 d-flex align-items-center border-0 shadow-sm animate__animated animate__slideInDown">
+                {% if notif.image %}
+                <div class="flex-shrink-0 me-3">
+                    <img src="{{ notif.image }}" class="rounded-3 border border-white" width="60" height="60" style="object-fit: cover;">
+                </div>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <span class="badge bg-orange text-white rounded-pill mb-1 px-3">{{ notif.type_notif }}</span>
+                    <p class="mb-0 text-dark fw-semibold" style="line-height: 1.2;">{{ notif.message }}</p>
+                </div>
+                <button type="button" class="btn-close ms-2" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- TÍTULO PRINCIPAL -->
+    <div class="d-flex align-items-center justify-content-center mb-4 mt-2">
+        <hr class="flex-grow-1 border-orange opacity-25">
+        <h2 class="fw-bold text-dark px-4 mb-0 text-center">
+            <i class="bi bi-compass text-orange me-2"></i>Caminatas de La Tribu
+        </h2>
+        <hr class="flex-grow-1 border-orange opacity-25">
+    </div>
+
+
+    <!-- CONTROLES SUPERIORES: BOTÓN OPCIONES, ORACIÓN Y VISTA -->
+    <div class="row justify-content-center mb-3">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50 flex-wrap gap-2">
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
+                        <i class="bi bi-search fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#prayerModal" title="Oración de La Tribu">
+                        <i class="bi bi-stars fs-5"></i>
+                    </button>
+                    <button id="btnInstallPWA" class="btn btn-orange rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 d-none" style="width: 42px; height: 42px;" onclick="installPWA()" title="Instalar App">
+                        <i class="bi bi-download fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#aboutModal" title="Quiénes Somos">
+                        <i class="bi bi-info-circle fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" id="btnOpenPlayer" onclick="openMusicPlayer()" title="Reproductor de Música">
+                        <i class="bi bi-music-note-beamed fs-5"></i>
+                    </button>
+                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#divisasModal" title="Calculadora de Divisas">
+                        <i class="bi bi-currency-exchange fs-5"></i>
+                    </button>
+                </div>
+
+                <div class="d-flex align-items-center flex-wrap gap-2 justify-content-end">
+                    <button id="btnToggleAllMonths" class="btn btn-glass-action rounded-pill px-3 fw-bold shadow-sm" onclick="toggleAllMonths()">
+                        <i class="bi bi-arrows-expand me-1"></i>Mostrar Todo
+                    </button>
+
+                    <div class="btn-group bg-white rounded-pill shadow-sm border border-white" role="group">
+                        <button type="button" id="btnViewGrid" class="btn btn-orange rounded-pill px-3 fw-bold shadow-sm" onclick="setViewMode('grid')" title="Cuadrícula">
+                            <i class="bi bi-grid-fill"></i>
+                        </button>
+                        <button type="button" id="btnViewList" class="btn bg-transparent text-secondary rounded-pill px-3 fw-bold" onclick="setViewMode('list')" title="Lista">
+                            <i class="bi bi-list-ul fs-5"></i>
+                        </button>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN COLAPSABLE: BUSCADOR INTELIGENTE Y FILTROS RÁPIDOS -->
+    <div class="row justify-content-center mb-4 collapse" id="filtersCollapse">
+        <div class="col-12 col-md-10 col-lg-8 text-center pt-2">
+            
+            <div class="search-container mb-3 d-flex align-items-center">
+                <i class="bi bi-search text-orange fs-4 ms-3 me-2"></i>
+                <input type="text" id="globalSearchInput" class="form-control bg-transparent border-0 py-2 fw-bold text-dark fs-5 shadow-none" placeholder="Buscar lugar, actividad, precio..." oninput="filterEventsLive(true)">
+                <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm d-none d-sm-block" onclick="filterEventsLive(true)">Buscar</button>
+            </div>
+            
+            <div class="d-flex flex-wrap justify-content-center align-items-center gap-2 mb-3">
+                <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Caminata')">Caminata</span>
+                <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Internacional')">Internacional</span>
+                <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Intermedio')">Intermedio</span>
+                <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('Paseo')">Paseo</span>
+                
+                <select id="monthFilter" class="month-filter-select" onchange="filterEventsLive(true)">
+                    <option value="">Buscar x Mes</option>
+                    <option value="-01-">Enero</option>
+                    <option value="-02-">Febrero</option>
+                    <option value="-03-">Marzo</option>
+                    <option value="-04-">Abril</option>
+                    <option value="-05-">Mayo</option>
+                    <option value="-06-">Junio</option>
+                    <option value="-07-">Julio</option>
+                    <option value="-08-">Agosto</option>
+                    <option value="-09-">Septiembre</option>
+                    <option value="-10-">Octubre</option>
+                    <option value="-11-">Noviembre</option>
+                    <option value="-12-">Diciembre</option>
+                </select>
+
+                <span class="badge bg-white text-secondary shadow-sm px-3 py-2 rounded-pill quick-filter-badge fs-6" onclick="setQuickFilter('')"><i class="bi bi-x-circle me-1"></i> Ver Todos</span>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Contenedor Dinámico de Cards y Separadores de Mes -->
+    <div id="eventosContainer" class="row g-3 g-sm-4 justify-content-center pb-4">
+        <div class="col-12 text-center py-5">
+            <div class="spinner-border text-orange" style="width: 3rem; height: 3rem;" role="status"></div>
+            <p class="mt-3 text-secondary fw-bold">Sincronizando expedientes...</p>
+        </div>
+    </div>
+    
+    <!-- SECCIÓN DE NOTA DE LA TRIBU (COLAPSABLE Y JUSTIFICADA) -->
+    <div class="row justify-content-center mt-3 mb-5">
+        <div class="col-12 col-md-10 col-lg-8">
+            <div class="glass-panel rounded-4 p-4 shadow-sm border border-white border-opacity-50">
+                <!-- Cabecera Clickable -->
+                <div class="d-inline-flex align-items-center user-select-none" 
+                     data-bs-toggle="collapse" 
+                     data-bs-target="#collapseNotaTribu" 
+                     aria-expanded="false" 
+                     aria-controls="collapseNotaTribu" 
+                     style="cursor: pointer;">
+                    <h4 class="fw-bold text-dark mb-0 me-2 d-flex align-items-center">
+                        <i class="bi bi-info-circle-fill text-orange me-2"></i>Nota:
+                    </h4>
+                    <!-- La flechita que girará -->
+                    <i class="bi bi-chevron-down fs-5 text-dark" id="notaChevron"></i>
+                </div>
+
+                <!-- Contenido Colapsable -->
+                <div class="collapse mt-3" id="collapseNotaTribu">
+                    <div class="text-secondary" style="text-align: justify; line-height: 1.7; font-size: 0.95rem;">
+                        <p class="mb-3">La Tribu de Los Libres es un grupo Privado del Cantón de La Unión de Cartago Costa Rica. Aunque somos Tour Operadores Oficiales del Camino de Costa Rica  no organizamos eventos fuera de nuestra comunidad de La Tribu. No estamos cerrados a agregar a más aventurer@s que deseen formar parte de esta comunidad, pero intentamos mantener un ambiente libre de indeseables situaciones y personas que con mala intención se acercan a La Tribu. Por respeto y seguridad de tod@s los caminantes decidimos cuántas personas llevaremos a ciertas rutas según su complejidad y dificultad. Preferimos la Personalización que lo masivo. Puedes comunicarte a los teléfonos <strong>86227500</strong> y <strong>86529837</strong>.</p>
+                        
+                        <p class="mb-4">No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas.</p>
+                        
+                        <div class="text-center text-md-start">
+                            <a href="https://www.facebook.com/LaTribuDeLosLibres/" target="_blank" class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center">
+                                <i class="bi bi-facebook fs-5 me-2"></i>Visítanos en Facebook
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

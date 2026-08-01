@@ -1,0 +1,103 @@
+<div class="row justify-content-center animate__animated animate__fadeIn">
+    <div class="col-lg-10 col-xl-8">
+        <div class="glass-panel rounded-5 p-4 p-md-5 mb-4 position-relative overflow-hidden border-0 shadow-lg">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center mb-4 mb-md-0">
+                    <div class="position-relative d-inline-block">
+                        <div class="rounded-circle shadow-lg border border-4 border-white overflow-hidden" style="width: 200px; height: 200px; background-color: #fff;">
+                            <img id="mainProfileAvatar" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" 
+                                 onerror="this.src='{{ url_for('static', filename='default.png') }}'"
+                                 style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                        </div>
+                        {% if user.role == 'Superusuario' %}
+                        <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-warning p-2 border border-2 border-white text-dark" title="Superusuario">
+                            <i class="bi bi-shield-lock-fill fs-5"></i>
+                        </span>
+                        {% else %}
+                        <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-orange p-2 border border-2 border-white">
+                            <i class="bi bi-patch-check-fill fs-5"></i>
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="col-md-8">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center align-items-sm-start mb-4 text-center text-sm-start">
+                        <div class="mb-3 mb-sm-0 w-100">
+                            {% if user.role == 'Superusuario' %}
+                                <span class="badge bg-warning text-dark rounded-pill px-3 mb-2 text-uppercase fw-bold shadow-sm" style="font-size: 0.7rem;">{{ user.role }}</span>
+                            {% else %}
+                                <span class="badge bg-dark rounded-pill px-3 mb-2 text-uppercase tracking-wider" style="font-size: 0.7rem;">{{ user.role }}</span>
+                            {% endif %}
+                            <h1 id="mainProfileName" class="fw-bold text-dark mb-0 display-6 text-break">{{ user.name }}</h1>
+                            <h3 id="mainProfileLastName" class="text-secondary fw-light text-break fs-4">{{ user.last_name_1 }} {{ user.last_name_2 }}</h3>
+                        </div>
+                        {% if session.get('user_id') == user.id %}
+                        <button class="btn btn-orange rounded-circle shadow-sm flex-shrink-0 d-flex align-items-center justify-content-center p-0" style="width: 50px; height: 50px;" data-bs-toggle="modal" data-bs-target="#editProfileModal" title="Editar mi perfil">
+                            <i class="bi bi-pencil-square fs-5 m-0"></i>
+                        </button>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="glass-panel rounded-4 p-3 bg-white bg-opacity-25 mb-4">
+                        <div class="d-flex flex-column gap-3 text-start w-100">
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-envelope-fill text-orange me-1"></i> Correo Electrónico</label>
+                                <div id="mainProfileEmail" class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.email }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-telephone-fill text-orange me-1"></i> Teléfono</label>
+                                <div id="mainProfilePhone" class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.phone_code or '' }} {{ user.phone or 'No registrado' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-calendar-heart-fill text-orange me-1"></i> Fecha de Nacimiento</label>
+                                <div class="fw-semibold fs-6 ps-2 text-dark d-flex align-items-center flex-wrap gap-2">
+                                    <span id="dob-display" data-dob="{{ user.dob.strftime('%Y-%m-%d') if user.dob else '' }}">
+                                        {{ user.dob.strftime('%d/%m/%Y') if user.dob else 'No especificada' }}
+                                    </span>
+                                    <span class="badge bg-secondary rounded-pill shadow-sm" id="age-badge" style="display: none;"></span>
+                                </div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-calendar-check-fill text-orange me-1"></i> Fecha de Registro</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.created_at.strftime('%d de %B, %Y - %H:%M') if user.created_at else 'No disponible' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-clock-history text-orange me-1"></i> Última Actualización</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.updated_at.strftime('%d de %B, %Y - %H:%M') if user.updated_at else 'No disponible' }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 pt-4 border-top border-white border-opacity-50 d-flex flex-column flex-sm-row flex-wrap gap-3 justify-content-center justify-content-sm-start">
+                {% if session.get('role') == 'Superusuario' %}
+                <a href="/dashboard" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #ff8c00; border: 2px solid #ff8c00;">
+                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
+                </a>
+                <a href="{{ url_for('main.backup_manager') }}" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #6c757d; border: 2px solid #6c757d;">
+                    <i class="bi bi-database-fill-gear me-2"></i>Respaldos
+                </a>
+                <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #dc3545; border: 2px solid #dc3545;" onclick="clearPWACache()">
+                    <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar Caché PWA
+                </button>
+                <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #0d6efd; border: 2px solid #0d6efd;" onclick="abrirConfigLogoSuenos()">
+                    <i class="bi bi-gear-fill me-2"></i>Configurar Logo
+                </button>
+                {% endif %}
+                <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" onclick="window.print()">
+                    <i class="bi bi-file-earmark-image me-2"></i>Exportar PNG
+                </button>
+                <button class="btn btn-success rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" onclick="shareToWhatsapp()">
+                    <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                </button>
+                {% if session.get('user_id') == user.id %}
+                <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger rounded-pill px-4 ms-sm-auto fw-bold w-100 w-sm-auto mt-3 mt-sm-0">
+                    <i class="bi bi-power me-2"></i>Cerrar Sesión
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>

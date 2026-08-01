@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Librería SheetJS para exportar a Excel -->
+<script src="{{ url_for('static', filename='js/xlsx.full.min.js') }}"></script>
+
+
+{% include 'partials/agenda_styles.html' %}
+
+{% include 'partials/agenda_header.html' %}
+
+{% include 'partials/agenda_modal_links.html' %}
+
+{% include 'partials/agenda_modal_medica.html' %}
+
+{% include 'partials/agenda_scripts.html' %}
+
+{% endblock %}

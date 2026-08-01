@@ -1,0 +1,69 @@
+<!-- MODAL DE LA TARJETA MÉDICA PUBLICA -->
+<div class="modal fade" id="publicHikerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem; background: #f8f9fa;">
+            <div class="modal-header border-0 pb-0">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-0 px-4 pb-4">
+                <!-- ÁREA A EXPORTAR A PNG -->
+                <div id="tarjetaExportablePublica" class="id-card shadow-sm mb-4 mt-2">
+                    <div class="id-card-header d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 fw-black text-white"><i class="bi bi-shield-plus text-orange"></i> LA TRIBU MED-ID</h4>
+                        <span class="pin-badge" id="publicModalPin">PIN-AQUÍ</span>
+                    </div>
+                    <div class="p-4 bg-white">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p class="data-label">Nombre Completo</p>
+                                <p class="data-value fs-3 text-orange" id="publicModalNombre">Cargando...</p>
+                                <div class="row mt-3">
+                                    <div class="col-6">
+                                        <p class="data-label">Cédula</p>
+                                        <p class="data-value" id="publicModalCedula">...</p>
+                                    </div>
+                                    <div class="col-6">
+                                        <p class="data-label">Teléfono</p>
+                                        <p class="data-value" id="publicModalTelefono">...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 text-center d-flex flex-column justify-content-center align-items-center border-start">
+                                <p class="data-label">Grupo Sanguíneo</p>
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-black shadow" style="width: 80px; height: 80px; font-size: 2rem;" id="publicModalSangre">
+                                    O+
+                                </div>
+                            </div>
+                        </div>
+                        <hr class="my-3 border-2">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <p class="data-label text-danger"><i class="bi bi-exclamation-triangle-fill"></i> Alergias</p>
+                                <p class="data-value fs-5" id="publicModalAlergias">...</p>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <p class="data-label text-danger"><i class="bi bi-heart-pulse-fill"></i> Enfermedades</p>
+                                <p class="data-value fs-5" id="publicModalEnfermedades">...</p>
+                            </div>
+                        </div>
+                        <div class="bg-light p-3 rounded border border-warning mt-2">
+                            <p class="data-label text-primary"><i class="bi bi-telephone-fill"></i> Contacto de Emergencia</p>
+                            <p class="data-value mb-0 fs-5" id="publicModalEmergencia">...</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- FIN ÁREA A EXPORTAR -->
+                <!-- BOTONES DE ACCIÓN PUBLICOS -->
+                <div class="text-center">
+                    <button class="btn btn-success fw-bold px-5 py-3 rounded-pill shadow-lg fs-5 mb-2 w-100" style="max-width: 300px;" onclick="descargarTarjetaPublica()">
+                        <i class="bi bi-cloud-arrow-down-fill me-2"></i> Descargar mi Tarjeta en Imagen
+                    </button>
+                    <a id="publicBtnEditHiker" href="#" class="btn btn-outline-warning fw-bold px-5 py-2 rounded-pill shadow-sm fs-6 d-block mx-auto" style="max-width: 300px;">
+                        <i class="bi bi-pencil-square me-2"></i> Actualizar mis datos
+                    </a>
+                    <p class="text-muted small mt-3 fw-bold">Guarda esta imagen en tu celular. Te será útil en áreas sin internet.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

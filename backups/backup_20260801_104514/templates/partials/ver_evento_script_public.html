@@ -1,0 +1,159 @@
+<script>
+// ==========================================
+// 3. FUNCIONES DE COMPARTIR Y EXPORTAR INFO LARGA (PÚBLICAS)
+// ==========================================
+window.exportToPNG = async function() {
+    if (typeof htmlToImage === 'undefined') {
+        alert("La librería de exportación no se ha cargado correctamente.");
+        return;
+    }
+
+    const cardToExport = document.getElementById('eventCardToExport');
+    const btnExport = document.getElementById('btnExportPNG');
+    const originalHtml = btnExport.innerHTML;
+    
+    btnExport.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando...';
+    btnExport.disabled = true;
+    
+    const elementsToHide = document.querySelectorAll('.hide-on-export');
+    elementsToHide.forEach(el => el.style.display = 'none');
+    cardToExport.classList.add('exporting-mode');
+
+    try {
+        const dataUrl = await htmlToImage.toPng(cardToExport, { 
+            pixelRatio: 2, 
+            backgroundColor: '#ffffff',
+            style: { margin: '0', borderRadius: '0', boxShadow: 'none', transform: 'none' } 
+        });
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        const safeName = "{{ evento.nombre_lugar }}".replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+        link.download = `InfoLarga_${safeName}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    } catch (error) {
+        console.error(error);
+        alert('Ocurrió un problema al generar la imagen detallada.');
+    } finally {
+        elementsToHide.forEach(el => el.style.display = '');
+        cardToExport.classList.remove('exporting-mode');
+        btnExport.innerHTML = originalHtml;
+        btnExport.disabled = false;
+    }
+};
+
+function reservarPorWhatsApp() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
+    const sinpeString = "{{ evento.sinpe or '' }}";
+    
+    let numeroAdmin = "50686529837"; 
+    if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
+    if(sinpeString.includes("86227500")) numeroAdmin = "50686227500"; 
+    
+    const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
+    window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+function shareToFriendWhatsApp() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
+    let fecha = "{{ fecha_formateada }}";
+    {% if evento.dias > 1 %} fecha = "{{ inicio_formateada }} al {{ regreso_formateada }}"; {% endif %}
+    
+    const url = window.location.href;
+    const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
+}
+
+// ============ GPX FUNCTIONS ============
+async function uploadGPX(eventId, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const fd = new FormData();
+    fd.append('gpx_file', file);
+    const res = await fetch(`/api/evento/${eventId}/gpx`, { method: 'POST', body: fd });
+    const data = await res.json();
+    if (data.ok) { location.reload(); }
+    else { alert('Error: ' + (data.error || 'No se pudo subir')); }
+}
+
+async function deleteGPX(eventId) {
+    abrirModalBorrarUnificado({
+        titulo: 'Borrar GPX',
+        mensaje: '¿Borrar el GPX de esta ruta?',
+        onConfirmar: async () => {
+            const res = await fetch(`/api/evento/${eventId}/gpx`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.ok) { location.reload(); }
+        }
+    });
+}
+
+async function generateGPXPassword(eventId) {
+    const res = await fetch(`/api/evento/${eventId}/gpx/password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({})
+    });
+    const data = await res.json();
+    if (data.ok) {
+        const el = document.getElementById('gpxPwdDisplay');
+        if (el) el.textContent = data.password;
+    }
+}
+
+async function setCustomGPXPassword(eventId) {
+    const pwd = document.getElementById('gpxCustomPwd').value.trim();
+    if (!pwd) return alert('Escribe una contraseña primero');
+    const res = await fetch(`/api/evento/${eventId}/gpx/password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd })
+    });
+    const data = await res.json();
+    if (data.ok) {
+        const el = document.getElementById('gpxPwdDisplay');
+        if (el) el.textContent = data.password;
+        document.getElementById('gpxCustomPwd').value = '';
+    }
+}
+
+async function downloadGPX(eventId) {
+    const clave = document.getElementById('gpxPasswordInput').value.trim();
+    const errEl = document.getElementById('gpxError');
+    errEl.classList.add('d-none');
+    const res = await fetch(`/api/evento/${eventId}/gpx/download?clave=${encodeURIComponent(clave)}`);
+    if (res.ok) {
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = res.headers.get('Content-Disposition')?.split('filename=')[1]?.replace(/"/g,'') || 'ruta.gpx';
+        a.click();
+        URL.revokeObjectURL(url);
+    } else {
+        errEl.classList.remove('d-none');
+    }
+}
+
+async function saveOrganicMaps(eventId) {
+    const url = document.getElementById('organicmapsInput').value.trim();
+    const res = await fetch(`/api/evento/${eventId}/organicmaps`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url })
+    });
+    const data = await res.json();
+    if (data.ok) { alert('✅ Link guardado'); }
+}
+// ============ FIN GPX ============
+
+async function shareNative() {
+    const nombreEvento = "{{ evento.nombre_lugar }}";
+    const url = window.location.href;
+    const shareData = { title: `Aventura en ${nombreEvento}`, text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`, url: url };
+    
+    if (navigator.share) {
+        try { await navigator.share(shareData); } catch (err) {}
+    } else {
+        alert('Tu navegador no soporta compartir nativo. Copia este enlace para compartir el evento:\n' + url);
+    }
+}
+</script>
+</script>

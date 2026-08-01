@@ -1,0 +1,103 @@
+<div class="w-100 pt-5 pb-4 px-3 px-md-5" style="background:linear-gradient(135deg,rgba(255,140,0,0.1),rgba(255,193,7,0.06));">
+  <div class="container-lg text-center">
+    {% if pub.logo_filename %}
+    <img src="{{ url_for('static', filename='uploads/publicaciones/' + pub.logo_filename) }}"
+         style="width:clamp(320px,38vw,450px);height:clamp(320px,38vw,450px);object-fit:cover;border-radius:50%;margin-bottom:1.2rem;" alt="logo">
+    {% endif %}
+    <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end mb-3">
+      {% if pub.audio_filename %}
+      <button onclick="toggleAudio()" id="audioBtn" class="btn btn-sm rounded-pill px-3"
+              style="background:rgba(255,140,0,0.1);color:#ff8c00;border:1px solid rgba(255,140,0,0.3);">
+        <i class="bi bi-music-note-beamed me-1"></i><span id="audioBtnTxt">Sonido</span>
+      </button>
+      {% endif %}
+      {% if session.get('role') == 'Superusuario' %}
+      <button onclick="editEvento({{ pub.id }})" class="btn btn-sm rounded-pill px-3"
+              style="background:rgba(255,140,0,0.15);color:#cc6e00;border:1px solid rgba(255,140,0,0.4);"
+              title="Editar evento">
+        <i class="bi bi-pencil-fill me-1"></i>Editar
+      </button>
+      {% endif %}
+      <button onclick="compartirEvento()" class="btn btn-orange rounded-pill btn-sm px-3">
+        <i class="bi bi-share me-1"></i>Compartir
+      </button>
+    </div>
+  </div>
+</div>
+
+<a href="https://www.latribu.top"
+   style="position:fixed;bottom:calc(var(--nav-mobile-height,70px) - 15px);left:20px;
+          width:50px;height:50px;border-radius:50%;
+          background:rgba(80,80,80,0.75);backdrop-filter:blur(5px);
+          color:#fff;border:1px solid rgba(255,255,255,0.25);
+          box-shadow:0 4px 15px rgba(0,0,0,0.2);z-index:1045;
+          display:flex;justify-content:center;align-items:center;
+          transition:all 0.3s ease;text-decoration:none;"
+   title="Volver"
+   onmouseover="this.style.background='rgba(50,50,50,0.95)';this.style.transform='scale(1.05)'"
+   onmouseout="this.style.background='rgba(80,80,80,0.75)';this.style.transform='scale(1)'">
+  <i class="bi bi-arrow-left fs-4"></i>
+</a>
+
+<div class="container-lg px-3 px-md-4 pt-3 text-center">
+  <h1 class="ev-nombre">{{ pub.nombre }}</h1>
+  {% if pub.tipo_evento and (show_all or 'tipo' in mostrar) %}
+  <div class="mt-2"><span class="ev-badge">{{ pub.tipo_evento }}</span></div>
+  {% endif %}
+  {% if pub.monto_recaudado and pub.monto_recaudado > 0 %}
+  <div class="mt-2">
+    <span class="ev-badge" style="background:rgba(25,135,84,0.15);color:#0d6832;border:1px solid rgba(25,135,84,0.3);">
+      <i class="bi bi-cash-coin me-1"></i>Recaudado: ₡{{ "{:,.0f}".format(pub.monto_recaudado) }}
+      <span class="ms-2" style="width:8px;height:8px;background:#28a745;border-radius:50%;display:inline-block;animation:blink 1s infinite;"></span>
+    </span>
+  </div>
+  <div class="mt-2 small text-muted" style="font-size: 0.85rem;">
+    <i class="bi bi-clock me-1"></i>A las 6pm de cada día se actualizan los cambios... Campaña por el mes de Junio.
+  </div>
+  <div class="mt-1 small text-muted" style="font-size: 0.85rem;">
+    <i class="bi bi-info-circle me-1"></i>Recuerda colocar en el DETALLE de la colaboración "Sueños de Vida.. animalitos, perros, gatos" o el que nos permita identificar el ingreso
+  </div>
+  {% endif %}
+
+  {% set has_social = pub.telefono or pub.whatsapp or pub.facebook or pub.instagram or pub.tiktok or pub.youtube %}
+  {% if has_social %}
+  <div class="d-flex flex-wrap gap-3 justify-content-center align-items-center mt-3 pt-2">
+    {% if pub.telefono %}
+    <a href="tel:{{ pub.telefono }}" class="text-decoration-none d-flex align-items-center gap-1 px-3 py-2 rounded-pill"
+       style="background:rgba(255,140,0,0.1);color:#cc6e00;border:1px solid rgba(255,140,0,0.25);font-weight:600;font-size:0.92rem;">
+      <i class="bi bi-telephone-fill me-1"></i>{{ pub.telefono }}
+    </a>
+    {% endif %}
+    {% if pub.whatsapp %}
+    <a href="https://wa.me/{{ pub.whatsapp }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-1 px-3 py-2 rounded-pill"
+       style="background:rgba(37,211,102,0.1);color:#128c3e;border:1px solid rgba(37,211,102,0.25);font-weight:600;font-size:0.92rem;">
+      <i class="bi bi-whatsapp me-1"></i>WhatsApp
+    </a>
+    {% endif %}
+    {% if pub.facebook %}
+    <a href="{{ pub.facebook }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 p-2 rounded-circle"
+       style="background:rgba(24,119,242,0.12);color:#1877F2;border:1px solid rgba(24,119,242,0.25);font-size:1.3rem;width:44px;height:44px;justify-content:center;">
+      <i class="bi bi-facebook"></i>
+    </a>
+    {% endif %}
+    {% if pub.instagram %}
+    <a href="{{ pub.instagram }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 p-2 rounded-circle"
+       style="background:rgba(225,48,108,0.1);color:#E1306C;border:1px solid rgba(225,48,108,0.25);font-size:1.3rem;width:44px;height:44px;justify-content:center;">
+      <i class="bi bi-instagram"></i>
+    </a>
+    {% endif %}
+    {% if pub.tiktok %}
+    <a href="{{ pub.tiktok }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 p-2 rounded-circle"
+       style="background:rgba(0,0,0,0.07);color:#000;border:1px solid rgba(0,0,0,0.15);font-size:1.3rem;width:44px;height:44px;justify-content:center;">
+      <i class="bi bi-tiktok"></i>
+    </a>
+    {% endif %}
+    {% if pub.youtube %}
+    <a href="{{ pub.youtube }}" target="_blank" class="text-decoration-none d-flex align-items-center gap-2 p-2 rounded-circle"
+       style="background:rgba(255,0,0,0.1);color:#FF0000;border:1px solid rgba(255,0,0,0.2);font-size:1.3rem;width:44px;height:44px;justify-content:center;">
+      <i class="bi bi-youtube"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>

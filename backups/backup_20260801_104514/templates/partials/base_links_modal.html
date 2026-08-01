@@ -1,0 +1,463 @@
+
+    <!-- ========================================================== -->
+    <!-- MODAL: FÁBRICA DE FORMULARIOS DE INSCRIPCIÓN               -->
+    <!-- ========================================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="modal fade" id="linkGeneratorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header bg-warning bg-opacity-25 border-0" style="border-radius: 1.5rem 1.5rem 0 0;">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-gear-fill text-orange me-2"></i>Fábrica de Formularios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light" style="border-radius: 0 0 1.5rem 1.5rem; max-height: 70vh; overflow-y: auto;">
+                    <!-- Paso 1: Seleccionar evento -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-event me-2"></i>Paso 1: Seleccionar Evento</h6>
+                        <select id="selectEventosActivos" class="form-select fw-bold shadow-sm" style="border-radius: 1rem; border: 2px solid #ff8c00;">
+                            <option value="">Cargando caminatas...</option>
+                        </select>
+                    </div>
+
+                    <!-- Paso 2: Secciones del formulario -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-layers me-2"></i>Paso 2: Secciones del Formulario</h6>
+                            <div id="sectionsContainer" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small mb-3" id="noSectionsMsg">
+                                    No hay secciones. Agrega una sección abajo.
+                                </div>
+                                <div id="sectionsList"></div>
+                            </div>
+                            <button class="btn btn-outline-primary w-100 mt-2 rounded-pill" onclick="addSection()">
+                                <i class="bi bi-plus-lg me-2"></i>Agregar Sección
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-eye me-2"></i>Vista Previa</h6>
+                            <div id="formPreview" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small">
+                                    Agrega secciones para ver la vista previa
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón generar -->
+                    <div id="linkResultContainer" class="d-none animate__animated animate__fadeIn">
+                        <div class="input-group mb-2 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                            <span class="input-group-text bg-white border-end-0 text-orange"><i class="bi bi-link-45deg fs-4"></i></span>
+                            <input type="text" id="generatedLinkUrl" class="form-control border-start-0 bg-white text-dark fw-bold" readonly
+                                   style="cursor:pointer;" onclick="copyGeneratedLink()" title="Toca para copiar">
+                            <span class="input-group-text bg-white border-start-0" style="cursor:pointer;" onclick="copyGeneratedLink()">
+                                <i class="bi bi-copy text-orange"></i>
+                            </span>
+                        </div>
+                        <div id="copyFeedback" class="text-success fw-bold small mb-2 d-none">
+                            <i class="bi bi-check-circle-fill me-1"></i>¡Enlace copiado!
+                        </div>
+                        <button class="btn btn-success fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
+                            <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
+                        </button>
+                    </div>
+
+                    <button class="btn btn-orange fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="generateFormLink()">
+                        <i class="bi bi-gear me-2"></i> Generar Formulario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Controlador del Modal de Fábrica de Formularios -->
+    <script>
+        let generadorModal;
+        let sectionCounter = 0;
+        let fieldCounter = 0;
+
+        async function abrirGeneradorLinks() {
+            if (!generadorModal) {
+                generadorModal = new bootstrap.Modal(document.getElementById('linkGeneratorModal'));
+            }
+            generadorModal.show();
+
+            const select = document.getElementById('selectEventosActivos');
+            const linkContainer = document.getElementById('linkResultContainer');
+
+            select.innerHTML = '<option value="">Buscando caminatas activas...</option>';
+            linkContainer.classList.add('d-none');
+
+            try {
+                const res = await fetch('/api/get_events');
+                const eventos = await res.json();
+
+                select.innerHTML = '<option value="" selected disabled>-- Toque aquí para seleccionar --</option>';
+                select.innerHTML += '<option value="registro" data-name="registro">\uD83D\uDDD2\uFE0F Solo Registrar (sin caminata)</option>';
+                let opcionesValidas = 0;
+
+                eventos.forEach(ev => {
+                    if (!ev.is_sold_out) {
+                        select.innerHTML += `<option value="${ev.id}" data-name="${ev.nombreLugar}">${ev.nombreLugar} - ${ev.fecha}</option>`;
+                        opcionesValidas++;
+                    }
+                });
+
+                if (opcionesValidas === 0) {
+                    select.innerHTML = '<option value="" disabled>No hay caminatas con espacio en este momento</option>';
+                }
+            } catch (error) {
+                select.innerHTML = '<option value="" disabled>Error de conexión al buscar caminatas.</option>';
+            }
+        }
+
+        function addSection() {
+            sectionCounter++;
+            const container = document.getElementById('sectionsList');
+            const noSectionsMsg = document.getElementById('noSectionsMsg');
+            if (noSectionsMsg) noSectionsMsg.classList.add('d-none');
+
+            const sectionHtml = `
+                <div class="section-item mb-4 p-3 bg-light rounded-3" id="section_${sectionCounter}">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-10">
+                            <input type="text" class="form-control form-control-sm fw-bold" placeholder="Título de la sección" id="sectionTitle_${sectionCounter}" oninput="updateLinkFormPreview()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-danger btn-sm w-100" onclick="removeSection(${sectionCounter})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold text-secondary">Campos predeterminados:</label>
+                        <div class="row g-2 mt-1">
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_cedula" onchange="updateLinkFormPreview()">
+                                    <label class="form-check-label small" for="section_${sectionCounter}_field_cedula">Cédula</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_nombre" onchange="updateLinkFormPreview()">
+                                    <label class="form-check-label small" for="section_${sectionCounter}_field_nombre">Nombre</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_telefono" onchange="updateLinkFormPreview()">
+                                    <label class="form-check-label small" for="section_${sectionCounter}_field_telefono">Teléfono</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_fecha_nacimiento" onchange="updateLinkFormPreview()">
+                                    <label class="form-check-label small" for="section_${sectionCounter}_field_fecha_nacimiento">Fecha Nacimiento</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold text-secondary">Ficha médica:</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_ficha_medica" onchange="toggleFichaMedica(${sectionCounter}); updateLinkFormPreview();">
+                            <label class="form-check-label small" for="section_${sectionCounter}_field_ficha_medica">Incluir ficha médica completa</label>
+                        </div>
+                        <div id="section_${sectionCounter}_ficha_medica_subfields" class="ms-4 d-none mt-1">
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_tipo_sangre" onchange="updateLinkFormPreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_tipo_sangre">Tipo Sangre</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_alergias" onchange="updateLinkFormPreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_alergias">Alergias</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_enfermedades" onchange="updateLinkFormPreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_enfermedades">Enfermedades</label></div>
+                            <div class="form-check"><input class="form-check-input" type="checkbox" id="section_${sectionCounter}_field_contacto_emergencia" onchange="updateLinkFormPreview()"><label class="form-check-label small" for="section_${sectionCounter}_field_contacto_emergencia">Contacto Emergencia</label></div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="small fw-bold text-secondary">Campos personalizados:</label>
+                        <div id="section_${sectionCounter}_customFieldsList"></div>
+                        <button class="btn btn-outline-primary btn-sm mt-1" onclick="addFieldToSection(${sectionCounter})">
+                            <i class="bi bi-plus"></i> Agregar campo
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', sectionHtml);
+            updateLinkFormPreview();
+        }
+
+        function removeSection(id) {
+            const section = document.getElementById(`section_${id}`);
+            section.remove();
+            const container = document.getElementById('sectionsList');
+            if (container.children.length === 0) {
+                const noSectionsMsg = document.getElementById('noSectionsMsg');
+                if (noSectionsMsg) noSectionsMsg.classList.remove('d-none');
+            }
+            updateLinkFormPreview();
+        }
+
+        function toggleFichaMedica(sectionId) {
+            const subfields = document.getElementById(`section_${sectionId}_ficha_medica_subfields`);
+            const checkbox = document.getElementById(`section_${sectionId}_field_ficha_medica`);
+            if (checkbox.checked) {
+                subfields.classList.remove('d-none');
+            } else {
+                subfields.classList.add('d-none');
+            }
+        }
+
+        function addFieldToSection(sectionId) {
+            fieldCounter++;
+            const container = document.getElementById(`section_${sectionId}_customFieldsList`);
+
+            const fieldHtml = `
+                <div class="custom-field-item mb-2 p-2 bg-white rounded-2" id="field_${fieldCounter}">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <select class="form-select form-select-sm" onchange="toggleLinkFieldType(${fieldCounter}, this.value); updateLinkFormPreview();">
+                                <option value="text">Texto corto</option>
+                                <option value="textarea">Texto largo</option>
+                                <option value="select">Lista</option>
+                                <option value="checkbox">Checkbox</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <input type="text" class="form-control form-control-sm" placeholder="Nombre del campo" id="fieldName_${fieldCounter}" oninput="updateLinkFormPreview()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-danger btn-sm w-100" onclick="removeLinkCustomField(${fieldCounter})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="fieldOptions_${fieldCounter}" class="d-none mt-1">
+                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 1" id="fieldOption_${fieldCounter}_1" oninput="updateLinkFormPreview()">
+                        <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 2" id="fieldOption_${fieldCounter}_2" oninput="updateLinkFormPreview()">
+                        <button class="btn btn-outline-primary btn-sm" onclick="addLinkFieldOption(${fieldCounter})">
+                            <i class="bi bi-plus"></i> Agregar opción
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', fieldHtml);
+            updateLinkFormPreview();
+        }
+
+        function toggleLinkFieldType(fieldId, type) {
+            const optionsDiv = document.getElementById(`fieldOptions_${fieldId}`);
+            if (type === 'select') {
+                optionsDiv.classList.remove('d-none');
+            } else {
+                optionsDiv.classList.add('d-none');
+            }
+        }
+
+        function addLinkFieldOption(fieldId) {
+            const container = document.getElementById(`fieldOptions_${fieldId}`);
+            const optionCount = container.querySelectorAll('input').length + 1;
+            const optionHtml = `
+                <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción ${optionCount}" id="fieldOption_${fieldId}_${optionCount}" oninput="updateLinkFormPreview()">
+            `;
+            container.insertAdjacentHTML('beforeend', optionHtml);
+            updateLinkFormPreview();
+        }
+
+        function removeLinkCustomField(id) {
+            const field = document.getElementById(`field_${id}`);
+            field.remove();
+            updateLinkFormPreview();
+        }
+
+        function updateLinkFormPreview() {
+            try {
+                const previewContainer = document.getElementById('formPreview');
+                if (!previewContainer) return;
+                const sectionItems = document.querySelectorAll('#sectionsList .section-item');
+
+                if (sectionItems.length === 0) {
+                    previewContainer.innerHTML = '<div class="text-center text-muted small">Agrega secciones para ver la vista previa</div>';
+                    return;
+                }
+
+                let previewHtml = '';
+
+                sectionItems.forEach(section => {
+                    const sectionId = section.id.replace('section_', '');
+                    const titleInput = document.getElementById(`sectionTitle_${sectionId}`);
+                    const title = titleInput ? titleInput.value : 'Sin título';
+
+                    previewHtml += `<div class="mb-3 p-2 border rounded-2 bg-light"><h6 class="fw-bold text-orange mb-2">${title}</h6>`;
+
+                    // Campos predeterminados
+                    const cedulaCheck = document.getElementById(`section_${sectionId}_field_cedula`);
+                    if (cedulaCheck && cedulaCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Cédula</label><input type="text" class="form-control form-control-sm" placeholder="Número de cédula" disabled></div>`;
+                    }
+                    const nombreCheck = document.getElementById(`section_${sectionId}_field_nombre`);
+                    if (nombreCheck && nombreCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Nombre</label><input type="text" class="form-control form-control-sm" placeholder="Nombre completo" disabled></div>`;
+                    }
+                    const telefonoCheck = document.getElementById(`section_${sectionId}_field_telefono`);
+                    if (telefonoCheck && telefonoCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Teléfono</label><input type="text" class="form-control form-control-sm" placeholder="Número de teléfono" disabled></div>`;
+                    }
+                    const fechaCheck = document.getElementById(`section_${sectionId}_field_fecha_nacimiento`);
+                    if (fechaCheck && fechaCheck.checked) {
+                        previewHtml += `<div class="mb-2"><label class="small fw-bold">Fecha de Nacimiento</label><input type="date" class="form-control form-control-sm" disabled></div>`;
+                    }
+
+                    // Ficha médica
+                    const fichaCheck = document.getElementById(`section_${sectionId}_field_ficha_medica`);
+                    if (fichaCheck && fichaCheck.checked) {
+                        previewHtml += `<div class="mt-2 pt-2 border-top"><small class="fw-bold text-secondary">Ficha Médica</small>`;
+                        const tipoSangreCheck = document.getElementById(`section_${sectionId}_field_tipo_sangre`);
+                        if (tipoSangreCheck && tipoSangreCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Tipo de Sangre</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const alergiasCheck = document.getElementById(`section_${sectionId}_field_alergias`);
+                        if (alergiasCheck && alergiasCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Alergias</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const enfermedadesCheck = document.getElementById(`section_${sectionId}_field_enfermedades`);
+                        if (enfermedadesCheck && enfermedadesCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Enfermedades Crónicas</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        const contactoCheck = document.getElementById(`section_${sectionId}_field_contacto_emergencia`);
+                        if (contactoCheck && contactoCheck.checked) {
+                            previewHtml += `<div class="mb-1"><label class="small">Contacto de Emergencia</label><input type="text" class="form-control form-control-sm" disabled></div>`;
+                        }
+                        previewHtml += `</div>`;
+                    }
+
+                    // Campos personalizados
+                    const customFields = section.querySelectorAll('.custom-field-item');
+                    customFields.forEach(field => {
+                        const fieldId = field.id.replace('field_', '');
+                        const typeSelect = field.querySelector('select');
+                        const type = typeSelect ? typeSelect.value : 'text';
+                        const nameInput = document.getElementById(`fieldName_${fieldId}`);
+                        const name = nameInput ? nameInput.value : '';
+                        if (name) {
+                            previewHtml += `<div class="mb-2"><label class="small fw-bold">${name}</label>`;
+                            if (type === 'text') {
+                                previewHtml += `<input type="text" class="form-control form-control-sm" disabled>`;
+                            } else if (type === 'textarea') {
+                                previewHtml += `<textarea class="form-control form-control-sm" rows="2" disabled></textarea>`;
+                            } else if (type === 'select') {
+                                previewHtml += `<select class="form-select form-select-sm" disabled><option>Seleccionar...</option>`;
+                                const options = field.querySelectorAll('#fieldOptions_' + fieldId + ' input');
+                                options.forEach(opt => {
+                                    if (opt.value) previewHtml += `<option>${opt.value}</option>`;
+                                });
+                                previewHtml += `</select>`;
+                            } else if (type === 'checkbox') {
+                                previewHtml += `<div class="form-check"><input class="form-check-input" type="checkbox" disabled><label class="form-check-label small">${name}</label></div>`;
+                            }
+                            previewHtml += `</div>`;
+                        }
+                    });
+
+                    previewHtml += `</div>`;
+                });
+
+                previewContainer.innerHTML = previewHtml;
+            } catch (error) {
+                console.error('Error en updateLinkFormPreview:', error);
+            }
+        }
+
+        function generateFormLink() {
+            const select = document.getElementById('selectEventosActivos');
+            const eventId = select.value;
+
+            if (!eventId) {
+                alert('Por favor selecciona un evento');
+                return;
+            }
+
+            // Recopilar secciones
+            const sections = [];
+            const sectionItems = document.querySelectorAll('#sectionsList .section-item');
+
+            sectionItems.forEach(section => {
+                const sectionId = section.id.replace('section_', '');
+                const title = document.getElementById(`sectionTitle_${sectionId}`).value || 'Sin título';
+
+                const sectionData = {
+                    title: title,
+                    predeterminados: [],
+                    ficha_medica: [],
+                    personalizados: []
+                };
+
+                // Campos predeterminados
+                if (document.getElementById(`section_${sectionId}_field_cedula`).checked) sectionData.predeterminados.push('cedula');
+                if (document.getElementById(`section_${sectionId}_field_nombre`).checked) sectionData.predeterminados.push('nombre');
+                if (document.getElementById(`section_${sectionId}_field_telefono`).checked) sectionData.predeterminados.push('telefono');
+                if (document.getElementById(`section_${sectionId}_field_fecha_nacimiento`).checked) sectionData.predeterminados.push('fecha_nacimiento');
+
+                // Ficha médica
+                if (document.getElementById(`section_${sectionId}_field_ficha_medica`).checked) {
+                    if (document.getElementById(`section_${sectionId}_field_tipo_sangre`).checked) sectionData.ficha_medica.push('tipo_sangre');
+                    if (document.getElementById(`section_${sectionId}_field_alergias`).checked) sectionData.ficha_medica.push('alergias');
+                    if (document.getElementById(`section_${sectionId}_field_enfermedades`).checked) sectionData.ficha_medica.push('enfermedades');
+                    if (document.getElementById(`section_${sectionId}_field_contacto_emergencia`).checked) sectionData.ficha_medica.push('contacto_emergencia');
+                }
+
+                // Campos personalizados
+                const customFields = section.querySelectorAll('.custom-field-item');
+                customFields.forEach(field => {
+                    const fieldId = field.id.replace('field_', '');
+                    const type = field.querySelector('select').value;
+                    const name = document.getElementById(`fieldName_${fieldId}`).value;
+                    if (name) {
+                        const customField = { type, name };
+                        if (type === 'select') {
+                            customField.options = [];
+                            const options = field.querySelectorAll('#fieldOptions_' + fieldId + ' input');
+                            options.forEach(opt => {
+                                if (opt.value) customField.options.push(opt.value);
+                            });
+                        }
+                        sectionData.personalizados.push(customField);
+                    }
+                });
+
+                sections.push(sectionData);
+            });
+
+            // Codificar secciones en base64
+            const sectionsJson = JSON.stringify(sections);
+            const sectionsEncoded = btoa(unescape(encodeURIComponent(sectionsJson)));
+
+            // Generar link
+            let linkUrl;
+            if (eventId === 'registro') {
+                linkUrl = window.location.origin + '/registro?sections=' + sectionsEncoded;
+            } else {
+                const eventName = select.options[select.selectedIndex].getAttribute('data-name');
+                const slug = eventName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                linkUrl = window.location.origin + '/inscripcion/' + slug + '-' + eventId + '?sections=' + sectionsEncoded;
+            }
+
+            document.getElementById('generatedLinkUrl').value = linkUrl;
+            document.getElementById('linkResultContainer').classList.remove('d-none');
+        }
+
+        function copyGeneratedLink() {
+            const input = document.getElementById('generatedLinkUrl');
+            const feedback = document.getElementById('copyFeedback');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            const doFeedback = () => {
+                if (feedback) {
+                    feedback.classList.remove('d-none');
+                    setTimeout(() => feedback.classList.add('d-none'), 2500);
+                }
+            };
+            navigator.clipboard.writeText(input.value).then(doFeedback).catch(() => {
+                document.execCommand('copy');
+                doFeedback();
+            });
+        }
+    </script>
+    {% endif %}
+

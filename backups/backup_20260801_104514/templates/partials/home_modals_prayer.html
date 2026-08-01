@@ -1,0 +1,89 @@
+<!-- MODAL DE ORACIÓN LA TRIBU -->
+<div class="modal fade" id="prayerModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-md">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div class="d-flex align-items-center gap-2 flex-grow-1">
+                    <h5 class="fw-bold text-orange mb-0"><i class="bi bi-stars me-2"></i>Oración de La Tribu</h5>
+                </div>
+                <div class="d-flex gap-1 align-items-center flex-shrink-0 ms-2">
+                    {% if session.get('role') == 'Superusuario' %}
+                    <button id="btnEditPrayer" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style="width:32px;height:32px;" onclick="toggleEditPrayer()" title="Editar oración">
+                        <i class="bi bi-pencil-fill" style="font-size:0.8rem;"></i>
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+            <div class="modal-body px-4 px-md-5 pb-3 pt-3 text-center">
+                <div id="view-oracion" class="text-dark fw-bold" style="line-height:1.8;font-size:1rem;text-transform:uppercase;white-space:pre-line;">
+                    <span class="spinner-border spinner-border-sm text-orange"></span>
+                </div>
+                <div id="edit-oracion" class="d-none text-start">
+                    <textarea class="form-control" rows="14" style="font-size:0.85rem;resize:vertical;"></textarea>
+                </div>
+                {% if session.get('role') == 'Superusuario' %}
+                <div id="prayerSaveBar" class="d-none mt-3 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-secondary rounded-pill px-4" onclick="toggleEditPrayer()">Cancelar</button>
+                    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="savePrayer()">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Guardar
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    let _prayerText = '';
+    let _editingPrayer = false;
+
+    document.getElementById('prayerModal').addEventListener('show.bs.modal', () => {
+        if (_prayerText) return;
+        fetch('/api/about')
+            .then(r => r.json())
+            .then(data => {
+                _prayerText = data.oracion || '';
+                document.getElementById('view-oracion').textContent = _prayerText;
+                const ta = document.querySelector('#edit-oracion textarea');
+                if (ta) ta.value = _prayerText;
+            });
+    });
+
+    window.toggleEditPrayer = function() {
+        _editingPrayer = !_editingPrayer;
+        document.getElementById('view-oracion').classList.toggle('d-none', _editingPrayer);
+        document.getElementById('edit-oracion').classList.toggle('d-none', !_editingPrayer);
+        const bar = document.getElementById('prayerSaveBar');
+        if (bar) bar.classList.toggle('d-none', !_editingPrayer);
+        const btn = document.getElementById('btnEditPrayer');
+        if (btn) btn.innerHTML = _editingPrayer
+            ? '<i class="bi bi-x-lg" style="font-size:0.8rem;"></i>'
+            : '<i class="bi bi-pencil-fill" style="font-size:0.8rem;"></i>';
+        if (!_editingPrayer) {
+            const ta = document.querySelector('#edit-oracion textarea');
+            if (ta) ta.value = _prayerText;
+        }
+    };
+
+    window.savePrayer = function() {
+        const ta = document.querySelector('#edit-oracion textarea');
+        if (!ta) return;
+        const newText = ta.value;
+        fetch('/api/about', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ oracion: newText })
+        }).then(r => r.json()).then(res => {
+            if (res.ok) {
+                _prayerText = newText;
+                document.getElementById('view-oracion').textContent = newText;
+                _editingPrayer = true;
+                toggleEditPrayer();
+            }
+        }).catch(() => alert('Error al guardar'));
+    };
+})();
+</script>

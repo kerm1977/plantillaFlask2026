@@ -1,0 +1,169 @@
+<!-- MODAL: QUIÉNES SOMOS                        -->
+<!-- ============================================ -->
+<div class="modal fade" id="aboutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.25rem; background: linear-gradient(135deg, #fff9f2 0%, #ffffff 100%);">
+            
+            <!-- Header -->
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0" style="min-width:0;overflow:hidden;">
+                    <img src="/static/logo.png" alt="Logo" style="width:40px;height:40px;object-fit:cover;border-radius:50%;flex-shrink:0;">
+                    <div style="min-width:0;">
+                        <h5 class="modal-title fw-bold text-dark mb-0 text-truncate">Quiénes Somos</h5>
+                        <small class="text-orange fw-bold">La Tribu de Los Libres</small>
+                    </div>
+                </div>
+                <div class="d-flex gap-1 align-items-center flex-shrink-0 ms-2">
+                    {% if session.get('role') == 'Superusuario' %}
+                    <button id="btnEditAbout" class="btn btn-sm btn-outline-secondary rounded-circle d-flex align-items-center justify-content-center p-0" style="width:32px;height:32px;" onclick="toggleEditAbout()" title="Editar">
+                        <i class="bi bi-pencil-fill" style="font-size:0.8rem;"></i>
+                    </button>
+                    {% endif %}
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body px-4 py-3">
+
+                <!-- Quiénes somos: texto intro -->
+                <div id="view-quienes_somos" class="mb-4 text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                <div id="edit-quienes_somos" class="mb-4 d-none">
+                    <label class="fw-bold text-secondary small mb-1">Quiénes Somos</label>
+                    <textarea class="form-control" rows="10" style="font-size:0.9rem;"></textarea>
+                </div>
+
+                <!-- Acordeón colapsable: Misión, Visión, Valores -->
+                <div class="accordion accordion-flush rounded-3 overflow-hidden border" id="aboutAccordion">
+
+                    <!-- Misión -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseMision" style="background: #fff9f2;">
+                                <i class="bi bi-bullseye me-2 text-orange"></i> Misión
+                            </button>
+                        </h2>
+                        <div id="collapseMision" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-mision" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-mision" class="d-none">
+                                    <textarea class="form-control" rows="4" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visión -->
+                    <div class="accordion-item border-0 border-bottom">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseVision" style="background: #fff9f2;">
+                                <i class="bi bi-eye-fill me-2 text-orange"></i> Visión
+                            </button>
+                        </h2>
+                        <div id="collapseVision" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-vision" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-vision" class="d-none">
+                                    <textarea class="form-control" rows="4" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Valores -->
+                    <div class="accordion-item border-0">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseValores" style="background: #fff9f2;">
+                                <i class="bi bi-heart-fill me-2 text-orange"></i> Valores y Principios
+                            </button>
+                        </h2>
+                        <div id="collapseValores" class="accordion-collapse collapse" data-bs-parent="#aboutAccordion">
+                            <div class="accordion-body pt-2 pb-3">
+                                <div id="view-valores" class="text-dark lh-lg" style="white-space: pre-line; font-size: 0.95rem;"></div>
+                                <div id="edit-valores" class="d-none">
+                                    <textarea class="form-control" rows="6" style="font-size:0.9rem;"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div><!-- /accordion -->
+
+                <!-- Botón Guardar (solo en modo edición) -->
+                {% if session.get('role') == 'Superusuario' %}
+                <div id="aboutSaveBar" class="d-none mt-4 d-flex gap-2 justify-content-end">
+                    <button class="btn btn-secondary rounded-pill px-4" onclick="toggleEditAbout()">Cancelar</button>
+                    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="saveAbout()">
+                        <i class="bi bi-cloud-upload-fill me-1"></i> Guardar
+                    </button>
+                </div>
+                {% endif %}
+
+            </div><!-- /modal-body -->
+        </div>
+    </div>
+</div>
+
+<script>
+    const ABOUT_KEYS = ['quienes_somos', 'mision', 'vision', 'valores'];
+    let _aboutData = {};
+    let _editingAbout = false;
+
+    document.getElementById('aboutModal').addEventListener('show.bs.modal', () => {
+        if (Object.keys(_aboutData).length) return;
+        fetch('/api/about')
+            .then(r => r.json())
+            .then(data => {
+                _aboutData = data;
+                ABOUT_KEYS.forEach(key => {
+                    const viewEl = document.getElementById('view-' + key);
+                    const textarea = document.querySelector('#edit-' + key + ' textarea');
+                    if (viewEl) viewEl.textContent = data[key] || '';
+                    if (textarea) textarea.value = data[key] || '';
+                });
+            });
+    });
+
+    function toggleEditAbout() {
+        _editingAbout = !_editingAbout;
+        ABOUT_KEYS.forEach(key => {
+            document.getElementById('view-' + key).classList.toggle('d-none', _editingAbout);
+            document.getElementById('edit-' + key).classList.toggle('d-none', !_editingAbout);
+        });
+        const saveBar = document.getElementById('aboutSaveBar');
+        if (saveBar) saveBar.classList.toggle('d-none', !_editingAbout);
+        const btn = document.getElementById('btnEditAbout');
+        if (btn) btn.innerHTML = _editingAbout
+            ? '<i class="bi bi-x-lg" style="font-size:0.8rem;"></i>'
+            : '<i class="bi bi-pencil-fill" style="font-size:0.8rem;"></i>';
+        if (!_editingAbout) {
+            ABOUT_KEYS.forEach(key => {
+                const textarea = document.querySelector('#edit-' + key + ' textarea');
+                if (textarea) textarea.value = _aboutData[key] || '';
+            });
+        }
+    }
+
+    function saveAbout() {
+        const payload = {};
+        ABOUT_KEYS.forEach(key => {
+            const textarea = document.querySelector('#edit-' + key + ' textarea');
+            if (textarea) payload[key] = textarea.value;
+        });
+        fetch('/api/about', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        }).then(r => r.json()).then(res => {
+            if (res.ok) {
+                _aboutData = payload;
+                ABOUT_KEYS.forEach(key => {
+                    const viewEl = document.getElementById('view-' + key);
+                    if (viewEl) viewEl.textContent = payload[key];
+                });
+                _editingAbout = true;
+                toggleEditAbout();
+            }
+        }).catch(() => alert('Error al guardar'));
+    }
+</script>

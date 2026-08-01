@@ -1,0 +1,68 @@
+
+<div class="container py-4 animate__animated animate__fadeIn">
+    <!-- Encabezado -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-5 text-center text-md-start">
+            <h1 class="fw-black text-dark" style="font-size: 2.2rem;">
+                <i class="bi bi-journal-medical text-orange me-2"></i> Directorio
+            </h1>
+            <p class="text-muted fs-5 mb-2">caminantes de La Tribu.</p>
+            {% if session.get('role') == 'Superusuario' %}
+            <div class="d-flex flex-wrap gap-2 mt-2 justify-content-center justify-content-md-start">
+                <button class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="dbExportJSON()">
+                    <i class="bi bi-filetype-json me-1"></i>JSON
+                </button>
+                <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3" onclick="dbExportExcel()">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
+                </button>
+                <label class="btn btn-sm btn-outline-warning rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
+                    <i class="bi bi-upload me-1"></i>Importar JSON
+                    <input type="file" id="agendaImportInput" accept=".json" class="d-none" onchange="dbImportJSON(this)">
+                </label>
+                <button class="btn btn-sm btn-outline-dark rounded-pill fw-bold px-3" onclick="importarContactosJson()">
+                    <i class="bi bi-person-lines-fill me-1"></i>Cargar contactos.json
+                </button>
+            </div>
+            <div id="agendaDbMsg" class="mt-2 d-none small"></div>
+            {% endif %}
+        </div>
+        <div class="col-md-7 mt-3 mt-md-0 d-flex justify-content-center justify-content-md-end gap-2 flex-wrap">
+            
+            <!-- MENÚ EXPORTAR -->
+            <div class="dropdown">
+                <button class="btn btn-outline-dark fw-bold rounded-pill px-3 py-2 shadow-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-download me-1"></i> Exportar
+                </button>
+                <ul class="dropdown-menu shadow border-0" style="border-radius: 1rem;">
+                    <li><a class="dropdown-item fw-bold py-2" href="#" onclick="exportarExcel()"><i class="bi bi-file-earmark-excel-fill text-success me-2 fs-5"></i> Excel (.xlsx)</a></li>
+                    <li><a class="dropdown-item fw-bold py-2" href="#" onclick="exportarTxt()"><i class="bi bi-file-earmark-text-fill text-secondary me-2 fs-5"></i> Texto (.txt)</a></li>
+                </ul>
+            </div>
+
+            <button class="btn btn-warning fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center text-dark" data-bs-toggle="modal" data-bs-target="#linkGeneratorModal" onclick="abrirGeneradorLinks()">
+                <i class="bi bi-link-45deg fs-4 me-1"></i> Link
+            </button>
+            <button class="btn btn-dark fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center" onclick="loadHikers()">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Buscador -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-4 fs-4 text-orange"></i>
+                <input type="text" id="searchInput" class="form-control search-input ps-5" placeholder="Buscar por nombre, cédula o teléfono...">
+            </div>
+        </div>
+    </div>
+
+    <!-- LISTA ALFABÉTICA DIRECTA AL FONDO -->
+    <div class="mt-2 px-1 px-sm-2" id="hikersList">
+        <div class="text-center py-4"><span class="spinner-border text-orange"></span> Cargando lista...</div>
+    </div>
+
+    <!-- PAGINACIÓN -->
+    <div id="paginationBar" class="d-flex justify-content-center flex-wrap gap-2 mt-4 pb-3"></div>
+</div>
