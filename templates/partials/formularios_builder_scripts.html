@@ -4,6 +4,19 @@ function onFormTypeChange() {
     const allowEdit = document.getElementById('formAllowEdit');
     if (formType === 'cotizador') {
         allowEdit.value = 'true';
+        // Deshabilitar la opción "No editable"
+        const options = allowEdit.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === 'false') {
+                options[i].disabled = true;
+            }
+        }
+    } else {
+        // Habilitar todas las opciones cuando no es cotizador
+        const options = allowEdit.options;
+        for (let i = 0; i < options.length; i++) {
+            options[i].disabled = false;
+        }
     }
 }
 function addField(type) {
