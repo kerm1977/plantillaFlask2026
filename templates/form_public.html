@@ -115,41 +115,39 @@
                 {% if form.form_type == 'cotizador' %}
                 <hr>
                 <div class="p-3 rounded-3" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">
-                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-currency-dollar me-1"></i>Campos del Cotizador</h6>
+                    <h6 class="fw-bold text-success mb-3"><i class="bi bi-currency-dollar me-1"></i>Información del Viaje</h6>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Nombre del Lugar <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="pf_cotizador_lugar" required placeholder="Ej: Volcán Irazú">
+                        <label class="form-label fw-semibold">Nombre del Lugar</label>
+                        <input type="text" class="form-control" id="pf_cotizador_lugar" readonly value="{{ form.cotizador_lugar or '' }}">
                     </div>
                     
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Enlace de Google Maps (Ida) <span class="text-danger">*</span></label>
-                        <input type="url" class="form-control" id="pf_cotizador_maps_ida" required placeholder="https://maps.google.com/...">
+                        <label class="form-label fw-semibold">Enlace de Google Maps (Ida)</label>
+                        <input type="url" class="form-control" id="pf_cotizador_maps_ida" readonly value="{{ form.cotizador_maps_ida or '' }}">
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Enlace de Google Maps (Regreso)</label>
-                        <input type="url" class="form-control" id="pf_cotizador_maps_regreso" placeholder="https://maps.google.com/...">
+                        <input type="url" class="form-control" id="pf_cotizador_maps_regreso" readonly value="{{ form.cotizador_maps_regreso or '' }}">
                     </div>
                     
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Fecha (Opcional)</label>
-                            <input type="date" class="form-control" id="pf_cotizador_fecha">
+                            <label class="form-label fw-semibold">Fecha</label>
+                            <input type="date" class="form-control" id="pf_cotizador_fecha" readonly value="{{ form.cotizador_fecha or '' }}">
                         </div>
                         <div class="col-6">
-                            <label class="form-label fw-semibold">Hora de Salida (Opcional)</label>
-                            <input type="time" class="form-control" id="pf_cotizador_hora_salida">
+                            <label class="form-label fw-semibold">Hora de Salida</label>
+                            <input type="time" class="form-control" id="pf_cotizador_hora_salida" readonly value="{{ form.cotizador_hora_salida or '' }}">
                         </div>
                     </div>
                     
                     <div class="row g-2 mb-3">
                         <div class="col-6">
                             <label class="form-label fw-semibold">Moneda</label>
-                            <select class="form-select" id="pf_cotizador_moneda">
-                                <option value="colones">Colones (₡)</option>
-                                <option value="dolares">Dólares ($)</option>
-                            </select>
+                            <input type="text" class="form-control" id="pf_cotizador_moneda" readonly value="{{ 'Colones (₡)' if form.cotizador_moneda == 'colones' else 'Dólares ($)' }}">
+                            <input type="hidden" id="pf_cotizador_moneda_value" value="{{ form.cotizador_moneda or 'colones' }}">
                         </div>
                         <div class="col-6">
                             <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>

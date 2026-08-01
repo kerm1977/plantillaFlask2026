@@ -166,13 +166,15 @@ def _migrate_form_response_reservation_number():
 
 
 def _migrate_cotizador_fields():
-    """Agrega columnas específicas para cotizador a la tabla form_response."""
+    """Agrega columnas específicas para cotizador a las tablas form y form_response."""
     try:
         conn = db.engine.raw_connection()
         cursor = conn.cursor()
+        
+        # Migración para form_response
         cursor.execute("PRAGMA table_info(form_response)")
         existing_cols = {row[1] for row in cursor.fetchall()}
-        migrations = [
+        migrations_response = [
             ("cotizador_lugar", "VARCHAR(500)"),
             ("cotizador_maps_ida", "VARCHAR(1000)"),
             ("cotizador_maps_regreso", "VARCHAR(1000)"),
@@ -181,9 +183,25 @@ def _migrate_cotizador_fields():
             ("cotizador_moneda", "VARCHAR(20) DEFAULT 'colones'"),
             ("cotizador_precio", "FLOAT"),
         ]
-        for col, definition in migrations:
+        for col, definition in migrations_response:
             if col not in existing_cols:
                 cursor.execute(f"ALTER TABLE form_response ADD COLUMN {col} {definition}")
+        
+        # Migración para form (valores predefinidos)
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        migrations_form = [
+            ("cotizador_lugar", "VARCHAR(500)"),
+            ("cotizador_maps_ida", "VARCHAR(1000)"),
+            ("cotizador_maps_regreso", "VARCHAR(1000)"),
+            ("cotizador_fecha", "VARCHAR(20)"),
+            ("cotizador_hora_salida", "VARCHAR(10)"),
+            ("cotizador_moneda", "VARCHAR(20) DEFAULT 'colones'"),
+        ]
+        for col, definition in migrations_form:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE form ADD COLUMN {col} {definition}")
+        
         conn.commit()
         conn.close()
     except Exception as e:

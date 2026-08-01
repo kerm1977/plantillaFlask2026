@@ -116,8 +116,16 @@ async function editForm(id) {
     document.getElementById('trigPasaporte').checked = form.show_pasaporte;
     document.getElementById('trigFechaNacimiento').checked = form.show_fecha_nacimiento;
     document.getElementById('formReservationNumbers').value = form.reservation_numbers || '';
+    // Campos predefinidos de cotizador
+    if (document.getElementById('cotLugar')) document.getElementById('cotLugar').value = form.cotizador_lugar || '';
+    if (document.getElementById('cotMapsIda')) document.getElementById('cotMapsIda').value = form.cotizador_maps_ida || '';
+    if (document.getElementById('cotMapsRegreso')) document.getElementById('cotMapsRegreso').value = form.cotizador_maps_regreso || '';
+    if (document.getElementById('cotFecha')) document.getElementById('cotFecha').value = form.cotizador_fecha || '';
+    if (document.getElementById('cotHoraSalida')) document.getElementById('cotHoraSalida').value = form.cotizador_hora_salida || '';
+    if (document.getElementById('cotMoneda')) document.getElementById('cotMoneda').value = form.cotizador_moneda || 'colones';
     fields = form.fields.map(f => ({...f}));
     renderFields(); updatePreview();
+    onFormTypeChange(); // Mostrar campos predefinidos si es cotizador
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
 }
@@ -136,7 +144,14 @@ async function saveForm() {
         show_ficha_medica: document.getElementById('trigFichaMedica').checked,
         show_pasaporte: document.getElementById('trigPasaporte').checked,
         show_fecha_nacimiento: document.getElementById('trigFechaNacimiento').checked,
-        reservation_numbers: document.getElementById('formReservationNumbers').value
+        reservation_numbers: document.getElementById('formReservationNumbers').value,
+        // Campos predefinidos de cotizador
+        cotizador_lugar: document.getElementById('cotLugar')?.value || '',
+        cotizador_maps_ida: document.getElementById('cotMapsIda')?.value || '',
+        cotizador_maps_regreso: document.getElementById('cotMapsRegreso')?.value || '',
+        cotizador_fecha: document.getElementById('cotFecha')?.value || '',
+        cotizador_hora_salida: document.getElementById('cotHoraSalida')?.value || '',
+        cotizador_moneda: document.getElementById('cotMoneda')?.value || 'colones'
     };
     let formId = currentFormId;
     if (!formId) {

@@ -27,6 +27,13 @@ class Form(db.Model):
     has_reservation_numbers = db.Column(db.Boolean, default=False)
     reservation_numbers = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    # Campos predefinidos para cotizador
+    cotizador_lugar = db.Column(db.String(500))
+    cotizador_maps_ida = db.Column(db.String(1000))
+    cotizador_maps_regreso = db.Column(db.String(1000))
+    cotizador_fecha = db.Column(db.String(20))
+    cotizador_hora_salida = db.Column(db.String(10))
+    cotizador_moneda = db.Column(db.String(20), default='colones')
     fields = db.relationship('FormField', backref='form', lazy=True, cascade='all, delete-orphan',
                              order_by='FormField.order')
     responses = db.relationship('FormResponse', backref='form', lazy=True, cascade='all, delete-orphan')

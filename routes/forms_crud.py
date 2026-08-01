@@ -79,6 +79,15 @@ def api_create_form():
         show_edad=data.get('show_edad', False),
         show_telefono=data.get('show_telefono', False),
         show_ficha_medica=data.get('show_ficha_medica', False),
+        show_pasaporte=data.get('show_pasaporte', False),
+        show_fecha_nacimiento=data.get('show_fecha_nacimiento', False),
+        # Campos predefinidos de cotizador
+        cotizador_lugar=data.get('cotizador_lugar', ''),
+        cotizador_maps_ida=data.get('cotizador_maps_ida', ''),
+        cotizador_maps_regreso=data.get('cotizador_maps_regreso', ''),
+        cotizador_fecha=data.get('cotizador_fecha', ''),
+        cotizador_hora_salida=data.get('cotizador_hora_salida', ''),
+        cotizador_moneda=data.get('cotizador_moneda', 'colones'),
     )
     db.session.add(form)
     db.session.commit()
@@ -103,7 +112,13 @@ def api_get_form(form_id):
         'show_telefono': form.show_telefono, 'show_ficha_medica': form.show_ficha_medica,
         'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
-        'fields': fields, 'responses_count': len(form.responses)
+        'fields': fields, 'responses_count': len(form.responses),
+        'cotizador_lugar': form.cotizador_lugar or '',
+        'cotizador_maps_ida': form.cotizador_maps_ida or '',
+        'cotizador_maps_regreso': form.cotizador_maps_regreso or '',
+        'cotizador_fecha': form.cotizador_fecha or '',
+        'cotizador_hora_salida': form.cotizador_hora_salida or '',
+        'cotizador_moneda': form.cotizador_moneda or 'colones'
     })
 
 
@@ -131,6 +146,13 @@ def api_update_form(form_id):
     form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
     form.show_pasaporte = data.get('show_pasaporte', form.show_pasaporte)
     form.show_fecha_nacimiento = data.get('show_fecha_nacimiento', form.show_fecha_nacimiento)
+    # Campos predefinidos de cotizador
+    form.cotizador_lugar = data.get('cotizador_lugar', form.cotizador_lugar)
+    form.cotizador_maps_ida = data.get('cotizador_maps_ida', form.cotizador_maps_ida)
+    form.cotizador_maps_regreso = data.get('cotizador_maps_regreso', form.cotizador_maps_regreso)
+    form.cotizador_fecha = data.get('cotizador_fecha', form.cotizador_fecha)
+    form.cotizador_hora_salida = data.get('cotizador_hora_salida', form.cotizador_hora_salida)
+    form.cotizador_moneda = data.get('cotizador_moneda', form.cotizador_moneda) or 'colones'
     db.session.commit()
     return jsonify({'ok': True})
 
