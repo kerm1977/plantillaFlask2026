@@ -640,7 +640,7 @@ def api_get_my_response(form_id):
                     'cotizador_hora_salida': resp.cotizador_hora_salida or '',
                     'cotizador_moneda': resp.cotizador_moneda or 'colones',
                     'cotizador_precio': resp.cotizador_precio,
-                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}}
+                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}})
 
 
 # ── EDITAR RESPUESTA (superusuario) ─────────────────────────────────────────
@@ -709,4 +709,4 @@ def api_get_response_by_token(token):
                     'cotizador_hora_salida': resp.cotizador_hora_salida or '',
                     'cotizador_moneda': resp.cotizador_moneda or 'colones',
                     'cotizador_precio': resp.cotizador_precio,
-                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}}
+                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}})
