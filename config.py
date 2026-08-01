@@ -2,7 +2,7 @@ import os
 
 class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', os.urandom(32).hex())
-    DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
+    DEBUG = True  # Temporalmente activado para forzar recarga de templates
     
     # Superusuarios
     SUPERUSER_EMAILS = os.environ.get('SUPERUSER_EMAILS', 'kenth1977@gmail.com,lthikingcr@gmail.com').split(',')

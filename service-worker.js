@@ -1,7 +1,7 @@
 // service-worker.js
 
 // Versión de la caché. Cámbiala para forzar la actualización del Service Worker y la caché.
-const CACHE_NAME = 'la-tribu-pwa-cache-v1.0.5';
+const CACHE_NAME = 'la-tribu-pwa-cache-v1.0.6';
 
 // Archivos esenciales para cachear durante la instalación.
 const urlsToCache = [

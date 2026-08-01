@@ -193,6 +193,10 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # Agregar logging para debug de templates
+    import logging
+    logging.basicConfig(level=logging.DEBUG)
+    
     # Configuración inteligente de Base de Datos
     app.config['SQLALCHEMY_DATABASE_URI'] = configure_db_uri()
 
