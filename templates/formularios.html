@@ -292,4 +292,13 @@
 {% include 'partials/formularios_modals.html' %}
 
 {% include 'partials/formularios_scripts.html' %}
+
+<script>
+// Forzar recarga de scripts para evitar cache
+document.querySelectorAll('script[src]').forEach(s => {
+    if (!s.src.includes('?v=')) {
+        s.src = s.src + '?v=' + new Date().getTime();
+    }
+});
+</script>
 {% endblock %}
