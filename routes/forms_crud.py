@@ -88,17 +88,19 @@ def api_create_form():
     # Guardar lugares del cotizador
     lugares_data = data.get('cotizador_lugares', [])
     for lugar_data in lugares_data:
-        lugar = CotizadorLugar(
-            form_id=form.id,
-            nombre=lugar_data.get('nombre', ''),
-            maps_ida=lugar_data.get('maps_ida', ''),
-            maps_regreso=lugar_data.get('maps_regreso', ''),
-            fecha=lugar_data.get('fecha', ''),
-            hora_salida=lugar_data.get('hora_salida', ''),
-            moneda=lugar_data.get('moneda', 'colones'),
-            order=lugar_data.get('order', 0)
-        )
-        db.session.add(lugar)
+        # Solo guardar si tiene nombre (obligatorio)
+        if lugar_data.get('nombre'):
+            lugar = CotizadorLugar(
+                form_id=form.id,
+                nombre=lugar_data.get('nombre', ''),
+                maps_ida=lugar_data.get('maps_ida', ''),
+                maps_regreso=lugar_data.get('maps_regreso', ''),
+                fecha=lugar_data.get('fecha', ''),
+                hora_salida=lugar_data.get('hora_salida', ''),
+                moneda=lugar_data.get('moneda', 'colones'),
+                order=lugar_data.get('order', 0)
+            )
+            db.session.add(lugar)
     db.session.commit()
     
     return jsonify({'ok': True, 'id': form.id, 'slug': form.slug})
@@ -160,17 +162,19 @@ def api_update_form(form_id):
     CotizadorLugar.query.filter_by(form_id=form_id).delete()
     lugares_data = data.get('cotizador_lugares', [])
     for lugar_data in lugares_data:
-        lugar = CotizadorLugar(
-            form_id=form_id,
-            nombre=lugar_data.get('nombre', ''),
-            maps_ida=lugar_data.get('maps_ida', ''),
-            maps_regreso=lugar_data.get('maps_regreso', ''),
-            fecha=lugar_data.get('fecha', ''),
-            hora_salida=lugar_data.get('hora_salida', ''),
-            moneda=lugar_data.get('moneda', 'colones'),
-            order=lugar_data.get('order', 0)
-        )
-        db.session.add(lugar)
+        # Solo guardar si tiene nombre (obligatorio)
+        if lugar_data.get('nombre'):
+            lugar = CotizadorLugar(
+                form_id=form_id,
+                nombre=lugar_data.get('nombre', ''),
+                maps_ida=lugar_data.get('maps_ida', ''),
+                maps_regreso=lugar_data.get('maps_regreso', ''),
+                fecha=lugar_data.get('fecha', ''),
+                hora_salida=lugar_data.get('hora_salida', ''),
+                moneda=lugar_data.get('moneda', 'colones'),
+                order=lugar_data.get('order', 0)
+            )
+            db.session.add(lugar)
     
     db.session.commit()
     return jsonify({'ok': True})
