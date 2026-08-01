@@ -2,7 +2,7 @@ import re
 import json
 from flask import request, jsonify, session, render_template, redirect, url_for
 from models import Form, FormField, FormResponse
-from models_forms import ReservationConfig
+from models_forms import ReservationConfig, CotizadorLugar
 from db import db
 from routes import bp
 
@@ -81,16 +81,26 @@ def api_create_form():
         show_ficha_medica=data.get('show_ficha_medica', False),
         show_pasaporte=data.get('show_pasaporte', False),
         show_fecha_nacimiento=data.get('show_fecha_nacimiento', False),
-        # Campos predefinidos de cotizador
-        cotizador_lugar=data.get('cotizador_lugar', ''),
-        cotizador_maps_ida=data.get('cotizador_maps_ida', ''),
-        cotizador_maps_regreso=data.get('cotizador_maps_regreso', ''),
-        cotizador_fecha=data.get('cotizador_fecha', ''),
-        cotizador_hora_salida=data.get('cotizador_hora_salida', ''),
-        cotizador_moneda=data.get('cotizador_moneda', 'colones'),
     )
     db.session.add(form)
     db.session.commit()
+    
+    # Guardar lugares del cotizador
+    lugares_data = data.get('cotizador_lugares', [])
+    for lugar_data in lugares_data:
+        lugar = CotizadorLugar(
+            form_id=form.id,
+            nombre=lugar_data.get('nombre', ''),
+            maps_ida=lugar_data.get('maps_ida', ''),
+            maps_regreso=lugar_data.get('maps_regreso', ''),
+            fecha=lugar_data.get('fecha', ''),
+            hora_salida=lugar_data.get('hora_salida', ''),
+            moneda=lugar_data.get('moneda', 'colones'),
+            order=lugar_data.get('order', 0)
+        )
+        db.session.add(lugar)
+    db.session.commit()
+    
     return jsonify({'ok': True, 'id': form.id, 'slug': form.slug})
 
 
@@ -101,6 +111,10 @@ def api_get_form(form_id):
                 'options': json.loads(f.options) if f.options else [],
                 'order': f.order, 'correct_answer': f.correct_answer}
                for f in form.fields]
+    cotizador_lugares = [{'id': l.id, 'nombre': l.nombre, 'maps_ida': l.maps_ida,
+                          'maps_regreso': l.maps_regreso, 'fecha': l.fecha,
+                          'hora_salida': l.hora_salida, 'moneda': l.moneda, 'order': l.order}
+                         for l in form.cotizador_lugares.order_by(CotizadorLugar.order)]
     return jsonify({
         'id': form.id, 'name': form.name, 'slug': form.slug,
         'form_type': form.form_type, 'is_active': form.is_active,
@@ -113,12 +127,7 @@ def api_get_form(form_id):
         'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses),
-        'cotizador_lugar': form.cotizador_lugar or '',
-        'cotizador_maps_ida': form.cotizador_maps_ida or '',
-        'cotizador_maps_regreso': form.cotizador_maps_regreso or '',
-        'cotizador_fecha': form.cotizador_fecha or '',
-        'cotizador_hora_salida': form.cotizador_hora_salida or '',
-        'cotizador_moneda': form.cotizador_moneda or 'colones'
+        'cotizador_lugares': cotizador_lugares
     })
 
 
@@ -146,13 +155,23 @@ def api_update_form(form_id):
     form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
     form.show_pasaporte = data.get('show_pasaporte', form.show_pasaporte)
     form.show_fecha_nacimiento = data.get('show_fecha_nacimiento', form.show_fecha_nacimiento)
-    # Campos predefinidos de cotizador
-    form.cotizador_lugar = data.get('cotizador_lugar', form.cotizador_lugar)
-    form.cotizador_maps_ida = data.get('cotizador_maps_ida', form.cotizador_maps_ida)
-    form.cotizador_maps_regreso = data.get('cotizador_maps_regreso', form.cotizador_maps_regreso)
-    form.cotizador_fecha = data.get('cotizador_fecha', form.cotizador_fecha)
-    form.cotizador_hora_salida = data.get('cotizador_hora_salida', form.cotizador_hora_salida)
-    form.cotizador_moneda = data.get('cotizador_moneda', form.cotizador_moneda) or 'colones'
+    
+    # Actualizar lugares del cotizador
+    CotizadorLugar.query.filter_by(form_id=form_id).delete()
+    lugares_data = data.get('cotizador_lugares', [])
+    for lugar_data in lugares_data:
+        lugar = CotizadorLugar(
+            form_id=form_id,
+            nombre=lugar_data.get('nombre', ''),
+            maps_ida=lugar_data.get('maps_ida', ''),
+            maps_regreso=lugar_data.get('maps_regreso', ''),
+            fecha=lugar_data.get('fecha', ''),
+            hora_salida=lugar_data.get('hora_salida', ''),
+            moneda=lugar_data.get('moneda', 'colones'),
+            order=lugar_data.get('order', 0)
+        )
+        db.session.add(lugar)
+    
     db.session.commit()
     return jsonify({'ok': True})
 

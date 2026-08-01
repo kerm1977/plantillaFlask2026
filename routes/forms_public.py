@@ -67,6 +67,7 @@ def api_submit_form(form_id):
         cotizador_hora_salida=data.get('cotizador_hora_salida', '') or None,
         cotizador_moneda=data.get('cotizador_moneda', 'colones') or 'colones',
         cotizador_precio=float(data.get('cotizador_precio')) if data.get('cotizador_precio') else None,
+        cotizador_precios_json=json.dumps(data.get('cotizador_precios', {})) if data.get('cotizador_precios') else None,
     )
     # Guardar/actualizar en agenda Hiker si hay cédula y nombre
     if cedula_valor and nombre_valor:

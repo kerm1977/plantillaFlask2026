@@ -166,7 +166,7 @@ def _migrate_form_response_reservation_number():
 
 
 def _migrate_cotizador_fields():
-    """Agrega columnas específicas para cotizador a las tablas form y form_response."""
+    """Agrega columnas específicas para cotizador a las tablas form y form_response, y crea tabla cotizador_lugar."""
     try:
         conn = db.engine.raw_connection()
         cursor = conn.cursor()
@@ -182,6 +182,7 @@ def _migrate_cotizador_fields():
             ("cotizador_hora_salida", "VARCHAR(10)"),
             ("cotizador_moneda", "VARCHAR(20) DEFAULT 'colones'"),
             ("cotizador_precio", "FLOAT"),
+            ("cotizador_precios_json", "TEXT"),
         ]
         for col, definition in migrations_response:
             if col not in existing_cols:
@@ -201,6 +202,24 @@ def _migrate_cotizador_fields():
         for col, definition in migrations_form:
             if col not in existing_cols:
                 cursor.execute(f"ALTER TABLE form ADD COLUMN {col} {definition}")
+        
+        # Crear tabla cotizador_lugar si no existe
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cotizador_lugar'")
+        if not cursor.fetchone():
+            cursor.execute('''
+                CREATE TABLE cotizador_lugar (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    form_id INTEGER NOT NULL,
+                    nombre VARCHAR(500) NOT NULL,
+                    maps_ida VARCHAR(1000),
+                    maps_regreso VARCHAR(1000),
+                    fecha VARCHAR(20),
+                    hora_salida VARCHAR(10),
+                    moneda VARCHAR(20) DEFAULT 'colones',
+                    order INTEGER DEFAULT 0,
+                    FOREIGN KEY (form_id) REFERENCES form (id)
+                )
+            ''')
         
         conn.commit()
         conn.close()

@@ -1,4 +1,6 @@
 <script>
+let cotizadorLugares = [];
+
 function onFormTypeChange() {
     const formType = document.getElementById('formType').value;
     const allowEdit = document.getElementById('formAllowEdit');
@@ -25,6 +27,79 @@ function onFormTypeChange() {
         cotizadorFields.classList.add('d-none');
     }
 }
+
+function addCotizadorLugar() {
+    cotizadorLugares.push({
+        id: Date.now(),
+        nombre: '',
+        maps_ida: '',
+        maps_regreso: '',
+        fecha: '',
+        hora_salida: '',
+        moneda: 'colones',
+        order: cotizadorLugares.length
+    });
+    renderCotizadorLugares();
+    updatePreview();
+}
+
+function removeCotizadorLugar(index) {
+    cotizadorLugares.splice(index, 1);
+    // Reordenar
+    cotizadorLugares.forEach((l, i) => l.order = i);
+    renderCotizadorLugares();
+    updatePreview();
+}
+
+function updateCotizadorLugar(index, field, value) {
+    cotizadorLugares[index][field] = value;
+    updatePreview();
+}
+
+function renderCotizadorLugares() {
+    const container = document.getElementById('cotizadorLugaresList');
+    if (!container) return;
+    
+    if (cotizadorLugares.length === 0) {
+        container.innerHTML = '<small class="text-muted">No hay lugares agregados.</small>';
+        return;
+    }
+    
+    container.innerHTML = cotizadorLugares.map((lugar, idx) => `
+        <div class="mb-3 p-2 rounded-2" style="background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.1);">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong class="small">Lugar #${idx + 1}</strong>
+                <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="removeCotizadorLugar(${idx})">
+                    <i class="bi bi-trash" style="font-size:0.7rem;"></i>
+                </button>
+            </div>
+            <div class="row g-2">
+                <div class="col-12">
+                    <input type="text" class="form-control form-control-sm" placeholder="Nombre del lugar" value="${lugar.nombre}" oninput="updateCotizadorLugar(${idx}, 'nombre', this.value)">
+                </div>
+                <div class="col-12">
+                    <input type="url" class="form-control form-control-sm" placeholder="Google Maps Ida" value="${lugar.maps_ida}" oninput="updateCotizadorLugar(${idx}, 'maps_ida', this.value)">
+                </div>
+                <div class="col-12">
+                    <input type="url" class="form-control form-control-sm" placeholder="Google Maps Regreso" value="${lugar.maps_regreso}" oninput="updateCotizadorLugar(${idx}, 'maps_regreso', this.value)">
+                </div>
+                <div class="col-6">
+                    <input type="date" class="form-control form-control-sm" value="${lugar.fecha}" oninput="updateCotizadorLugar(${idx}, 'fecha', this.value)">
+                </div>
+                <div class="col-6">
+                    <input type="time" class="form-control form-control-sm" value="${lugar.hora_salida}" oninput="updateCotizadorLugar(${idx}, 'hora_salida', this.value)">
+                </div>
+                <div class="col-6">
+                    <select class="form-select form-select-sm" onchange="updateCotizadorLugar(${idx}, 'moneda', this.value)">
+                        <option value="colones" ${lugar.moneda === 'colones' ? 'selected' : ''}>Colones (₡)</option>
+                        <option value="dolares" ${lugar.moneda === 'dolares' ? 'selected' : ''}>Dólares ($)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
 function addField(type) {
     fields.push({field_type: type, label: '', options: [], correct_answer: ''});
     renderFields(); updatePreview();
@@ -135,31 +210,24 @@ function updatePreview() {
     
     // Campos específicos para Cotizador
     if (formType === 'cotizador') {
-        const cotLugar = document.getElementById('cotLugar')?.value || '';
-        const cotMapsIda = document.getElementById('cotMapsIda')?.value || '';
-        const cotMapsRegreso = document.getElementById('cotMapsRegreso')?.value || '';
-        const cotFecha = document.getElementById('cotFecha')?.value || '';
-        const cotHoraSalida = document.getElementById('cotHoraSalida')?.value || '';
-        const cotMoneda = document.getElementById('cotMoneda')?.value || 'colones';
-        
         html += `<hr class="my-3"><div class="p-3 rounded-3" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">`;
-        html += `<small class="fw-bold text-success d-block mb-3"><i class="bi bi-currency-dollar me-1"></i>Campos del Cotizador (Predefinidos)</small>`;
+        html += `<small class="fw-bold text-success d-block mb-3"><i class="bi bi-currency-dollar me-1"></i>Lugares del Cotizador</small>`;
         
-        html += `<div class="mb-3"><label class="form-label fw-semibold small">Nombre del Lugar <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" disabled value="${cotLugar}" placeholder="Ej: Volcán Irazú"></div>`;
-        
-        html += `<div class="mb-3"><label class="form-label fw-semibold small">Enlace de Google Maps (Ida) <span class="text-danger">*</span></label><input type="url" class="form-control form-control-sm" disabled value="${cotMapsIda}" placeholder="https://maps.google.com/..."></div>`;
-        
-        html += `<div class="mb-3"><label class="form-label fw-semibold small">Enlace de Google Maps (Regreso)</label><input type="url" class="form-control form-control-sm" disabled value="${cotMapsRegreso}" placeholder="https://maps.google.com/..."></div>`;
-        
-        html += `<div class="row g-2 mb-3">`;
-        html += `<div class="col-6"><label class="form-label fw-semibold small">Fecha (Opcional)</label><input type="date" class="form-control form-control-sm" disabled value="${cotFecha}"></div>`;
-        html += `<div class="col-6"><label class="form-label fw-semibold small">Hora de Salida (Opcional)</label><input type="time" class="form-control form-control-sm" disabled value="${cotHoraSalida}"></div>`;
-        html += `</div>`;
-        
-        html += `<div class="row g-2 mb-3">`;
-        html += `<div class="col-6"><label class="form-label fw-semibold small">Moneda</label><input type="text" class="form-control form-control-sm" disabled value="${cotMoneda === 'colones' ? 'Colones (₡)' : 'Dólares ($)'}"></div>`;
-        html += `<div class="col-6"><label class="form-label fw-semibold small">Precio <span class="text-danger">*</span></label><input type="number" class="form-control form-control-sm" disabled placeholder="La persona llena esto"></div>`;
-        html += `</div>`;
+        if (cotizadorLugares.length > 0) {
+            cotizadorLugares.forEach((lugar, idx) => {
+                html += `<div class="mb-3 p-2 rounded-2" style="background:rgba(255,255,255,0.5);border:1px solid rgba(0,0,0,0.1);">`;
+                html += `<strong class="small">${lugar.nombre || 'Lugar ' + (idx+1)}</strong><br>`;
+                if (lugar.maps_ida) html += `<small class="text-muted">Mapa Ida: </small><a href="${lugar.maps_ida}" target="_blank" class="small">Abrir</a><br>`;
+                if (lugar.maps_regreso) html += `<small class="text-muted">Mapa Regreso: </small><a href="${lugar.maps_regreso}" target="_blank" class="small">Abrir</a><br>`;
+                if (lugar.fecha) html += `<small class="text-muted">Fecha: ${lugar.fecha}</small> `;
+                if (lugar.hora_salida) html += `<small class="text-muted">Hora: ${lugar.hora_salida}</small><br>`;
+                html += `<small class="text-muted">Moneda: ${lugar.moneda === 'colones' ? 'Colones (₡)' : 'Dólares ($)'}</small><br>`;
+                html += `<small class="text-muted">Precio: </small><input type="number" class="form-control form-control-sm" disabled placeholder="La persona llena esto">`;
+                html += `</div>`;
+            });
+        } else {
+            html += `<small class="text-muted">No hay lugares agregados. Agrega lugares para que las personas puedan cotizar.</small>`;
+        }
         
         html += `</div>`;
     }

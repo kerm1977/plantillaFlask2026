@@ -37,6 +37,19 @@ class Form(db.Model):
     fields = db.relationship('FormField', backref='form', lazy=True, cascade='all, delete-orphan',
                              order_by='FormField.order')
     responses = db.relationship('FormResponse', backref='form', lazy=True, cascade='all, delete-orphan')
+    cotizador_lugares = db.relationship('CotizadorLugar', backref='form', lazy=True, cascade='all, delete-orphan')
+
+class CotizadorLugar(db.Model):
+    __tablename__ = 'cotizador_lugar'
+    id = db.Column(db.Integer, primary_key=True)
+    form_id = db.Column(db.Integer, db.ForeignKey('form.id'), nullable=False)
+    nombre = db.Column(db.String(500), nullable=False)
+    maps_ida = db.Column(db.String(1000))
+    maps_regreso = db.Column(db.String(1000))
+    fecha = db.Column(db.String(20))
+    hora_salida = db.Column(db.String(10))
+    moneda = db.Column(db.String(20), default='colones')
+    order = db.Column(db.Integer, default=0)
 
 class FormField(db.Model):
     __tablename__ = 'form_field'
@@ -76,6 +89,7 @@ class FormResponse(db.Model):
     cotizador_hora_salida = db.Column(db.String(10))
     cotizador_moneda = db.Column(db.String(20), default='colones')
     cotizador_precio = db.Column(db.Float)
+    cotizador_precios_json = db.Column(db.Text)  # JSON con precios por lugar_id
     submitted_at = db.Column(db.DateTime, default=datetime.utcnow)
     score = db.Column(db.Float)
     total_questions = db.Column(db.Integer)

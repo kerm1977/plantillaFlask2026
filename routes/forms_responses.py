@@ -602,6 +602,7 @@ def api_update_response(form_id, response_id):
     resp.cotizador_hora_salida        = data.get('cotizador_hora_salida', resp.cotizador_hora_salida)
     resp.cotizador_moneda             = data.get('cotizador_moneda', resp.cotizador_moneda) or 'colones'
     resp.cotizador_precio             = float(data.get('cotizador_precio')) if data.get('cotizador_precio') else resp.cotizador_precio
+    resp.cotizador_precios_json  = json.dumps(data.get('cotizador_precios', {})) if data.get('cotizador_precios') else resp.cotizador_precios_json
     _update_response_answers(resp, answers_data, form_id)
     db.session.commit()
     return jsonify({'ok': True})
@@ -638,7 +639,8 @@ def api_get_my_response(form_id):
                     'cotizador_fecha': resp.cotizador_fecha or '',
                     'cotizador_hora_salida': resp.cotizador_hora_salida or '',
                     'cotizador_moneda': resp.cotizador_moneda or 'colones',
-                    'cotizador_precio': resp.cotizador_precio})
+                    'cotizador_precio': resp.cotizador_precio,
+                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}}
 
 
 # ── EDITAR RESPUESTA (superusuario) ─────────────────────────────────────────
@@ -673,6 +675,7 @@ def api_admin_update_response(response_id):
     resp.cotizador_hora_salida        = data.get('cotizador_hora_salida', resp.cotizador_hora_salida)
     resp.cotizador_moneda             = data.get('cotizador_moneda', resp.cotizador_moneda) or 'colones'
     resp.cotizador_precio             = float(data.get('cotizador_precio')) if data.get('cotizador_precio') else resp.cotizador_precio
+    resp.cotizador_precios_json  = json.dumps(data.get('cotizador_precios', {})) if data.get('cotizador_precios') else resp.cotizador_precios_json
     _update_response_answers(resp, answers_data, resp.form_id)
     db.session.commit()
     return jsonify({'ok': True})
@@ -705,4 +708,5 @@ def api_get_response_by_token(token):
                     'cotizador_fecha': resp.cotizador_fecha or '',
                     'cotizador_hora_salida': resp.cotizador_hora_salida or '',
                     'cotizador_moneda': resp.cotizador_moneda or 'colones',
-                    'cotizador_precio': resp.cotizador_precio})
+                    'cotizador_precio': resp.cotizador_precio,
+                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}}

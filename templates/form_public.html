@@ -14,7 +14,7 @@
             {% endif %}
 
             <form id="publicForm" onsubmit="submitForm(event)">
-                {% if form.show_nombre %}
+                {% if form.show_nombre and form.form_type != 'cotizador' %}
                 <div class="mb-3 position-relative">
                     <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="pf_nombre" required autocomplete="off" placeholder="Nombre completo...">
@@ -117,42 +117,55 @@
                 <div class="p-3 rounded-3" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">
                     <h6 class="fw-bold text-success mb-3"><i class="bi bi-currency-dollar me-1"></i>Información del Viaje</h6>
                     
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Nombre del Lugar</label>
-                        <input type="text" class="form-control" id="pf_cotizador_lugar" readonly value="{{ form.cotizador_lugar or '' }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Enlace de Google Maps (Ida)</label>
-                        <input type="url" class="form-control" id="pf_cotizador_maps_ida" readonly value="{{ form.cotizador_maps_ida or '' }}">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Enlace de Google Maps (Regreso)</label>
-                        <input type="url" class="form-control" id="pf_cotizador_maps_regreso" readonly value="{{ form.cotizador_maps_regreso or '' }}">
-                    </div>
-                    
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Fecha</label>
-                            <input type="date" class="form-control" id="pf_cotizador_fecha" readonly value="{{ form.cotizador_fecha or '' }}">
+                    <div id="cotizadorLugaresContainer">
+                        {% for lugar in form.cotizador_lugares|sort(attribute='order') %}
+                        <div class="mb-4 p-3 rounded-3" style="background:rgba(255,255,255,0.5);border:1px solid rgba(0,0,0,0.1);">
+                            <h6 class="fw-bold text-dark mb-2">{{ lugar.nombre }}</h6>
+                            
+                            {% if lugar.maps_ida %}
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold text-muted">Mapa Ida</label>
+                                <a href="{{ lugar.maps_ida }}" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill">
+                                    <i class="bi bi-map me-1"></i>Abrir en Google Maps
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            {% if lugar.maps_regreso %}
+                            <div class="mb-2">
+                                <label class="form-label small fw-semibold text-muted">Mapa Regreso</label>
+                                <a href="{{ lugar.maps_regreso }}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
+                                    <i class="bi bi-map me-1"></i>Abrir en Google Maps
+                                </a>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="row g-2">
+                                {% if lugar.fecha %}
+                                <div class="col-6">
+                                    <span class="small text-muted">Fecha:</span>
+                                    <span class="fw-semibold">{{ lugar.fecha }}</span>
+                                </div>
+                                {% endif %}
+                                {% if lugar.hora_salida %}
+                                <div class="col-6">
+                                    <span class="small text-muted">Hora Salida:</span>
+                                    <span class="fw-semibold">{{ lugar.hora_salida }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mt-2">
+                                <span class="small text-muted">Moneda:</span>
+                                <span class="fw-semibold">{{ 'Colones (₡)' if lugar.moneda == 'colones' else 'Dólares ($)' }}</span>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="cotizador_precio_{{ lugar.id }}" required placeholder="0.00" step="0.01" data-lugar-id="{{ lugar.id }}">
+                            </div>
                         </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Hora de Salida</label>
-                            <input type="time" class="form-control" id="pf_cotizador_hora_salida" readonly value="{{ form.cotizador_hora_salida or '' }}">
-                        </div>
-                    </div>
-                    
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Moneda</label>
-                            <input type="text" class="form-control" id="pf_cotizador_moneda" readonly value="{{ 'Colones (₡)' if form.cotizador_moneda == 'colones' else 'Dólares ($)' }}">
-                            <input type="hidden" id="pf_cotizador_moneda_value" value="{{ form.cotizador_moneda or 'colones' }}">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
-                            <input type="number" class="form-control" id="pf_cotizador_precio" required placeholder="0.00" step="0.01">
-                        </div>
+                        {% endfor %}
                     </div>
                 </div>
                 {% endif %}
