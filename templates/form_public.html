@@ -119,6 +119,7 @@
                     
                     <div id="cotizadorLugaresContainer">
                         {% for lugar in form.cotizador_lugares|sort(attribute='order') %}
+                        {% if lugar.nombre and (lugar.maps_ida or lugar.maps_regreso or lugar.fecha or lugar.hora_salida) %}
                         <div class="mb-4 p-3 rounded-3" style="background:rgba(255,255,255,0.5);border:1px solid rgba(0,0,0,0.1);">
                             <h6 class="fw-bold text-dark mb-2">{{ lugar.nombre }}</h6>
                             
@@ -165,6 +166,7 @@
                                 <input type="number" class="form-control" name="cotizador_precio_{{ lugar.id }}" required placeholder="0.00" step="0.01" data-lugar-id="{{ lugar.id }}">
                             </div>
                         </div>
+                        {% endif %}
                         {% endfor %}
                     </div>
                 </div>
