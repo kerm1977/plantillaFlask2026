@@ -2,6 +2,7 @@
 let currentFormId = null;
 let currentFormSlug = null;
 let fields = [];
+let cotizadorLugares = [];
 
 async function loadForms() {
     const res = await fetch('/api/forms');
@@ -13,10 +14,11 @@ async function loadForms() {
         return;
     }
     container.innerHTML = data.map(f => {
-        const accent = f.form_type === 'examen' ? '#ff8c00' : '#0d6efd';
-        const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : 'bi-clipboard-data';
-        const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
+        const accent = f.form_type === 'examen' ? '#ff8c00' : (f.form_type === 'cotizador' ? '#198754' : '#0d6efd');
+        const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : (f.form_type === 'cotizador' ? 'bi-currency-dollar' : 'bi-clipboard-data');
+        const typeLabel = f.form_type === 'examen' ? 'Examen' : (f.form_type === 'cotizador' ? 'Cotizador' : 'Registro');
         const reservedNums = (f.reservation_numbers || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+        const showReservation = f.form_type !== 'cotizador'; // No mostrar reservas en cotizador
         return `<div class="col-12 col-sm-6 col-lg-4">
             <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
                 <div class="card-body p-4 d-flex flex-column">
@@ -42,7 +44,7 @@ async function loadForms() {
                         <span class="d-flex align-items-center"><i class="bi bi-calendar3 me-2" style="color:${accent};"></i>${f.created_at}</span>
                         <span class="d-flex align-items-center"><i class="bi bi-list-check me-2" style="color:${accent};"></i>${f.fields_count} preguntas</span>
                     </div>
-                    <div class="mb-3 rounded-4 px-3 py-2" style="background:linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,140,0,0.1));border:1px solid rgba(255,140,0,0.15);">
+                    ${showReservation ? `<div class="mb-3 rounded-4 px-3 py-2" style="background:linear-gradient(135deg, rgba(255,140,0,0.05), rgba(255,140,0,0.1));border:1px solid rgba(255,140,0,0.15);">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div class="small fw-bold text-secondary"><i class="bi bi-ticket-perforated me-1" style="color:${accent};"></i>Números de reserva (${reservedNums.length})</div>
                             <div class="d-flex gap-1">
@@ -53,7 +55,7 @@ async function loadForms() {
                         <div class="d-flex flex-wrap gap-1" style="font-size:0.75rem;">
                             ${reservedNums.length ? reservedNums.map(n => `<span class="badge rounded-pill" style="background:${accent}15;color:${accent};border:1px solid ${accent}40;">${n}</span>`).join('') : '<span class="small text-muted">Sin números de reserva</span>'}
                         </div>
-                    </div>
+                    </div>` : ''}
                     <div class="rounded-4 px-3 py-2 mb-3 d-flex align-items-center justify-content-between" style="background:linear-gradient(135deg, rgba(13,110,253,0.05), rgba(13,110,253,0.1));border:1px solid rgba(13,110,253,0.15);">
                         <div class="d-flex align-items-center gap-2">
                             <i class="bi bi-link-45deg" style="color:${accent};font-size:1rem;"></i>
@@ -82,6 +84,7 @@ function backToList() {
 
 function showCreateForm() {
     currentFormId = null; currentFormSlug = null; fields = [];
+    cotizadorLugares = []; // Reset lugares al crear nuevo formulario
     document.getElementById('formName').value = '';
     document.getElementById('formType').value = 'registro';
     document.getElementById('formAllowEdit').value = 'false';
@@ -95,6 +98,7 @@ function showCreateForm() {
     document.getElementById('trigPasaporte').checked = false;
     document.getElementById('trigFechaNacimiento').checked = false;
     document.getElementById('formReservationNumbers').value = '';
+    renderCotizadorLugares(); // Renderizar lista vacía
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
@@ -144,6 +148,7 @@ async function saveForm() {
         // Lugares del cotizador
         cotizador_lugares: cotizadorLugares
     };
+    console.log('Guardando formulario con lugares:', payload.cotizador_lugares);
     let formId = currentFormId;
     if (!formId) {
         const res = await fetch('/api/forms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
@@ -159,6 +164,15 @@ async function saveForm() {
 }
 
 async function deleteForm(id) {
+    // Primera confirmación
+    if (!confirm('¿Estás seguro de que quieres eliminar este formulario?')) return;
+    
+    // Segunda confirmación
+    if (!confirm('Esta acción eliminará el formulario y TODAS sus respuestas. ¿Continuar?')) return;
+    
+    // Tercera confirmación
+    if (!confirm('ÚLTIMA ADVERTENCIA: Esta acción NO se puede deshacer. ¿Estás absolutamente seguro?')) return;
+    
     abrirModalBorrarUnificado({
         titulo: 'Borrar Formulario',
         mensaje: '¿Eliminar este formulario y todas sus respuestas?',

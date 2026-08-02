@@ -5,6 +5,7 @@ function onFormTypeChange() {
     const formType = document.getElementById('formType').value;
     const allowEdit = document.getElementById('formAllowEdit');
     const cotizadorFields = document.getElementById('cotizadorPredefinedFields');
+    const reservationSection = document.getElementById('reservationSection');
     
     if (formType === 'cotizador') {
         allowEdit.value = 'true';
@@ -17,6 +18,8 @@ function onFormTypeChange() {
         }
         // Mostrar campos predefinidos
         cotizadorFields.classList.remove('d-none');
+        // Ocultar números de reserva (no aplican a cotizador)
+        if (reservationSection) reservationSection.classList.add('d-none');
     } else {
         // Habilitar todas las opciones cuando no es cotizador
         const options = allowEdit.options;
@@ -25,6 +28,8 @@ function onFormTypeChange() {
         }
         // Ocultar campos predefinidos
         cotizadorFields.classList.add('d-none');
+        // Mostrar números de reserva
+        if (reservationSection) reservationSection.classList.remove('d-none');
     }
 }
 
@@ -222,7 +227,7 @@ function updatePreview() {
                 if (lugar.fecha) html += `<small class="text-muted">Fecha: ${lugar.fecha}</small> `;
                 if (lugar.hora_salida) html += `<small class="text-muted">Hora: ${lugar.hora_salida}</small><br>`;
                 html += `<small class="text-muted">Moneda: ${lugar.moneda === 'colones' ? 'Colones (₡)' : 'Dólares ($)'}</small><br>`;
-                html += `<small class="text-muted">Precio: </small><input type="number" class="form-control form-control-sm" disabled placeholder="La persona llena esto">`;
+                html += `<small class="text-muted">Precio: </small><input type="number" class="form-control form-control-sm" placeholder="La persona llena esto">`;
                 html += `</div>`;
             });
         } else {
