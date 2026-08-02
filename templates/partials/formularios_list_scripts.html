@@ -131,6 +131,9 @@ async function editForm(id) {
 }
 
 async function saveForm() {
+    console.log('[DEBUG FRONTEND] saveForm iniciado');
+    console.log('[DEBUG FRONTEND] cotizadorLugares actual:', cotizadorLugares);
+    console.log('[DEBUG FRONTEND] Longitud de cotizadorLugares:', cotizadorLugares.length);
     const payload = {
         name: document.getElementById('formName').value.trim() || 'Sin título',
         form_type: document.getElementById('formType').value,
@@ -148,7 +151,9 @@ async function saveForm() {
         // Lugares del cotizador
         cotizador_lugares: cotizadorLugares
     };
-    console.log('Guardando formulario con lugares:', payload.cotizador_lugares);
+    console.log('[DEBUG FRONTEND] Payload completo:', payload);
+    console.log('[DEBUG FRONTEND] Lugares a guardar:', payload.cotizador_lugares);
+    console.log('[DEBUG FRONTEND] Longitud de lugares:', payload.cotizador_lugares.length);
     let formId = currentFormId;
     if (!formId) {
         const res = await fetch('/api/forms', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});

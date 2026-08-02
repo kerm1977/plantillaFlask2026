@@ -7,6 +7,9 @@ function onFormTypeChange() {
     const cotizadorFields = document.getElementById('cotizadorPredefinedFields');
     const reservationSection = document.getElementById('reservationSection');
     
+    console.log('[DEBUG] onFormTypeChange llamado, formType:', formType);
+    console.log('[DEBUG] cotizadorLugares antes:', cotizadorLugares);
+    
     if (formType === 'cotizador') {
         allowEdit.value = 'true';
         // Deshabilitar la opción "No editable"
@@ -20,6 +23,12 @@ function onFormTypeChange() {
         cotizadorFields.classList.remove('d-none');
         // Ocultar números de reserva (no aplican a cotizador)
         if (reservationSection) reservationSection.classList.add('d-none');
+        // Inicializar cotizadorLugares si está vacío
+        if (!cotizadorLugares || cotizadorLugares.length === 0) {
+            cotizadorLugares = [];
+            console.log('[DEBUG] cotizadorLugares inicializado a array vacío');
+        }
+        renderCotizadorLugares();
     } else {
         // Habilitar todas las opciones cuando no es cotizador
         const options = allowEdit.options;
@@ -31,6 +40,7 @@ function onFormTypeChange() {
         // Mostrar números de reserva
         if (reservationSection) reservationSection.classList.remove('d-none');
     }
+    console.log('[DEBUG] cotizadorLugares después:', cotizadorLugares);
 }
 
 function addCotizadorLugar() {

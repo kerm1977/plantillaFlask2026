@@ -65,6 +65,12 @@ def api_create_form():
     if session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     data = request.get_json()
+    # Escribir logs a archivo para debug
+    with open('debug_backend.log', 'a') as f:
+        f.write(f'[DEBUG BACKEND] Payload recibido completo: {data}\n')
+        f.write(f'[DEBUG BACKEND] Keys en payload: {list(data.keys())}\n')
+    print(f'[DEBUG BACKEND] Payload recibido completo: {data}')
+    print(f'[DEBUG BACKEND] Keys en payload: {list(data.keys())}')
     name = data.get('name', 'Formulario sin título')
     form = Form(
         name=name, slug=_unique_slug(name),
@@ -87,7 +93,15 @@ def api_create_form():
     
     # Guardar lugares del cotizador
     lugares_data = data.get('cotizador_lugares', [])
+    with open('debug_backend.log', 'a') as f:
+        f.write(f'[DEBUG BACKEND] Lugares recibidos: {lugares_data}\n')
+        f.write(f'[DEBUG BACKEND] Cantidad de lugares: {len(lugares_data)}\n')
+    print(f'[DEBUG BACKEND] Lugares recibidos: {lugares_data}')
+    print(f'[DEBUG BACKEND] Cantidad de lugares: {len(lugares_data)}')
     for lugar_data in lugares_data:
+        with open('debug_backend.log', 'a') as f:
+            f.write(f'[DEBUG BACKEND] Lugar individual: {lugar_data}\n')
+        print(f'[DEBUG BACKEND] Lugar individual: {lugar_data}')
         # Solo guardar si tiene nombre (obligatorio)
         if lugar_data.get('nombre'):
             lugar = CotizadorLugar(
@@ -101,7 +115,17 @@ def api_create_form():
                 order=lugar_data.get('order', 0)
             )
             db.session.add(lugar)
+            with open('debug_backend.log', 'a') as f:
+                f.write(f'[DEBUG BACKEND] Lugar agregado a session: {lugar.nombre}\n')
+            print(f'[DEBUG BACKEND] Lugar agregado a session: {lugar.nombre}')
+        else:
+            with open('debug_backend.log', 'a') as f:
+                f.write(f'[DEBUG BACKEND] Lugar sin nombre, no se guarda: {lugar_data}\n')
+            print(f'[DEBUG BACKEND] Lugar sin nombre, no se guarda: {lugar_data}')
     db.session.commit()
+    with open('debug_backend.log', 'a') as f:
+        f.write(f'[DEBUG BACKEND] Commit realizado para formulario {form.id}\n')
+    print(f'[DEBUG BACKEND] Commit realizado para formulario {form.id}')
     
     return jsonify({'ok': True, 'id': form.id, 'slug': form.slug})
 
@@ -117,6 +141,9 @@ def api_get_form(form_id):
                           'maps_regreso': l.maps_regreso, 'fecha': l.fecha,
                           'hora_salida': l.hora_salida, 'moneda': l.moneda, 'order': l.order}
                          for l in form.cotizador_lugares.order_by(CotizadorLugar.order)]
+    print(f'[DEBUG] Cargando formulario {form_id}, lugares encontrados: {len(cotizador_lugares)}')
+    for l in cotizador_lugares:
+        print(f'[DEBUG] Lugar cargado: {l["nombre"]}')
     return jsonify({
         'id': form.id, 'name': form.name, 'slug': form.slug,
         'form_type': form.form_type, 'is_active': form.is_active,
@@ -161,6 +188,7 @@ def api_update_form(form_id):
     # Actualizar lugares del cotizador
     CotizadorLugar.query.filter_by(form_id=form_id).delete()
     lugares_data = data.get('cotizador_lugares', [])
+    print(f'[DEBUG] Actualizando {len(lugares_data)} lugares para formulario {form_id}')
     for lugar_data in lugares_data:
         # Solo guardar si tiene nombre (obligatorio)
         if lugar_data.get('nombre'):
@@ -175,6 +203,7 @@ def api_update_form(form_id):
                 order=lugar_data.get('order', 0)
             )
             db.session.add(lugar)
+            print(f'[DEBUG] Lugar actualizado: {lugar.nombre}')
     
     db.session.commit()
     return jsonify({'ok': True})
