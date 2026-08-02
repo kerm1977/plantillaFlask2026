@@ -44,7 +44,6 @@
                                     <select id="formType" class="form-select form-select-sm rounded-3" onchange="onFormTypeChange();updatePreview()">
                                         <option value="registro">Registro</option>
                                         <option value="examen">Examen</option>
-                                        <option value="cotizador">Cotizador</option>
                                     </select>
                                 </div>
                                 <div class="col-6">
@@ -116,15 +115,6 @@
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Campos predefinidos para Cotizador -->
-                        <div id="cotizadorPredefinedFields" class="mb-4 p-3 rounded-4 d-none" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">
-                            <label class="fw-semibold small text-success d-block mb-2"><i class="bi bi-currency-dollar me-1"></i>Lugares del Cotizador</label>
-                            <div id="cotizadorLugaresList" style="max-height: 35vh; overflow-y: auto;"></div>
-                            <button class="btn btn-sm btn-success rounded-pill mt-2 px-3 py-2 fw-semibold" onclick="addCotizadorLugar()">
-                                <i class="bi bi-plus-lg me-1"></i>Agregar Lugar
-                            </button>
                         </div>
 
                         <!-- Preguntas -->

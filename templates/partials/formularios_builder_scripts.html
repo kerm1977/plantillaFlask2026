@@ -1,118 +1,11 @@
 <script>
-// cotizadorLugares se declara en formularios_list_scripts.html para evitar redeclaración
-
 function onFormTypeChange() {
     const formType = document.getElementById('formType').value;
     const allowEdit = document.getElementById('formAllowEdit');
-    const cotizadorFields = document.getElementById('cotizadorPredefinedFields');
-    const reservationSection = document.getElementById('reservationSection');
     
-    console.log('[DEBUG] onFormTypeChange llamado, formType:', formType);
-    console.log('[DEBUG] cotizadorLugares antes:', cotizadorLugares);
-    
-    if (formType === 'cotizador') {
-        allowEdit.value = 'true';
-        // Deshabilitar la opción "No editable"
-        const options = allowEdit.options;
-        for (let i = 0; i < options.length; i++) {
-            if (options[i].value === 'false') {
-                options[i].disabled = true;
-            }
-        }
-        // Mostrar campos predefinidos
-        cotizadorFields.classList.remove('d-none');
-        // Ocultar números de reserva (no aplican a cotizador)
-        if (reservationSection) reservationSection.classList.add('d-none');
-        // Inicializar cotizadorLugares si está vacío
-        if (!cotizadorLugares || cotizadorLugares.length === 0) {
-            cotizadorLugares = [];
-            console.log('[DEBUG] cotizadorLugares inicializado a array vacío');
-        }
-        renderCotizadorLugares();
-    } else {
-        // Habilitar todas las opciones cuando no es cotizador
-        const options = allowEdit.options;
-        for (let i = 0; i < options.length; i++) {
-            options[i].disabled = false;
-        }
-        // Ocultar campos predefinidos
-        cotizadorFields.classList.add('d-none');
-        // Mostrar números de reserva
-        if (reservationSection) reservationSection.classList.remove('d-none');
+    if (formType === 'examen') {
+        allowEdit.value = 'false';
     }
-    console.log('[DEBUG] cotizadorLugares después:', cotizadorLugares);
-}
-
-function addCotizadorLugar() {
-    cotizadorLugares.push({
-        id: Date.now(),
-        nombre: '',
-        maps_ida: '',
-        maps_regreso: '',
-        fecha: '',
-        hora_salida: '',
-        moneda: 'colones',
-        order: cotizadorLugares.length
-    });
-    renderCotizadorLugares();
-    updatePreview();
-}
-
-function removeCotizadorLugar(index) {
-    cotizadorLugares.splice(index, 1);
-    // Reordenar
-    cotizadorLugares.forEach((l, i) => l.order = i);
-    renderCotizadorLugares();
-    updatePreview();
-}
-
-function updateCotizadorLugar(index, field, value) {
-    cotizadorLugares[index][field] = value;
-    updatePreview();
-}
-
-function renderCotizadorLugares() {
-    const container = document.getElementById('cotizadorLugaresList');
-    if (!container) return;
-    
-    if (cotizadorLugares.length === 0) {
-        container.innerHTML = '<small class="text-muted">No hay lugares agregados.</small>';
-        return;
-    }
-    
-    container.innerHTML = cotizadorLugares.map((lugar, idx) => `
-        <div class="mb-3 p-2 rounded-2" style="background:rgba(255,255,255,0.7);border:1px solid rgba(0,0,0,0.1);">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <strong class="small">Lugar #${idx + 1}</strong>
-                <button class="btn btn-sm btn-outline-danger rounded-pill py-0 px-2" onclick="removeCotizadorLugar(${idx})">
-                    <i class="bi bi-trash" style="font-size:0.7rem;"></i>
-                </button>
-            </div>
-            <div class="row g-2">
-                <div class="col-12">
-                    <input type="text" class="form-control form-control-sm" placeholder="Nombre del lugar" value="${lugar.nombre}" oninput="updateCotizadorLugar(${idx}, 'nombre', this.value)">
-                </div>
-                <div class="col-12">
-                    <input type="url" class="form-control form-control-sm" placeholder="Google Maps Ida" value="${lugar.maps_ida}" oninput="updateCotizadorLugar(${idx}, 'maps_ida', this.value)">
-                </div>
-                <div class="col-12">
-                    <input type="url" class="form-control form-control-sm" placeholder="Google Maps Regreso" value="${lugar.maps_regreso}" oninput="updateCotizadorLugar(${idx}, 'maps_regreso', this.value)">
-                </div>
-                <div class="col-6">
-                    <input type="date" class="form-control form-control-sm" value="${lugar.fecha}" oninput="updateCotizadorLugar(${idx}, 'fecha', this.value)">
-                </div>
-                <div class="col-6">
-                    <input type="time" class="form-control form-control-sm" value="${lugar.hora_salida}" oninput="updateCotizadorLugar(${idx}, 'hora_salida', this.value)">
-                </div>
-                <div class="col-6">
-                    <select class="form-select form-select-sm" onchange="updateCotizadorLugar(${idx}, 'moneda', this.value)">
-                        <option value="colones" ${lugar.moneda === 'colones' ? 'selected' : ''}>Colones (₡)</option>
-                        <option value="dolares" ${lugar.moneda === 'dolares' ? 'selected' : ''}>Dólares ($)</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-    `).join('');
 }
 
 function addField(type) {
@@ -195,7 +88,6 @@ function updatePreview() {
     let badgeClass = 'bg-info';
     let badgeText = 'Registro';
     if (formType === 'examen') { badgeClass = 'bg-warning text-dark'; badgeText = 'Examen'; }
-    else if (formType === 'cotizador') { badgeClass = 'bg-success'; badgeText = 'Cotizador'; }
     html += `<span class="badge ${badgeClass} rounded-pill mb-3">${badgeText}</span>`;
     if (!allowEdit) html += `<div class="alert alert-warning py-1 small mb-3"><i class="bi bi-exclamation-triangle me-1"></i>Una vez enviada la respuesta <strong>no podrá modificarse</strong>.</div>`;
     if (document.getElementById('trigNombre').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Nombre Completo <span class="text-danger">*</span></label><input type="text" class="form-control form-control-sm" disabled placeholder="Juan Pérez"></div>`;
@@ -221,30 +113,6 @@ function updatePreview() {
         html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Mes" min="1" max="12"></div>`;
         html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Año" min="1900" max="2025"></div>`;
         html += `</div></div>`;
-    }
-    
-    // Campos específicos para Cotizador
-    if (formType === 'cotizador') {
-        html += `<hr class="my-3"><div class="p-3 rounded-3" style="background:rgba(40,167,69,0.05);border:1px solid rgba(40,167,69,0.15);">`;
-        html += `<small class="fw-bold text-success d-block mb-3"><i class="bi bi-currency-dollar me-1"></i>Lugares del Cotizador</small>`;
-        
-        if (cotizadorLugares.length > 0) {
-            cotizadorLugares.forEach((lugar, idx) => {
-                html += `<div class="mb-3 p-2 rounded-2" style="background:rgba(255,255,255,0.5);border:1px solid rgba(0,0,0,0.1);">`;
-                html += `<strong class="small">${lugar.nombre || 'Lugar ' + (idx+1)}</strong><br>`;
-                if (lugar.maps_ida) html += `<small class="text-muted">Mapa Ida: </small><a href="${lugar.maps_ida}" target="_blank" class="small">Abrir</a><br>`;
-                if (lugar.maps_regreso) html += `<small class="text-muted">Mapa Regreso: </small><a href="${lugar.maps_regreso}" target="_blank" class="small">Abrir</a><br>`;
-                if (lugar.fecha) html += `<small class="text-muted">Fecha: ${lugar.fecha}</small> `;
-                if (lugar.hora_salida) html += `<small class="text-muted">Hora: ${lugar.hora_salida}</small><br>`;
-                html += `<small class="text-muted">Moneda: ${lugar.moneda === 'colones' ? 'Colones (₡)' : 'Dólares ($)'}</small><br>`;
-                html += `<small class="text-muted">Precio: </small><input type="number" class="form-control form-control-sm" placeholder="La persona llena esto">`;
-                html += `</div>`;
-            });
-        } else {
-            html += `<small class="text-muted">No hay lugares agregados. Agrega lugares para que las personas puedan cotizar.</small>`;
-        }
-        
-        html += `</div>`;
     }
     
     if (fields.length > 0) html += '<hr class="my-3">';

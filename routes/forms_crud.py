@@ -2,7 +2,7 @@ import re
 import json
 from flask import request, jsonify, session, render_template, redirect, url_for
 from models import Form, FormField, FormResponse
-from models_forms import ReservationConfig, CotizadorLugar
+from models_forms import ReservationConfig
 from db import db
 from routes import bp
 
@@ -65,12 +65,6 @@ def api_create_form():
     if session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     data = request.get_json()
-    # Escribir logs a archivo para debug
-    with open('debug_backend.log', 'a') as f:
-        f.write(f'[DEBUG BACKEND] Payload recibido completo: {data}\n')
-        f.write(f'[DEBUG BACKEND] Keys en payload: {list(data.keys())}\n')
-    print(f'[DEBUG BACKEND] Payload recibido completo: {data}')
-    print(f'[DEBUG BACKEND] Keys en payload: {list(data.keys())}')
     name = data.get('name', 'Formulario sin título')
     form = Form(
         name=name, slug=_unique_slug(name),
@@ -91,42 +85,6 @@ def api_create_form():
     db.session.add(form)
     db.session.commit()
     
-    # Guardar lugares del cotizador
-    lugares_data = data.get('cotizador_lugares', [])
-    with open('debug_backend.log', 'a') as f:
-        f.write(f'[DEBUG BACKEND] Lugares recibidos: {lugares_data}\n')
-        f.write(f'[DEBUG BACKEND] Cantidad de lugares: {len(lugares_data)}\n')
-    print(f'[DEBUG BACKEND] Lugares recibidos: {lugares_data}')
-    print(f'[DEBUG BACKEND] Cantidad de lugares: {len(lugares_data)}')
-    for lugar_data in lugares_data:
-        with open('debug_backend.log', 'a') as f:
-            f.write(f'[DEBUG BACKEND] Lugar individual: {lugar_data}\n')
-        print(f'[DEBUG BACKEND] Lugar individual: {lugar_data}')
-        # Solo guardar si tiene nombre (obligatorio)
-        if lugar_data.get('nombre'):
-            lugar = CotizadorLugar(
-                form_id=form.id,
-                nombre=lugar_data.get('nombre', ''),
-                maps_ida=lugar_data.get('maps_ida', ''),
-                maps_regreso=lugar_data.get('maps_regreso', ''),
-                fecha=lugar_data.get('fecha', ''),
-                hora_salida=lugar_data.get('hora_salida', ''),
-                moneda=lugar_data.get('moneda', 'colones'),
-                order=lugar_data.get('order', 0)
-            )
-            db.session.add(lugar)
-            with open('debug_backend.log', 'a') as f:
-                f.write(f'[DEBUG BACKEND] Lugar agregado a session: {lugar.nombre}\n')
-            print(f'[DEBUG BACKEND] Lugar agregado a session: {lugar.nombre}')
-        else:
-            with open('debug_backend.log', 'a') as f:
-                f.write(f'[DEBUG BACKEND] Lugar sin nombre, no se guarda: {lugar_data}\n')
-            print(f'[DEBUG BACKEND] Lugar sin nombre, no se guarda: {lugar_data}')
-    db.session.commit()
-    with open('debug_backend.log', 'a') as f:
-        f.write(f'[DEBUG BACKEND] Commit realizado para formulario {form.id}\n')
-    print(f'[DEBUG BACKEND] Commit realizado para formulario {form.id}')
-    
     return jsonify({'ok': True, 'id': form.id, 'slug': form.slug})
 
 
@@ -137,13 +95,6 @@ def api_get_form(form_id):
                 'options': json.loads(f.options) if f.options else [],
                 'order': f.order, 'correct_answer': f.correct_answer}
                for f in form.fields]
-    cotizador_lugares = [{'id': l.id, 'nombre': l.nombre, 'maps_ida': l.maps_ida,
-                          'maps_regreso': l.maps_regreso, 'fecha': l.fecha,
-                          'hora_salida': l.hora_salida, 'moneda': l.moneda, 'order': l.order}
-                         for l in form.cotizador_lugares.order_by(CotizadorLugar.order)]
-    print(f'[DEBUG] Cargando formulario {form_id}, lugares encontrados: {len(cotizador_lugares)}')
-    for l in cotizador_lugares:
-        print(f'[DEBUG] Lugar cargado: {l["nombre"]}')
     return jsonify({
         'id': form.id, 'name': form.name, 'slug': form.slug,
         'form_type': form.form_type, 'is_active': form.is_active,
@@ -155,8 +106,7 @@ def api_get_form(form_id):
         'show_telefono': form.show_telefono, 'show_ficha_medica': form.show_ficha_medica,
         'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
-        'fields': fields, 'responses_count': len(form.responses),
-        'cotizador_lugares': cotizador_lugares
+        'fields': fields, 'responses_count': len(form.responses)
     })
 
 
@@ -184,26 +134,6 @@ def api_update_form(form_id):
     form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
     form.show_pasaporte = data.get('show_pasaporte', form.show_pasaporte)
     form.show_fecha_nacimiento = data.get('show_fecha_nacimiento', form.show_fecha_nacimiento)
-    
-    # Actualizar lugares del cotizador
-    CotizadorLugar.query.filter_by(form_id=form_id).delete()
-    lugares_data = data.get('cotizador_lugares', [])
-    print(f'[DEBUG] Actualizando {len(lugares_data)} lugares para formulario {form_id}')
-    for lugar_data in lugares_data:
-        # Solo guardar si tiene nombre (obligatorio)
-        if lugar_data.get('nombre'):
-            lugar = CotizadorLugar(
-                form_id=form_id,
-                nombre=lugar_data.get('nombre', ''),
-                maps_ida=lugar_data.get('maps_ida', ''),
-                maps_regreso=lugar_data.get('maps_regreso', ''),
-                fecha=lugar_data.get('fecha', ''),
-                hora_salida=lugar_data.get('hora_salida', ''),
-                moneda=lugar_data.get('moneda', 'colones'),
-                order=lugar_data.get('order', 0)
-            )
-            db.session.add(lugar)
-            print(f'[DEBUG] Lugar actualizado: {lugar.nombre}')
     
     db.session.commit()
     return jsonify({'ok': True})

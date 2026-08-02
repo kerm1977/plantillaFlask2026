@@ -78,14 +78,7 @@ def api_get_responses(form_id):
                'reservation_number': r.reservation_number or '',
                'submitted_at': r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '',
                'score': r.score, 'total_questions': r.total_questions,
-               'answers': _build_answers_map(r, fields),
-               'cotizador_lugar': r.cotizador_lugar or '',
-               'cotizador_maps_ida': r.cotizador_maps_ida or '',
-               'cotizador_maps_regreso': r.cotizador_maps_regreso or '',
-               'cotizador_fecha': r.cotizador_fecha or '',
-               'cotizador_hora_salida': r.cotizador_hora_salida or '',
-               'cotizador_moneda': r.cotizador_moneda or 'colones',
-               'cotizador_precio': r.cotizador_precio}
+               'answers': _build_answers_map(r, fields)}
         output.append(row)
     fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type,
                     'options': json.loads(f.options) if f.options else []} for f in fields]
@@ -594,15 +587,6 @@ def api_update_response(form_id, response_id):
     resp.fecha_nacimiento_dia         = int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else resp.fecha_nacimiento_dia
     resp.fecha_nacimiento_mes         = int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else resp.fecha_nacimiento_mes
     resp.fecha_nacimiento_anio        = int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else resp.fecha_nacimiento_anio
-    # Campos de cotizador
-    resp.cotizador_lugar              = data.get('cotizador_lugar', resp.cotizador_lugar)
-    resp.cotizador_maps_ida           = data.get('cotizador_maps_ida', resp.cotizador_maps_ida)
-    resp.cotizador_maps_regreso       = data.get('cotizador_maps_regreso', resp.cotizador_maps_regreso)
-    resp.cotizador_fecha              = data.get('cotizador_fecha', resp.cotizador_fecha)
-    resp.cotizador_hora_salida        = data.get('cotizador_hora_salida', resp.cotizador_hora_salida)
-    resp.cotizador_moneda             = data.get('cotizador_moneda', resp.cotizador_moneda) or 'colones'
-    resp.cotizador_precio             = float(data.get('cotizador_precio')) if data.get('cotizador_precio') else resp.cotizador_precio
-    resp.cotizador_precios_json  = json.dumps(data.get('cotizador_precios', {})) if data.get('cotizador_precios') else resp.cotizador_precios_json
     _update_response_answers(resp, answers_data, form_id)
     db.session.commit()
     return jsonify({'ok': True})
@@ -632,15 +616,7 @@ def api_get_my_response(form_id):
                     'fecha_nacimiento_mes': resp.fecha_nacimiento_mes,
                     'fecha_nacimiento_anio': resp.fecha_nacimiento_anio,
                     'submitted_at': resp.submitted_at.strftime('%d/%m/%Y %H:%M') if resp.submitted_at else '',
-                    'answers': _build_answers_map(resp, fields),
-                    'cotizador_lugar': resp.cotizador_lugar or '',
-                    'cotizador_maps_ida': resp.cotizador_maps_ida or '',
-                    'cotizador_maps_regreso': resp.cotizador_maps_regreso or '',
-                    'cotizador_fecha': resp.cotizador_fecha or '',
-                    'cotizador_hora_salida': resp.cotizador_hora_salida or '',
-                    'cotizador_moneda': resp.cotizador_moneda or 'colones',
-                    'cotizador_precio': resp.cotizador_precio,
-                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}})
+                    'answers': _build_answers_map(resp, fields)})
 
 
 # ── EDITAR RESPUESTA (superusuario) ─────────────────────────────────────────
@@ -701,12 +677,4 @@ def api_get_response_by_token(token):
                     'fecha_nacimiento_dia': resp.fecha_nacimiento_dia,
                     'fecha_nacimiento_mes': resp.fecha_nacimiento_mes,
                     'fecha_nacimiento_anio': resp.fecha_nacimiento_anio,
-                    'answers': _build_answers_map(resp, fields),
-                    'cotizador_lugar': resp.cotizador_lugar or '',
-                    'cotizador_maps_ida': resp.cotizador_maps_ida or '',
-                    'cotizador_maps_regreso': resp.cotizador_maps_regreso or '',
-                    'cotizador_fecha': resp.cotizador_fecha or '',
-                    'cotizador_hora_salida': resp.cotizador_hora_salida or '',
-                    'cotizador_moneda': resp.cotizador_moneda or 'colones',
-                    'cotizador_precio': resp.cotizador_precio,
-                    'cotizador_precios': json.loads(resp.cotizador_precios_json) if resp.cotizador_precios_json else {}})
+                    'answers': _build_answers_map(resp, fields)})

@@ -39,23 +39,7 @@ async function loadResponseByToken(token) {
     if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
     if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
     if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
-    // Campos de cotizador
-    if (document.getElementById('pf_cotizador_lugar')) document.getElementById('pf_cotizador_lugar').value = data.cotizador_lugar || '';
-    if (document.getElementById('pf_cotizador_maps_ida')) document.getElementById('pf_cotizador_maps_ida').value = data.cotizador_maps_ida || '';
-    if (document.getElementById('pf_cotizador_maps_regreso')) document.getElementById('pf_cotizador_maps_regreso').value = data.cotizador_maps_regreso || '';
-    if (document.getElementById('pf_cotizador_fecha')) document.getElementById('pf_cotizador_fecha').value = data.cotizador_fecha || '';
-    if (document.getElementById('pf_cotizador_hora_salida')) document.getElementById('pf_cotizador_hora_salida').value = data.cotizador_hora_salida || '';
-    if (document.getElementById('pf_cotizador_moneda')) document.getElementById('pf_cotizador_moneda').value = data.cotizador_moneda || 'colones';
-    if (document.getElementById('pf_cotizador_precio') && data.cotizador_precio) document.getElementById('pf_cotizador_precio').value = data.cotizador_precio;
-    // Precios de cotizador (múltiples lugares)
-    if (data.cotizador_precios) {
-        Object.keys(data.cotizador_precios).forEach(lugarId => {
-            const input = document.querySelector(`[data-lugar-id="${lugarId}"]`);
-            if (input) {
-                input.value = data.cotizador_precios[lugarId];
-            }
-        });
-    }
+    
     for (const f of formFields) {
         const val = data.answers[String(f.id)];
         if (val === undefined || val === null) continue;
@@ -253,15 +237,6 @@ async function checkExistingResponse(nombre) {
         if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
         if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
         if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
-        // Precios de cotizador (múltiples lugares)
-        if (data.cotizador_precios) {
-            Object.keys(data.cotizador_precios).forEach(lugarId => {
-                const input = document.querySelector(`[data-lugar-id="${lugarId}"]`);
-                if (input) {
-                    input.value = data.cotizador_precios[lugarId];
-                }
-            });
-        }
         for (const f of formFields) {
             const val = data.answers[String(f.id)];
             if (val === undefined || val === null) continue;
@@ -361,17 +336,6 @@ async function submitForm(e) {
         fecha_nacimiento_dia: document.getElementById('pf_fecha_nacimiento_dia')?.value || '',
         fecha_nacimiento_mes: document.getElementById('pf_fecha_nacimiento_mes')?.value || '',
         fecha_nacimiento_anio: document.getElementById('pf_fecha_nacimiento_anio')?.value || '',
-        // Precios de cotizador (múltiples lugares)
-        cotizador_precios: (() => {
-            const precios = {};
-            document.querySelectorAll('[name^="cotizador_precio_"]').forEach(input => {
-                const lugarId = input.getAttribute('data-lugar-id');
-                if (lugarId) {
-                    precios[lugarId] = input.value;
-                }
-            });
-            return precios;
-        })(),
     };
 
     let res;
@@ -440,10 +404,6 @@ function resetForNewEntry() {
     ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono','pf_pasaporte','pf_fecha_nacimiento_dia','pf_fecha_nacimiento_mes','pf_fecha_nacimiento_anio'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
-    });
-    // Limpiar precios de cotizador (múltiples lugares)
-    document.querySelectorAll('[data-lugar-id]').forEach(input => {
-        input.value = '';
     });
     document.querySelectorAll('#dynamicFields input, #dynamicFields textarea').forEach(el => {
         if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;

@@ -59,15 +59,6 @@ def api_submit_form(form_id):
         fecha_nacimiento_dia=int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else None,
         fecha_nacimiento_mes=int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else None,
         fecha_nacimiento_anio=int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else None,
-        # Campos específicos para cotizador
-        cotizador_lugar=data.get('cotizador_lugar', '') or None,
-        cotizador_maps_ida=data.get('cotizador_maps_ida', '') or None,
-        cotizador_maps_regreso=data.get('cotizador_maps_regreso', '') or None,
-        cotizador_fecha=data.get('cotizador_fecha', '') or None,
-        cotizador_hora_salida=data.get('cotizador_hora_salida', '') or None,
-        cotizador_moneda=data.get('cotizador_moneda', 'colones') or 'colones',
-        cotizador_precio=float(data.get('cotizador_precio')) if data.get('cotizador_precio') else None,
-        cotizador_precios_json=json.dumps(data.get('cotizador_precios', {})) if data.get('cotizador_precios') else None,
     )
     # Guardar/actualizar en agenda Hiker si hay cédula y nombre
     if cedula_valor and nombre_valor:
