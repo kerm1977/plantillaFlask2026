@@ -36,7 +36,7 @@ def _get_or_create_secret_key():
 
 class Config:
     SECRET_KEY = _get_or_create_secret_key()
-    DEBUG = False  # Desactivado para producción - sesiones funcionan mejor
+    DEBUG = True  # Mantenido para estabilidad del servidor
     
     # Superusuarios
     SUPERUSER_EMAILS = os.environ.get('SUPERUSER_EMAILS', 'kenth1977@gmail.com,lthikingcr@gmail.com').split(',')
