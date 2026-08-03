@@ -52,7 +52,18 @@ function renderLugares() {
         <div class="card mb-3 p-3">
             <div class="row g-2">
                 <div class="col-12"><input class="form-control" placeholder="Nombre del lugar *" value="${l.nombre}" onchange="lugares[${i}].nombre=this.value"></div>
-                <div class="col-6"><input class="form-control" placeholder="Provincia" value="${l.provincia}" onchange="lugares[${i}].provincia=this.value"></div>
+                <div class="col-6">
+                    <select class="form-select" onchange="lugares[${i}].provincia=this.value">
+                        <option value="">Seleccionar provincia</option>
+                        <option value="San José" ${l.provincia=='San José'?'selected':''}>San José</option>
+                        <option value="Alajuela" ${l.provincia=='Alajuela'?'selected':''}>Alajuela</option>
+                        <option value="Cartago" ${l.provincia=='Cartago'?'selected':''}>Cartago</option>
+                        <option value="Heredia" ${l.provincia=='Heredia'?'selected':''}>Heredia</option>
+                        <option value="Guanacaste" ${l.provincia=='Guanacaste'?'selected':''}>Guanacaste</option>
+                        <option value="Puntarenas" ${l.provincia=='Puntarenas'?'selected':''}>Puntarenas</option>
+                        <option value="Limón" ${l.provincia=='Limón'?'selected':''}>Limón</option>
+                    </select>
+                </div>
                 <div class="col-6">
                     <select class="form-select" onchange="lugares[${i}].duracion=this.value">
                         <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
