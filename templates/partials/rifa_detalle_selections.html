@@ -31,30 +31,31 @@
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <span class="fw-bold">Total: <span class="text-orange">₡{{ data.total }}</span></span>
-                        <div>
-                            {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
-                            <button onclick="togglePayment('{{ phone }}')" 
-                                    id="payBtn_{{ phone }}"
-                                    class="btn btn-sm rounded-pill me-1 {{ 'btn-success' if data.is_paid else 'btn-outline-secondary' }}"
-                                    title="{{ 'Marcar como no pagado' if data.is_paid else 'Marcar como pagado' }}">
-                                <i class="bi bi-{{ 'cash-stack' if data.is_paid else 'cash' }}"></i>
-                            </button>
-                            {% endif %}
-                            <a href="https://wa.me/{{ data.phone | replace('+', '') }}?text={{ rifa.name }} - Números: {{ data.numbers|join(', ') }} - Total: ₡{{ data.total }}" 
-                               target="_blank" 
-                               class="btn btn-sm btn-outline-success rounded-pill me-1"
-                               title="Enviar por WhatsApp">
-                                <i class="bi bi-whatsapp"></i>
-                            </a>
-                            <button onclick="openClearModalCard('{{ data.phone }}')" class="btn btn-sm btn-outline-danger rounded-pill" title="Liberar con PIN">
-                                <i class="bi bi-x-circle"></i>
-                            </button>
-                            {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
-                            <button onclick="superClearNumbers('{{ data.phone }}')" class="btn btn-sm btn-danger rounded-pill ms-1" title="Eliminar (Admin)">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                            {% endif %}
-                        </div>
+                    </div>
+                    <hr class="my-2" style="border-color: rgba(0,0,0,0.1);">
+                    <div class="d-flex gap-2 justify-content-center flex-wrap">
+                        {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
+                        <button onclick="togglePayment('{{ phone }}')"
+                                id="payBtn_{{ phone }}"
+                                class="btn btn-sm rounded-pill {{ 'btn-success' if data.is_paid else 'btn-outline-secondary' }}"
+                                title="{{ 'Marcar como no pagado' if data.is_paid else 'Marcar como pagado' }}">
+                            <i class="bi bi-{{ 'cash-stack' if data.is_paid else 'cash' }}"></i>
+                        </button>
+                        {% endif %}
+                        <a href="https://wa.me/{{ data.phone | replace('+', '') }}?text={{ rifa.name }} - Números: {{ data.numbers|join(', ') }} - Total: ₡{{ data.total }}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-success rounded-pill"
+                           title="Enviar por WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <button onclick="openClearModalCard('{{ data.phone }}')" class="btn btn-sm btn-outline-danger rounded-pill" title="Liberar con PIN">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                        {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
+                        <button onclick="superClearNumbers('{{ phone }}')" class="btn btn-sm btn-danger rounded-pill" title="Eliminar (Admin)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
             </div>
