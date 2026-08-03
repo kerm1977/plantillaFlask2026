@@ -172,71 +172,40 @@ def _migrate_cotizador():
         conn = db.engine.raw_connection()
         cursor = conn.cursor()
         
-        # Verificar y crear tabla cotizador
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cotizador'")
-        if not cursor.fetchone():
-            cursor.execute('''
-                CREATE TABLE cotizador (
-                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    nombre VARCHAR(200) NOT NULL,
-                    slug VARCHAR(250) UNIQUE,
-                    clave_acceso VARCHAR(100) NOT NULL,
-                    fecha_creacion DATETIME
-                )
-            ''')
+        # Crear tabla cotizador si no existe
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cotizador (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                nombre VARCHAR(200) NOT NULL,
+                slug VARCHAR(250) UNIQUE,
+                clave_acceso VARCHAR(100) NOT NULL,
+                fecha_creacion DATETIME
+            )
+        ''')
         
-        # Verificar y recrear tabla cotizador_lugar si tiene estructura incorrecta
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cotizador_lugar'")
-        table_exists = cursor.fetchone()
-        
-        if table_exists:
-            # Verificar si tiene la columna cotizador_id
-            cursor.execute("PRAGMA table_info(cotizador_lugar)")
-            columns = {row[1] for row in cursor.fetchall()}
-            if 'cotizador_id' not in columns:
-                # Eliminar tabla y recrearla
-                cursor.execute("DROP TABLE cotizador_lugar")
-                cursor.execute('''
-                    CREATE TABLE cotizador_lugar (
-                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                        cotizador_id INTEGER NOT NULL,
-                        nombre VARCHAR(500) NOT NULL,
-                        provincia VARCHAR(100),
-                        duracion VARCHAR(20) DEFAULT '1_dia',
-                        fecha_ida VARCHAR(20),
-                        fecha_regreso VARCHAR(20),
-                        hora VARCHAR(10),
-                        maps_ida VARCHAR(1000),
-                        maps_regreso VARCHAR(1000),
-                        moneda VARCHAR(20) DEFAULT 'colones',
-                        precio FLOAT,
-                        order INTEGER DEFAULT 0,
-                        FOREIGN KEY (cotizador_id) REFERENCES cotizador (id)
-                    )
-                ''')
-        else:
-            # Crear tabla si no existe
-            cursor.execute('''
-                CREATE TABLE cotizador_lugar (
-                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-                    cotizador_id INTEGER NOT NULL,
-                    nombre VARCHAR(500) NOT NULL,
-                    provincia VARCHAR(100),
-                    duracion VARCHAR(20) DEFAULT '1_dia',
-                    fecha_ida VARCHAR(20),
-                    fecha_regreso VARCHAR(20),
-                    hora VARCHAR(10),
-                    maps_ida VARCHAR(1000),
-                    maps_regreso VARCHAR(1000),
-                    moneda VARCHAR(20) DEFAULT 'colones',
-                    precio FLOAT,
-                    order INTEGER DEFAULT 0,
-                    FOREIGN KEY (cotizador_id) REFERENCES cotizador (id)
-                )
-            ''')
+        # Crear tabla cotizador_lugar si no existe
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS cotizador_lugar (
+                id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                cotizador_id INTEGER NOT NULL,
+                nombre VARCHAR(500) NOT NULL,
+                provincia VARCHAR(100),
+                duracion VARCHAR(20) DEFAULT '1_dia',
+                fecha_ida VARCHAR(20),
+                fecha_regreso VARCHAR(20),
+                hora VARCHAR(10),
+                maps_ida VARCHAR(1000),
+                maps_regreso VARCHAR(1000),
+                moneda VARCHAR(20) DEFAULT 'colones',
+                precio FLOAT,
+                "order" INTEGER DEFAULT 0,
+                FOREIGN KEY (cotizador_id) REFERENCES cotizador (id)
+            )
+        ''')
         
         conn.commit()
         conn.close()
+        print("[Migration] Tablas cotizador creadas/verificadas correctamente")
     except Exception as e:
         print(f"[Migration] Error en _migrate_cotizador: {e}")
 
