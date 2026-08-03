@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 {% block title %}{{ cotizador.nombre if cotizador else 'Crear Cotizador' }} - La Tribu{% endblock %}
 {% block content %}
-<div class="container py-4" style="max-width:900px">
+<div class="container py-4" style="max-width:1200px">
     <h2 class="fw-bold text-orange mb-4">{{ cotizador.nombre if cotizador else 'Crear Cotizador' }}</h2>
     <div class="card glass-panel border-0 shadow-sm">
         <div class="card-body">
             <div class="mb-3">
                 <label class="form-label fw-semibold">Nombre del Cotizador *</label>
-                <input type="text" class="form-control" id="nombre" placeholder="Ej: Caminata Volcán Barva" value="{{ cotizador.nombre if cotizador else '' }}">
+                <input type="text" class="form-control" id="nombre" placeholder="Ej: Caminata Volcán Barva" value="{{ cotizador.nombre if cotizador else '' }}" oninput="guardarBorrador()">
             </div>
             <div class="mb-3">
                 <label class="form-label fw-semibold">Clave de Acceso *</label>
-                <input type="text" class="form-control" id="clave" placeholder="Ej: la tribu hiking" value="{{ cotizador.clave_acceso if cotizador else '' }}">
+                <input type="text" class="form-control" id="clave" placeholder="Ej: la tribu hiking" value="{{ cotizador.clave_acceso if cotizador else '' }}" oninput="guardarBorrador()">
             </div>
             <hr>
             <h5 class="fw-bold mb-3">Lugares</h5>
-            <div id="lugaresContainer"></div>
+            <div id="lugaresContainer" class="row g-3"></div>
             <button onclick="agregarLugar()" class="btn btn-outline-primary mt-2">
                 <i class="bi bi-plus-circle me-1"></i>Agregar Lugar
             </button>
@@ -28,60 +28,104 @@
                 <i class="bi bi-arrow-left me-1"></i>Cancelar
             </a>
             {% endif %}
+            {% if not cotizador %}
+            <button onclick="limpiarBorrador()" class="btn btn-outline-danger w-100 mt-2">
+                <i class="bi bi-trash me-1"></i>Limpiar Borrador
+            </button>
+            {% endif %}
         </div>
     </div>
 </div>
 <script>
 const cotizadorId = {{ cotizador.id if cotizador else 'null' }};
 let lugares = [];
+const STORAGE_KEY = 'cotizador_borrador';
+
 {% if cotizador %}
 {% for l in cotizador.lugares %}
 lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
 {% endfor %}
+{% else %}
+// Cargar borrador desde localStorage si existe
+const borrador = localStorage.getItem(STORAGE_KEY);
+if(borrador) {
+    try {
+        const data = JSON.parse(borrador);
+        if(data.nombre) document.getElementById('nombre').value = data.nombre;
+        if(data.clave) document.getElementById('clave').value = data.clave;
+        if(data.lugares && data.lugares.length > 0) {
+            lugares = data.lugares;
+        }
+    } catch(e) {
+        console.error('Error al cargar borrador:', e);
+    }
+}
 {% endif %}
+
+function guardarBorrador() {
+    if(cotizadorId) return; // No guardar borrador si estamos editando
+    const nombre = document.getElementById('nombre').value;
+    const clave = document.getElementById('clave').value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({nombre, clave, lugares}));
+}
+
+function limpiarBorrador() {
+    if(confirm('¿Estás seguro de limpiar el borrador? Se perderán todos los datos no guardados.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        document.getElementById('nombre').value = '';
+        document.getElementById('clave').value = '';
+        lugares = [];
+        renderLugares();
+    }
+}
+
 function agregarLugar() {
     lugares.push({nombre:'',provincia:'',duracion:'1_dia',fecha_ida:'',fecha_regreso:'',hora:'',maps_ida:'',maps_regreso:'',moneda:'colones',order:lugares.length});
     renderLugares();
+    guardarBorrador();
 }
 function eliminarLugar(idx) {
     lugares.splice(idx,1);
     renderLugares();
+    guardarBorrador();
 }
 function renderLugares() {
     const html = lugares.map((l,i) => `
-        <div class="card mb-3 p-3">
-            <div class="row g-2">
-                <div class="col-12"><input class="form-control" placeholder="Nombre del lugar *" value="${l.nombre}" onchange="lugares[${i}].nombre=this.value"></div>
-                <div class="col-6">
-                    <select class="form-select" onchange="lugares[${i}].provincia=this.value">
-                        <option value="">Seleccionar provincia</option>
-                        <option value="San José" ${l.provincia=='San José'?'selected':''}>San José</option>
-                        <option value="Alajuela" ${l.provincia=='Alajuela'?'selected':''}>Alajuela</option>
-                        <option value="Cartago" ${l.provincia=='Cartago'?'selected':''}>Cartago</option>
-                        <option value="Heredia" ${l.provincia=='Heredia'?'selected':''}>Heredia</option>
-                        <option value="Guanacaste" ${l.provincia=='Guanacaste'?'selected':''}>Guanacaste</option>
-                        <option value="Puntarenas" ${l.provincia=='Puntarenas'?'selected':''}>Puntarenas</option>
-                        <option value="Limón" ${l.provincia=='Limón'?'selected':''}>Limón</option>
-                    </select>
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="row g-2">
+                    <div class="col-12"><input class="form-control" placeholder="Nombre del lugar *" value="${l.nombre}" onchange="lugares[${i}].nombre=this.value;guardarBorrador()"></div>
+                    <div class="col-12">
+                        <select class="form-select" onchange="lugares[${i}].provincia=this.value;guardarBorrador()">
+                            <option value="">Seleccionar provincia</option>
+                            <option value="San José" ${l.provincia=='San José'?'selected':''}>San José</option>
+                            <option value="Alajuela" ${l.provincia=='Alajuela'?'selected':''}>Alajuela</option>
+                            <option value="Cartago" ${l.provincia=='Cartago'?'selected':''}>Cartago</option>
+                            <option value="Heredia" ${l.provincia=='Heredia'?'selected':''}>Heredia</option>
+                            <option value="Guanacaste" ${l.provincia=='Guanacaste'?'selected':''}>Guanacaste</option>
+                            <option value="Puntarenas" ${l.provincia=='Puntarenas'?'selected':''}>Puntarenas</option>
+                            <option value="Limón" ${l.provincia=='Limón'?'selected':''}>Limón</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <select class="form-select" onchange="lugares[${i}].duracion=this.value;guardarBorrador()">
+                            <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
+                            <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
+                        </select>
+                    </div>
+                    <div class="col-6"><input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value;guardarBorrador()"></div>
+                    <div class="col-6" style="display:${l.duracion=='multiples_dias'?'block':'none'}"><input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value;guardarBorrador()"></div>
+                    <div class="col-6"><input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value;guardarBorrador()"></div>
+                    <div class="col-6"><input class="form-control" placeholder="Maps Ida" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value;guardarBorrador()"></div>
+                    <div class="col-6"><input class="form-control" placeholder="Maps Regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value;guardarBorrador()"></div>
+                    <div class="col-6">
+                        <select class="form-select" onchange="lugares[${i}].moneda=this.value;guardarBorrador()">
+                            <option value="colones" ${l.moneda=='colones'?'selected':''}>Colones</option>
+                            <option value="dolares" ${l.moneda=='dolares'?'selected':''}>Dólares</option>
+                        </select>
+                    </div>
+                    <div class="col-12"><button onclick="eliminarLugar(${i})" class="btn btn-sm btn-outline-danger w-100">Eliminar</button></div>
                 </div>
-                <div class="col-6">
-                    <select class="form-select" onchange="lugares[${i}].duracion=this.value">
-                        <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
-                        <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
-                    </select>
-                </div>
-                <div class="col-6"><input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value"></div>
-                <div class="col-6" style="display:${l.duracion=='multiples_dias'?'block':'none'}"><input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value"></div>
-                <div class="col-6"><input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value"></div>
-                <div class="col-6"><input class="form-control" placeholder="Maps Ida" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value"></div>
-                <div class="col-6"><input class="form-control" placeholder="Maps Regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value"></div>
-                <div class="col-6">
-                    <select class="form-select" onchange="lugares[${i}].moneda=this.value">
-                        <option value="colones" ${l.moneda=='colones'?'selected':''}>Colones</option>
-                        <option value="dolares" ${l.moneda=='dolares'?'selected':''}>Dólares</option>
-                    </select>
-                </div>
-                <div class="col-12"><button onclick="eliminarLugar(${i})" class="btn btn-sm btn-outline-danger">Eliminar</button></div>
             </div>
         </div>
     `).join('');
@@ -100,6 +144,10 @@ async function guardarCotizador() {
     const res = await fetch(url, {method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,clave,lugares})});
     const d = await res.json();
     if(d.ok) {
+        // Limpiar borrador solo si estamos creando nuevo
+        if(!cotizadorId) {
+            localStorage.removeItem(STORAGE_KEY);
+        }
         if(cotizadorId) {
             alert('Cotizador actualizado correctamente');
             window.location.href = '/cotizadores/' + cotizadorId + '/ver';
