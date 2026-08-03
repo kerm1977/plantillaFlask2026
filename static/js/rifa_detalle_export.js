@@ -5,7 +5,8 @@
 function exportRifa(format) {
     const config = window.RIFA_CONFIG;
     if (!config) {
-        alert('Error: No hay datos de la rifa disponibles');
+        console.error('RIFA_CONFIG no está definido');
+        alert('Error: No hay datos de la rifa disponibles. Por favor recarga la página.');
         return;
     }
 
