@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function verificarClave() {
     const clave = document.getElementById('clave').value.trim();
-    const res = await fetch('/cotizador/' + slug + '/verificar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave})});
+    const res = await fetch('/cotizadores/' + slug + '/verificar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave})});
     const d = await res.json();
     if(d.ok) {
         claveGuardada = clave;
@@ -91,7 +91,7 @@ async function guardarPrecios() {
         const precio = document.getElementById('precio_' + l.id).value;
         if(precio) precios[l.id] = precio;
     });
-    const res = await fetch('/cotizador/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
+    const res = await fetch('/cotizadores/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
     const d = await res.json();
     if(d.ok) alert('Precios guardados correctamente');
     else alert(d.error || 'Error');

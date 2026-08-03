@@ -13,6 +13,18 @@
                 <label class="form-label fw-semibold">Clave de Acceso *</label>
                 <input type="text" class="form-control" id="clave" placeholder="Ej: la tribu hiking" value="{{ cotizador.clave_acceso if cotizador else '' }}" oninput="guardarBorrador()">
             </div>
+            {% if cotizador %}
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Enlace Público</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ request.host_url }}cotizadores/{{ cotizador.slug }}" readonly id="enlacePublico">
+                    <button class="btn btn-outline-primary" onclick="copiarEnlacePublico()">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Comparte este enlace para que las personas puedan ver y cotizar los lugares</small>
+            </div>
+            {% endif %}
             <hr>
             <h5 class="fw-bold mb-3">Lugares</h5>
             <div id="lugaresContainer" class="row g-3"></div>
@@ -180,6 +192,12 @@ function copiarEnlace() {
     enlace.select();
     document.execCommand('copy');
     alert('Enlace copiado al portapapeles');
+}
+function copiarEnlacePublico() {
+    const enlace = document.getElementById('enlacePublico');
+    enlace.select();
+    document.execCommand('copy');
+    alert('Enlace público copiado al portapapeles');
 }
 renderLugares();
 </script>

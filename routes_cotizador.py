@@ -154,6 +154,26 @@ def actualizar_cotizador(id):
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
+@bp.route('/cotizadores/<slug>')
+def cotizador_publico_slug(slug):
+    cotizador = Cotizador.query.filter_by(slug=slug).first_or_404()
+    lugares_serializados = []
+    for l in cotizador.lugares:
+        lugares_serializados.append({
+            'id': l.id,
+            'nombre': l.nombre,
+            'provincia': l.provincia or '',
+            'duracion': l.duracion,
+            'fecha_ida': l.fecha_ida or '',
+            'fecha_regreso': l.fecha_regreso or '',
+            'hora': l.hora or '',
+            'maps_ida': l.maps_ida or '',
+            'maps_regreso': l.maps_regreso or '',
+            'moneda': l.moneda,
+            'precio': l.precio
+        })
+    return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
+
 @bp.route('/cotizador/<slug>')
 def cotizador_publico(slug):
     cotizador = Cotizador.query.filter_by(slug=slug).first_or_404()
@@ -173,6 +193,28 @@ def cotizador_publico(slug):
             'precio': l.precio
         })
     return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
+
+@bp.route('/cotizadores/<slug>/verificar', methods=['POST'])
+def verificar_clave_slug(slug):
+    cotizador = Cotizador.query.filter_by(slug=slug).first_or_404()
+    clave = request.get_json().get('clave')
+    if clave == cotizador.clave_acceso:
+        return jsonify({'ok': True})
+    return jsonify({'error': 'Clave incorrecta'}), 401
+
+@bp.route('/cotizadores/<slug>/guardar', methods=['POST'])
+def guardar_precios_slug(slug):
+    cotizador = Cotizador.query.filter_by(slug=slug).first_or_404()
+    clave = request.get_json().get('clave')
+    if clave != cotizador.clave_acceso:
+        return jsonify({'error': 'Clave incorrecta'}), 401
+    precios = request.get_json().get('precios', {})
+    for lugar_id, precio in precios.items():
+        lugar = CotizadorLugar.query.get(int(lugar_id))
+        if lugar and lugar.cotizador_id == cotizador.id:
+            lugar.precio = float(precio) if precio else None
+    db.session.commit()
+    return jsonify({'ok': True})
 
 @bp.route('/cotizador/<slug>/verificar', methods=['POST'])
 def verificar_clave(slug):
