@@ -2,6 +2,18 @@
 // FUNCIONES DE EXPORTACIÓN DE RIFA DETALLE
 // ==========================================
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Attach event listeners to export links
+    const exportLinks = document.querySelectorAll('.export-link');
+    exportLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const format = this.getAttribute('data-format');
+            exportRifa(format);
+        });
+    });
+});
+
 function exportRifa(format) {
     const config = window.RIFA_CONFIG;
     if (!config) {
