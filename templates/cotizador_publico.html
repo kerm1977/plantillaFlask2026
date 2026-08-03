@@ -3,12 +3,47 @@
 {% block content %}
 <div class="container py-4" style="max-width:1000px">
     <h2 class="fw-bold text-orange mb-4 text-center">{{ cotizador.nombre }}</h2>
+    {% if cotizador.titulo %}
+    <h1 class="fw-bold text-center mb-3">{{ cotizador.titulo }}</h1>
+    {% endif %}
+    {% if cotizador.descripcion %}
+    <p class="text-center text-muted mb-4">{{ cotizador.descripcion }}</p>
+    {% endif %}
     
     <div id="cotizadorSection" class="d-none">
         <div id="lugaresContainer" class="row g-4 mt-2"></div>
-        <button onclick="guardarPrecios()" class="btn btn-success w-100 mt-4 py-3 fw-bold btn-lg">
-            <i class="bi bi-save me-2"></i>Guardar Precios
-        </button>
+        <div class="d-flex gap-2 mt-4">
+            <button onclick="guardarPrecios()" class="btn btn-success flex-grow-1 py-3 fw-bold btn-lg">
+                <i class="bi bi-save me-2"></i>Guardar Precios
+            </button>
+            <button onclick="exportarWhatsApp()" class="btn btn-success flex-grow-1 py-3 fw-bold btn-lg" style="background-color:#25D366;border-color:#25D366">
+                <i class="bi bi-whatsapp me-2"></i>Exportar WhatsApp
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Exportación a WhatsApp -->
+<div class="modal fade" id="whatsappModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Exportar a WhatsApp</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <textarea class="form-control" id="whatsappText" rows="15" readonly></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-success" onclick="copiarWhatsApp()">
+                    <i class="bi bi-clipboard me-1"></i>Copiar
+                </button>
+                <button type="button" class="btn btn-success" onclick="enviarWhatsApp()" style="background-color:#25D366;border-color:#25D366">
+                    <i class="bi bi-whatsapp me-1"></i>Enviar a WhatsApp
+                </button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -34,11 +69,16 @@
 <script>
 const slug = '{{ cotizador.slug }}';
 const lugaresData = {{ lugares_json|tojson|safe }};
+const cotizadorNombre = '{{ cotizador.nombre }}';
+const cotizadorTitulo = '{{ cotizador.titulo or '' }}';
+const cotizadorDescripcion = '{{ cotizador.descripcion or '' }}';
 let claveGuardada = '';
 let passwordModal;
+let whatsappModal;
 
 document.addEventListener('DOMContentLoaded', function() {
     passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
+    whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
     passwordModal.show();
 });
 
@@ -68,7 +108,7 @@ function renderLugares() {
     for(const [provincia, lugares] of Object.entries(grupos)) {
         html += `
             <div class="col-12 mb-4">
-                <h4 class="fw-bold text-orange mb-0">${provincia}</h4>
+                <h4 class="fw-bold text-orange mb-0 text-center">${provincia}</h4>
                 <hr class="mt-2 mb-3">
             </div>
         `;
@@ -111,6 +151,45 @@ async function guardarPrecios() {
     const d = await res.json();
     if(d.ok) alert('Precios guardados correctamente');
     else alert(d.error || 'Error');
+}
+function exportarWhatsApp() {
+    // Agrupar lugares por provincia
+    const grupos = {};
+    lugaresData.forEach(l => {
+        const provincia = l.provincia || 'Sin provincia';
+        if(!grupos[provincia]) grupos[provincia] = [];
+        grupos[provincia].push(l);
+    });
+    
+    let texto = '';
+    if(cotizadorTitulo) texto += `*${cotizadorTitulo}*\n\n`;
+    texto += `*${cotizadorNombre}*\n`;
+    if(cotizadorDescripcion) texto += `${cotizadorDescripcion}\n\n`;
+    
+    for(const [provincia, lugares] of Object.entries(grupos)) {
+        texto += `*${provincia}*\n`;
+        texto += '═══════════════\n';
+        lugares.forEach(l => {
+            const precio = document.getElementById('precio_' + l.id).value;
+            const moneda = l.moneda == 'colones' ? '₡' : '$';
+            texto += `📍 ${l.nombre}\n`;
+            if(precio) texto += `💰 ${moneda}${precio}\n`;
+            texto += '\n';
+        });
+    }
+    
+    document.getElementById('whatsappText').value = texto;
+    whatsappModal.show();
+}
+function copiarWhatsApp() {
+    const texto = document.getElementById('whatsappText');
+    texto.select();
+    document.execCommand('copy');
+    alert('Texto copiado al portapapeles');
+}
+function enviarWhatsApp() {
+    const texto = encodeURIComponent(document.getElementById('whatsappText').value);
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
 }
 </script>
 {% endblock %}
