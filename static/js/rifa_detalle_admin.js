@@ -8,34 +8,8 @@ async function togglePayment(phone) {
         const res = await fetch(`/api/rifas/${rifaId}/toggle-payment/${phone}`, { method: 'POST' });
         const data = await res.json();
         if (data.ok) {
-            const btn = document.getElementById(`payBtn_${phone}`);
-            const card = document.getElementById(`card_${phone}`);
-            if (data.is_paid) {
-                btn.className = 'btn btn-sm rounded-pill btn-success';
-                btn.innerHTML = '<i class="bi bi-cash-stack"></i>';
-                btn.title = 'Marcar como no pagado';
-                // Actualizar badge pequeño en lugar de overlay
-                const cardBody = card.querySelector('.card-body');
-                const headerDiv = cardBody.querySelector('.d-flex.justify-content-between');
-                let badge = headerDiv.querySelector('.badge');
-                if (!badge) {
-                    badge = document.createElement('span');
-                    badge.className = 'badge rounded-pill';
-                    badge.style.cssText = 'font-size:0.65rem;padding:0.2rem 0.5rem;background:rgba(40,167,69,0.1);color:#28a745;border:1px solid #28a745;';
-                    headerDiv.appendChild(badge);
-                }
-                badge.textContent = 'PAGADO';
-                badge.style.cssText = 'font-size:0.65rem;padding:0.2rem 0.5rem;background:rgba(40,167,69,0.1);color:#28a745;border:1px solid #28a745;';
-            } else {
-                btn.className = 'btn btn-sm rounded-pill btn-outline-secondary';
-                btn.innerHTML = '<i class="bi bi-cash"></i>';
-                btn.title = 'Marcar como pagado';
-                // Quitar badge PAGADO
-                const cardBody = card.querySelector('.card-body');
-                const headerDiv = cardBody.querySelector('.d-flex.justify-content-between');
-                const badge = headerDiv.querySelector('.badge');
-                if (badge) badge.remove();
-            }
+            // Recargar página para asegurar estado correcto desde servidor
+            window.location.reload();
         } else {
             alert(data.error || 'Error al actualizar estado de pago');
         }
