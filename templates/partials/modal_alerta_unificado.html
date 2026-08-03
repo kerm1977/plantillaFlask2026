@@ -1,0 +1,47 @@
+<!-- MODAL DE ALERTA UNIFICADO (Reemplaza alert() nativo de JS en todo el sitio) -->
+<div class="modal fade" id="modalAlertaUnificado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <div class="modal-body p-0">
+                <div id="modalAlertaUnificadoIcon" class="mb-3"><i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i></div>
+                <p id="modalAlertaUnificadoMensaje" class="fw-bold text-dark mb-4 fs-6" style="white-space:pre-wrap;"></p>
+                <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const _originalAlert = window.alert.bind(window);
+
+    window.alert = function(message) {
+        try {
+            const modalEl = document.getElementById('modalAlertaUnificado');
+            if (!modalEl || typeof bootstrap === 'undefined') {
+                _originalAlert(message);
+                return;
+            }
+
+            const msgStr = String(message);
+            const iconEl = document.getElementById('modalAlertaUnificadoIcon');
+            const msgEl = document.getElementById('modalAlertaUnificadoMensaje');
+
+            let iconHTML = '<i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i>';
+            const lower = msgStr.toLowerCase();
+            if (lower.includes('error') || lower.includes('❌') || lower.includes('incorrect') || lower.includes('no se pudo') || lower.includes('no autorizado')) {
+                iconHTML = '<i class="bi bi-x-circle-fill text-danger" style="font-size:3rem;"></i>';
+            } else if (lower.includes('✅') || lower.includes('correctamente') || lower.includes('éxito') || lower.includes('exito') || lower.includes('guardad') || lower.includes('copiad') || lower.includes('actualizad') || lower.includes('creado') || lower.includes('eliminad') || lower.includes('descargad')) {
+                iconHTML = '<i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>';
+            }
+
+            if (iconEl) iconEl.innerHTML = iconHTML;
+            if (msgEl) msgEl.textContent = msgStr;
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } catch (e) {
+            _originalAlert(message);
+        }
+    };
+})();
+</script>
