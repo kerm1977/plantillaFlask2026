@@ -26,20 +26,20 @@
 <!-- Modal de Exportación a WhatsApp -->
 <div class="modal fade" id="whatsappModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Exportar a WhatsApp</h5>
+        <div class="modal-content border-0 rounded-5 glass-panel">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-whatsapp text-success me-2"></i>Exportar a WhatsApp</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body">
-                <textarea class="form-control" id="whatsappText" rows="15" readonly></textarea>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <textarea class="form-control glass-input rounded-4" id="whatsappText" rows="15" readonly></textarea>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn btn-success" onclick="copiarWhatsApp()">
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-outline-success rounded-pill px-4 py-2 fw-bold" onclick="copiarWhatsApp()">
                     <i class="bi bi-clipboard me-1"></i>Copiar
                 </button>
-                <button type="button" class="btn btn-success" onclick="enviarWhatsApp()" style="background-color:#25D366;border-color:#25D366">
+                <button type="button" class="btn btn-success rounded-pill px-4 py-2 fw-bold" onclick="enviarWhatsApp()" style="background-color:#25D366;border-color:#25D366">
                     <i class="bi bi-whatsapp me-1"></i>Enviar a WhatsApp
                 </button>
             </div>
@@ -50,19 +50,19 @@
 <!-- Modal de Contraseña -->
 <div class="modal fade" id="passwordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Acceso Requerido</h5>
+        <div class="modal-content border-0 rounded-5 glass-panel">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-shield-lock-fill text-orange me-2"></i>Acceso Requerido</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body pt-2 px-4 pb-4">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Clave de Acceso</label>
-                    <input type="password" class="form-control form-control-lg" id="clave" placeholder="Ingresa la clave">
+                    <input type="password" class="form-control glass-input rounded-4 form-control-lg" id="clave" placeholder="Ingresa la clave">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button onclick="verificarClave()" class="btn btn-primary btn-lg w-100">Acceder</button>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button onclick="verificarClave()" class="btn btn-orange rounded-pill w-100 py-2 fw-bold btn-lg">Acceder</button>
             </div>
         </div>
     </div>
