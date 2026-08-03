@@ -131,17 +131,34 @@ function renderLugares() {
                         </select>
                     </div>
                     <div class="col-12">
+                        <label class="form-label small text-muted mb-1">Duración</label>
                         <select class="form-select" onchange="lugares[${i}].duracion=this.value;guardarBorrador()">
                             <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
                             <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
                         </select>
                     </div>
-                    <div class="col-6"><input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value;guardarBorrador()"></div>
-                    <div class="col-6" style="display:${l.duracion=='multiples_dias'?'block':'none'}"><input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value;guardarBorrador()"></div>
-                    <div class="col-6"><input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value;guardarBorrador()"></div>
-                    <div class="col-6"><input class="form-control" placeholder="Maps Ida" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value;guardarBorrador()"></div>
-                    <div class="col-6"><input class="form-control" placeholder="Maps Regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value;guardarBorrador()"></div>
                     <div class="col-6">
+                        <label class="form-label small text-muted mb-1">Fecha Ida</label>
+                        <input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value;guardarBorrador()">
+                    </div>
+                    <div class="col-6" style="display:${l.duracion=='multiples_dias'?'block':'none'}">
+                        <label class="form-label small text-muted mb-1">Fecha Regreso</label>
+                        <input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value;guardarBorrador()">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted mb-1">Hora</label>
+                        <input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value;guardarBorrador()">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted mb-1">Maps Ida</label>
+                        <input class="form-control" placeholder="Enlace Maps" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value;guardarBorrador()">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted mb-1">Maps Regreso</label>
+                        <input class="form-control" placeholder="Enlace Maps" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value;guardarBorrador()">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label small text-muted mb-1">Moneda</label>
                         <select class="form-select" onchange="lugares[${i}].moneda=this.value;guardarBorrador()">
                             <option value="colones" ${l.moneda=='colones'?'selected':''}>Colones</option>
                             <option value="dolares" ${l.moneda=='dolares'?'selected':''}>Dólares</option>
