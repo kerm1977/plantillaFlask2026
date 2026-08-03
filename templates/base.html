@@ -17,13 +17,13 @@
     <link rel="apple-touch-icon" href="/static/logo.png">
     
     <!-- SIN CDNs: Carga directa de Bootstrap Local -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=3">
     
     <!-- Carga de CSS Global, Principal y Base separado -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=3">
 
     {% include 'partials/base_styles.html' %}
 </head>
@@ -154,7 +154,16 @@
 
             <li><hr class="dropdown-divider opacity-25"></li>
 
-            <!-- Opción 7: Rifas -->
+            <!-- Opción 7: Cotizadores -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/cotizadores">
+                    <i class="bi bi-currency-dollar text-orange me-2 fs-5"></i> Cotizadores
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 8: Rifas -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/rifas">
                     <i class="bi bi-ticket-perforated text-orange me-2 fs-5"></i> Rifas

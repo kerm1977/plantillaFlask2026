@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}{{ cotizador.nombre }} - Ver Cotizador{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:1000px">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex align-items-center gap-2">
+            <h2 class="fw-bold text-orange mb-0">{{ cotizador.nombre }}</h2>
+            <a href="/cotizadores/{{ cotizador.id }}/editar" class="btn btn-sm btn-outline-warning">
+                <i class="bi bi-pencil"></i>
+            </a>
+        </div>
+        <a href="/cotizadores/lista" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+    
+    <div class="mb-3">
+        <span class="badge bg-info"><i class="bi bi-link me-1"></i>{{ cotizador.slug }}</span>
+        <span class="badge bg-secondary"><i class="bi bi-lock me-1"></i>{{ cotizador.clave_acceso }}</span>
+    </div>
+    
+    <div id="lugaresContainer" class="row g-4"></div>
+    
+    <div class="mt-4 pt-3 border-top">
+        <button onclick="eliminarCotizador()" class="btn btn-danger">
+            <i class="bi bi-trash me-2"></i>Eliminar Cotizador
+        </button>
+    </div>
+</div>
+<script>
+const cotizadorId = {{ cotizador.id }};
+const lugaresData = {{ lugares_json|tojson|safe }};
+function renderLugares() {
+    const html = lugaresData.map(l => `
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card h-100 border-0 shadow-sm" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);backdrop-filter:blur(10px);border-radius:15px;">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h6 class="fw-bold mb-0 text-truncate" title="${l.nombre}" style="flex:1">${l.nombre}</h6>
+                        <div class="ms-2">
+                            <button onclick="editarLugar(${l.id})" class="btn btn-sm btn-outline-warning me-1">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button onclick="eliminarLugar(${l.id})" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        ${l.provincia ? `<span class="badge bg-light text-dark me-1"><i class="bi bi-geo-alt-fill me-1"></i>${l.provincia}</span>` : ''}
+                        <span class="badge ${l.duracion=='1_dia'?'bg-info':'bg-warning text-dark'}">${l.duracion=='1_dia'?'1 día':'Múltiples'}</span>
+                    </div>
+                    <div class="small text-muted mb-3">
+                        <div class="mb-1"><i class="bi bi-calendar-event me-1"></i>${l.fecha_ida || 'Por definir'}</div>
+                        <div><i class="bi bi-clock me-1"></i>${l.hora || 'Por definir'}</div>
+                    </div>
+                    <div class="mb-3 d-flex gap-3">
+                        ${l.maps_ida ? `<a href="${l.maps_ida}" target="_blank" class="btn btn-sm btn-outline-primary flex-fill text-center" title="Mapa de inicio" style="border-radius:20px"><i class="bi bi-geo-alt-fill"></i> Mapa de inicio</a>` : '<span class="btn btn-sm btn-outline-primary flex-fill text-center disabled" style="border-radius:20px"><i class="bi bi-geo-alt-fill"></i> Mapa de inicio</span>'}
+                        ${l.maps_regreso ? `<a href="${l.maps_regreso}" target="_blank" class="btn btn-sm btn-outline-secondary flex-fill text-center" title="Mapa de recogida" style="border-radius:20px"><i class="bi bi-geo-alt-fill"></i> Mapa de recogida</a>` : '<span class="btn btn-sm btn-outline-secondary flex-fill text-center disabled" style="border-radius:20px"><i class="bi bi-geo-alt-fill"></i> Mapa de recogida</span>'}
+                    </div>
+                    <div class="mt-3 pt-3 border-top">
+                        <div class="input-group">
+                            <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
+                            <input type="number" class="form-control form-control-sm fw-bold" id="precio_${l.id}" value="${l.precio||''}" placeholder="Precio" readonly>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('lugaresContainer').innerHTML = html;
+}
+function editarLugar(id) {
+    const lugar = lugaresData.find(l => l.id === id);
+    const nuevoNombre = prompt('Nombre del lugar:', lugar.nombre);
+    if(nuevoNombre !== null) {
+        lugar.nombre = nuevoNombre;
+        const nuevaProvincia = prompt('Provincia:', lugar.provincia || '');
+        if(nuevaProvincia !== null) lugar.provincia = nuevaProvincia;
+        const nuevoMapsIda = prompt('Mapa Ida:', lugar.maps_ida || '');
+        if(nuevoMapsIda !== null) lugar.maps_ida = nuevoMapsIda;
+        const nuevoMapsRegreso = prompt('Mapa Regreso:', lugar.maps_regreso || '');
+        if(nuevoMapsRegreso !== null) lugar.maps_regreso = nuevoMapsRegreso;
+        const nuevaFecha = prompt('Fecha:', lugar.fecha_ida || '');
+        if(nuevaFecha !== null) lugar.fecha_ida = nuevaFecha;
+        const nuevaHora = prompt('Hora:', lugar.hora || '');
+        if(nuevaHora !== null) lugar.hora = nuevaHora;
+        guardarLugar(id);
+    }
+}
+async function guardarLugar(id) {
+    const lugar = lugaresData.find(l => l.id === id);
+    const res = await fetch('/cotizadores/lugar/' + id, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(lugar)});
+    const d = await res.json();
+    if(d.ok) renderLugares();
+    else alert(d.error || 'Error');
+}
+async function eliminarLugar(id) {
+    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
+    const res = await fetch('/cotizadores/lugar/' + id, {method:'DELETE'});
+    const d = await res.json();
+    if(d.ok) {
+        const idx = lugaresData.findIndex(l => l.id === id);
+        if(idx > -1) lugaresData.splice(idx, 1);
+        renderLugares();
+    } else {
+        alert(d.error || 'Error');
+    }
+}
+async function eliminarCotizador() {
+    if(!confirm('¿Estás seguro de eliminar este cotizador?')) return;
+    const res = await fetch('/cotizadores/{{ cotizador.id }}/eliminar', {method:'POST'});
+    const d = await res.json();
+    if(d.ok) window.location.href = '/cotizadores';
+    else alert(d.error || 'Error');
+}
+renderLugares();
+</script>
+{% endblock %}

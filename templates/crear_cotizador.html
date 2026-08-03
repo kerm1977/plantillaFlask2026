@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ cotizador.nombre if cotizador else 'Crear Cotizador' }} - La Tribu{% endblock %}
+{% block content %}
+<div class="container py-4" style="max-width:900px">
+    <h2 class="fw-bold text-orange mb-4">{{ cotizador.nombre if cotizador else 'Crear Cotizador' }}</h2>
+    <div class="card glass-panel border-0 shadow-sm">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre del Cotizador *</label>
+                <input type="text" class="form-control" id="nombre" placeholder="Ej: Caminata Volcán Barva" value="{{ cotizador.nombre if cotizador else '' }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Clave de Acceso *</label>
+                <input type="text" class="form-control" id="clave" placeholder="Ej: la tribu hiking" value="{{ cotizador.clave_acceso if cotizador else '' }}">
+            </div>
+            <hr>
+            <h5 class="fw-bold mb-3">Lugares</h5>
+            <div id="lugaresContainer"></div>
+            <button onclick="agregarLugar()" class="btn btn-outline-primary mt-2">
+                <i class="bi bi-plus-circle me-1"></i>Agregar Lugar
+            </button>
+            <hr>
+            <button onclick="guardarCotizador()" class="btn btn-primary w-100">
+                <i class="bi bi-save me-1"></i>{{ 'Actualizar Cotizador' if cotizador else 'Guardar Cotizador' }}
+            </button>
+            {% if cotizador %}
+            <a href="/cotizadores/lista" class="btn btn-outline-secondary w-100 mt-2">
+                <i class="bi bi-arrow-left me-1"></i>Cancelar
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+<script>
+const cotizadorId = {{ cotizador.id if cotizador else 'null' }};
+let lugares = [];
+{% if cotizador %}
+{% for l in cotizador.lugares %}
+lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
+{% endfor %}
+{% endif %}
+function agregarLugar() {
+    lugares.push({nombre:'',provincia:'',duracion:'1_dia',fecha_ida:'',fecha_regreso:'',hora:'',maps_ida:'',maps_regreso:'',moneda:'colones',order:lugares.length});
+    renderLugares();
+}
+function eliminarLugar(idx) {
+    lugares.splice(idx,1);
+    renderLugares();
+}
+function renderLugares() {
+    const html = lugares.map((l,i) => `
+        <div class="card mb-3 p-3">
+            <div class="row g-2">
+                <div class="col-12"><input class="form-control" placeholder="Nombre del lugar *" value="${l.nombre}" onchange="lugares[${i}].nombre=this.value"></div>
+                <div class="col-6"><input class="form-control" placeholder="Provincia" value="${l.provincia}" onchange="lugares[${i}].provincia=this.value"></div>
+                <div class="col-6">
+                    <select class="form-select" onchange="lugares[${i}].duracion=this.value">
+                        <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
+                        <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
+                    </select>
+                </div>
+                <div class="col-6"><input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value"></div>
+                <div class="col-6" style="display:${l.duracion=='multiples_dias'?'block':'none'}"><input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value"></div>
+                <div class="col-6"><input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value"></div>
+                <div class="col-6"><input class="form-control" placeholder="Maps Ida" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value"></div>
+                <div class="col-6"><input class="form-control" placeholder="Maps Regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value"></div>
+                <div class="col-6">
+                    <select class="form-select" onchange="lugares[${i}].moneda=this.value">
+                        <option value="colones" ${l.moneda=='colones'?'selected':''}>Colones</option>
+                        <option value="dolares" ${l.moneda=='dolares'?'selected':''}>Dólares</option>
+                    </select>
+                </div>
+                <div class="col-12"><button onclick="eliminarLugar(${i})" class="btn btn-sm btn-outline-danger">Eliminar</button></div>
+            </div>
+        </div>
+    `).join('');
+    document.getElementById('lugaresContainer').innerHTML = html;
+}
+async function guardarCotizador() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const clave = document.getElementById('clave').value.trim();
+    if(!nombre || !clave) return alert('Nombre y clave son obligatorios');
+    if(lugares.length===0) return alert('Agrega al menos un lugar');
+    if(!lugares.every(l=>l.nombre)) return alert('Todos los lugares deben tener nombre');
+    
+    const url = cotizadorId ? '/cotizadores/' + cotizadorId : '/cotizadores/crear';
+    const method = cotizadorId ? 'PUT' : 'POST';
+    
+    const res = await fetch(url, {method:method,headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,clave,lugares})});
+    const d = await res.json();
+    if(d.ok) {
+        if(cotizadorId) {
+            alert('Cotizador actualizado correctamente');
+            window.location.href = '/cotizadores/' + cotizadorId + '/ver';
+        } else {
+            const enlace = window.location.origin + '/cotizador/' + d.slug;
+            document.querySelector('.card-body').innerHTML = `
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="bi bi-check-circle text-success" style="font-size:4rem"></i>
+                    </div>
+                    <h3 class="fw-bold text-success mb-3">¡Cotizador Creado!</h3>
+                    <p class="mb-4">Comparte este enlace con la persona que pondrá los precios:</p>
+                    <div class="input-group mb-3" style="max-width:500px;margin:0 auto">
+                        <input type="text" class="form-control" value="${enlace}" readonly id="enlaceGenerado">
+                        <button class="btn btn-outline-primary" onclick="copiarEnlace()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <p class="small text-muted mt-3">Clave de acceso: <strong>${clave}</strong></p>
+                    <a href="/cotizadores/lista" class="btn btn-primary mt-4">
+                        <i class="bi bi-arrow-left me-2"></i>Ver Lista de Cotizadores
+                    </a>
+                </div>
+            `;
+        }
+    } else {
+        alert(d.error || 'Error');
+    }
+}
+function copiarEnlace() {
+    const enlace = document.getElementById('enlaceGenerado');
+    enlace.select();
+    document.execCommand('copy');
+    alert('Enlace copiado al portapapeles');
+}
+renderLugares();
+</script>
+{% endblock %}

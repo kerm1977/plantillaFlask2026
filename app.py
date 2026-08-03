@@ -4,9 +4,10 @@ from flask import Flask
 from config import Config
 from db import db, configure_db_uri
 from routes import bp, inject_site_content
+from routes_cotizador import bp as bp_cotizador
 from users import inject_superusers
 
-import models_core, models_forms, models_rifas, models_publicaciones  # Cargar todos los modelos
+import models_core, models_forms, models_rifas, models_publicaciones, models_cotizador  # Cargar todos los modelos
 
 def _migrate_raffle_selection():
     """Agrega columnas faltantes en raffle_selection sin borrar datos existentes."""
@@ -165,6 +166,81 @@ def _migrate_form_response_reservation_number():
         print(f"[Migration] Error en _migrate_form_response_reservation_number: {e}")
 
 
+def _migrate_cotizador():
+    """Crea tablas cotizador y cotizador_lugar si no existen."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        
+        # Verificar y crear tabla cotizador
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cotizador'")
+        if not cursor.fetchone():
+            cursor.execute('''
+                CREATE TABLE cotizador (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    nombre VARCHAR(200) NOT NULL,
+                    slug VARCHAR(250) UNIQUE,
+                    clave_acceso VARCHAR(100) NOT NULL,
+                    fecha_creacion DATETIME
+                )
+            ''')
+        
+        # Verificar y recrear tabla cotizador_lugar si tiene estructura incorrecta
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='cotizador_lugar'")
+        table_exists = cursor.fetchone()
+        
+        if table_exists:
+            # Verificar si tiene la columna cotizador_id
+            cursor.execute("PRAGMA table_info(cotizador_lugar)")
+            columns = {row[1] for row in cursor.fetchall()}
+            if 'cotizador_id' not in columns:
+                # Eliminar tabla y recrearla
+                cursor.execute("DROP TABLE cotizador_lugar")
+                cursor.execute('''
+                    CREATE TABLE cotizador_lugar (
+                        id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        cotizador_id INTEGER NOT NULL,
+                        nombre VARCHAR(500) NOT NULL,
+                        provincia VARCHAR(100),
+                        duracion VARCHAR(20) DEFAULT '1_dia',
+                        fecha_ida VARCHAR(20),
+                        fecha_regreso VARCHAR(20),
+                        hora VARCHAR(10),
+                        maps_ida VARCHAR(1000),
+                        maps_regreso VARCHAR(1000),
+                        moneda VARCHAR(20) DEFAULT 'colones',
+                        precio FLOAT,
+                        order INTEGER DEFAULT 0,
+                        FOREIGN KEY (cotizador_id) REFERENCES cotizador (id)
+                    )
+                ''')
+        else:
+            # Crear tabla si no existe
+            cursor.execute('''
+                CREATE TABLE cotizador_lugar (
+                    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                    cotizador_id INTEGER NOT NULL,
+                    nombre VARCHAR(500) NOT NULL,
+                    provincia VARCHAR(100),
+                    duracion VARCHAR(20) DEFAULT '1_dia',
+                    fecha_ida VARCHAR(20),
+                    fecha_regreso VARCHAR(20),
+                    hora VARCHAR(10),
+                    maps_ida VARCHAR(1000),
+                    maps_regreso VARCHAR(1000),
+                    moneda VARCHAR(20) DEFAULT 'colones',
+                    precio FLOAT,
+                    order INTEGER DEFAULT 0,
+                    FOREIGN KEY (cotizador_id) REFERENCES cotizador (id)
+                )
+            ''')
+        
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_cotizador: {e}")
+
+
 def _migrate_event_date_changes():
     """Crea tabla event_date_change si no existe."""
     try:
@@ -205,6 +281,7 @@ def create_app():
     
     # Registrar las rutas
     app.register_blueprint(bp)
+    app.register_blueprint(bp_cotizador)
 
 
     # Crear tablas e inyectar usuarios dentro del contexto de la aplicación
@@ -226,6 +303,8 @@ def create_app():
         _migrate_hiker_pasaporte()
         # Migración: reservation_number en form_response
         _migrate_form_response_reservation_number()
+        # Migración: tablas cotizador
+        _migrate_cotizador()
         # Migración: historial de cambios de fechas de eventos
         _migrate_event_date_changes()
         
