@@ -33,6 +33,12 @@ def crear_cotizador():
         return redirect(url_for('main.home'))
     return redirect(url_for('cotizador.listar_cotizadores'))
 
+@bp.route('/cotizadores/arte')
+def arte_cotizacion():
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    return render_template('arte_cotizacion.html')
+
 @bp.route('/cotizadores/lista')
 def listar_cotizadores():
     if session.get('role') != 'Superusuario':

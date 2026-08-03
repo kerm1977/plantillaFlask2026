@@ -1,0 +1,327 @@
+<!-- Vista: arte_cotizacion.html -->
+{% extends "base.html" %}
+
+{% block title %}Arte de Cotizaciones - La Tribu{% endblock %}
+
+{% block content %}
+<!-- Librería para capturar el Flyer -->
+<script src="{{ url_for('static', filename='js/html2canvas.js') }}"></script>
+
+<div class="container py-4 mb-5 pb-5">
+    <div class="row g-4">
+        
+        <!-- PANEL DE HERRAMIENTAS (EDITOR) -->
+        <div class="col-lg-4">
+            <div class="editor-tools p-4 shadow-sm h-100">
+                <h4 class="fw-bold mb-4 text-dark"><i class="bi bi-sliders text-orange me-2"></i>Herramientas</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Provincia (Filtro)</label>
+                    <select id="filtroProvincia" class="form-select bg-white border-0 shadow-sm" onchange="renderizarCotizacion()">
+                        <option value="Todas">Todas las Provincias</option>
+                        <option value="San José">San José</option>
+                        <option value="Alajuela">Alajuela</option>
+                        <option value="Cartago">Cartago</option>
+                        <option value="Heredia">Heredia</option>
+                        <option value="Guanacaste">Guanacaste</option>
+                        <option value="Puntarenas">Puntarenas</option>
+                        <option value="Limón">Limón</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold text-dark small">Título del Flyer</label>
+                    <input type="text" id="inputTitulo" class="form-control bg-white border-0 shadow-sm" value="COTIZADOR DE AVENTURAS" oninput="actualizarTextos()">
+                </div>
+
+                <hr class="my-4 opacity-25">
+
+                <!-- CONTROLES DE IMAGEN -->
+                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-image text-orange me-2"></i>Fondo del Flyer</h6>
+                
+                <div class="mb-3">
+                    <input type="file" id="bgImageUpload" class="form-control form-control-sm bg-white border-0 shadow-sm" accept="image/*">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Escala</span> <span id="valScale">1.0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderScale" min="0.5" max="3" step="0.1" value="1">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Horizontal (X)</span> <span id="valX">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderX" min="-1000" max="1000" step="10" value="0">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label text-dark small mb-0 d-flex justify-content-between">
+                        <span>Posición Vertical (Y)</span> <span id="valY">0</span>
+                    </label>
+                    <input type="range" class="form-range" id="sliderY" min="-1000" max="1000" step="10" value="0">
+                </div>
+
+                <button onclick="descargarArte()" class="btn btn-primary w-100 fw-bold rounded-pill shadow-sm py-2">
+                    <i class="bi bi-download me-2"></i>Descargar 16:9
+                </button>
+            </div>
+        </div>
+
+        <!-- ÁREA DEL LIENZO -->
+        <div class="col-lg-8">
+            <div id="flyer-wrapper">
+                <div id="lienzo-16-9">
+                    <!-- Imagen de fondo controlada por el editor -->
+                    <img id="flyer-bg-img" src="{{ url_for('static', filename='default_bg.jpg') }}" onerror="this.src='https://images.unsplash.com/photo-1518182170546-076616fdfaaf?q=80&w=1920&auto=format&fit=crop'">
+                    <div class="overlay-oscuro"></div>
+
+                    <div class="cotizacion-contenido">
+                        <!-- Cabecera -->
+                        <div class="text-center mb-5">
+                            <h1 id="flyer-titulo" class="display-3 fw-black text-white text-uppercase" style="font-weight: 900; letter-spacing: 3px; text-shadow: 2px 4px 10px rgba(0,0,0,0.5);">
+                                COTIZADOR DE AVENTURAS
+                            </h1>
+                            <p id="flyer-subtitulo" class="fs-2 text-orange fw-bold mt-2" style="text-shadow: 1px 2px 5px rgba(0,0,0,0.5);">Todas las Provincias</p>
+                        </div>
+
+                        <!-- Grilla de Lugares (Inyectada por JS) -->
+                        <div id="grid-lugares" class="row g-4 flex-grow-1">
+                            <!-- JS inserta las tarjetas aquí -->
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="mt-4 text-center">
+                            <div class="d-inline-block px-5 py-3 rounded-pill" style="background: var(--primary-orange); color: var(--bg-darker);">
+                                <h3 class="fw-bold mb-0 m-0"><i class="bi bi-whatsapp me-2"></i>Reservas: 8622-7500 | www.latribu.top</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+#lienzo-16-9 {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+}
+
+#flyer-bg-img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.overlay-oscuro {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.5) 100%);
+    z-index: 1;
+}
+
+.cotizacion-contenido {
+    position: relative;
+    z-index: 2;
+    padding: 40px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.lugar-card {
+    background: rgba(255,255,255,0.95);
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    backdrop-filter: blur(10px);
+}
+
+.lugar-card h5 {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.lugar-card .precio {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--primary-orange);
+}
+
+.lugar-card .provincia {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.editor-tools {
+    background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+</style>
+
+<script>
+let cotizacionesData = [];
+let cotizadorInfo = {};
+
+// Cargar datos del cotizador
+async function cargarCotizacion() {
+    try {
+        const res = await fetch('/cotizadores/lista');
+        const text = await res.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, 'text/html');
+        
+        // Extraer datos del cotizador desde el HTML
+        const nombreElement = doc.getElementById('nombre');
+        const tituloElement = doc.getElementById('titulo');
+        const descripcionElement = doc.getElementById('descripcion');
+        
+        if(nombreElement) {
+            cotizadorInfo.nombre = nombreElement.value;
+            cotizadorInfo.titulo = tituloElement ? tituloElement.value : '';
+            cotizadorInfo.descripcion = descripcionElement ? descripcionElement.value : '';
+        }
+        
+        // Actualizar título si existe
+        if(cotizadorInfo.titulo) {
+            document.getElementById('inputTitulo').value = cotizadorInfo.titulo;
+            actualizarTextos();
+        }
+        
+        // Extraer lugares del script embedded
+        const scriptElements = doc.querySelectorAll('script');
+        scriptElements.forEach(script => {
+            const content = script.textContent;
+            if(content.includes('lugares.push')) {
+                // Parsear los lugares del script
+                const matches = content.matchAll(/lugares\.push\(\{([^}]+)\}\)/g);
+                cotizacionesData = [];
+                for(const match of matches) {
+                    try {
+                        const lugarStr = '{' + match[1] + '}';
+                        const lugar = eval('(' + lugarStr + ')');
+                        cotizacionesData.push(lugar);
+                    } catch(e) {
+                        console.error('Error parsing lugar:', e);
+                    }
+                }
+            }
+        });
+        
+        renderizarCotizacion();
+        
+    } catch(e) {
+        console.error('Error cargando cotización:', e);
+        renderizarCotizacion();
+    }
+}
+
+function renderizarCotizacion() {
+    const filtro = document.getElementById('filtroProvincia').value;
+    const subtitulo = filtro === 'Todas' ? 'Todas las Provincias' : filtro;
+    document.getElementById('flyer-subtitulo').textContent = subtitulo;
+    
+    // Usar datos reales del cotizador o datos de ejemplo
+    const lugares = cotizacionesData.length > 0 ? cotizacionesData : [
+        {nombre: 'Volcán Barva', provincia: 'Heredia', precio: 15000, moneda: 'colones'},
+        {nombre: 'Cerro Chiripó', provincia: 'Cartago', precio: 20000, moneda: 'colones'},
+        {nombre: 'Playa Manuel Antonio', provincia: 'Puntarenas', precio: 25000, moneda: 'colones'},
+        {nombre: 'Volcán Arenal', provincia: 'Alajuela', precio: 18000, moneda: 'colones'},
+        {nombre: 'Monteverde', provincia: 'Puntarenas', precio: 22000, moneda: 'colones'},
+        {nombre: 'Irazú', provincia: 'Cartago', precio: 12000, moneda: 'colones'}
+    ];
+    
+    const lugaresFiltrados = filtro === 'Todas' ? lugares : lugares.filter(l => l.provincia === filtro);
+    
+    const html = lugaresFiltrados.map(l => {
+        const moneda = l.moneda || 'colones';
+        const precio = l.precio || 0;
+        return `
+        <div class="col-6 col-md-4">
+            <div class="lugar-card">
+                <div class="provincia">${l.provincia || 'Sin provincia'}</div>
+                <h5>${l.nombre}</h5>
+                <div class="precio">${moneda === 'colones' ? '₡' : '$'}${precio.toLocaleString()}</div>
+            </div>
+        </div>
+    `;
+    }).join('');
+    
+    document.getElementById('grid-lugares').innerHTML = html;
+}
+
+function actualizarTextos() {
+    const titulo = document.getElementById('inputTitulo').value;
+    document.getElementById('flyer-titulo').textContent = titulo;
+}
+
+// Controles de imagen
+document.getElementById('bgImageUpload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('flyer-bg-img').src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById('sliderScale').addEventListener('input', function(e) {
+    const scale = e.target.value;
+    document.getElementById('valScale').textContent = scale;
+    document.getElementById('flyer-bg-img').style.transform = `scale(${scale}) translateX(${document.getElementById('sliderX').value}px) translateY(${document.getElementById('sliderY').value}px)`;
+});
+
+document.getElementById('sliderX').addEventListener('input', function(e) {
+    const x = e.target.value;
+    document.getElementById('valX').textContent = x;
+    const scale = document.getElementById('sliderScale').value;
+    document.getElementById('flyer-bg-img').style.transform = `scale(${scale}) translateX(${x}px) translateY(${document.getElementById('sliderY').value}px)`;
+});
+
+document.getElementById('sliderY').addEventListener('input', function(e) {
+    const y = e.target.value;
+    document.getElementById('valY').textContent = y;
+    const scale = document.getElementById('sliderScale').value;
+    document.getElementById('flyer-bg-img').style.transform = `scale(${scale}) translateX(${document.getElementById('sliderX').value}px) translateY(${y}px)`;
+});
+
+function descargarArte() {
+    const lienzo = document.getElementById('lienzo-16-9');
+    html2canvas(lienzo, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+    }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'arte-cotizacion.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    });
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    cargarCotizacion();
+});
+</script>
+{% endblock %}
