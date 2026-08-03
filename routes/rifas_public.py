@@ -63,6 +63,53 @@ def rifa_detalle(raffle_id):
                            winners_info=winners_info, grouped_selections=grouped_selections)
 
 
+# ── API: EXPORT DATA ─────────────────────────────────────────────────────────
+
+@bp.route('/api/rifas/<int:raffle_id>/export-data', methods=['GET'])
+def get_rifa_export_data(raffle_id):
+    rifa = Raffle.query.get_or_404(raffle_id)
+    selections = RaffleSelection.query.filter_by(raffle_id=raffle_id).all()
+    
+    # Group selections by phone
+    grouped = {}
+    for s in selections:
+        key = s.customer_phone
+        display_name = s.customer_name if s.customer_name else 'Sin nombre'
+        if key not in grouped:
+            grouped[key] = {'name': display_name, 'phone': s.customer_phone, 'items': []}
+        grouped[key]['items'].append(s)
+    
+    grouped_selections = {}
+    for key, g in grouped.items():
+        numbers = [s.number for s in g['items']]
+        total = sum(rifa.price for s in g['items'] if not s.is_canceled)
+        is_paid = all(s.is_paid for s in g['items'])
+        is_canceled = any(s.is_canceled for s in g['items'])
+        grouped_selections[key] = {
+            'name': g['name'],
+            'phone': g['phone'],
+            'numbers': numbers,
+            'total': total,
+            'is_paid': is_paid,
+            'is_canceled': is_canceled
+        }
+    
+    return jsonify({
+        'id': rifa.id,
+        'price': rifa.price,
+        'name': rifa.name,
+        'raffle_number': rifa.raffle_number,
+        'detail': rifa.detail,
+        'prize': rifa.prize,
+        'raffle_date': rifa.raffle_date.strftime('%d/%m/%Y') if rifa.raffle_date else '',
+        'raffle_time': rifa.raffle_time if rifa.raffle_time else '',
+        'sinpe_name': rifa.sinpe_name_default if rifa.sinpe_name_default else '',
+        'sinpe_phone': rifa.sinpe_phone_default if rifa.sinpe_phone_default else '',
+        'total_sold': len([s for s in selections if not s.is_canceled]),
+        'selections': grouped_selections
+    })
+
+
 # ── VISTA PÚBLICA: LISTA ─────────────────────────────────────────────────────
 
 @bp.route('/rifas')

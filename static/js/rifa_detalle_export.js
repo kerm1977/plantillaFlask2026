@@ -14,26 +14,35 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function exportRifa(format) {
-    const config = window.RIFA_CONFIG;
-    if (!config) {
-        console.error('RIFA_CONFIG no está definido');
-        alert('Error: No hay datos de la rifa disponibles. Por favor recarga la página.');
-        return;
-    }
-
-    switch(format) {
-        case 'whatsapp':
-            exportToWhatsApp(config);
-            break;
-        case 'txt':
-            exportToTXT(config);
-            break;
-        case 'pdf':
-            exportToPDF(config);
-            break;
-        default:
-            alert('Formato no soportado');
+async function exportRifa(format) {
+    try {
+        // Get raffle ID from URL
+        const pathParts = window.location.pathname.split('/');
+        const raffleId = pathParts[pathParts.length - 1];
+        
+        // Fetch data from API
+        const response = await fetch(`/api/rifas/${raffleId}/export-data`);
+        if (!response.ok) {
+            throw new Error('Error al obtener datos de la rifa');
+        }
+        const config = await response.json();
+        
+        switch(format) {
+            case 'whatsapp':
+                exportToWhatsApp(config);
+                break;
+            case 'txt':
+                exportToTXT(config);
+                break;
+            case 'pdf':
+                exportToPDF(config);
+                break;
+            default:
+                alert('Formato no soportado');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error: No se pudieron obtener los datos de la rifa. Por favor recarga la página.');
     }
 }
 

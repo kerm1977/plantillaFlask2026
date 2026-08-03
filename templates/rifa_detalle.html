@@ -1,22 +1,6 @@
 {% extends "base.html" %}
 
 {% block content %}
-<script>
-window.RIFA_CONFIG = {
-    id: {{ rifa.id }},
-    price: {{ rifa.price }},
-    name: {{ rifa.name | tojson | safe }},
-    raffle_number: {{ rifa.raffle_number }},
-    detail: {{ rifa.detail | tojson | safe }},
-    prize: {{ rifa.prize | tojson | safe }},
-    raffle_date: {{ (rifa.raffle_date.strftime('%d/%m/%Y') if rifa.raffle_date else '') | tojson | safe }},
-    raffle_time: {{ (rifa.raffle_time if rifa.raffle_time else '') | tojson | safe }},
-    sinpe_name: {{ (rifa.sinpe_name_default if rifa.sinpe_name_default else '') | tojson | safe }},
-    sinpe_phone: {{ (rifa.sinpe_phone_default if rifa.sinpe_phone_default else '') | tojson | safe }},
-    total_sold: {{ selected_numbers|length }},
-    selections: {{ grouped_selections | tojson | safe }}
-};
-</script>
 <div class="container mt-4">
     <div class="glass-panel rounded-5 p-4">
         <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
