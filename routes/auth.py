@@ -26,6 +26,7 @@ def login():
         session['user_id'] = user.id
         session['role'] = user.role
         session['avatar'] = user.avatar or 'default.png'
+        session.permanent = True  # Activar sesión permanente de 24 horas
         return jsonify({'success': True})
     return jsonify({'error': 'Credenciales inválidas'}), 401
 

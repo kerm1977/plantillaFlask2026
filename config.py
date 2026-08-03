@@ -1,5 +1,6 @@
 import os
 import secrets
+from datetime import timedelta
 
 
 def _get_or_create_secret_key():
@@ -35,7 +36,7 @@ def _get_or_create_secret_key():
 
 class Config:
     SECRET_KEY = _get_or_create_secret_key()
-    DEBUG = True  # Temporalmente activado para forzar recarga de templates
+    DEBUG = False  # Desactivado para producción - sesiones funcionan mejor
     
     # Superusuarios
     SUPERUSER_EMAILS = os.environ.get('SUPERUSER_EMAILS', 'kenth1977@gmail.com,lthikingcr@gmail.com').split(',')
@@ -51,3 +52,6 @@ class Config:
     SESSION_COOKIE_SECURE = not DEBUG
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    
+    # Sesión permanente de 24 horas
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=24)
