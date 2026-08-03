@@ -179,9 +179,19 @@ def _migrate_cotizador():
                 nombre VARCHAR(200) NOT NULL,
                 slug VARCHAR(250) UNIQUE,
                 clave_acceso VARCHAR(100) NOT NULL,
+                titulo VARCHAR(500),
+                descripcion TEXT,
                 fecha_creacion DATETIME
             )
         ''')
+        
+        # Agregar columnas titulo y descripcion si no existen
+        cursor.execute("PRAGMA table_info(cotizador)")
+        columns = [column[1] for column in cursor.fetchall()]
+        if 'titulo' not in columns:
+            cursor.execute("ALTER TABLE cotizador ADD COLUMN titulo VARCHAR(500)")
+        if 'descripcion' not in columns:
+            cursor.execute("ALTER TABLE cotizador ADD COLUMN descripcion TEXT")
         
         # Crear tabla cotizador_lugar si no existe
         cursor.execute('''

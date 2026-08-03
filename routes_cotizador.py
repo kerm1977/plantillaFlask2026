@@ -107,9 +107,15 @@ def actualizar_cotizador(id):
     data = request.get_json()
     
     try:
+        if data.get('titulo'):
+            cotizador.titulo = data.get('titulo')
+        
         if data.get('nombre'):
             cotizador.nombre = data.get('nombre')
             cotizador.slug = _unique_slug(data.get('nombre'), exclude_id=id)
+        
+        if data.get('descripcion'):
+            cotizador.descripcion = data.get('descripcion')
         
         if data.get('clave'):
             cotizador.clave_acceso = data.get('clave')

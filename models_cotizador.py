@@ -7,6 +7,8 @@ class Cotizador(db.Model):
     nombre = db.Column(db.String(200), nullable=False)
     slug = db.Column(db.String(250), unique=True)
     clave_acceso = db.Column(db.String(100), nullable=False)
+    titulo = db.Column(db.String(500))
+    descripcion = db.Column(db.Text)
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     lugares = db.relationship('CotizadorLugar', backref='cotizador', lazy=True, cascade='all, delete-orphan')
 
