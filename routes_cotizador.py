@@ -31,6 +31,10 @@ def _unique_slug(text, exclude_id=None):
 def crear_cotizador():
     if session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
+    # Si ya existe un cotizador, redirigir a editar el existente
+    cotizador_existente = Cotizador.query.first()
+    if cotizador_existente:
+        return redirect(url_for('cotizador.editar_cotizador', id=cotizador_existente.id))
     return render_template('crear_cotizador.html', cotizador=None)
 
 @bp.route('/cotizadores/lista')
@@ -45,6 +49,11 @@ def guardar_cotizador():
     if session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
     try:
+        # Verificar si ya existe un cotizador
+        cotizador_existente = Cotizador.query.first()
+        if cotizador_existente:
+            return jsonify({'error': 'Ya existe un cotizador global. Solo se puede editar el existente.'}), 400
+        
         data = request.get_json()
         print(f"[DEBUG] Datos recibidos: {data}")
         

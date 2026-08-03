@@ -86,6 +86,9 @@ function agregarLugar() {
     guardarBorrador();
 }
 function eliminarLugar(idx) {
+    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
+    if(!confirm('¿Realmente quieres eliminar este lugar? Esta acción no se puede deshacer.')) return;
+    if(!confirm('Última confirmación: ¿Estás 100% seguro de eliminar este lugar?')) return;
     lugares.splice(idx,1);
     renderLugares();
     guardarBorrador();
