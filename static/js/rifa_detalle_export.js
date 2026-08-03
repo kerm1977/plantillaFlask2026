@@ -15,34 +15,48 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function exportRifa(format) {
-    try {
-        // Get raffle ID from URL
-        const pathParts = window.location.pathname.split('/');
-        const raffleId = pathParts[pathParts.length - 1];
-        
-        // Fetch data from API
-        const response = await fetch(`/api/rifas/${raffleId}/export-data`);
-        if (!response.ok) {
-            throw new Error('Error al obtener datos de la rifa');
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    while (retryCount < maxRetries) {
+        try {
+            // Get raffle ID from URL
+            const pathParts = window.location.pathname.split('/');
+            const raffleId = pathParts[pathParts.length - 1];
+            
+            // Fetch data from API
+            const response = await fetch(`/api/rifas/${raffleId}/export-data`);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const config = await response.json();
+            
+            switch(format) {
+                case 'whatsapp':
+                    exportToWhatsApp(config);
+                    break;
+                case 'txt':
+                    exportToTXT(config);
+                    break;
+                case 'pdf':
+                    exportToPDF(config);
+                    break;
+                default:
+                    alert('Formato no soportado');
+            }
+            return; // Success, exit function
+        } catch (error) {
+            retryCount++;
+            console.error(`Intento ${retryCount}/${maxRetries} falló:`, error);
+            
+            if (retryCount >= maxRetries) {
+                alert('Error: No se pudieron obtener los datos de la rifa después de varios intentos. Por favor recarga la página.');
+                return;
+            }
+            
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         }
-        const config = await response.json();
-        
-        switch(format) {
-            case 'whatsapp':
-                exportToWhatsApp(config);
-                break;
-            case 'txt':
-                exportToTXT(config);
-                break;
-            case 'pdf':
-                exportToPDF(config);
-                break;
-            default:
-                alert('Formato no soportado');
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        alert('Error: No se pudieron obtener los datos de la rifa. Por favor recarga la página.');
     }
 }
 
