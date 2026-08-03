@@ -5,64 +5,144 @@
     <div class="mb-4">
         <h2 class="fw-bold text-orange">Configuración de Cotizador</h2>
     </div>
-    <div class="row">
-        {% for cot in cotizadores %}
-        <div class="col-12 col-md-6 col-lg-4 mb-3">
-            <div class="card glass-panel border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted fw-bold">Nombre del Cotizador</label>
-                        <input type="text" class="form-control" value="{{ cot.nombre }}" id="nombre-{{ cot.id }}">
+    {% if cotizadores %}
+    <div class="card glass-panel border-0 shadow-sm">
+        <div class="card-body">
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Nombre del Cotizador *</label>
+                <input type="text" class="form-control" id="nombre" value="{{ cotizadores[0].nombre }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Clave de Acceso *</label>
+                <input type="text" class="form-control" id="clave" value="{{ cotizadores[0].clave_acceso }}">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Enlace Público</label>
+                <div class="input-group">
+                    <input type="text" class="form-control" value="{{ request.host_url }}cotizadores/{{ cotizadores[0].slug }}" readonly id="enlacePublico">
+                    <button class="btn btn-outline-primary" onclick="copiarEnlacePublico()">
+                        <i class="bi bi-clipboard"></i>
+                    </button>
+                </div>
+                <small class="text-muted">Comparte este enlace para que las personas puedan ver y cotizar los lugares</small>
+            </div>
+            <hr>
+            <h5 class="fw-bold mb-3">Lugares</h5>
+            <div id="lugaresContainer" class="row g-3"></div>
+            <button onclick="agregarLugar()" class="btn btn-outline-primary mt-2">
+                <i class="bi bi-plus-circle me-1"></i>Agregar Lugar
+            </button>
+            <hr>
+            <button onclick="guardarCotizador()" class="btn btn-primary w-100">
+                <i class="bi bi-save me-1"></i>Guardar Cambios
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <h5 class="alert-heading">No hay cotizador configurado</h5>
+        <p class="mb-0">Crea el primer cotizador para comenzar a agregar lugares.</p>
+        <a href="/cotizadores" class="btn btn-primary mt-3">
+            <i class="bi bi-plus-circle me-1"></i>Crear Cotizador
+        </a>
+    </div>
+    {% endif %}
+</div>
+<script>
+const cotizadorId = {{ cotizadores[0].id if cotizadores else 'null' }};
+let lugares = [];
+const STORAGE_KEY = 'cotizador_borrador';
+
+{% if cotizadores %}
+{% for l in cotizadores[0].lugares %}
+lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
+{% endfor %}
+{% endif %}
+
+function agregarLugar() {
+    lugares.push({nombre:'',provincia:'',duracion:'1_dia',fecha_ida:'',fecha_regreso:'',hora:'',maps_ida:'',maps_regreso:'',moneda:'colones',order:lugares.length});
+    renderLugares();
+}
+function eliminarLugar(idx) {
+    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
+    if(!confirm('¿Realmente quieres eliminar este lugar? Esta acción no se puede deshacer.')) return;
+    if(!confirm('Última confirmación: ¿Estás 100% seguro de eliminar este lugar?')) return;
+    lugares.splice(idx,1);
+    renderLugares();
+}
+function renderLugares() {
+    const html = lugares.map((l,i) => `
+        <div class="col-12 col-md-6 col-lg-4 col-xl-3">
+            <div class="card h-100 p-3">
+                <div class="row g-2">
+                    <div class="col-12"><input class="form-control" placeholder="Nombre del lugar *" value="${l.nombre}" onchange="lugares[${i}].nombre=this.value"></div>
+                    <div class="col-12">
+                        <select class="form-select" onchange="lugares[${i}].provincia=this.value">
+                            <option value="">Seleccionar provincia</option>
+                            <option value="San José" ${l.provincia=='San José'?'selected':''}>San José</option>
+                            <option value="Alajuela" ${l.provincia=='Alajuela'?'selected':''}>Alajuela</option>
+                            <option value="Cartago" ${l.provincia=='Cartago'?'selected':''}>Cartago</option>
+                            <option value="Heredia" ${l.provincia=='Heredia'?'selected':''}>Heredia</option>
+                            <option value="Guanacaste" ${l.provincia=='Guanacaste'?'selected':''}>Guanacaste</option>
+                            <option value="Puntarenas" ${l.provincia=='Puntarenas'?'selected':''}>Puntarenas</option>
+                            <option value="Limón" ${l.provincia=='Limón'?'selected':''}>Limón</option>
+                        </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label small text-muted fw-bold">Clave de Acceso</label>
-                        <input type="text" class="form-control" value="{{ cot.clave_acceso }}" id="clave-{{ cot.id }}">
+                    <div class="col-6">
+                        <select class="form-select" onchange="lugares[${i}].duracion=this.value">
+                            <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
+                            <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
+                        </select>
                     </div>
-                    <p class="small text-muted mb-3">
-                        <i class="bi bi-map me-1"></i>{{ cot.lugares|length }} lugar(es)
-                    </p>
-                    <div class="d-flex gap-2">
-                        <button onclick="guardarConfig({{ cot.id }})" class="btn btn-sm btn-primary flex-grow-1">
-                            <i class="bi bi-save me-1"></i>Guardar
-                        </button>
-                        <a href="/cotizador/{{ cot.slug }}" target="_blank" class="btn btn-sm btn-outline-primary flex-grow-1">
-                            <i class="bi bi-link-45deg me-1"></i>Enlace
-                        </a>
-                        <a href="/cotizadores/{{ cot.id }}/editar" class="btn btn-sm btn-outline-success flex-grow-1">
-                            <i class="bi bi-pencil me-1"></i>Lugares
-                        </a>
-                        <button onclick="eliminarCotizador({{ cot.id }})" class="btn btn-sm btn-outline-danger">
-                            <i class="bi bi-trash"></i>
-                        </button>
+                    <div class="col-6"><input type="date" class="form-control" value="${l.fecha_ida}" onchange="lugares[${i}].fecha_ida=this.value"></div>
+                    <div class="col-6"><input type="date" class="form-control" value="${l.fecha_regreso}" onchange="lugares[${i}].fecha_regreso=this.value"></div>
+                    <div class="col-6"><input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value"></div>
+                    <div class="col-6"><input type="url" class="form-control" placeholder="Mapa ida" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value"></div>
+                    <div class="col-6"><input type="url" class="form-control" placeholder="Mapa regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value"></div>
+                    <div class="col-6">
+                        <select class="form-select" onchange="lugares[${i}].moneda=this.value">
+                            <option value="colones" ${l.moneda=='colones'?'selected':''}>Colones</option>
+                            <option value="dolares" ${l.moneda=='dolares'?'selected':''}>Dólares</option>
+                        </select>
                     </div>
+                    <div class="col-12"><button onclick="eliminarLugar(${i})" class="btn btn-sm btn-outline-danger w-100"><i class="bi bi-trash me-1"></i>Eliminar Lugar</button></div>
                 </div>
             </div>
         </div>
-        {% endfor %}
-    </div>
-</div>
-<script>
-function guardarConfig(id) {
-    const nombre = document.getElementById('nombre-' + id).value.trim();
-    const clave = document.getElementById('clave-' + id).value.trim();
-    if(!nombre || !clave) return alert('Nombre y clave son obligatorios');
-    
-    fetch('/cotizadores/' + id, {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({nombre, clave, lugares: []})
-    })
-    .then(r => r.json())
-    .then(d => {
-        if(d.ok) alert('Configuración guardada correctamente');
-        else alert(d.error || 'Error');
-    });
+    `).join('');
+    document.getElementById('lugaresContainer').innerHTML = html;
 }
-function eliminarCotizador(id) {
-    if (confirm('¿Eliminar este cotizador?')) {
-        fetch('/cotizadores/' + id + '/eliminar', {method: 'POST'})
-        .then(r => r.json()).then(d => { if(d.ok) location.reload(); });
+async function guardarCotizador() {
+    const nombre = document.getElementById('nombre').value.trim();
+    const clave = document.getElementById('clave').value.trim();
+    if(!nombre || !clave) return alert('Nombre y clave son obligatorios');
+    if(lugares.length === 0) return alert('Agrega al menos un lugar');
+    for(let l of lugares) {
+        if(!l.nombre) return alert('Todos los lugares deben tener nombre');
+    }
+    try {
+        const res = await fetch('/cotizadores/' + cotizadorId, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({nombre, clave, lugares})
+        });
+        const d = await res.json();
+        if(d.ok) {
+            alert('Cotizador actualizado correctamente');
+            location.reload();
+        } else {
+            alert(d.error || 'Error');
+        }
+    } catch(e) {
+        alert('Error de conexión: ' + e.message);
     }
 }
+function copiarEnlacePublico() {
+    const enlace = document.getElementById('enlacePublico');
+    enlace.select();
+    document.execCommand('copy');
+    alert('Enlace público copiado al portapapeles');
+}
+renderLugares();
 </script>
 {% endblock %}
