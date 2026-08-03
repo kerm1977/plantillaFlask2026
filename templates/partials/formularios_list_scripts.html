@@ -154,18 +154,9 @@ async function saveForm() {
 }
 
 async function deleteForm(id) {
-    // Primera confirmación
-    if (!confirm('¿Estás seguro de que quieres eliminar este formulario?')) return;
-    
-    // Segunda confirmación
-    if (!confirm('Esta acción eliminará el formulario y TODAS sus respuestas. ¿Continuar?')) return;
-    
-    // Tercera confirmación
-    if (!confirm('ÚLTIMA ADVERTENCIA: Esta acción NO se puede deshacer. ¿Estás absolutamente seguro?')) return;
-    
     abrirModalBorrarUnificado({
         titulo: 'Borrar Formulario',
-        mensaje: '¿Eliminar este formulario y todas sus respuestas?',
+        mensaje: 'Esta acción eliminará el formulario y TODAS sus respuestas. No se puede deshacer.',
         onConfirmar: async () => {
             await fetch(`/api/forms/${id}`, {method:'DELETE'});
             loadForms();

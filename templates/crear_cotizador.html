@@ -83,13 +83,17 @@ function guardarBorrador() {
 }
 
 function limpiarBorrador() {
-    if(confirm('¿Estás seguro de limpiar el borrador? Se perderán todos los datos no guardados.')) {
-        localStorage.removeItem(STORAGE_KEY);
-        document.getElementById('nombre').value = '';
-        document.getElementById('clave').value = '';
-        lugares = [];
-        renderLugares();
-    }
+    abrirModalBorrarUnificado({
+        titulo: 'Limpiar Borrador',
+        mensaje: 'Se perderán todos los datos no guardados. ¿Deseas continuar?',
+        onConfirmar: () => {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('nombre').value = '';
+            document.getElementById('clave').value = '';
+            lugares = [];
+            renderLugares();
+        }
+    });
 }
 
 function agregarLugar() {
@@ -98,12 +102,15 @@ function agregarLugar() {
     guardarBorrador();
 }
 function eliminarLugar(idx) {
-    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
-    if(!confirm('¿Realmente quieres eliminar este lugar? Esta acción no se puede deshacer.')) return;
-    if(!confirm('Última confirmación: ¿Estás 100% seguro de eliminar este lugar?')) return;
-    lugares.splice(idx,1);
-    renderLugares();
-    guardarBorrador();
+    abrirModalBorrarUnificado({
+        titulo: 'Eliminar Lugar',
+        mensaje: 'Esta acción no se puede deshacer. ¿Estás seguro de eliminar este lugar?',
+        onConfirmar: () => {
+            lugares.splice(idx,1);
+            renderLugares();
+            guardarBorrador();
+        }
+    });
 }
 function renderLugares() {
     const html = lugares.map((l,i) => `

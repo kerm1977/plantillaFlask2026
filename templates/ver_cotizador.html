@@ -27,6 +27,54 @@
         </button>
     </div>
 </div>
+
+<!-- Modal Editar Lugar -->
+<div class="modal fade" id="editarLugarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-5 glass-panel">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-pencil-fill text-orange me-2"></i>Editar Lugar</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <input type="hidden" id="editLugarId">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Nombre del lugar</label>
+                    <input type="text" id="editLugarNombre" class="form-control rounded-pill">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Provincia</label>
+                    <input type="text" id="editLugarProvincia" class="form-control rounded-pill">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Mapa Ida (URL)</label>
+                    <input type="text" id="editLugarMapsIda" class="form-control rounded-pill">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">Mapa Regreso (URL)</label>
+                    <input type="text" id="editLugarMapsRegreso" class="form-control rounded-pill">
+                </div>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label fw-bold small">Fecha</label>
+                        <input type="text" id="editLugarFecha" class="form-control rounded-pill">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label fw-bold small">Hora</label>
+                        <input type="text" id="editLugarHora" class="form-control rounded-pill">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2">
+                <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-orange rounded-pill px-4 py-2 fw-bold" onclick="guardarEdicionLugar()">
+                    <i class="bi bi-check2 me-1"></i>Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const cotizadorId = {{ cotizador.id }};
 const lugaresData = {{ lugares_json|tojson|safe }};
@@ -72,21 +120,28 @@ function renderLugares() {
 }
 function editarLugar(id) {
     const lugar = lugaresData.find(l => l.id === id);
-    const nuevoNombre = prompt('Nombre del lugar:', lugar.nombre);
-    if(nuevoNombre !== null) {
-        lugar.nombre = nuevoNombre;
-        const nuevaProvincia = prompt('Provincia:', lugar.provincia || '');
-        if(nuevaProvincia !== null) lugar.provincia = nuevaProvincia;
-        const nuevoMapsIda = prompt('Mapa Ida:', lugar.maps_ida || '');
-        if(nuevoMapsIda !== null) lugar.maps_ida = nuevoMapsIda;
-        const nuevoMapsRegreso = prompt('Mapa Regreso:', lugar.maps_regreso || '');
-        if(nuevoMapsRegreso !== null) lugar.maps_regreso = nuevoMapsRegreso;
-        const nuevaFecha = prompt('Fecha:', lugar.fecha_ida || '');
-        if(nuevaFecha !== null) lugar.fecha_ida = nuevaFecha;
-        const nuevaHora = prompt('Hora:', lugar.hora || '');
-        if(nuevaHora !== null) lugar.hora = nuevaHora;
-        guardarLugar(id);
-    }
+    if(!lugar) return;
+    document.getElementById('editLugarId').value = lugar.id;
+    document.getElementById('editLugarNombre').value = lugar.nombre || '';
+    document.getElementById('editLugarProvincia').value = lugar.provincia || '';
+    document.getElementById('editLugarMapsIda').value = lugar.maps_ida || '';
+    document.getElementById('editLugarMapsRegreso').value = lugar.maps_regreso || '';
+    document.getElementById('editLugarFecha').value = lugar.fecha_ida || '';
+    document.getElementById('editLugarHora').value = lugar.hora || '';
+    new bootstrap.Modal(document.getElementById('editarLugarModal')).show();
+}
+function guardarEdicionLugar() {
+    const id = parseInt(document.getElementById('editLugarId').value, 10);
+    const lugar = lugaresData.find(l => l.id === id);
+    if(!lugar) return;
+    lugar.nombre = document.getElementById('editLugarNombre').value;
+    lugar.provincia = document.getElementById('editLugarProvincia').value;
+    lugar.maps_ida = document.getElementById('editLugarMapsIda').value;
+    lugar.maps_regreso = document.getElementById('editLugarMapsRegreso').value;
+    lugar.fecha_ida = document.getElementById('editLugarFecha').value;
+    lugar.hora = document.getElementById('editLugarHora').value;
+    bootstrap.Modal.getInstance(document.getElementById('editarLugarModal')).hide();
+    guardarLugar(id);
 }
 async function guardarLugar(id) {
     const lugar = lugaresData.find(l => l.id === id);
@@ -95,24 +150,34 @@ async function guardarLugar(id) {
     if(d.ok) renderLugares();
     else alert(d.error || 'Error');
 }
-async function eliminarLugar(id) {
-    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
-    const res = await fetch('/cotizadores/lugar/' + id, {method:'DELETE'});
-    const d = await res.json();
-    if(d.ok) {
-        const idx = lugaresData.findIndex(l => l.id === id);
-        if(idx > -1) lugaresData.splice(idx, 1);
-        renderLugares();
-    } else {
-        alert(d.error || 'Error');
-    }
+function eliminarLugar(id) {
+    abrirModalBorrarUnificado({
+        titulo: 'Eliminar Lugar',
+        mensaje: '¿Estás seguro de eliminar este lugar?',
+        onConfirmar: async () => {
+            const res = await fetch('/cotizadores/lugar/' + id, {method:'DELETE'});
+            const d = await res.json();
+            if(d.ok) {
+                const idx = lugaresData.findIndex(l => l.id === id);
+                if(idx > -1) lugaresData.splice(idx, 1);
+                renderLugares();
+            } else {
+                alert(d.error || 'Error');
+            }
+        }
+    });
 }
-async function eliminarCotizador() {
-    if(!confirm('¿Estás seguro de eliminar este cotizador?')) return;
-    const res = await fetch('/cotizadores/{{ cotizador.id }}/eliminar', {method:'POST'});
-    const d = await res.json();
-    if(d.ok) window.location.href = '/cotizadores';
-    else alert(d.error || 'Error');
+function eliminarCotizador() {
+    abrirModalBorrarUnificado({
+        titulo: 'Eliminar Cotizador',
+        mensaje: '¿Estás seguro de eliminar este cotizador?',
+        onConfirmar: async () => {
+            const res = await fetch('/cotizadores/{{ cotizador.id }}/eliminar', {method:'POST'});
+            const d = await res.json();
+            if(d.ok) window.location.href = '/cotizadores';
+            else alert(d.error || 'Error');
+        }
+    });
 }
 renderLugares();
 </script>
