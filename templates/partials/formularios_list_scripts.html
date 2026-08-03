@@ -18,7 +18,7 @@ async function loadForms() {
         const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
         const reservedNums = (f.reservation_numbers || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
         return `<div class="col-12 col-sm-6 col-lg-4">
-            <div class="card h-100 border-0 shadow-sm" style="border-radius: 16px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%); transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
+            <div class="card h-100 border-0 shadow-sm" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);backdrop-filter:blur(10px);border-radius:15px;transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
                 <div class="card-body p-4 d-flex flex-column">
                     <div class="d-flex align-items-start justify-content-between mb-3">
                         <div class="d-flex align-items-center gap-3" style="min-width:0;">
