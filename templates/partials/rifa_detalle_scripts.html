@@ -3,9 +3,19 @@
 window.RIFA_CONFIG = {
     id: {{ rifa.id }},
     price: {{ rifa.price }},
-    name: '{{ rifa.name|e }}'
+    name: '{{ rifa.name|e }}',
+    raffle_number: {{ rifa.raffle_number }},
+    detail: '{{ rifa.detail|e }}',
+    prize: '{{ rifa.prize|e }}',
+    raffle_date: '{{ rifa.raffle_date.strftime('%d/%m/%Y') if rifa.raffle_date else '' }}',
+    raffle_time: '{{ rifa.raffle_time if rifa.raffle_time else '' }}',
+    sinpe_name: '{{ rifa.sinpe_name_default|e if rifa.sinpe_name_default else '' }}',
+    sinpe_phone: '{{ rifa.sinpe_phone_default|e if rifa.sinpe_phone_default else '' }}',
+    total_sold: {{ selected_numbers|length }},
+    selections: {{ grouped_selections | tojson | safe }}
 };
 </script>
 <script src="/static/js/rifa_detalle_ui.js?v=9.5"></script>
 <script src="/static/js/rifa_detalle_modals.js?v=9.5"></script>
 <script src="/static/js/rifa_detalle_admin.js?v=10"></script>
+<script src="/static/js/rifa_detalle_export.js?v=1"></script>
