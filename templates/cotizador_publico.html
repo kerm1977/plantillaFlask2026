@@ -172,11 +172,16 @@ function exportarWhatsApp() {
         lugares.forEach(l => {
             const precio = document.getElementById('precio_' + l.id).value;
             const moneda = l.moneda == 'colones' ? '₡' : '$';
+            const iconoMoneda = l.moneda == 'colones' ? '💵' : '💲';
             texto += `📍 ${l.nombre}\n`;
-            if(precio) texto += `💰 ${moneda}${precio}\n`;
+            if(precio) texto += `${iconoMoneda} ${moneda}${precio}\n`;
             texto += '\n';
         });
     }
+    
+    // Agregar enlace público al final
+    const enlacePublico = window.location.href;
+    texto += `\n🔗 Enlace público para ver el detalle completo:\n${enlacePublico}`;
     
     document.getElementById('whatsappText').value = texto;
     whatsappModal.show();
