@@ -57,7 +57,25 @@ function searchSelections() {
         }
         
         const cardText = card.textContent.toLowerCase();
-        if (cardText.includes(query)) {
+        const numbers = card.querySelectorAll('.badge.bg-primary');
+        let hasExactMatch = false;
+        
+        // Buscar coincidencia exacta en números
+        numbers.forEach(badge => {
+            if (badge.textContent.trim() === query) {
+                hasExactMatch = true;
+            }
+        });
+        
+        // Si no hay coincidencia exacta en números, buscar en nombre
+        if (!hasExactMatch) {
+            const nameElement = card.querySelector('h6');
+            if (nameElement && nameElement.textContent.toLowerCase().includes(query)) {
+                hasExactMatch = true;
+            }
+        }
+        
+        if (hasExactMatch) {
             card.style.display = '';
         } else {
             card.style.display = 'none';
