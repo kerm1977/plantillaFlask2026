@@ -48,10 +48,37 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Modal de Confirmación para Eliminar Lugar -->
+<div class="modal fade" id="eliminarLugarModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Estás seguro de eliminar este lugar?</p>
+                <p class="text-danger small">Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" onclick="confirmarEliminarLugar()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const cotizadorId = {{ cotizadores[0].id if cotizadores else 'null' }};
 let lugares = [];
 const STORAGE_KEY = 'cotizador_borrador';
+let lugarIndexAEliminar = null;
+let eliminarLugarModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    eliminarLugarModal = new bootstrap.Modal(document.getElementById('eliminarLugarModal'));
+});
 
 {% if cotizadores %}
 {% for l in cotizadores[0].lugares %}
@@ -64,11 +91,16 @@ function agregarLugar() {
     renderLugares();
 }
 function eliminarLugar(idx) {
-    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
-    if(!confirm('¿Realmente quieres eliminar este lugar? Esta acción no se puede deshacer.')) return;
-    if(!confirm('Última confirmación: ¿Estás 100% seguro de eliminar este lugar?')) return;
-    lugares.splice(idx,1);
-    renderLugares();
+    lugarIndexAEliminar = idx;
+    eliminarLugarModal.show();
+}
+function confirmarEliminarLugar() {
+    if(lugarIndexAEliminar !== null) {
+        lugares.splice(lugarIndexAEliminar,1);
+        lugarIndexAEliminar = null;
+        renderLugares();
+        eliminarLugarModal.hide();
+    }
 }
 function renderLugares() {
     const html = lugares.map((l,i) => `
