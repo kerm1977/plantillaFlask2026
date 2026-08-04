@@ -1,0 +1,19 @@
+<!-- Modal buscador de agenda médica (PIN maestro) -->
+<div class="modal fade" id="agendaSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0" style="background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 1rem;">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-journal-medical text-orange me-2"></i>Buscador de Agenda</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body px-4 pb-5 pt-3">
+                <p class="text-secondary small text-center mb-3">Buscá por cédula, teléfono, nombre, apellido, tipo de sangre o cualquier dato.</p>
+                <div class="mb-3 position-relative">
+                    <input type="text" id="agendaSearchInput" class="form-control rounded-pill py-2 ps-4" placeholder="Escribí tu búsqueda..." autocomplete="off">
+                    <i class="bi bi-search position-absolute text-muted" style="right: 15px; top: 10px;"></i>
+                </div>
+                <div id="agendaSearchResults" class="list-group" style="max-height: 50vh; overflow-y: auto; scrollbar-width: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -96,6 +96,7 @@ from routes import (        # noqa: E402, F401
     rifas_selecciones_select,
     rifas_admin,
     publicaciones,
+    agenda,
 )
 
 # Re-exportar para app.py
