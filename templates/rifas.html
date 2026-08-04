@@ -13,6 +13,15 @@
                 <a href="/admin/rifas" class="btn btn-warning-orange rounded-pill px-4">
                     <i class="bi bi-gear me-1"></i>Administrar Rifas
                 </a>
+                <div class="dropdown">
+                    <button class="btn btn-info rounded-pill px-4 dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-shield-check me-1"></i>Respaldo
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="exportAllRifasJSON()"><i class="bi bi-file-earmark me-2 text-primary"></i>Exportar Todo (JSON)</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="importAllRifasJSON()"><i class="bi bi-file-earmark-upload me-2 text-warning"></i>Importar Todo (JSON)</a></li>
+                    </ul>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -258,4 +267,8 @@
 })();
 </script>
 {% include 'partials/rifas_scripts.html' %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/rifa_json_backup.js?v=1"></script>
 {% endblock %}
