@@ -32,7 +32,7 @@
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold small text-muted">Teléfono</label>
-                    <input type="text" id="modalPhone" class="form-control glass-input rounded-pill" placeholder="Tu teléfono">
+                    <input type="text" id="modalPhone" class="form-control glass-input rounded-pill" placeholder="Tu teléfono" inputmode="numeric" oninput="validatePhoneOnly(this)">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-semibold small text-muted">PIN (4 caracteres)</label>
@@ -76,7 +76,7 @@
                 <p class="text-secondary mb-3 text-center">Ingresa teléfono y PIN para liberar.</p>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">Teléfono</label>
-                    <input type="text" id="clearPhone" class="form-control rounded-pill" placeholder="Tu teléfono">
+                    <input type="text" id="clearPhone" class="form-control rounded-pill" placeholder="Tu teléfono" inputmode="numeric" oninput="validatePhoneOnly(this)">
                 </div>
                 <div class="mb-3">
                     <label class="form-label fw-bold small">PIN (4 caracteres)</label>

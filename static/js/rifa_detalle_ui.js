@@ -81,6 +81,11 @@ function validateNameOnly(input) {
     input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/g, '');
 }
 
+function validatePhoneOnly(input) {
+    // Solo números
+    input.value = input.value.replace(/[^0-9]/g, '');
+}
+
 function deseleccionarNumeros() {
     selectedNumbers.forEach(num => { const btn = document.querySelector(`.number-btn[data-number="${num}"]`); if (btn) btn.classList.remove('btn-primary'); });
     selectedNumbers = [];

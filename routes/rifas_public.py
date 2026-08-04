@@ -126,10 +126,10 @@ def list_rifas():
         'total_rifas': len(all_rifas),
         'activas':     sum(1 for r in all_rifas if r.is_active),
         'cerradas':    sum(1 for r in all_rifas if not r.is_active),
-        'meta':        stats_meta,
-        'recaudado':   stats_recaudado,
-        'pendiente':   stats_meta - stats_recaudado,
-        'porcentaje':  round(stats_recaudado / stats_meta * 100, 1) if stats_meta > 0 else 0,
+        'meta':        int(stats_meta),
+        'recaudado':   int(stats_recaudado),
+        'pendiente':   int(stats_meta - stats_recaudado),
+        'porcentaje':  int(stats_recaudado / stats_meta * 100) if stats_meta > 0 else 0,
     }
     rifas = Raffle.query.filter_by(is_active=True).order_by(Raffle.raffle_date.desc()).all()
     raffle_data = []
