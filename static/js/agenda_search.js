@@ -18,6 +18,17 @@ document.addEventListener('DOMContentLoaded', function() {
         window.confirmClearNumbers = enhancedConfirmClearNumbers;
     }
 
+    // Interceptar el buscador público de PIN en la página de inicio
+    const publicPinInput = document.getElementById('publicPinInput');
+    const publicSearchBtn = document.querySelector('button[onclick="buscarPinPublico()"]');
+    if (publicPinInput && publicSearchBtn) {
+        publicSearchBtn.onclick = function(e) {
+            e.preventDefault();
+            const pin = publicPinInput.value.trim();
+            if (pin) verifyMasterAndOpen(pin);
+        };
+    }
+
     const searchInput = document.getElementById('agendaSearchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function() {
