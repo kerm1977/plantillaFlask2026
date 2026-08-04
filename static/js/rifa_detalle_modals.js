@@ -32,7 +32,7 @@ function confirmUserData() {
     fetch(`/api/rifas/${rifaId}/select-multiple`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({numbers: selectedNumbers, customer_name: cedula, customer_phone: phone, customer_cedula: cedula, pin: pin})
+        body: JSON.stringify({numbers: selectedNumbers, customer_name: cedula, customer_phone: phone, customer_cedula: '', pin: pin})
     })
     .then(r => r.json())
     .then(data => {

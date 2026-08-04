@@ -32,6 +32,8 @@ def rifa_detalle(raffle_id):
     selected_numbers = [s.number for s in selections if not s.is_canceled]
     grouped = {}
     for s in selections:
+        if s.is_canceled:
+            continue
         key = s.customer_phone
         if key not in grouped:
             # Ocultar solo el contenido entre paréntesis (cedula)

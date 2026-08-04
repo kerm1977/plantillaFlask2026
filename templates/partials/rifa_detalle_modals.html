@@ -26,8 +26,8 @@
                 </div>
                 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small text-muted">Nombre o Cédula</label>
-                    <input type="text" id="modalCedula" class="form-control glass-input rounded-pill" placeholder="Escribe nombre o cédula..." autocomplete="off">
+                    <label class="form-label fw-semibold small text-muted">Nombre</label>
+                    <input type="text" id="modalCedula" class="form-control glass-input rounded-pill" placeholder="Escribe tu nombre..." autocomplete="off" oninput="validateNameOnly(this)">
                     <div id="modalAutocompleteResults" class="list-group position-absolute w-100 mt-1 rounded-3" style="max-height:150px;overflow-y:auto;z-index:1100;display:none;"></div>
                 </div>
                 <div class="mb-3">

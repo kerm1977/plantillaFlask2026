@@ -71,9 +71,14 @@ function clearLocalStorage() {
 }
 
 function selectHiker(cedula, nombre, telefono) {
-    document.getElementById('modalCedula').value = nombre + ' (' + cedula + ')';
+    document.getElementById('modalCedula').value = nombre;
     if (telefono) document.getElementById('modalPhone').value = telefono;
     document.getElementById('modalAutocompleteResults').style.display = 'none';
+}
+
+function validateNameOnly(input) {
+    // Permite letras (incluyendo tildes), espacios, ñ y apóstrofos
+    input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]/g, '');
 }
 
 function deseleccionarNumeros() {
