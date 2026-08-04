@@ -14,13 +14,12 @@ from security import check_rate_limit, validate_password_strength
 @bp.route('/api/login', methods=['POST'])
 def login():
     data = request.json
-    email = data.get('email', '').lower()
-    
-    if not check_rate_limit(email):
-        return jsonify({'error': 'Demasiados intentos. Espere 15 minutos.'}), 429
+    email = data.get('email', '').lower().strip()
+    password = data.get('password', '')
     
     user = User.query.filter_by(email=email).first()
-    if user and check_password(data.get('password'), user.password_hash):
+    if user and check_password(password, user.password_hash):
+        # Login exitoso: no aplica rate limit
         if user.status == 'Bloqueado':
             return jsonify({'error': 'Usuario bloqueado'}), 403
         session['user_id'] = user.id
@@ -28,6 +27,11 @@ def login():
         session['avatar'] = user.avatar or 'default.png'
         session.permanent = True  # Activar sesión permanente de 24 horas
         return jsonify({'success': True})
+    
+    # Solo contar intentos fallidos para rate limit
+    if not check_rate_limit(email):
+        return jsonify({'error': 'Demasiados intentos. Espere 15 minutos.'}), 429
+    
     return jsonify({'error': 'Credenciales inválidas'}), 401
 
 
