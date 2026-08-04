@@ -144,6 +144,11 @@ body {
     z-index: 9999 !important;
     max-height: 70vh;
     overflow-y: auto;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+.admin-tools-dropdown .dropdown-menu::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Edge */
 }
 
 /* Logo de Sueños en Navbar Desktop */
