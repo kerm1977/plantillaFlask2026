@@ -57,18 +57,20 @@ const showMessage = (containerId, text, type = 'danger') => {
     }
 };
 
-document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
-    e.preventDefault();
+window.submitLogin = async function() {
+    const email = document.getElementById('logEmail').value.trim().toLowerCase();
+    const password = document.getElementById('logPass').value;
+    if (!email || !password) { showMessage('loginMessage', 'Ingresa email y contraseña'); return; }
     try {
         const response = await fetch('/api/login', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: document.getElementById('logEmail').value, password: document.getElementById('logPass').value })
+            body: JSON.stringify({ email: email, password: password })
         });
         const result = await response.json();
         if (response.ok) window.location.reload();
         else showMessage('loginMessage', result.error || 'Error al iniciar sesión');
     } catch (err) { showMessage('loginMessage', 'Error de conexión'); }
-});
+};
 
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();

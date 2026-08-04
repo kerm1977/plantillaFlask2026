@@ -8,14 +8,14 @@
                 </div>
                 <div class="modal-body px-4 px-md-5 pb-5 pt-4">
                     <div id="loginMessage" class="mb-3"></div>
-                    <form id="loginForm">
+                    <form id="loginForm" onsubmit="event.preventDefault(); submitLogin();" autocomplete="off">
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary">Email</label>
-                            <input type="email" class="form-control glass-input rounded-3 py-2 force-lowercase" id="logEmail" required placeholder="tu@email.com">
+                            <input type="email" class="form-control glass-input rounded-3 py-2 force-lowercase" id="logEmail" required placeholder="tu@email.com" autocomplete="off">
                         </div>
                         <div class="mb-4 position-relative">
                             <label class="form-label fw-semibold text-secondary">Contraseña</label>
-                            <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••">
+                            <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••" autocomplete="off">
                             <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('logPass', this)"></i>
                         </div>
                         <button type="submit" class="btn btn-orange w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">Ingresar</button>
