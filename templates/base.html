@@ -83,14 +83,14 @@
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
-    <div class="dropdown dropup">
-        <!-- El botón flotante ahora abre un menú desplegable (Dropup para que suba) -->
+    <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
+        <!-- El menú abre hacia abajo y se hace scroll si es largo -->
         <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none;">
             <i class="bi bi-tools fs-4"></i>
         </a>
-        
+
         <!-- Menú desplegable Glassmorphic -->
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mb-2 p-2" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border-radius: 1rem; right: 20px;">
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2" style="background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(15px); border-radius: 1rem; right: 20px; max-height: 70vh; overflow-y: auto; z-index: 9999;">
             <!-- Opción 1: Crear Caminata -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/eventos">

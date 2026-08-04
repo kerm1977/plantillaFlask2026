@@ -139,6 +139,13 @@ body {
     transform: scale(1.05);
 }
 
+/* Menú desplegable de herramientas de admin */
+.admin-tools-dropdown .dropdown-menu {
+    z-index: 9999 !important;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
 /* Logo de Sueños en Navbar Desktop */
 .logo-suenos-navbar {
     height: 40px;
