@@ -31,14 +31,14 @@
                         {% if session.get('email') in ['kenth1977@gmail.com', 'lthikingcr@gmail.com'] %}
                         <button onclick="togglePayment('{{ phone }}')"
                                 id="payBtn_{{ phone }}"
-                                class="btn btn-sm rounded-pill {{ 'btn-success' if data.is_paid else 'btn-outline-secondary' }}"
+                                class="btn btn-sm rounded-pill {{ 'btn-warning-orange' if data.is_paid else 'btn-outline-secondary' }}"
                                 title="{{ 'Marcar como no pagado' if data.is_paid else 'Marcar como pagado' }}">
                             <i class="bi bi-{{ 'cash-stack' if data.is_paid else 'cash' }}"></i>
                         </button>
                         {% endif %}
                         <a href="https://wa.me/{{ data.phone | replace('+', '') }}?text={{ rifa.name }} - Números: {{ data.numbers|join(', ') }} - Total: ₡{{ data.total }}"
                            target="_blank"
-                           class="btn btn-sm btn-outline-success rounded-pill"
+                           class="btn btn-sm btn-outline-orange rounded-pill"
                            title="Enviar por WhatsApp">
                             <i class="bi bi-whatsapp"></i>
                         </a>

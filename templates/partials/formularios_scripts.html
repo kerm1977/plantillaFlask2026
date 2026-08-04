@@ -283,8 +283,8 @@ function copyResponsesTSV() {
     navigator.clipboard.writeText(tsv).then(() => {
         const orig = btn.innerHTML;
         btn.innerHTML = '<i class="bi bi-check2 me-1"></i>¡Copiado!';
-        btn.classList.replace('btn-outline-secondary', 'btn-success');
-        setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-success', 'btn-outline-secondary'); }, 2500);
+        btn.classList.replace('btn-outline-secondary', 'btn-warning-orange');
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.replace('btn-warning-orange', 'btn-outline-secondary'); }, 2500);
     }).catch(() => alert('No se pudo copiar al portapapeles'));
 }
 

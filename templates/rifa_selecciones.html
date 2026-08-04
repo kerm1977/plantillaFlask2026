@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             {% endif %}
                             <a href="https://wa.me/{{ sel.customer_phone | replace('+', '') }}?text={{ sel.raffle.name }} - Número: {{ sel.number }} - Total: ₡{{ sel.raffle.price }}" 
                                target="_blank" 
-                               class="btn btn-sm btn-outline-success rounded-pill" 
+                               class="btn btn-sm btn-outline-orange rounded-pill" 
                                title="Enviar por WhatsApp">
                                 <i class="bi bi-whatsapp"></i>
                             </a>

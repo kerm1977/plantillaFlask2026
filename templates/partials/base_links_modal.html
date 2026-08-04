@@ -29,7 +29,7 @@
                                 </div>
                                 <div id="sectionsList"></div>
                             </div>
-                            <button class="btn btn-outline-primary w-100 mt-2 rounded-pill" onclick="addSection()">
+                            <button class="btn btn-outline-orange w-100 mt-2 rounded-pill" onclick="addSection()">
                                 <i class="bi bi-plus-lg me-2"></i>Agregar Sección
                             </button>
                         </div>
@@ -56,7 +56,7 @@
                         <div id="copyFeedback" class="text-success fw-bold small mb-2 d-none">
                             <i class="bi bi-check-circle-fill me-1"></i>¡Enlace copiado!
                         </div>
-                        <button class="btn btn-success fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
+                        <button class="btn btn-warning-orange fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
                             <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
                         </button>
                     </div>
@@ -173,7 +173,7 @@
                     <div class="mb-2">
                         <label class="small fw-bold text-secondary">Campos personalizados:</label>
                         <div id="section_${sectionCounter}_customFieldsList"></div>
-                        <button class="btn btn-outline-primary btn-sm mt-1" onclick="addFieldToSection(${sectionCounter})">
+                        <button class="btn btn-outline-orange btn-sm mt-1" onclick="addFieldToSection(${sectionCounter})">
                             <i class="bi bi-plus"></i> Agregar campo
                         </button>
                     </div>
@@ -231,7 +231,7 @@
                     <div id="fieldOptions_${fieldCounter}" class="d-none mt-1">
                         <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 1" id="fieldOption_${fieldCounter}_1" oninput="updateLinkFormPreview()">
                         <input type="text" class="form-control form-control-sm mb-1" placeholder="Opción 2" id="fieldOption_${fieldCounter}_2" oninput="updateLinkFormPreview()">
-                        <button class="btn btn-outline-primary btn-sm" onclick="addLinkFieldOption(${fieldCounter})">
+                        <button class="btn btn-outline-orange btn-sm" onclick="addLinkFieldOption(${fieldCounter})">
                             <i class="bi bi-plus"></i> Agregar opción
                         </button>
                     </div>

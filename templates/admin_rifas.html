@@ -50,13 +50,13 @@
                         </td>
                         <td>
                             <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ url_for('main.rifa_detalle', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-info rounded-pill" title="Ver">
+                                <a href="{{ url_for('main.rifa_detalle', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Ver">
                                     <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-primary rounded-pill" title="Selecciones">
+                                <a href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Selecciones">
                                     <i class="bi bi-list-check"></i>
                                 </a>
-                                <a href="{{ url_for('main.editar_rifa', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-warning rounded-pill" title="Editar">
+                                <a href="{{ url_for('main.editar_rifa', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Editar">
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <button onclick="eliminarRifa({{ rifa.id }})" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar">

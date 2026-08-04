@@ -144,7 +144,7 @@ async function loadBackups() {
                                 onclick="downloadBackup('${b.id}')" title="Descargar ZIP">
                             <i class="bi bi-download"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-warning rounded-pill px-3 text-dark fw-bold"
+                        <button class="btn btn-sm btn-outline-orange rounded-pill px-3 text-dark fw-bold"
                                 onclick="openRestoreModal('${b.id}','${b.name.replace(/'/g,"\\'")}') " title="Restaurar esta versión">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar
                         </button>

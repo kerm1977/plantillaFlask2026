@@ -9,13 +9,13 @@
             <p class="text-muted fs-5 mb-2">caminantes de La Tribu.</p>
             {% if session.get('role') == 'Superusuario' %}
             <div class="d-flex flex-wrap gap-2 mt-2 justify-content-center justify-content-md-start">
-                <button class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="dbExportJSON()">
+                <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dbExportJSON()">
                     <i class="bi bi-filetype-json me-1"></i>JSON
                 </button>
-                <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3" onclick="dbExportExcel()">
+                <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dbExportExcel()">
                     <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
                 </button>
-                <label class="btn btn-sm btn-outline-warning rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
+                <label class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
                     <i class="bi bi-upload me-1"></i>Importar JSON
                     <input type="file" id="agendaImportInput" accept=".json" class="d-none" onchange="dbImportJSON(this)">
                 </label>

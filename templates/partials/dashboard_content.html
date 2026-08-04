@@ -35,13 +35,13 @@
                 <!-- Exportar / Importar BD -->
                 <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
                     <span class="fw-bold text-dark small"><i class="bi bi-database-down text-orange me-1"></i>Base de Datos:</span>
-                    <button class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3" onclick="dashExportJSON()">
+                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportJSON()">
                         <i class="bi bi-filetype-json me-1"></i>JSON
                     </button>
-                    <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3" onclick="dashExportExcel()">
+                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportExcel()">
                         <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
                     </button>
-                    <label class="btn btn-sm btn-outline-warning rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
+                    <label class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
                         <i class="bi bi-upload me-1"></i>Importar
                         <input type="file" id="dashImportInput" accept=".json" class="d-none" onchange="dashImportJSON(this)">
                     </label>
@@ -88,7 +88,7 @@
                     <button class="btn btn-danger rounded-pill px-4 shadow-sm fw-bold btn-action-mobile" id="btnDeleteUser" onclick="confirmDeleteUser()">
                         <i class="bi bi-trash-fill me-1"></i>Borrar Usuario
                     </button>
-                    <a id="btnEditHikerCrm" href="#" class="btn btn-outline-warning rounded-pill px-4 shadow-sm fw-bold btn-action-mobile text-dark d-none">
+                    <a id="btnEditHikerCrm" href="#" class="btn btn-outline-orange rounded-pill px-4 shadow-sm fw-bold btn-action-mobile text-dark d-none">
                         <i class="bi bi-pencil-square me-1"></i>Editar Ficha CRM
                     </a>
                 </div>
