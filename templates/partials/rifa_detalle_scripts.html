@@ -1,3 +1,11 @@
+<script>
+    // Configuración global de la rifa actual para funciones admin/export
+    window.RIFA_CONFIG = {
+        id: {{ rifa.id }},
+        name: {{ rifa.name|tojson }},
+        raffle_number: {{ rifa.raffle_number|tojson }}
+    };
+</script>
 <script src="/static/js/rifa_detalle_ui.js?v=9.5"></script>
 <script src="/static/js/rifa_detalle_modals.js?v=9.5"></script>
 <script src="/static/js/rifa_detalle_admin.js?v=10"></script>
