@@ -145,7 +145,16 @@
 
             <li><hr class="dropdown-divider opacity-25"></li>
 
-            <!-- Opción 5: Evento Social -->
+            <!-- Opción 6: Notas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="openNotesModal()">
+                    <i class="bi bi-journal-text text-orange me-2 fs-5"></i> Notas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 7: Evento Social -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/publicaciones">
                     <i class="bi bi-calendar-event text-orange me-2 fs-5"></i> Evento Social
@@ -277,5 +286,6 @@
 {% include 'partials/modal_alerta_unificado.html' %}
 
 {% include 'partials/agenda_search_modal.html' %}
+{% include 'partials/notes_modal.html' %}
 
 {% include 'partials/base_scripts.html' %}

@@ -1,0 +1,89 @@
+<!-- MODAL DE NOTAS ADMINISTRATIVAS -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-journal-text text-orange me-2"></i>Notas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- LISTA DE NOTAS -->
+                <div id="notesListContainer" class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0">Mis Notas</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="exportNotesJSON()">
+                                <i class="bi bi-download me-1"></i>JSON
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="importNotesJSON()">
+                                <i class="bi bi-upload me-1"></i>Importar
+                            </button>
+                        </div>
+                    </div>
+                    <div id="notesList" class="row g-2">
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="bi bi-journal fs-1 mb-2 d-block"></i>
+                            Cargando notas...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EDITOR DE NOTA -->
+                <div id="noteEditorContainer" class="d-none">
+                    <div class="mb-3">
+                        <input type="text" id="noteTitleInput" class="form-control form-control-lg rounded-pill border-0 bg-white bg-opacity-75" placeholder="Título de la nota">
+                    </div>
+                    
+                    <!-- BARRA DE HERRAMIENTAS WYSIWYG -->
+                    <div class="d-flex flex-wrap gap-1 mb-2 p-2 bg-white bg-opacity-50 rounded-3">
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+                    </div>
+
+                    <!-- ÁREA DE EDICIÓN -->
+                    <div id="noteContentEditor" contenteditable="true" class="form-control bg-white bg-opacity-75 border-0 rounded-3 p-3" style="min-height: 200px; max-height: 400px; overflow-y: auto;"></div>
+
+                    <!-- BOTONES DE ACCIÓN DE NOTA -->
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="saveNote()">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill px-3" onclick="cancelEdit()">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar
+                        </button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportNoteJPG()">
+                            <i class="bi bi-image me-1"></i>JPG
+                        </button>
+                        <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
+                            <i class="bi bi-file-earmark-image me-1"></i>PNG
+                        </button>
+                        <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
+                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BOTÓN CREAR NUEVA -->
+                <div id="createNoteBtnContainer" class="text-center mt-3">
+                    <button class="btn btn-orange rounded-pill px-5 py-3 fw-bold shadow-sm" onclick="createNewNote()">
+                        <i class="bi bi-plus-lg me-2"></i>Crear Nueva Nota
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- INPUT OCULTO PARA IMPORTAR JSON -->
+<input type="file" id="jsonImportInput" accept=".json" style="display: none;" onchange="handleJSONImport(this)">
