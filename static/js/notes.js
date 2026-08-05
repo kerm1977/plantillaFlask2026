@@ -1,12 +1,18 @@
 // Sistema de Notas Administrativas
 let notesModal = null;
+let noteViewModal = null;
 let currentNoteId = null;
+let currentViewNote = null;
 let notesData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('notesModal');
     if (modalEl) {
         notesModal = new bootstrap.Modal(modalEl);
+    }
+    const viewModalEl = document.getElementById('noteViewModal');
+    if (viewModalEl) {
+        noteViewModal = new bootstrap.Modal(viewModalEl);
     }
 });
 
@@ -41,13 +47,19 @@ function renderNotesList() {
         `;
         return;
     }
-    container.innerHTML = notesData.map(n => `
+    container.innerHTML = notesData.map(n => {
+        const plainText = stripHtml(n.content);
+        const preview = plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
+        return `
         <div class="col-12 col-md-6">
             <div class="glass-panel rounded-3 p-3 h-100 position-relative">
                 <h6 class="fw-bold text-dark mb-1">${escapeHtml(n.title)}</h6>
-                <p class="small text-muted mb-2 text-truncate">${escapeHtml(stripHtml(n.content))}</p>
+                <p class="small text-muted mb-2" style="display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;">${escapeHtml(preview)}</p>
                 <small class="text-secondary">Actualizado: ${formatDate(n.updated_at)}</small>
-                <div class="position-absolute top-0 end-0 p-2">
+                <div class="position-absolute top-0 end-0 p-2 d-flex gap-1">
+                    <button class="btn btn-sm btn-info rounded-circle" onclick="viewNote(${n.id})" title="Ver nota">
+                        <i class="bi bi-eye"></i>
+                    </button>
                     <button class="btn btn-sm btn-light rounded-circle" onclick="editNote(${n.id})" title="Editar">
                         <i class="bi bi-pencil"></i>
                     </button>
@@ -57,7 +69,7 @@ function renderNotesList() {
                 </div>
             </div>
         </div>
-    `).join('');
+    `}).join('');
 }
 
 function createNewNote() {
@@ -85,6 +97,15 @@ function cancelEdit() {
     document.getElementById('notesListContainer').classList.remove('d-none');
     document.getElementById('noteEditorContainer').classList.add('d-none');
     document.getElementById('createNoteBtnContainer').classList.remove('d-none');
+}
+
+function viewNote(id) {
+    const note = notesData.find(n => n.id === id);
+    if (!note) return;
+    currentViewNote = note;
+    document.getElementById('noteViewTitle').textContent = note.title;
+    document.getElementById('noteViewContent').innerHTML = note.content;
+    if (noteViewModal) noteViewModal.show();
 }
 
 async function saveNote() {
@@ -235,6 +256,60 @@ function shareNoteWhatsApp() {
     const text = `*${title}*\n\n${content}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
+}
+
+// View Modal Export Functions
+function exportViewNoteJPG() {
+    if (!currentViewNote) return;
+    exportNoteImageFromData(currentViewNote.title, currentViewNote.content, 'image/jpeg', 'jpg');
+}
+
+function exportViewNotePNG() {
+    if (!currentViewNote) return;
+    exportNoteImageFromData(currentViewNote.title, currentViewNote.content, 'image/png', 'png');
+}
+
+function shareViewNoteWhatsApp() {
+    if (!currentViewNote) return;
+    const text = `*${currentViewNote.title}*\n\n${stripHtml(currentViewNote.content)}`;
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+}
+
+function exportNoteImageFromData(title, content, format, ext) {
+    // Crear canvas temporal
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 800;
+    canvas.height = 600;
+
+    // Fondo blanco
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Título
+    ctx.fillStyle = '#000000';
+    ctx.font = 'bold 24px Arial';
+    ctx.fillText(title, 20, 40);
+
+    // Contenido (simplificado - texto plano)
+    ctx.font = '16px Arial';
+    const plainText = stripHtml(content);
+    const lines = wrapText(ctx, plainText, 760);
+    let y = 80;
+    lines.forEach(line => {
+        if (y < canvas.height - 20) {
+            ctx.fillText(line, 20, y);
+            y += 24;
+        }
+    });
+
+    // Descargar
+    const url = canvas.toDataURL(format);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title}.${ext}`;
+    a.click();
 }
 
 // Utilities
