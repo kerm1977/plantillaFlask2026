@@ -136,28 +136,32 @@ def export_note_pdf():
     except Exception:
         return jsonify({'error': 'Imagen inválida'}), 400
 
-    buffer = io.BytesIO()
-    doc = SimpleDocTemplate(buffer, pagesize=letter,
-                            rightMargin=50, leftMargin=50,
-                            topMargin=50, bottomMargin=50)
-    styles = getSampleStyleSheet()
-    style_title = styles['Title']
-    style_title.alignment = 1  # centered
-    style_title.textColor = '#000000'
+    try:
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter,
+                                rightMargin=50, leftMargin=50,
+                                topMargin=50, bottomMargin=50)
+        styles = getSampleStyleSheet()
+        style_title = styles['Title']
+        style_title.alignment = 1  # centered
+        style_title.textColor = '#000000'
 
-    story = []
-    story.append(Paragraph(escape(title), style_title))
-    story.append(Spacer(1, 0.2 * inch))
+        story = []
+        story.append(Paragraph(escape(title), style_title))
+        story.append(Spacer(1, 0.2 * inch))
 
-    img_stream = io.BytesIO(img_bytes)
-    img = Image(img_stream, width=7.5 * inch, height=9.5 * inch)
-    img.drawWidth = 7.5 * inch
-    img.drawHeight = 9.5 * inch
-    img.preserveAspectRatio = True
-    story.append(img)
+        img_stream = io.BytesIO(img_bytes)
+        img = Image(img_stream, width=7.5 * inch, height=9.5 * inch)
+        img.drawWidth = 7.5 * inch
+        img.drawHeight = 9.5 * inch
+        img.preserveAspectRatio = True
+        story.append(img)
 
-    doc.build(story)
-    buffer.seek(0)
-    return send_file(buffer, as_attachment=True,
-                     download_name=f"{title.replace(' ', '_')}.pdf",
-                     mimetype='application/pdf')
+        doc.build(story)
+        buffer.seek(0)
+        return send_file(buffer, as_attachment=True,
+                         download_name=f"{title.replace(' ', '_')}.pdf",
+                         mimetype='application/pdf')
+    except Exception as e:
+        import traceback
+        return jsonify({'error': str(e), 'traceback': traceback.format_exc()}), 500
