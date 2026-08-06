@@ -7,11 +7,12 @@ import os
 import uuid
 import base64
 import io
+import tempfile
 from html import escape
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
-from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.pdfgen import canvas as pdfcanvas
+from reportlab.lib.utils import ImageReader
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
@@ -137,27 +138,43 @@ def export_note_pdf():
         return jsonify({'error': 'Imagen inválida'}), 400
 
     try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp:
+            tmp.write(img_bytes)
+            tmp_path = tmp.name
+
+        reader = ImageReader(tmp_path)
+        img_w, img_h = reader.getSize()
+
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter,
-                                rightMargin=50, leftMargin=50,
-                                topMargin=50, bottomMargin=50)
-        styles = getSampleStyleSheet()
-        style_title = styles['Title']
-        style_title.alignment = 1  # centered
-        style_title.textColor = '#000000'
+        c = pdfcanvas.Canvas(buffer, pagesize=letter)
+        page_w, page_h = letter
+        margin = 50
 
-        story = []
-        story.append(Paragraph(escape(title), style_title))
-        story.append(Spacer(1, 0.2 * inch))
+        # title
+        c.setFont('Helvetica-Bold', 18)
+        text_w = c.stringWidth(title, 'Helvetica-Bold', 18)
+        c.drawString((page_w - text_w) / 2, page_h - margin, title)
 
-        img_stream = io.BytesIO(img_bytes)
-        img = Image(img_stream, width=7.5 * inch, height=9.5 * inch)
-        img.drawWidth = 7.5 * inch
-        img.drawHeight = 9.5 * inch
-        img.preserveAspectRatio = True
-        story.append(img)
+        # image area below title
+        top = page_h - margin - 30
+        bottom = margin
+        left = margin
+        right = page_w - margin
+        max_w = right - left
+        max_h = top - bottom
 
-        doc.build(story)
+        ratio = min(max_w / float(img_w), max_h / float(img_h))
+        draw_w = img_w * ratio
+        draw_h = img_h * ratio
+        x = (page_w - draw_w) / 2
+        y = top - draw_h
+
+        c.drawImage(tmp_path, x, y, width=draw_w, height=draw_h)
+        c.showPage()
+        c.save()
+
+        os.unlink(tmp_path)
+
         buffer.seek(0)
         return send_file(buffer, as_attachment=True,
                          download_name=f"{title.replace(' ', '_')}.pdf",
