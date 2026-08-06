@@ -3,9 +3,11 @@ let notesModal = null;
 let noteViewModal = null;
 let noteLinkModal = null;
 let noteImageModal = null;
+let noteImageEditModal = null;
 let currentNoteId = null;
 let currentViewNote = null;
 let currentImageFile = null;
+let currentEditImage = null;
 let notesData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -24,6 +26,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageModalEl = document.getElementById('noteImageModal');
     if (imageModalEl) {
         noteImageModal = new bootstrap.Modal(imageModalEl);
+    }
+    const imageEditModalEl = document.getElementById('noteImageEditModal');
+    if (imageEditModalEl) {
+        noteImageEditModal = new bootstrap.Modal(imageEditModalEl);
+    }
+
+    // Detectar clic en imágenes del editor para editarlas
+    const editor = document.getElementById('noteContentEditor');
+    if (editor) {
+        editor.addEventListener('click', function(e) {
+            const img = e.target.closest('img');
+            if (img && editor.contains(img)) {
+                e.preventDefault();
+                e.stopPropagation();
+                openImageEdit(img);
+            }
+        });
     }
 });
 
@@ -262,6 +281,52 @@ function applyNoteLink() {
     
     document.execCommand('insertHTML', false, `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="text-orange fw-bold">${escapeHtml(displayText)}</a>`);
     noteLinkModal.hide();
+}
+
+function openImageEdit(img) {
+    currentEditImage = img;
+    const preview = document.getElementById('noteImageEditPreview');
+    const slider = document.getElementById('noteImageEditSizeSlider');
+    const valueDisplay = document.getElementById('noteImageEditSizeValue');
+    
+    if (preview) preview.src = img.src;
+    
+    let currentWidth = 100;
+    const style = img.getAttribute('style') || '';
+    const match = style.match(/max-width:\s*(\d+)%/);
+    if (match) currentWidth = parseInt(match[1], 10);
+    if (slider) slider.value = currentWidth;
+    if (valueDisplay) valueDisplay.textContent = currentWidth + '%';
+    if (preview) preview.style.maxWidth = currentWidth + '%';
+    
+    if (noteImageEditModal) noteImageEditModal.show();
+}
+
+function updateImageEditPreview() {
+    const slider = document.getElementById('noteImageEditSizeSlider');
+    const preview = document.getElementById('noteImageEditPreview');
+    const valueDisplay = document.getElementById('noteImageEditSizeValue');
+    if (slider) {
+        if (preview) preview.style.maxWidth = slider.value + '%';
+        if (valueDisplay) valueDisplay.textContent = slider.value + '%';
+    }
+}
+
+function applyImageEdit() {
+    if (!currentEditImage) return;
+    const slider = document.getElementById('noteImageEditSizeSlider');
+    if (slider) {
+        currentEditImage.style.maxWidth = slider.value + '%';
+    }
+    if (noteImageEditModal) noteImageEditModal.hide();
+    currentEditImage = null;
+}
+
+function deleteImageEdit() {
+    if (!currentEditImage) return;
+    currentEditImage.remove();
+    if (noteImageEditModal) noteImageEditModal.hide();
+    currentEditImage = null;
 }
 
 function insertImage() {
