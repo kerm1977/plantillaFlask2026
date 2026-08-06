@@ -4,6 +4,7 @@ let noteViewModal = null;
 let noteLinkModal = null;
 let noteImageModal = null;
 let noteImageEditModal = null;
+let noteImageViewModal = null;
 let currentNoteId = null;
 let currentViewNote = null;
 let currentImageFile = null;
@@ -33,8 +34,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (imageEditModalEl) {
         noteImageEditModal = new bootstrap.Modal(imageEditModalEl);
     }
+    const imageViewModalEl = document.getElementById('noteImageViewModal');
+    if (imageViewModalEl) {
+        noteImageViewModal = new bootstrap.Modal(imageViewModalEl);
+    }
 
-    // Detectar clic en imágenes del editor para editarlas
+    // Detectar clic en imágenes del editor para verlas
     const editor = document.getElementById('noteContentEditor');
     if (editor) {
         editor.addEventListener('click', function(e) {
@@ -42,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (img && editor.contains(img)) {
                 e.preventDefault();
                 e.stopPropagation();
-                openImageEdit(img);
+                openImageView(img);
             }
         });
     }
@@ -320,6 +325,33 @@ function applyNoteLink() {
     noteLinkModal.hide();
 }
 
+function openImageView(img) {
+    currentEditImage = img;
+    const viewImg = document.getElementById('noteImageViewReal');
+    if (viewImg) viewImg.src = img.src;
+    if (noteImageViewModal) noteImageViewModal.show();
+}
+
+function openImageEditFromView() {
+    if (!currentEditImage) return;
+    if (noteImageViewModal) noteImageViewModal.hide();
+    openImageEdit(currentEditImage);
+}
+
+function moveImageToTop() {
+    if (!currentEditImage) return;
+    const editor = document.getElementById('noteContentEditor');
+    editor.insertBefore(currentEditImage, editor.firstChild);
+    if (noteImageViewModal) noteImageViewModal.hide();
+}
+
+function moveImageToBottom() {
+    if (!currentEditImage) return;
+    const editor = document.getElementById('noteContentEditor');
+    editor.appendChild(currentEditImage);
+    if (noteImageViewModal) noteImageViewModal.hide();
+}
+
 function openImageEdit(img) {
     currentEditImage = img;
     const preview = document.getElementById('noteImageEditPreview');
@@ -577,13 +609,20 @@ async function handleJSONImport(input) {
     input.value = '';
 }
 
-// Image Export (JPG/PNG)
+// Image Export (JPG/PNG/PDF)
 function exportNoteJPG() {
     exportNoteImage('image/jpeg', 'jpg');
 }
 
 function exportNotePNG() {
     exportNoteImage('image/png', 'png');
+}
+
+function exportNotePDF() {
+    exportNoteToPDF(
+        document.getElementById('noteTitleInput').value || 'nota',
+        document.getElementById('noteContentEditor').innerHTML
+    );
 }
 
 function exportNoteImage(format, ext) {
@@ -645,7 +684,12 @@ function exportViewNotePNG() {
     exportNoteImageFromData(currentViewNote.title, currentViewNote.content, 'image/png', 'png');
 }
 
-function shareViewNoteWhatsApp() {
+function exportViewNotePDF() {
+    if (!currentViewNote) return;
+    exportNoteToPDF(currentViewNote.title, currentViewNote.content);
+}
+
+function exportViewNoteWhatsApp() {
     if (!currentViewNote) return;
     const text = `*${currentViewNote.title}*\n\n${stripHtml(currentViewNote.content)}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
@@ -698,6 +742,75 @@ function exportNoteImage(format, ext) {
     const title = document.getElementById('noteTitleInput').value || 'nota';
     const content = document.getElementById('noteContentEditor').innerHTML;
     exportNoteImageFromData(title, content, format, ext);
+}
+
+async function exportNoteToPDF(title, content) {
+    if (typeof window.jspdf === 'undefined') {
+        alert('La librería jsPDF aún no cargó. Intenta de nuevo en unos segundos.');
+        return;
+    }
+    const { jsPDF } = window.jspdf;
+    const temp = document.createElement('div');
+    temp.style.width = '800px';
+    temp.style.padding = '30px';
+    temp.style.background = '#ffffff';
+    temp.style.color = '#000000';
+    temp.style.fontFamily = 'Arial, sans-serif';
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.style.top = '0';
+    temp.style.zIndex = '-1';
+    temp.innerHTML = `
+        <div style="text-align:center; margin-bottom:10px;">
+            <h2 style="margin:0; font-size:28px; font-weight:bold;">${escapeHtml(title)}</h2>
+            <hr style="border:0; border-top:2px solid #ff8c00; margin:10px 0;">
+        </div>
+        <div style="font-size:16px; line-height:1.6;">${content}</div>
+    `;
+    document.body.appendChild(temp);
+    
+    try {
+        const canvas = await html2canvas(temp, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: 800
+        });
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const pdf = new jsPDF({
+            orientation: 'p',
+            unit: 'pt',
+            format: 'letter'
+        });
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
+        const imgX = (pageWidth - imgWidth * ratio) / 2;
+        let imgY = 30;
+        let scaledHeight = imgHeight * ratio;
+        let heightLeft = scaledHeight;
+        let position = imgY;
+
+        pdf.addImage(imgData, 'JPEG', imgX, position, imgWidth * ratio, scaledHeight);
+        heightLeft -= (pageHeight - 60);
+
+        while (heightLeft >= 0) {
+            position = heightLeft - scaledHeight + imgY;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', imgX, position, imgWidth * ratio, scaledHeight);
+            heightLeft -= (pageHeight - 60);
+        }
+
+        pdf.save(`${title.replace(/[^a-z0-9\u00C0-\u024F\u1E00-\u1EFF]/gi, '_')}.pdf`);
+    } catch (e) {
+        console.error('Error exportando PDF:', e);
+        alert('Error al generar el PDF.');
+    } finally {
+        document.body.removeChild(temp);
+    }
 }
 
 // Utilities

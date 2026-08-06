@@ -126,6 +126,9 @@
                         <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
                             <i class="bi bi-file-earmark-image me-1"></i>PNG
                         </button>
+                        <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportNotePDF()">
+                            <i class="bi bi-filetype-pdf me-1"></i>PDF
+                        </button>
                         <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
                             <i class="bi bi-whatsapp me-1"></i>WhatsApp
                         </button>
@@ -215,6 +218,35 @@
     </div>
 </div>
 
+<!-- MODAL PARA VER IMAGEN EN TAMAÑO REAL -->
+<div class="modal fade" id="noteImageViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-zoom-in text-orange me-2"></i>Vista de imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="noteImageViewReal" class="img-fluid rounded-3" style="max-height: 80vh;" alt="Imagen completa">
+                <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                    <button class="btn btn-primary rounded-pill px-3" onclick="openImageEditFromView()">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToTop()">
+                        <i class="bi bi-arrow-up me-1"></i>Arriba
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToBottom()">
+                        <i class="bi bi-arrow-down me-1"></i>Abajo
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL PARA EDITAR IMAGEN -->
 <div class="modal fade" id="noteImageEditModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -290,6 +322,9 @@
                     </button>
                     <button class="btn btn-outline-info rounded-pill px-3" onclick="exportViewNotePNG()">
                         <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportViewNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
                     </button>
                     <button class="btn btn-outline-success rounded-pill px-3" onclick="shareViewNoteWhatsApp()">
                         <i class="bi bi-whatsapp me-1"></i>WhatsApp
