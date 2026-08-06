@@ -286,37 +286,66 @@ function applyNoteLink() {
 function openImageEdit(img) {
     currentEditImage = img;
     const preview = document.getElementById('noteImageEditPreview');
-    const slider = document.getElementById('noteImageEditSizeSlider');
-    const valueDisplay = document.getElementById('noteImageEditSizeValue');
+    const sizeSlider = document.getElementById('noteImageEditSizeSlider');
+    const blurSlider = document.getElementById('noteImageEditBlurSlider');
+    const opacitySlider = document.getElementById('noteImageEditOpacitySlider');
     
     if (preview) preview.src = img.src;
     
-    let currentWidth = 100;
     const style = img.getAttribute('style') || '';
-    const match = style.match(/max-width:\s*(\d+)%/);
-    if (match) currentWidth = parseInt(match[1], 10);
-    if (slider) slider.value = currentWidth;
-    if (valueDisplay) valueDisplay.textContent = currentWidth + '%';
-    if (preview) preview.style.maxWidth = currentWidth + '%';
+    let currentWidth = 100;
+    let currentBlur = 0;
+    let currentOpacity = 100;
     
+    const wMatch = style.match(/max-width:\s*(\d+)%/);
+    if (wMatch) currentWidth = parseInt(wMatch[1], 10);
+    const bMatch = style.match(/blur\((\d+(?:\.\d+)?)px\)/);
+    if (bMatch) currentBlur = parseFloat(bMatch[1]);
+    const oMatch = style.match(/opacity\((\d+)%\)/);
+    if (oMatch) currentOpacity = parseInt(oMatch[1], 10);
+    
+    if (sizeSlider) sizeSlider.value = currentWidth;
+    if (blurSlider) blurSlider.value = currentBlur;
+    if (opacitySlider) opacitySlider.value = currentOpacity;
+    
+    updateImageEditPreview();
     if (noteImageEditModal) noteImageEditModal.show();
 }
 
 function updateImageEditPreview() {
-    const slider = document.getElementById('noteImageEditSizeSlider');
+    const sizeSlider = document.getElementById('noteImageEditSizeSlider');
+    const blurSlider = document.getElementById('noteImageEditBlurSlider');
+    const opacitySlider = document.getElementById('noteImageEditOpacitySlider');
     const preview = document.getElementById('noteImageEditPreview');
-    const valueDisplay = document.getElementById('noteImageEditSizeValue');
-    if (slider) {
-        if (preview) preview.style.maxWidth = slider.value + '%';
-        if (valueDisplay) valueDisplay.textContent = slider.value + '%';
+    const sizeValue = document.getElementById('noteImageEditSizeValue');
+    const blurValue = document.getElementById('noteImageEditBlurValue');
+    const opacityValue = document.getElementById('noteImageEditOpacityValue');
+    
+    if (sizeSlider) {
+        if (preview) preview.style.maxWidth = sizeSlider.value + '%';
+        if (sizeValue) sizeValue.textContent = sizeSlider.value + '%';
+    }
+    if (blurSlider) {
+        if (blurValue) blurValue.textContent = blurSlider.value + 'px';
+    }
+    if (opacitySlider) {
+        if (opacityValue) opacityValue.textContent = opacitySlider.value + '%';
+    }
+    
+    if (preview && blurSlider && opacitySlider) {
+        const filter = `blur(${blurSlider.value}px) opacity(${opacitySlider.value}%)`;
+        preview.style.filter = filter;
     }
 }
 
 function applyImageEdit() {
     if (!currentEditImage) return;
-    const slider = document.getElementById('noteImageEditSizeSlider');
-    if (slider) {
-        currentEditImage.style.maxWidth = slider.value + '%';
+    const sizeSlider = document.getElementById('noteImageEditSizeSlider');
+    const blurSlider = document.getElementById('noteImageEditBlurSlider');
+    const opacitySlider = document.getElementById('noteImageEditOpacitySlider');
+    if (sizeSlider) currentEditImage.style.maxWidth = sizeSlider.value + '%';
+    if (blurSlider && opacitySlider) {
+        currentEditImage.style.filter = `blur(${blurSlider.value}px) opacity(${opacitySlider.value}%)`;
     }
     if (noteImageEditModal) noteImageEditModal.hide();
     currentEditImage = null;
