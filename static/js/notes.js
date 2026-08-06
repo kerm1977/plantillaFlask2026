@@ -47,18 +47,39 @@ async function loadNotes() {
     }
 }
 
+let notesFilteredData = [];
+
+function filterNotesLive() {
+    const input = document.getElementById('notesSearchInput');
+    if (!input) return;
+    const q = input.value.trim().toLowerCase();
+    if (!q) {
+        notesFilteredData = [];
+        renderNotesList();
+        return;
+    }
+    notesFilteredData = notesData.filter(n => {
+        const inTitle = n.title.toLowerCase().includes(q);
+        const inContent = stripHtml(n.content).toLowerCase().includes(q);
+        const inDate = formatDate(n.updated_at).toLowerCase().includes(q) || formatDate(n.created_at).toLowerCase().includes(q);
+        return inTitle || inContent || inDate;
+    });
+    renderNotesList();
+}
+
 function renderNotesList() {
     const container = document.getElementById('notesList');
-    if (!notesData.length) {
+    const dataToRender = notesFilteredData.length || document.getElementById('notesSearchInput')?.value.trim() ? notesFilteredData : notesData;
+    if (!dataToRender.length) {
         container.innerHTML = `
             <div class="col-12 text-center py-4 text-muted">
                 <i class="bi bi-journal fs-1 mb-2 d-block"></i>
-                No tienes notas aún
+                ${notesData.length ? 'No se encontraron notas' : 'No tienes notas aún'}
             </div>
         `;
         return;
     }
-    container.innerHTML = notesData.map(n => {
+    container.innerHTML = dataToRender.map(n => {
         const plainText = stripHtml(n.content);
         const preview = plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
         return `

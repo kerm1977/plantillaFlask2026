@@ -20,6 +20,12 @@
                             </button>
                         </div>
                     </div>
+
+                    <!-- BUSCADOR EN VIVO -->
+                    <div class="search-container mb-3 d-flex align-items-center position-relative">
+                        <i class="bi bi-search text-orange fs-5 ms-3 position-absolute"></i>
+                        <input type="text" id="notesSearchInput" class="form-control bg-white bg-opacity-75 border-0 rounded-pill ps-5 py-2" placeholder="Buscar por título, contenido o fecha..." oninput="filterNotesLive()">
+                    </div>
                     <div id="notesList" class="row g-2">
                         <div class="col-12 text-center py-4 text-muted">
                             <i class="bi bi-journal fs-1 mb-2 d-block"></i>
