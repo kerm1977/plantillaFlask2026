@@ -1,8 +1,11 @@
 // Sistema de Notas Administrativas
 let notesModal = null;
 let noteViewModal = null;
+let noteLinkModal = null;
+let noteImageModal = null;
 let currentNoteId = null;
 let currentViewNote = null;
+let currentImageFile = null;
 let notesData = [];
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -13,6 +16,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const viewModalEl = document.getElementById('noteViewModal');
     if (viewModalEl) {
         noteViewModal = new bootstrap.Modal(viewModalEl);
+    }
+    const linkModalEl = document.getElementById('noteLinkModal');
+    if (linkModalEl) {
+        noteLinkModal = new bootstrap.Modal(linkModalEl);
+    }
+    const imageModalEl = document.getElementById('noteImageModal');
+    if (imageModalEl) {
+        noteImageModal = new bootstrap.Modal(imageModalEl);
     }
 });
 
@@ -163,41 +174,117 @@ function execCmd(command) {
 function insertCheckbox() {
     const editor = document.getElementById('noteContentEditor');
     editor.focus();
-    const html = `<div class="note-checkbox-item d-flex align-items-center gap-2 mb-1"><input type="checkbox" class="note-check" onchange="toggleNoteCheck(this)"><span contenteditable="true">Nueva tarea</span></div>`;
+    const html = `<div class="note-checkbox-item d-flex align-items-center gap-2 mb-1"><input type="checkbox" class="note-check"><label contenteditable="true">Nueva tarea</label></div><br>`;
     document.execCommand('insertHTML', false, html);
     document.getElementById('noteProgressContainer').classList.remove('d-none');
     updateNoteProgress();
 }
 
 function insertLink() {
-    const url = prompt('Ingresa la URL del enlace:');
-    if (url) {
-        const title = prompt('Texto del enlace (opcional):') || url;
-        document.getElementById('noteContentEditor').focus();
-        document.execCommand('insertHTML', false, `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="text-orange fw-bold">${escapeHtml(title)}</a>`);
+    document.getElementById('noteLinkEditId').value = '';
+    document.getElementById('noteLinkText').value = '';
+    document.getElementById('noteLinkUrl').value = '';
+    
+    const selection = window.getSelection();
+    if (selection.rangeCount > 0) {
+        const node = selection.anchorNode ? selection.anchorNode.parentElement : null;
+        if (node && node.tagName === 'A') {
+            document.getElementById('noteLinkEditId').value = 'edit';
+            document.getElementById('noteLinkText').value = node.textContent;
+            document.getElementById('noteLinkUrl').value = node.getAttribute('href') || '';
+        } else {
+            document.getElementById('noteLinkText').value = selection.toString();
+        }
     }
+    
+    if (noteLinkModal) noteLinkModal.show();
+}
+
+function applyNoteLink() {
+    const text = document.getElementById('noteLinkText').value.trim();
+    const url = document.getElementById('noteLinkUrl').value.trim();
+    const isEdit = document.getElementById('noteLinkEditId').value === 'edit';
+    if (!url) return;
+    
+    document.getElementById('noteContentEditor').focus();
+    const displayText = text || url;
+    
+    if (isEdit) {
+        const selection = window.getSelection();
+        const node = selection.anchorNode ? selection.anchorNode.parentElement : null;
+        if (node && node.tagName === 'A') {
+            node.textContent = displayText;
+            node.setAttribute('href', url);
+            noteLinkModal.hide();
+            return;
+        }
+    }
+    
+    document.execCommand('insertHTML', false, `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="text-orange fw-bold">${escapeHtml(displayText)}</a>`);
+    noteLinkModal.hide();
 }
 
 function insertImage() {
-    const url = prompt('Ingresa la URL de la imagen:');
-    if (url) {
-        document.getElementById('noteContentEditor').focus();
-        document.execCommand('insertHTML', false, `<img src="${escapeHtml(url)}" class="img-fluid rounded-3 my-2" style="max-width: 100%;" alt="Imagen de nota">`);
+    currentImageFile = null;
+    document.getElementById('noteImageFile').value = '';
+    document.getElementById('noteImagePreview').src = '';
+    document.getElementById('noteImagePreviewContainer').classList.add('d-none');
+    if (noteImageModal) noteImageModal.show();
+}
+
+function previewNoteImage(input) {
+    if (input.files && input.files[0]) {
+        currentImageFile = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('noteImagePreview').src = e.target.result;
+            document.getElementById('noteImagePreviewContainer').classList.remove('d-none');
+        };
+        reader.readAsDataURL(currentImageFile);
+    }
+}
+
+async function applyNoteImage() {
+    if (!currentImageFile) return;
+    
+    const formData = new FormData();
+    formData.append('image', currentImageFile);
+    
+    try {
+        const r = await fetch('/api/notes/upload-image', {
+            method: 'POST',
+            body: formData
+        });
+        const data = await r.json();
+        if (data.ok) {
+            document.getElementById('noteContentEditor').focus();
+            document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3 my-2" style="max-width: 100%;" alt="Imagen de nota">`);
+            noteImageModal.hide();
+            currentImageFile = null;
+            document.getElementById('noteImageFile').value = '';
+            document.getElementById('noteImagePreview').src = '';
+            document.getElementById('noteImagePreviewContainer').classList.add('d-none');
+        } else {
+            alert(data.error || 'Error al subir imagen');
+        }
+    } catch (e) {
+        console.error('Error subiendo imagen:', e);
+        alert('Error de conexión al subir imagen');
     }
 }
 
 function toggleNoteCheck(checkbox) {
-    const span = checkbox.parentElement.querySelector('span');
-    if (span) {
-        span.classList.toggle('text-decoration-line-through', checkbox.checked);
-        span.classList.toggle('text-muted', checkbox.checked);
+    const label = checkbox.parentElement.querySelector('label');
+    if (label) {
+        label.classList.toggle('text-decoration-line-through', checkbox.checked);
+        label.classList.toggle('text-muted', checkbox.checked);
     }
     updateNoteProgress();
 }
 
 function updateNoteProgress() {
     const editor = document.getElementById('noteContentEditor');
-    const checks = editor.querySelectorAll('input.note-check');
+    const checks = editor.querySelectorAll('input[type="checkbox"]');
     if (checks.length === 0) {
         document.getElementById('noteProgressContainer').classList.add('d-none');
         return;
@@ -211,20 +298,15 @@ function updateNoteProgress() {
     bar.setAttribute('aria-valuenow', percent);
 }
 
-// Actualizar progreso cuando se modifica el editor
-document.addEventListener('click', function(e) {
-    if (e.target && e.target.classList && e.target.classList.contains('note-check')) {
-        // Handled by onchange
-    }
-});
-
 function attachCheckboxListeners() {
     const editor = document.getElementById('noteContentEditor');
     editor.addEventListener('change', function(e) {
-        if (e.target && e.target.classList && e.target.classList.contains('note-check')) {
+        if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
             toggleNoteCheck(e.target);
         }
     });
+    // Sincronizar estados visuales al cargar nota
+    editor.querySelectorAll('input[type="checkbox"]').forEach(ch => toggleNoteCheck(ch));
 }
 
 // JSON Export/Import

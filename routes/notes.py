@@ -1,8 +1,12 @@
-from flask import request, jsonify, session
+from flask import request, jsonify, session, current_app
 from models import Note
 from db import db
 from routes import bp
 from datetime import datetime
+import os
+import uuid
+
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
 
 @bp.route('/api/notes', methods=['GET'])
@@ -86,3 +90,25 @@ def import_notes_json():
         imported += 1
     db.session.commit()
     return jsonify({'ok': True, 'imported': imported})
+
+
+@bp.route('/api/notes/upload-image', methods=['POST'])
+def upload_note_image():
+    if 'user_id' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se envió imagen'}), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': 'Nombre vacío'}), 400
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({'error': 'Formato no permitido'}), 400
+    
+    upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'notes')
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f'note_{uuid.uuid4().hex[:8]}_{file.filename}'
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+    
+    return jsonify({'ok': True, 'url': f'/static/uploads/notes/{filename}'})
