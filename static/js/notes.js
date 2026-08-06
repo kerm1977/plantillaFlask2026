@@ -778,7 +778,11 @@ async function exportNoteToPDF(title, content) {
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({title: title, image: imgData})
         });
-        if (!response.ok) throw new Error('Error del servidor');
+        if (!response.ok) {
+            const errJson = await response.json().catch(() => ({error: 'Error desconocido del servidor'}));
+            console.error('Server PDF error:', errJson);
+            throw new Error(errJson.error || 'Error del servidor');
+        }
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
