@@ -745,11 +745,6 @@ function exportNoteImage(format, ext) {
 }
 
 async function exportNoteToPDF(title, content) {
-    if (typeof window.jspdf === 'undefined') {
-        alert('La librería jsPDF aún no cargó. Intenta de nuevo en unos segundos.');
-        return;
-    }
-    const { jsPDF } = window.jspdf;
     const temp = document.createElement('div');
     temp.style.width = '800px';
     temp.style.padding = '30px';
@@ -777,34 +772,20 @@ async function exportNoteToPDF(title, content) {
             backgroundColor: '#ffffff',
             width: 800
         });
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdf = new jsPDF({
-            orientation: 'p',
-            unit: 'pt',
-            format: 'letter'
+        const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        const response = await fetch('/api/notes/export-pdf', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title: title, image: imgData})
         });
-        const pageWidth = pdf.internal.pageSize.getWidth();
-        const pageHeight = pdf.internal.pageSize.getHeight();
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        const ratio = Math.min(pageWidth / imgWidth, pageHeight / imgHeight);
-        const imgX = (pageWidth - imgWidth * ratio) / 2;
-        let imgY = 30;
-        let scaledHeight = imgHeight * ratio;
-        let heightLeft = scaledHeight;
-        let position = imgY;
-
-        pdf.addImage(imgData, 'JPEG', imgX, position, imgWidth * ratio, scaledHeight);
-        heightLeft -= (pageHeight - 60);
-
-        while (heightLeft >= 0) {
-            position = heightLeft - scaledHeight + imgY;
-            pdf.addPage();
-            pdf.addImage(imgData, 'JPEG', imgX, position, imgWidth * ratio, scaledHeight);
-            heightLeft -= (pageHeight - 60);
-        }
-
-        pdf.save(`${title.replace(/[^a-z0-9\u00C0-\u024F\u1E00-\u1EFF]/gi, '_')}.pdf`);
+        if (!response.ok) throw new Error('Error del servidor');
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^a-z0-9\u00C0-\u024F\u1E00-\u1EFF]/gi, '_')}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
     } catch (e) {
         console.error('Error exportando PDF:', e);
         alert('Error al generar el PDF.');

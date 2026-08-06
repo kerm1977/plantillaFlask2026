@@ -1,10 +1,17 @@
-from flask import request, jsonify, session, current_app
+from flask import request, jsonify, session, current_app, send_file
 from models import Note
 from db import db
 from routes import bp
 from datetime import datetime
 import os
 import uuid
+import base64
+import io
+from html import escape
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.units import inch
+from reportlab.platypus import SimpleDocTemplate, Image, Paragraph, Spacer
+from reportlab.lib.styles import getSampleStyleSheet
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 
@@ -112,3 +119,45 @@ def upload_note_image():
     file.save(filepath)
     
     return jsonify({'ok': True, 'url': f'/static/uploads/notes/{filename}'})
+
+
+@bp.route('/api/notes/export-pdf', methods=['POST'])
+def export_note_pdf():
+    if 'user_id' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    data = request.json or {}
+    title = data.get('title', 'nota')
+    image_base64 = data.get('image', '')
+    if not image_base64:
+        return jsonify({'error': 'No se envió imagen'}), 400
+    try:
+        header, encoded = image_base64.split(',', 1)
+        img_bytes = base64.b64decode(encoded)
+    except Exception:
+        return jsonify({'error': 'Imagen inválida'}), 400
+
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter,
+                            rightMargin=50, leftMargin=50,
+                            topMargin=50, bottomMargin=50)
+    styles = getSampleStyleSheet()
+    style_title = styles['Title']
+    style_title.alignment = 1  # centered
+    style_title.textColor = '#000000'
+
+    story = []
+    story.append(Paragraph(escape(title), style_title))
+    story.append(Spacer(1, 0.2 * inch))
+
+    img_stream = io.BytesIO(img_bytes)
+    img = Image(img_stream, width=7.5 * inch, height=9.5 * inch)
+    img.drawWidth = 7.5 * inch
+    img.drawHeight = 9.5 * inch
+    img.preserveAspectRatio = True
+    story.append(img)
+
+    doc.build(story)
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True,
+                     download_name=f"{title.replace(' ', '_')}.pdf",
+                     mimetype='application/pdf')
