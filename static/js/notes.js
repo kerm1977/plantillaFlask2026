@@ -9,6 +9,8 @@ let currentViewNote = null;
 let currentImageFile = null;
 let currentEditImage = null;
 let notesData = [];
+let notesPage = 1;
+const NOTES_PER_PAGE = 10;
 
 document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('notesModal');
@@ -72,6 +74,7 @@ function filterNotesLive() {
     const input = document.getElementById('notesSearchInput');
     if (!input) return;
     const q = input.value.trim().toLowerCase();
+    notesPage = 1;
     if (!q) {
         notesFilteredData = [];
         renderNotesList();
@@ -98,7 +101,13 @@ function renderNotesList() {
         `;
         return;
     }
-    container.innerHTML = dataToRender.map(n => {
+    const totalPages = Math.ceil(dataToRender.length / NOTES_PER_PAGE) || 1;
+    if (notesPage > totalPages) notesPage = totalPages;
+    const start = (notesPage - 1) * NOTES_PER_PAGE;
+    const end = start + NOTES_PER_PAGE;
+    const pageData = dataToRender.slice(start, end);
+    
+    let html = pageData.map(n => {
         const plainText = stripHtml(n.content);
         const preview = plainText.length > 150 ? plainText.substring(0, 150) + '...' : plainText;
         return `
@@ -121,6 +130,31 @@ function renderNotesList() {
             </div>
         </div>
     `}).join('');
+    
+    if (totalPages > 1) {
+        html += `
+            <div class="col-12 d-flex justify-content-center align-items-center gap-2 mt-3">
+                <button class="btn btn-sm btn-light rounded-pill" onclick="changeNotesPage(-1)" ${notesPage <= 1 ? 'disabled' : ''}>
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <span class="small text-muted">Página ${notesPage} de ${totalPages}</span>
+                <button class="btn btn-sm btn-light rounded-pill" onclick="changeNotesPage(1)" ${notesPage >= totalPages ? 'disabled' : ''}>
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+function changeNotesPage(delta) {
+    const dataToRender = notesFilteredData.length || document.getElementById('notesSearchInput')?.value.trim() ? notesFilteredData : notesData;
+    const totalPages = Math.ceil(dataToRender.length / NOTES_PER_PAGE) || 1;
+    notesPage += delta;
+    if (notesPage < 1) notesPage = 1;
+    if (notesPage > totalPages) notesPage = totalPages;
+    renderNotesList();
 }
 
 function createNewNote() {
@@ -158,7 +192,10 @@ function viewNote(id) {
     const note = notesData.find(n => n.id === id);
     if (!note) return;
     currentViewNote = note;
-    document.getElementById('noteViewTitle').textContent = note.title;
+    const headerTitle = document.getElementById('noteViewTitle');
+    const bodyTitle = document.getElementById('noteViewBodyTitle');
+    if (headerTitle) headerTitle.textContent = note.title;
+    if (bodyTitle) bodyTitle.textContent = note.title;
     document.getElementById('noteViewContent').innerHTML = note.content;
     if (noteViewModal) noteViewModal.show();
 }
@@ -615,40 +652,52 @@ function shareViewNoteWhatsApp() {
     window.open(url, '_blank');
 }
 
-function exportNoteImageFromData(title, content, format, ext) {
-    // Crear canvas temporal
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 800;
-    canvas.height = 600;
+async function exportNoteImageFromData(title, content, format, ext) {
+    // Crear contenedor temporal fuera de la vista para renderizar con html2canvas
+    const temp = document.createElement('div');
+    temp.style.width = '800px';
+    temp.style.padding = '30px';
+    temp.style.background = '#ffffff';
+    temp.style.color = '#000000';
+    temp.style.fontFamily = 'Arial, sans-serif';
+    temp.style.position = 'fixed';
+    temp.style.left = '-9999px';
+    temp.style.top = '0';
+    temp.style.zIndex = '-1';
+    temp.innerHTML = `
+        <div style="text-align:center; margin-bottom:10px;">
+            <h2 style="margin:0; font-size:28px; font-weight:bold;">${escapeHtml(title)}</h2>
+            <hr style="border:0; border-top:2px solid #ff8c00; margin:10px 0;">
+        </div>
+        <div id="exportNoteContent" style="font-size:16px; line-height:1.6;">${content}</div>
+    `;
+    document.body.appendChild(temp);
+    
+    try {
+        const canvas = await html2canvas(temp, {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            width: 800
+        });
+        const url = canvas.toDataURL(format);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${title.replace(/[^a-z0-9\u00C0-\u024F\u1E00-\u1EFF]/gi, '_')}.${ext}`;
+        a.click();
+    } catch (e) {
+        console.error('Error exportando imagen:', e);
+        alert('Error al generar la imagen. Verifica que html2canvas esté cargado.');
+    } finally {
+        document.body.removeChild(temp);
+    }
+}
 
-    // Fondo blanco
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Título
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText(title, 20, 40);
-
-    // Contenido (simplificado - texto plano)
-    ctx.font = '16px Arial';
-    const plainText = stripHtml(content);
-    const lines = wrapText(ctx, plainText, 760);
-    let y = 80;
-    lines.forEach(line => {
-        if (y < canvas.height - 20) {
-            ctx.fillText(line, 20, y);
-            y += 24;
-        }
-    });
-
-    // Descargar
-    const url = canvas.toDataURL(format);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title}.${ext}`;
-    a.click();
+function exportNoteImage(format, ext) {
+    const title = document.getElementById('noteTitleInput').value || 'nota';
+    const content = document.getElementById('noteContentEditor').innerHTML;
+    exportNoteImageFromData(title, content, format, ext);
 }
 
 // Utilities
