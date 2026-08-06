@@ -195,8 +195,18 @@ function execCmd(command) {
 function insertCheckbox() {
     const editor = document.getElementById('noteContentEditor');
     editor.focus();
-    const html = `<ul class="todo-list"><li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span></li></ul>`;
-    document.execCommand('insertHTML', false, html);
+    const selection = window.getSelection();
+    const selectedText = selection ? selection.toString() : '';
+    
+    if (selectedText) {
+        const lines = selectedText.split('\n').filter(l => l.trim());
+        const listItems = lines.map(line => `<li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">${escapeHtml(line.trim())}</span></li>`).join('');
+        document.execCommand('insertHTML', false, `<ul class="todo-list">${listItems}</ul>`);
+    } else {
+        const html = `<ul class="todo-list"><li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span></li></ul>`;
+        document.execCommand('insertHTML', false, html);
+    }
+    
     document.getElementById('noteProgressContainer').classList.remove('d-none');
     updateNoteProgress();
 }
@@ -350,6 +360,33 @@ function attachCheckboxListeners() {
             e.stopPropagation();
             toggleTodoItem(item);
             return false;
+        }
+    });
+    editor.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const text = e.target;
+            if (text && text.classList && text.classList.contains('todo-text')) {
+                e.preventDefault();
+                const li = text.closest('li');
+                const ul = li ? li.closest('ul') : null;
+                if (!ul) return;
+                const newLi = document.createElement('li');
+                newLi.className = 'todo-item';
+                newLi.setAttribute('data-checked', 'false');
+                newLi.innerHTML = '<span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span>';
+                li.after(newLi);
+                const newText = newLi.querySelector('.todo-text');
+                if (newText) {
+                    newText.focus();
+                    const range = document.createRange();
+                    range.selectNodeContents(newText);
+                    range.collapse(true);
+                    const sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                }
+                updateNoteProgress();
+            }
         }
     });
     // Sincronizar estados visuales al cargar nota
