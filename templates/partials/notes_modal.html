@@ -1,29 +1,22 @@
 <style>
-.todo-list {
-    list-style: none;
-    padding-left: 0;
-    margin-bottom: 0.5rem;
+.todo-list .list-group-item {
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.5);
+    cursor: default;
 }
-.todo-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
+.todo-list .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
     cursor: pointer;
-    user-select: none;
+    margin-top: 0;
 }
-.todo-item .todo-box {
-    font-size: 1.2rem;
-    line-height: 1;
-    color: #ff8c00;
-    flex-shrink: 0;
-}
-.todo-item .todo-text {
+.todo-list .form-check-label {
     outline: none;
-    min-width: 50px;
-    flex-grow: 1;
+    cursor: text;
+    margin-bottom: 0;
 }
-.todo-item.checked .todo-text {
+.todo-list .form-check-input:checked + .form-check-label {
     text-decoration: line-through;
     opacity: 0.6;
 }
@@ -36,6 +29,9 @@
     color: #ff8c00;
     font-weight: bold;
     text-decoration: underline;
+}
+#noteViewContent .form-check-input {
+    pointer-events: none;
 }
 </style>
 

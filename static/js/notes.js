@@ -197,13 +197,18 @@ function insertCheckbox() {
     editor.focus();
     const selection = window.getSelection();
     const selectedText = selection ? selection.toString() : '';
+    const id = 'note-check-' + Date.now();
     
     if (selectedText) {
         const lines = selectedText.split('\n').filter(l => l.trim());
-        const listItems = lines.map(line => `<li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">${escapeHtml(line.trim())}</span></li>`).join('');
-        document.execCommand('insertHTML', false, `<ul class="todo-list">${listItems}</ul>`);
+        let listItems = '';
+        lines.forEach((line, idx) => {
+            const cid = `${id}-${idx}`;
+            listItems += `<li class="list-group-item d-flex align-items-center gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${cid}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${cid}" contenteditable="true">${escapeHtml(line.trim())}</label></li>`;
+        });
+        document.execCommand('insertHTML', false, `<ul class="list-group list-group-flush todo-list mb-2">${listItems}</ul>`);
     } else {
-        const html = `<ul class="todo-list"><li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span></li></ul>`;
+        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-center gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
         document.execCommand('insertHTML', false, html);
     }
     
@@ -320,32 +325,30 @@ async function applyNoteImage() {
     }
 }
 
-function toggleTodoItem(item) {
-    if (!item || !item.classList || !item.classList.contains('todo-item')) return;
-    const isChecked = item.getAttribute('data-checked') === 'true';
-    const newState = !isChecked;
-    item.setAttribute('data-checked', newState);
-    if (newState) {
-        item.classList.add('checked');
-    } else {
-        item.classList.remove('checked');
+function toggleTodoCheck(checkbox) {
+    const li = checkbox ? checkbox.closest('li') : null;
+    if (!li) return;
+    const checked = checkbox.checked;
+    li.setAttribute('data-checked', checked ? 'true' : 'false');
+    const label = li.querySelector('label');
+    if (label) {
+        label.classList.toggle('text-decoration-line-through', checked);
+        label.classList.toggle('text-muted', checked);
     }
-    const box = item.querySelector('.todo-box');
-    if (box) box.innerHTML = newState ? '&#9745;' : '&#9744;';
     updateNoteProgress();
 }
 
 function updateNoteProgress() {
     const editor = document.getElementById('noteContentEditor');
-    const items = editor.querySelectorAll('.todo-item');
-    if (items.length === 0) {
+    const checks = editor.querySelectorAll('input.note-check');
+    if (checks.length === 0) {
         document.getElementById('noteProgressContainer').classList.add('d-none');
         return;
     }
-    const checked = Array.from(items).filter(i => i.getAttribute('data-checked') === 'true').length;
-    const percent = Math.round((checked / items.length) * 100);
+    const checked = Array.from(checks).filter(c => c.checked).length;
+    const percent = Math.round((checked / checks.length) * 100);
     document.getElementById('noteProgressContainer').classList.remove('d-none');
-    document.getElementById('noteProgressText').textContent = `${percent}%`;
+    document.getElementById('noteProgressText').textContent = `${checked}/${checks.length} - ${percent}%`;
     const bar = document.getElementById('noteProgressBar');
     bar.style.width = `${percent}%`;
     bar.setAttribute('aria-valuenow', percent);
@@ -353,33 +356,25 @@ function updateNoteProgress() {
 
 function attachCheckboxListeners() {
     const editor = document.getElementById('noteContentEditor');
-    editor.addEventListener('click', function(e) {
-        const item = e.target.closest('.todo-item');
-        if (item) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleTodoItem(item);
-            return false;
-        }
-    });
     editor.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            const text = e.target;
-            if (text && text.classList && text.classList.contains('todo-text')) {
-                e.preventDefault();
-                const li = text.closest('li');
+            const label = e.target.closest('label');
+            if (label) {
+                const li = label.closest('li');
                 const ul = li ? li.closest('ul') : null;
                 if (!ul) return;
+                e.preventDefault();
+                const id = 'note-check-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
                 const newLi = document.createElement('li');
-                newLi.className = 'todo-item';
+                newLi.className = 'list-group-item d-flex align-items-center gap-2 p-2 todo-item';
                 newLi.setAttribute('data-checked', 'false');
-                newLi.innerHTML = '<span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span>';
+                newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label>`;
                 li.after(newLi);
-                const newText = newLi.querySelector('.todo-text');
-                if (newText) {
-                    newText.focus();
+                const newLabel = newLi.querySelector('label');
+                if (newLabel) {
+                    newLabel.focus();
                     const range = document.createRange();
-                    range.selectNodeContents(newText);
+                    range.selectNodeContents(newLabel);
                     range.collapse(true);
                     const sel = window.getSelection();
                     sel.removeAllRanges();
@@ -390,12 +385,16 @@ function attachCheckboxListeners() {
         }
     });
     // Sincronizar estados visuales al cargar nota
-    editor.querySelectorAll('.todo-item').forEach(item => {
-        const isChecked = item.getAttribute('data-checked') === 'true';
-        if (isChecked) {
-            item.classList.add('checked');
-            const box = item.querySelector('.todo-box');
-            if (box) box.innerHTML = '&#9745;';
+    editor.querySelectorAll('input.note-check').forEach(ch => {
+        const li = ch.closest('li');
+        if (li) {
+            const isChecked = li.getAttribute('data-checked') === 'true';
+            ch.checked = isChecked;
+            const label = li.querySelector('label');
+            if (label) {
+                label.classList.toggle('text-decoration-line-through', isChecked);
+                label.classList.toggle('text-muted', isChecked);
+            }
         }
     });
     updateNoteProgress();
