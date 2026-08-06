@@ -89,6 +89,8 @@ from routes import (        # noqa: E402, F401
     backups,
     db_export,
     forms_crud,
+    forms_public,
+    forms_responses,
     rifas_admin, rifas_public, rifas_json_backup, agenda, notes,
 )
 
