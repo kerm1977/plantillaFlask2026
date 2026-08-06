@@ -1,3 +1,44 @@
+<style>
+.todo-list {
+    list-style: none;
+    padding-left: 0;
+    margin-bottom: 0.5rem;
+}
+.todo-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0;
+    cursor: pointer;
+    user-select: none;
+}
+.todo-item .todo-box {
+    font-size: 1.2rem;
+    line-height: 1;
+    color: #ff8c00;
+    flex-shrink: 0;
+}
+.todo-item .todo-text {
+    outline: none;
+    min-width: 50px;
+    flex-grow: 1;
+}
+.todo-item.checked .todo-text {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+#noteContentEditor a {
+    color: #ff8c00;
+    font-weight: bold;
+    text-decoration: underline;
+}
+#noteViewContent a {
+    color: #ff8c00;
+    font-weight: bold;
+    text-decoration: underline;
+}
+</style>
+
 <!-- MODAL DE NOTAS ADMINISTRATIVAS -->
 <div class="modal fade" id="notesModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -155,6 +196,15 @@
                 </div>
                 <div id="noteImagePreviewContainer" class="text-center mb-3 d-none">
                     <img id="noteImagePreview" class="img-fluid rounded-3" style="max-height: 200px;" alt="Vista previa">
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageSizeSlider" class="form-label small text-muted fw-bold">Tamaño de imagen</label>
+                    <input type="range" id="noteImageSizeSlider" class="form-range" min="20" max="100" value="100" oninput="updateImageSizePreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Pequeña</span>
+                        <span id="noteImageSizeValue">100%</span>
+                        <span>Grande</span>
+                    </div>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyNoteImage()">

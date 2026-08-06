@@ -195,7 +195,7 @@ function execCmd(command) {
 function insertCheckbox() {
     const editor = document.getElementById('noteContentEditor');
     editor.focus();
-    const html = `<div class="note-checkbox-item d-flex align-items-center gap-2 mb-1"><input type="checkbox" class="note-check"><label contenteditable="true">Nueva tarea</label></div><br>`;
+    const html = `<ul class="todo-list"><li class="todo-item" data-checked="false"><span class="todo-box">&#9744;</span><span class="todo-text" contenteditable="true">Nueva tarea</span></li></ul>`;
     document.execCommand('insertHTML', false, html);
     document.getElementById('noteProgressContainer').classList.remove('d-none');
     updateNoteProgress();
@@ -223,9 +223,13 @@ function insertLink() {
 
 function applyNoteLink() {
     const text = document.getElementById('noteLinkText').value.trim();
-    const url = document.getElementById('noteLinkUrl').value.trim();
+    let url = document.getElementById('noteLinkUrl').value.trim();
     const isEdit = document.getElementById('noteLinkEditId').value === 'edit';
     if (!url) return;
+    
+    if (!/^https?:\/\//i.test(url)) {
+        url = 'https://' + url;
+    }
     
     document.getElementById('noteContentEditor').focus();
     const displayText = text || url;
@@ -260,8 +264,19 @@ function previewNoteImage(input) {
         reader.onload = function(e) {
             document.getElementById('noteImagePreview').src = e.target.result;
             document.getElementById('noteImagePreviewContainer').classList.remove('d-none');
+            updateImageSizePreview();
         };
         reader.readAsDataURL(currentImageFile);
+    }
+}
+
+function updateImageSizePreview() {
+    const slider = document.getElementById('noteImageSizeSlider');
+    const preview = document.getElementById('noteImagePreview');
+    const valueDisplay = document.getElementById('noteImageSizeValue');
+    if (slider) {
+        if (preview) preview.style.maxWidth = slider.value + '%';
+        if (valueDisplay) valueDisplay.textContent = slider.value + '%';
     }
 }
 
@@ -278,8 +293,9 @@ async function applyNoteImage() {
         });
         const data = await r.json();
         if (data.ok) {
+            const width = document.getElementById('noteImageSizeSlider')?.value || 100;
             document.getElementById('noteContentEditor').focus();
-            document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3 my-2" style="max-width: 100%;" alt="Imagen de nota">`);
+            document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3 my-2 note-image" style="max-width: ${width}%;" alt="Imagen de nota">`);
             noteImageModal.hide();
             currentImageFile = null;
             document.getElementById('noteImageFile').value = '';
@@ -294,24 +310,30 @@ async function applyNoteImage() {
     }
 }
 
-function toggleNoteCheck(checkbox) {
-    const label = checkbox.parentElement.querySelector('label');
-    if (label) {
-        label.classList.toggle('text-decoration-line-through', checkbox.checked);
-        label.classList.toggle('text-muted', checkbox.checked);
+function toggleTodoItem(item) {
+    if (!item || !item.classList || !item.classList.contains('todo-item')) return;
+    const isChecked = item.getAttribute('data-checked') === 'true';
+    const newState = !isChecked;
+    item.setAttribute('data-checked', newState);
+    if (newState) {
+        item.classList.add('checked');
+    } else {
+        item.classList.remove('checked');
     }
+    const box = item.querySelector('.todo-box');
+    if (box) box.innerHTML = newState ? '&#9745;' : '&#9744;';
     updateNoteProgress();
 }
 
 function updateNoteProgress() {
     const editor = document.getElementById('noteContentEditor');
-    const checks = editor.querySelectorAll('input[type="checkbox"]');
-    if (checks.length === 0) {
+    const items = editor.querySelectorAll('.todo-item');
+    if (items.length === 0) {
         document.getElementById('noteProgressContainer').classList.add('d-none');
         return;
     }
-    const checked = Array.from(checks).filter(c => c.checked).length;
-    const percent = Math.round((checked / checks.length) * 100);
+    const checked = Array.from(items).filter(i => i.getAttribute('data-checked') === 'true').length;
+    const percent = Math.round((checked / items.length) * 100);
     document.getElementById('noteProgressContainer').classList.remove('d-none');
     document.getElementById('noteProgressText').textContent = `${percent}%`;
     const bar = document.getElementById('noteProgressBar');
@@ -321,13 +343,25 @@ function updateNoteProgress() {
 
 function attachCheckboxListeners() {
     const editor = document.getElementById('noteContentEditor');
-    editor.addEventListener('change', function(e) {
-        if (e.target && e.target.tagName === 'INPUT' && e.target.type === 'checkbox') {
-            toggleNoteCheck(e.target);
+    editor.addEventListener('click', function(e) {
+        const item = e.target.closest('.todo-item');
+        if (item) {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleTodoItem(item);
+            return false;
         }
     });
     // Sincronizar estados visuales al cargar nota
-    editor.querySelectorAll('input[type="checkbox"]').forEach(ch => toggleNoteCheck(ch));
+    editor.querySelectorAll('.todo-item').forEach(item => {
+        const isChecked = item.getAttribute('data-checked') === 'true';
+        if (isChecked) {
+            item.classList.add('checked');
+            const box = item.querySelector('.todo-box');
+            if (box) box.innerHTML = '&#9745;';
+        }
+    });
+    updateNoteProgress();
 }
 
 // JSON Export/Import
