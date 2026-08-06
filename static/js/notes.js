@@ -79,6 +79,8 @@ function createNewNote() {
     document.getElementById('notesListContainer').classList.add('d-none');
     document.getElementById('noteEditorContainer').classList.remove('d-none');
     document.getElementById('createNoteBtnContainer').classList.add('d-none');
+    document.getElementById('noteProgressContainer').classList.add('d-none');
+    attachCheckboxListeners();
 }
 
 function editNote(id) {
@@ -90,6 +92,8 @@ function editNote(id) {
     document.getElementById('notesListContainer').classList.add('d-none');
     document.getElementById('noteEditorContainer').classList.remove('d-none');
     document.getElementById('createNoteBtnContainer').classList.add('d-none');
+    attachCheckboxListeners();
+    updateNoteProgress();
 }
 
 function cancelEdit() {
@@ -153,6 +157,74 @@ async function deleteNote(id) {
 function execCmd(command) {
     document.execCommand(command, false, null);
     document.getElementById('noteContentEditor').focus();
+    updateNoteProgress();
+}
+
+function insertCheckbox() {
+    const editor = document.getElementById('noteContentEditor');
+    editor.focus();
+    const html = `<div class="note-checkbox-item d-flex align-items-center gap-2 mb-1"><input type="checkbox" class="note-check" onchange="toggleNoteCheck(this)"><span contenteditable="true">Nueva tarea</span></div>`;
+    document.execCommand('insertHTML', false, html);
+    document.getElementById('noteProgressContainer').classList.remove('d-none');
+    updateNoteProgress();
+}
+
+function insertLink() {
+    const url = prompt('Ingresa la URL del enlace:');
+    if (url) {
+        const title = prompt('Texto del enlace (opcional):') || url;
+        document.getElementById('noteContentEditor').focus();
+        document.execCommand('insertHTML', false, `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" class="text-orange fw-bold">${escapeHtml(title)}</a>`);
+    }
+}
+
+function insertImage() {
+    const url = prompt('Ingresa la URL de la imagen:');
+    if (url) {
+        document.getElementById('noteContentEditor').focus();
+        document.execCommand('insertHTML', false, `<img src="${escapeHtml(url)}" class="img-fluid rounded-3 my-2" style="max-width: 100%;" alt="Imagen de nota">`);
+    }
+}
+
+function toggleNoteCheck(checkbox) {
+    const span = checkbox.parentElement.querySelector('span');
+    if (span) {
+        span.classList.toggle('text-decoration-line-through', checkbox.checked);
+        span.classList.toggle('text-muted', checkbox.checked);
+    }
+    updateNoteProgress();
+}
+
+function updateNoteProgress() {
+    const editor = document.getElementById('noteContentEditor');
+    const checks = editor.querySelectorAll('input.note-check');
+    if (checks.length === 0) {
+        document.getElementById('noteProgressContainer').classList.add('d-none');
+        return;
+    }
+    const checked = Array.from(checks).filter(c => c.checked).length;
+    const percent = Math.round((checked / checks.length) * 100);
+    document.getElementById('noteProgressContainer').classList.remove('d-none');
+    document.getElementById('noteProgressText').textContent = `${percent}%`;
+    const bar = document.getElementById('noteProgressBar');
+    bar.style.width = `${percent}%`;
+    bar.setAttribute('aria-valuenow', percent);
+}
+
+// Actualizar progreso cuando se modifica el editor
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.classList && e.target.classList.contains('note-check')) {
+        // Handled by onchange
+    }
+});
+
+function attachCheckboxListeners() {
+    const editor = document.getElementById('noteContentEditor');
+    editor.addEventListener('change', function(e) {
+        if (e.target && e.target.classList && e.target.classList.contains('note-check')) {
+            toggleNoteCheck(e.target);
+        }
+    });
 }
 
 // JSON Export/Import
@@ -331,7 +403,16 @@ function stripHtml(html) {
 
 function formatDate(isoString) {
     const d = new Date(isoString);
-    return d.toLocaleDateString('es-CR', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'});
+    // Convertir a zona horaria de Costa Rica (UTC-6)
+    const options = {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Costa_Rica'
+    };
+    return d.toLocaleDateString('es-CR', options);
 }
 
 function wrapText(ctx, text, maxWidth) {
