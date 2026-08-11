@@ -353,7 +353,13 @@ function exportarWhatsApp() {
             const moneda = l.moneda == 'colones' ? '₡' : '$';
             const iconoMoneda = l.moneda == 'colones' ? '💵' : '💲';
             texto += `📍 ${l.nombre}\n`;
+            if(l.duracion) texto += `⏱️ ${l.duracion == '1_dia' ? '1 día' : 'Múltiples días'}\n`;
+            if(l.fecha_ida) texto += `📅 Salida: ${l.fecha_ida}\n`;
+            if(l.fecha_regreso) texto += `📅 Regreso: ${l.fecha_regreso}\n`;
+            if(l.hora) texto += `🕐 Hora: ${l.hora}\n`;
             if(precio) texto += `${iconoMoneda} ${moneda}${precio}\n`;
+            if(l.maps_ida) texto += `🗺️ Mapa de inicio: ${l.maps_ida}\n`;
+            if(l.maps_regreso) texto += `🗺️ Mapa de recogida: ${l.maps_regreso}\n`;
             texto += '\n';
         });
     }
