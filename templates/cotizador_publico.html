@@ -13,26 +13,9 @@
     <div id="cotizadorSection" class="d-none">
         <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);border-radius:15px;">
             <div class="card-body p-4">
-                <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-orange"></i>Buscar</h5>
-                <div class="row g-3">
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="small text-muted">Nombre</label>
-                        <input type="text" class="form-control form-control-sm rounded-4" id="filtroNombre" placeholder="Ej. Rincón">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="small text-muted">Provincia</label>
-                        <select class="form-select form-select-sm rounded-4" id="filtroProvincia">
-                            <option value="">Todas</option>
-                        </select>
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="small text-muted">Fecha</label>
-                        <input type="date" class="form-control form-control-sm rounded-4" id="filtroFecha">
-                    </div>
-                    <div class="col-12 col-md-6 col-lg-3">
-                        <label class="small text-muted">Precio máximo</label>
-                        <input type="number" class="form-control form-control-sm rounded-4" id="filtroPrecio" placeholder="0">
-                    </div>
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-0 ps-3"><i class="bi bi-search text-orange fs-5"></i></span>
+                    <input type="text" class="form-control border-0 shadow-none" id="buscadorCotizador" placeholder="Buscar lugar, provincia, precio, fecha, hora..." autocomplete="off">
                 </div>
             </div>
         </div>
@@ -147,9 +130,7 @@ document.addEventListener('DOMContentLoaded', function() {
     whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
     detalleModal = new bootstrap.Modal(document.getElementById('detalleModal'));
 
-    ['filtroNombre','filtroProvincia','filtroFecha','filtroPrecio'].forEach(id => {
-        document.getElementById(id).addEventListener('input', filtrarLugares);
-    });
+    document.getElementById('buscadorCotizador').addEventListener('input', filtrarLugares);
 
     passwordModal.show();
 });
@@ -162,32 +143,29 @@ async function verificarClave() {
         claveGuardada = clave;
         passwordModal.hide();
         document.getElementById('cotizadorSection').classList.remove('d-none');
-        cargarProvincias();
         renderLugares(lugaresData);
     } else {
         alert('Clave incorrecta');
     }
 }
-function cargarProvincias() {
-    const select = document.getElementById('filtroProvincia');
-    const provincias = [...new Set(lugaresData.map(l => l.provincia || 'Sin provincia'))].sort();
-    select.innerHTML = '<option value="">Todas</option>';
-    provincias.forEach(p => {
-        select.innerHTML += `<option value="${p}">${p}</option>`;
-    });
+function _limpiarTexto(texto) {
+    return (texto || '').toString().toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[,.\s]/g, '');
 }
 function filtrarLugares() {
-    const nombre = document.getElementById('filtroNombre').value.toLowerCase().trim();
-    const provincia = document.getElementById('filtroProvincia').value;
-    const fecha = document.getElementById('filtroFecha').value;
-    const precioMax = parseFloat(document.getElementById('filtroPrecio').value);
-
+    const termino = _limpiarTexto(document.getElementById('buscadorCotizador').value);
+    if(!termino) {
+        renderLugares(lugaresData);
+        return;
+    }
     const filtrados = lugaresData.filter(l => {
-        if(nombre && !(l.nombre || '').toLowerCase().includes(nombre)) return false;
-        if(provincia && (l.provincia || 'Sin provincia') !== provincia) return false;
-        if(fecha && l.fecha_ida !== fecha) return false;
-        if(!isNaN(precioMax) && (l.precio === null || l.precio === '' || parseFloat(l.precio) > precioMax)) return false;
-        return true;
+        const precioLimpio = _limpiarTexto(l.precio).replace(/\D/g, '');
+        const datos = [
+            l.nombre, l.provincia, l.duracion, l.fecha_ida, l.fecha_regreso,
+            l.hora, l.moneda, l.precio, precioLimpio
+        ].join(' ');
+        return _limpiarTexto(datos).includes(termino);
     });
     renderLugares(filtrados);
 }
