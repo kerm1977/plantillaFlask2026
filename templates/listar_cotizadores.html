@@ -110,7 +110,7 @@
 const cotizadorId = {{ cotizadores[0].id if cotizadores else 'null' }};
 let lugares = [];
 let eliminarLugarPendiente = null;
-const confirmDeleteLugarModal = new bootstrap.Modal(document.getElementById('confirmDeleteLugarModal'));
+let confirmDeleteLugarModal;
 const STORAGE_KEY = 'cotizador_borrador';
 {% if cotizadores %}
 {% for l in cotizadores[0].lugares %}
@@ -253,6 +253,9 @@ async function importarCotizadoresJSON(input) {
         input.value = '';
     }
 }
-renderLugares();
+document.addEventListener('DOMContentLoaded', function() {
+    confirmDeleteLugarModal = new bootstrap.Modal(document.getElementById('confirmDeleteLugarModal'));
+    renderLugares();
+});
 </script>
 {% endblock %}
