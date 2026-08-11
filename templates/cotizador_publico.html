@@ -34,11 +34,9 @@ body { padding-top: 0 !important; }
             </div>
         </div>
         <div id="lugaresContainer" class="row g-4 mt-2"></div>
-        <div class="d-grid mt-4">
-            <button onclick="exportarWhatsApp()" class="btn btn-warning-orange py-3 fw-bold btn-lg" style="background-color:#25D366;border-color:#25D366">
-                <i class="bi bi-whatsapp me-2"></i>Exportar WhatsApp
-            </button>
-        </div>
+        <button onclick="exportarWhatsApp()" class="btn rounded-circle shadow-lg d-flex align-items-center justify-content-center" title="Exportar WhatsApp" style="position:fixed;right:20px;bottom:180px;z-index:1050;width:50px;height:50px;background-color:#25D366;border-color:#25D366;color:#fff;">
+            <i class="bi bi-whatsapp fs-5"></i>
+        </button>
     </div>
 </div>
 
@@ -283,13 +281,10 @@ function renderLugares(data) {
                             </button>
                         </div>
                         <hr class="my-3">
-                        <div class="input-group input-group-sm mb-2">
+                        <div class="input-group input-group-sm">
                             <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
-                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" placeholder="Precio">
+                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" onchange="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
                         </div>
-                        <button onclick="guardarPrecio(${l.id}, document.getElementById('precio_${l.id}').value)" class="btn btn-warning-orange w-100 fw-bold">
-                            <i class="bi bi-save me-1"></i>Guardar
-                        </button>
                     </div>
                 </div>
             </div>
