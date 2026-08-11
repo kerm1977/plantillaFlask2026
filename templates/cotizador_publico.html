@@ -118,6 +118,25 @@ body { padding-top: 0 !important; }
     </div>
 </div>
 
+<!-- Modal de Confirmación Eliminar -->
+<div class="modal fade" id="confirmDeleteModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Eliminar este precio del historial?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmarEliminarHistorial()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal de Contraseña -->
 <div class="modal fade" id="passwordModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -150,6 +169,8 @@ let claveGuardada = '';
 let passwordModal;
 let whatsappModal;
 let detalleModal;
+let confirmDeleteModal;
+let eliminarPendiente = null;
 let lugaresVisibles = [];
 let paginaActual = {};
 
@@ -157,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
     whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
     detalleModal = new bootstrap.Modal(document.getElementById('detalleModal'));
+    confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
 
     document.getElementById('buscadorCotizador').addEventListener('input', filtrarLugares);
 
@@ -369,8 +391,14 @@ function renderHistorial(l) {
     }).join('');
     ul.innerHTML = html;
 }
-async function eliminarHistorial(lugarId, idx) {
-    if(!confirm('¿Eliminar este precio del historial?')) return;
+function eliminarHistorial(lugarId, idx) {
+    eliminarPendiente = {lugarId, idx};
+    confirmDeleteModal.show();
+}
+async function confirmarEliminarHistorial() {
+    if(!eliminarPendiente) return;
+    const {lugarId, idx} = eliminarPendiente;
+    eliminarPendiente = null;
     try {
         const res = await fetch('/api/cotizadores/lugar/' + lugarId + '/precio-historial', {
             method: 'DELETE',
