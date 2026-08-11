@@ -356,6 +356,7 @@ async function ingresarCotizadorBus() {
         const res = await fetch('/cotizadores/' + cotizadorBusSlug + '/verificar', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clave})});
         const d = await res.json().catch(() => ({error:'Error del servidor'}));
         if(d.ok) {
+            sessionStorage.setItem('transaviClave', clave);
             cotizadorBusModal.hide();
             window.location.href = '/cotizadores/' + cotizadorBusSlug;
         } else {

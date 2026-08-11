@@ -134,14 +134,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('buscadorCotizador').addEventListener('input', filtrarLugares);
 
-    passwordModal.show();
+    const claveSession = sessionStorage.getItem('transaviClave');
+    if(claveSession) {
+        verificarClave(claveSession);
+    } else {
+        passwordModal.show();
+    }
 });
 
-async function verificarClave() {
-    const clave = document.getElementById('clave').value.trim();
+async function verificarClave(claveExterna) {
+    const clave = (claveExterna || document.getElementById('clave').value).trim();
+    if(!clave) return;
     const res = await fetch('/cotizadores/' + slug + '/verificar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave})});
     const d = await res.json();
     if(d.ok) {
+        sessionStorage.setItem('transaviClave', clave);
         claveGuardada = clave;
         passwordModal.hide();
         document.getElementById('cotizadorSection').classList.remove('d-none');
@@ -149,6 +156,10 @@ async function verificarClave() {
         renderLugares(lugaresVisibles);
     } else {
         alert('Clave incorrecta');
+        if(claveExterna) {
+            document.getElementById('clave').value = claveExterna;
+            passwordModal.show();
+        }
     }
 }
 function _limpiarTexto(texto) {
