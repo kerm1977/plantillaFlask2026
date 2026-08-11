@@ -219,6 +219,12 @@ def _migrate_cotizador():
             )
         ''')
         
+        # Agregar columnas faltantes a cotizador_lugar
+        cursor.execute("PRAGMA table_info(cotizador_lugar)")
+        lugar_columns = [column[1] for column in cursor.fetchall()]
+        if 'precios_historial' not in lugar_columns:
+            cursor.execute("ALTER TABLE cotizador_lugar ADD COLUMN precios_historial TEXT DEFAULT '[]'")
+        
         conn.commit()
         conn.close()
         print("[Migration] Tablas cotizador creadas/verificadas correctamente")

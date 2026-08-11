@@ -98,6 +98,17 @@ body { padding-top: 0 !important; }
                         <a id="detalleMapaIda" href="#" target="_blank" class="btn btn-outline-orange flex-fill rounded-pill"><i class="bi bi-geo-alt-fill me-1"></i>Mapa de inicio</a>
                         <a id="detalleMapaRegreso" href="#" target="_blank" class="btn btn-outline-secondary flex-fill rounded-pill"><i class="bi bi-geo-alt-fill me-1"></i>Mapa de recogida</a>
                     </div>
+                    <div class="col-12 mt-3">
+                        <label class="small text-muted">Precio</label>
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text" id="detalleMoneda"></span>
+                            <input type="number" class="form-control fw-bold" id="detallePrecio" onchange="guardarPrecio(lugarDetalleId, this.value)">
+                        </div>
+                    </div>
+                    <div class="col-12 mt-3">
+                        <label class="small text-muted">Historial de precios</label>
+                        <ul class="list-group list-group-flush" id="detalleHistorial"></ul>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4">
@@ -130,6 +141,7 @@ body { padding-top: 0 !important; }
 <script>
 const slug = '{{ cotizador.slug }}';
 const lugaresData = {{ lugares_json|tojson|safe }};
+let lugarDetalleId = null;
 const cotizadorNombre = '{{ cotizador.nombre }}';
 const cotizadorTitulo = '{{ cotizador.titulo or '' }}';
 const cotizadorDescripcion = '{{ cotizador.descripcion or '' }}';
@@ -305,6 +317,7 @@ function cambiarPagina(provincia, pagina) {
 function verDetalle(id) {
     const l = lugaresData.find(x => x.id === id);
     if(!l) return;
+    lugarDetalleId = id;
     document.getElementById('detalleTitulo').textContent = l.nombre;
     document.getElementById('detalleProvincia').textContent = l.provincia || 'Sin provincia';
     const duracionBadge = document.getElementById('detalleDuracion');
@@ -329,7 +342,44 @@ function verDetalle(id) {
         mapaRegreso.href = '#';
         mapaRegreso.classList.add('disabled');
     }
+    document.getElementById('detalleMoneda').textContent = l.moneda == 'colones' ? '₡' : '$';
+    document.getElementById('detallePrecio').value = l.precio || '';
+    renderHistorial(l);
     detalleModal.show();
+}
+function renderHistorial(l) {
+    const ul = document.getElementById('detalleHistorial');
+    const historial = l.precios_historial || [];
+    if(historial.length === 0) {
+        ul.innerHTML = '<li class="list-group-item text-muted small">Sin historial de precios</li>';
+        return;
+    }
+    const moneda = l.moneda == 'colones' ? '₡' : '$';
+    const html = historial.slice().reverse().map(h => {
+        let precio = h.precio;
+        if(precio === null || precio === undefined) precio = 'Sin precio';
+        const fecha = h.fecha ? new Date(h.fecha).toLocaleString('es-CR') : 'Sin fecha';
+        return `<li class="list-group-item d-flex justify-content-between align-items-center small"><span class="fw-semibold">${moneda}${precio}</span><span class="text-muted small">${fecha}</span></li>`;
+    }).join('');
+    ul.innerHTML = html;
+}
+async function guardarPrecio(id, valor) {
+    const l = lugaresData.find(x => x.id === id);
+    if(!l) return;
+    const nuevo = valor ? parseFloat(valor) : null;
+    if(l.precio == nuevo) return;
+    l.precio = nuevo;
+    if(!l.precios_historial) l.precios_historial = [];
+    l.precios_historial.push({precio: nuevo, fecha: new Date().toISOString()});
+    renderHistorial(l);
+    try {
+        const precios = {[id]: nuevo};
+        const res = await fetch('/cotizadores/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
+        const d = await res.json();
+        if(!d.ok) alert(d.error || 'Error al guardar precio');
+    } catch(e) {
+        alert('Error de conexion: ' + e.message);
+    }
 }
 async function guardarPrecios() {
     const precios = {};

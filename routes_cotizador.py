@@ -1,5 +1,6 @@
 import re
 import json
+from datetime import datetime
 from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
 from models_cotizador import Cotizador, CotizadorLugar
 from db import db
@@ -178,7 +179,8 @@ def cotizador_publico_slug(slug):
             'maps_ida': l.maps_ida or '',
             'maps_regreso': l.maps_regreso or '',
             'moneda': l.moneda,
-            'precio': l.precio
+            'precio': l.precio,
+            'precios_historial': json.loads(l.precios_historial or '[]')
         })
     return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
 
@@ -198,7 +200,8 @@ def cotizador_publico(slug):
             'maps_ida': l.maps_ida or '',
             'maps_regreso': l.maps_regreso or '',
             'moneda': l.moneda,
-            'precio': l.precio
+            'precio': l.precio,
+            'precios_historial': json.loads(l.precios_historial or '[]')
         })
     return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
 
@@ -220,7 +223,12 @@ def guardar_precios_slug(slug):
     for lugar_id, precio in precios.items():
         lugar = CotizadorLugar.query.get(int(lugar_id))
         if lugar and lugar.cotizador_id == cotizador.id:
-            lugar.precio = float(precio) if precio else None
+            nuevo_precio = float(precio) if precio else None
+            if lugar.precio != nuevo_precio:
+                historial = json.loads(lugar.precios_historial or '[]')
+                historial.append({'precio': nuevo_precio, 'fecha': datetime.utcnow().isoformat()})
+                lugar.precios_historial = json.dumps(historial, ensure_ascii=False)
+                lugar.precio = nuevo_precio
     db.session.commit()
     return jsonify({'ok': True})
 
@@ -242,7 +250,12 @@ def guardar_precios(slug):
     for lugar_id, precio in precios.items():
         lugar = CotizadorLugar.query.get(int(lugar_id))
         if lugar and lugar.cotizador_id == cotizador.id:
-            lugar.precio = float(precio) if precio else None
+            nuevo_precio = float(precio) if precio else None
+            if lugar.precio != nuevo_precio:
+                historial = json.loads(lugar.precios_historial or '[]')
+                historial.append({'precio': nuevo_precio, 'fecha': datetime.utcnow().isoformat()})
+                lugar.precios_historial = json.dumps(historial, ensure_ascii=False)
+                lugar.precio = nuevo_precio
     db.session.commit()
     return jsonify({'ok': True})
 
@@ -264,7 +277,8 @@ def ver_cotizador(id):
             'maps_ida': l.maps_ida or '',
             'maps_regreso': l.maps_regreso or '',
             'moneda': l.moneda,
-            'precio': l.precio
+            'precio': l.precio,
+            'precios_historial': json.loads(l.precios_historial or '[]')
         })
     return render_template('ver_cotizador.html', cotizador=cotizador, lugares_json=lugares_serializados)
 

@@ -29,4 +29,5 @@ class CotizadorLugar(db.Model):
     maps_regreso = db.Column(db.String(1000))
     moneda = db.Column(db.String(20), default='colones')
     precio = db.Column(db.Float)
+    precios_historial = db.Column(db.Text, default='[]')
     order = db.Column(db.Integer, default=0)
