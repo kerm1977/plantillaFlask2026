@@ -4,6 +4,15 @@
 <div class="container py-4">
     <div class="mb-4">
         <h2 class="fw-bold text-orange">Configuración de Cotizador</h2>
+        <div class="d-flex gap-2 mt-3">
+            <button onclick="exportarCotizadoresJSON()" class="btn btn-outline-orange">
+                <i class="bi bi-download me-1"></i>Exportar JSON
+            </button>
+            <button onclick="document.getElementById('importJSON').click()" class="btn btn-outline-success">
+                <i class="bi bi-upload me-1"></i>Importar JSON
+            </button>
+            <input type="file" id="importJSON" accept=".json,application/json" class="d-none" onchange="importarCotizadoresJSON(this)">
+        </div>
     </div>
     {% if cotizadores %}
     <div class="card glass-panel border-0 shadow-sm">
@@ -176,6 +185,48 @@ function copiarEnlacePublico() {
     enlace.select();
     document.execCommand('copy');
     alert('Enlace público copiado al portapapeles');
+}
+function exportarCotizadoresJSON() {
+    fetch('/api/cotizadores/export-json')
+        .then(r => r.json())
+        .then(d => {
+            const blob = new Blob([JSON.stringify(d, null, 2)], {type:'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'cotizadores_' + new Date().toISOString().slice(0,10) + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        })
+        .catch(e => alert('Error al exportar: ' + e));
+}
+async function importarCotizadoresJSON(input) {
+    const file = input.files[0];
+    if(!file) return;
+    if(!confirm('Esto reemplazara TODOS los cotizadores y lugares existentes. ¿Continuar?')) {
+        input.value = '';
+        return;
+    }
+    try {
+        const texto = await file.text();
+        const data = JSON.parse(texto);
+        const res = await fetch('/api/cotizadores/import-json', {
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify(data)
+        });
+        const d = await res.json();
+        if(d.ok) {
+            alert(`Importados ${d.importados} cotizadores`);
+            location.reload();
+        } else {
+            alert(d.error || 'Error al importar');
+        }
+    } catch(e) {
+        alert('Error al leer JSON: ' + e.message);
+    } finally {
+        input.value = '';
+    }
 }
 renderLugares();
 </script>
