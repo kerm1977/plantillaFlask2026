@@ -139,6 +139,32 @@ body {
     transform: scale(1.05);
 }
 
+/* Botón flotante: Cotizador (arriba del botón de admin) */
+.btn-cotizador-bus {
+    position: fixed;
+    bottom: calc(var(--nav-mobile-height, 70px) + 45px);
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(0, 123, 255, 0.8);
+    backdrop-filter: blur(5px);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.4);
+    z-index: 1045;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+.btn-cotizador-bus:hover {
+    background: rgba(0, 123, 255, 1);
+    transform: scale(1.05);
+}
+
 /* Menú desplegable de herramientas de admin */
 .admin-tools-dropdown .dropdown-menu {
     z-index: 9999 !important;

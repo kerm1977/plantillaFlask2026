@@ -287,3 +287,10 @@ def eliminar_lugar(id):
     db.session.delete(lugar)
     db.session.commit()
     return jsonify({'ok': True})
+
+@bp.route('/api/cotizadores/unico')
+def cotizador_unico():
+    c = Cotizador.query.first()
+    if not c:
+        return jsonify({'slug': None}), 404
+    return jsonify({'slug': c.slug})

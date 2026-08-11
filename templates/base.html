@@ -80,6 +80,13 @@
     <img id="logoSuenosDesktopNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed d-none d-md-block animate-heartbeat" style="display: none !important;">
 
     <!-- ========================================== -->
+    <!-- BOTÓN FLOTANTE: COTIZADOR -->
+    <!-- ========================================== -->
+    <a href="#" class="btn-cotizador-bus" title="Cotizador" onclick="abrirCotizadorBus(); return false;">
+        <i class="bi bi-bus-front fs-4"></i>
+    </a>
+
+    <!-- ========================================== -->
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
@@ -287,5 +294,70 @@
 
 {% include 'partials/agenda_search_modal.html' %}
 {% include 'partials/notes_modal.html' %}
+
+<!-- MODAL: ACCESO AL COTIZADOR -->
+<div class="modal fade" id="cotizadorBusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-shield-lock-fill text-orange me-2"></i>Acceso al Cotizador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Clave de Acceso</label>
+                    <input type="password" class="form-control glass-input rounded-4 form-control-lg" id="claveCotizadorBus" placeholder="Ingresa la clave">
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button onclick="ingresarCotizadorBus()" class="btn btn-orange rounded-pill w-100 py-2 fw-bold btn-lg">Acceder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let cotizadorBusModal;
+let cotizadorBusSlug = null;
+
+function abrirCotizadorBus() {
+    if(!cotizadorBusModal) cotizadorBusModal = new bootstrap.Modal(document.getElementById('cotizadorBusModal'));
+    cotizadorBusModal.show();
+}
+
+async function ingresarCotizadorBus() {
+    const clave = document.getElementById('claveCotizadorBus').value.trim();
+    if(!clave) {
+        alert('Ingresa la clave');
+        return;
+    }
+    if(!cotizadorBusSlug) {
+        try {
+            const res = await fetch('/api/cotizadores/unico');
+            const d = await res.json().catch(() => ({}));
+            if(!d.slug) {
+                alert('No hay un cotizador activo');
+                return;
+            }
+            cotizadorBusSlug = d.slug;
+        } catch(e) {
+            alert('Error al obtener el cotizador');
+            return;
+        }
+    }
+    try {
+        const res = await fetch('/cotizadores/' + cotizadorBusSlug + '/verificar', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clave})});
+        const d = await res.json().catch(() => ({error:'Error del servidor'}));
+        if(d.ok) {
+            cotizadorBusModal.hide();
+            window.location.href = '/cotizadores/' + cotizadorBusSlug;
+        } else {
+            alert(d.error || 'Clave incorrecta');
+        }
+    } catch(e) {
+        alert('Error al verificar la clave');
+    }
+}
+</script>
 
 {% include 'partials/base_scripts.html' %}
