@@ -113,18 +113,25 @@ def actualizar_cotizador(id):
     data = request.get_json()
     
     try:
-        if data.get('titulo'):
+        if data.get('titulo') is not None:
             cotizador.titulo = data.get('titulo')
         
         if data.get('nombre'):
             cotizador.nombre = data.get('nombre')
             cotizador.slug = _unique_slug(data.get('nombre'), exclude_id=id)
         
-        if data.get('descripcion'):
+        if data.get('descripcion') is not None:
             cotizador.descripcion = data.get('descripcion')
         
         if data.get('clave'):
             cotizador.clave_acceso = data.get('clave')
+        
+        if data.get('mostrar_nombre') is not None:
+            cotizador.mostrar_nombre = bool(data.get('mostrar_nombre'))
+        if data.get('mostrar_descripcion') is not None:
+            cotizador.mostrar_descripcion = bool(data.get('mostrar_descripcion'))
+        if data.get('mostrar_titulo') is not None:
+            cotizador.mostrar_titulo = bool(data.get('mostrar_titulo'))
         
         db.session.commit()
         

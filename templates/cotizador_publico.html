@@ -13,11 +13,13 @@ body { padding-top: 0 !important; }
 </div>
 
 <div class="container py-4" style="max-width:1000px">
+    {% if cotizador.mostrar_nombre %}
     <h2 class="fw-bold text-orange mb-4 text-center">{{ cotizador.nombre }}</h2>
-    {% if cotizador.titulo %}
+    {% endif %}
+    {% if cotizador.mostrar_titulo and cotizador.titulo %}
     <h1 class="fw-bold text-center mb-3">{{ cotizador.titulo }}</h1>
     {% endif %}
-    {% if cotizador.descripcion %}
+    {% if cotizador.mostrar_descripcion and cotizador.descripcion %}
     <p class="text-center text-muted mb-4">{{ cotizador.descripcion }}</p>
     {% endif %}
     

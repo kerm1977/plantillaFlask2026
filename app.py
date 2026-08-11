@@ -192,6 +192,12 @@ def _migrate_cotizador():
             cursor.execute("ALTER TABLE cotizador ADD COLUMN titulo VARCHAR(500)")
         if 'descripcion' not in columns:
             cursor.execute("ALTER TABLE cotizador ADD COLUMN descripcion TEXT")
+        if 'mostrar_nombre' not in columns:
+            cursor.execute("ALTER TABLE cotizador ADD COLUMN mostrar_nombre BOOLEAN DEFAULT 1")
+        if 'mostrar_descripcion' not in columns:
+            cursor.execute("ALTER TABLE cotizador ADD COLUMN mostrar_descripcion BOOLEAN DEFAULT 1")
+        if 'mostrar_titulo' not in columns:
+            cursor.execute("ALTER TABLE cotizador ADD COLUMN mostrar_titulo BOOLEAN DEFAULT 1")
         
         # Crear tabla cotizador_lugar si no existe
         cursor.execute('''
