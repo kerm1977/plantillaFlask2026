@@ -1,6 +1,17 @@
 {% extends "base.html" %}
 {% block title %}{{ cotizador.nombre }} - Cotizador{% endblock %}
 {% block content %}
+<style>
+.custom-navbar, #btnBack { display: none !important; }
+body { padding-top: 0 !important; }
+.content-wrapper { margin-top: 0 !important; }
+</style>
+
+<div class="text-center py-4">
+    <img src="{{ url_for('static', filename='uploads/icon-192.png') }}" alt="TRANSAVI" style="width:100px;height:100px;border-radius:50%;object-fit:cover;" class="shadow">
+    <h1 class="fw-bold text-orange mt-2 mb-0">TRANSAVI</h1>
+</div>
+
 <div class="container py-4" style="max-width:1000px">
     <h2 class="fw-bold text-orange mb-4 text-center">{{ cotizador.nombre }}</h2>
     {% if cotizador.titulo %}
