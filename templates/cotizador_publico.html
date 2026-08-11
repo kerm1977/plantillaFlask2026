@@ -11,6 +11,31 @@
     {% endif %}
     
     <div id="cotizadorSection" class="d-none">
+        <div class="card border-0 shadow-sm mb-4" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);border-radius:15px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="bi bi-search me-2 text-orange"></i>Buscar</h5>
+                <div class="row g-3">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="small text-muted">Nombre</label>
+                        <input type="text" class="form-control form-control-sm rounded-4" id="filtroNombre" placeholder="Ej. Rincón">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="small text-muted">Provincia</label>
+                        <select class="form-select form-select-sm rounded-4" id="filtroProvincia">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="small text-muted">Fecha</label>
+                        <input type="date" class="form-control form-control-sm rounded-4" id="filtroFecha">
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="small text-muted">Precio máximo</label>
+                        <input type="number" class="form-control form-control-sm rounded-4" id="filtroPrecio" placeholder="0">
+                    </div>
+                </div>
+            </div>
+        </div>
         <div id="lugaresContainer" class="row g-4 mt-2"></div>
         <div class="d-flex gap-2 mt-4">
             <button onclick="guardarPrecios()" class="btn btn-warning-orange flex-grow-1 py-3 fw-bold btn-lg">
@@ -121,6 +146,11 @@ document.addEventListener('DOMContentLoaded', function() {
     passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
     whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
     detalleModal = new bootstrap.Modal(document.getElementById('detalleModal'));
+
+    ['filtroNombre','filtroProvincia','filtroFecha','filtroPrecio'].forEach(id => {
+        document.getElementById(id).addEventListener('input', filtrarLugares);
+    });
+
     passwordModal.show();
 });
 
@@ -132,19 +162,53 @@ async function verificarClave() {
         claveGuardada = clave;
         passwordModal.hide();
         document.getElementById('cotizadorSection').classList.remove('d-none');
-        renderLugares();
+        cargarProvincias();
+        renderLugares(lugaresData);
     } else {
         alert('Clave incorrecta');
     }
 }
-function renderLugares() {
+function cargarProvincias() {
+    const select = document.getElementById('filtroProvincia');
+    const provincias = [...new Set(lugaresData.map(l => l.provincia || 'Sin provincia'))].sort();
+    select.innerHTML = '<option value="">Todas</option>';
+    provincias.forEach(p => {
+        select.innerHTML += `<option value="${p}">${p}</option>`;
+    });
+}
+function filtrarLugares() {
+    const nombre = document.getElementById('filtroNombre').value.toLowerCase().trim();
+    const provincia = document.getElementById('filtroProvincia').value;
+    const fecha = document.getElementById('filtroFecha').value;
+    const precioMax = parseFloat(document.getElementById('filtroPrecio').value);
+
+    const filtrados = lugaresData.filter(l => {
+        if(nombre && !(l.nombre || '').toLowerCase().includes(nombre)) return false;
+        if(provincia && (l.provincia || 'Sin provincia') !== provincia) return false;
+        if(fecha && l.fecha_ida !== fecha) return false;
+        if(!isNaN(precioMax) && (l.precio === null || l.precio === '' || parseFloat(l.precio) > precioMax)) return false;
+        return true;
+    });
+    renderLugares(filtrados);
+}
+function renderLugares(data) {
     // Agrupar lugares por provincia
     const grupos = {};
-    lugaresData.forEach(l => {
+    data.forEach(l => {
         const provincia = l.provincia || 'Sin provincia';
         if(!grupos[provincia]) grupos[provincia] = [];
         grupos[provincia].push(l);
     });
+
+    if(Object.keys(grupos).length === 0) {
+        document.getElementById('lugaresContainer').innerHTML = `
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bi bi-search fs-1 d-block mb-2"></i>
+                No se encontraron lugares con esos criterios.
+            </div>
+        `;
+        return;
+    }
 
     let html = '';
     for(const [provincia, lugares] of Object.entries(grupos)) {
