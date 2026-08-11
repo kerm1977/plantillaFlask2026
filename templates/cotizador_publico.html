@@ -360,8 +360,6 @@ function verDetalle(id) {
         mapaRegreso.href = '#';
         mapaRegreso.classList.add('disabled');
     }
-    document.getElementById('detalleMoneda').textContent = l.moneda == 'colones' ? '₡' : '$';
-    document.getElementById('detallePrecio').value = l.precio || '';
     renderHistorial(l);
     detalleModal.show();
 }
