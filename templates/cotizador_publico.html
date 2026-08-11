@@ -231,6 +231,11 @@ function renderLugares(data) {
                 <h4 class="fw-bold text-orange mb-0 text-center" style="cursor:pointer" onclick="toggleProvincia('${provId}')">
                     ${provincia} <i class="bi bi-chevron-down ms-2" id="icon-${provId}"></i>
                 </h4>
+                <div class="text-center mt-2">
+                    <button onclick="exportarProvinciaWhatsApp('${provincia.replace(/'/g, "\\'")}')" class="btn btn-sm btn-outline-success rounded-pill fw-bold">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp provincia
+                    </button>
+                </div>
                 <hr class="mt-2 mb-3">
             </div>
             <div class="col-12 collapse provincia-grupo" id="${provId}">
@@ -247,9 +252,14 @@ function renderLugares(data) {
                                 <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" oninput="actualizarPrecio(${l.id}, this.value)" placeholder="Precio">
                             </div>
                         </div>
-                        <button onclick="verDetalle(${l.id})" class="btn btn-outline-orange rounded-pill w-100 fw-bold">
-                            <i class="bi bi-eye me-1"></i>Ver más
-                        </button>
+                        <div class="d-flex gap-2 mt-auto">
+                            <button onclick="verDetalle(${l.id})" class="btn btn-outline-orange rounded-pill flex-fill fw-bold">
+                                <i class="bi bi-eye me-1"></i>Ver más
+                            </button>
+                            <button onclick="exportarLugarWhatsApp(${l.id})" class="btn btn-outline-success rounded-pill flex-fill fw-bold">
+                                <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -331,6 +341,29 @@ async function guardarPrecios() {
     if(d.ok) alert('Precios guardados correctamente');
     else alert(d.error || 'Error');
 }
+function _textoLugar(l) {
+    const precio = l.precio || '';
+    const moneda = l.moneda == 'colones' ? '₡' : '$';
+    let texto = `- Nombre: ${l.nombre}\n`;
+    texto += `- Provincia: ${l.provincia || 'Pendiente'}\n`;
+    texto += `- Duracion: ${l.duracion == '1_dia' ? '1 dia' : 'Multiples dias'}\n`;
+    texto += `- Salida: ${l.fecha_ida || 'Pendiente'}\n`;
+    texto += `- Regreso: ${l.fecha_regreso || 'Pendiente'}\n`;
+    texto += `- Hora: ${l.hora || 'Pendiente'}\n`;
+    if(precio) texto += `- Precio: ${moneda}${precio}\n`;
+    texto += `- Mapa de inicio: ${l.maps_ida || 'Pendiente'}\n`;
+    texto += `- Mapa de recogida: ${l.maps_regreso || 'Pendiente'}\n`;
+    return texto;
+}
+
+function _cabeceraWhatsApp() {
+    let texto = '';
+    if(cotizadorTitulo) texto += `*${cotizadorTitulo}*\n\n`;
+    if(cotizadorNombre) texto += `*${cotizadorNombre}*\n`;
+    if(cotizadorDescripcion) texto += `${cotizadorDescripcion}\n\n`;
+    return texto;
+}
+
 function exportarWhatsApp() {
     // Agrupar lugares por provincia
     const grupos = {};
@@ -340,35 +373,48 @@ function exportarWhatsApp() {
         grupos[provincia].push(l);
     });
     
-    let texto = '';
-    if(cotizadorTitulo) texto += `*${cotizadorTitulo}*\n\n`;
-    texto += `*${cotizadorNombre}*\n`;
-    if(cotizadorDescripcion) texto += `${cotizadorDescripcion}\n\n`;
+    let texto = _cabeceraWhatsApp();
     
     for(const [provincia, lugares] of Object.entries(grupos)) {
         texto += `*${provincia}*\n`;
-        texto += '═══════════════\n';
+        texto += '--------------------\n';
         lugares.forEach(l => {
-            const precio = l.precio || '';
-            const moneda = l.moneda == 'colones' ? '₡' : '$';
-            const iconoMoneda = l.moneda == 'colones' ? '💵' : '💲';
-            texto += `📍 ${l.nombre}\n`;
-            texto += `🗺️ Provincia: ${l.provincia || 'Pendiente'}\n`;
-            texto += `⏱️ Duración: ${l.duracion == '1_dia' ? '1 día' : 'Múltiples días'}\n`;
-            texto += `📅 Salida: ${l.fecha_ida || 'Pendiente'}\n`;
-            texto += `📅 Regreso: ${l.fecha_regreso || 'Pendiente'}\n`;
-            texto += `🕐 Hora: ${l.hora || 'Pendiente'}\n`;
-            if(precio) texto += `${iconoMoneda} Precio: ${moneda}${precio}\n`;
-            texto += `� Mapa de inicio: ${l.maps_ida || 'Pendiente'}\n`;
-            texto += `� Mapa de recogida: ${l.maps_regreso || 'Pendiente'}\n`;
+            texto += _textoLugar(l);
             texto += '\n';
         });
     }
     
     // Agregar enlace público al final
     const enlacePublico = window.location.href;
-    texto += `\n🔗 Enlace público para ver el detalle completo:\n${enlacePublico}`;
+    texto += `\nEnlace publico para ver el detalle completo:\n${enlacePublico}`;
     
+    document.getElementById('whatsappText').value = texto;
+    whatsappModal.show();
+}
+
+function exportarLugarWhatsApp(id) {
+    const l = lugaresData.find(x => x.id === id);
+    if(!l) return;
+    let texto = _cabeceraWhatsApp();
+    texto += `*${l.nombre}*\n`;
+    texto += '--------------------\n';
+    texto += _textoLugar(l);
+    texto += '\nEnlace publico para ver el detalle completo:\n' + window.location.href;
+    document.getElementById('whatsappText').value = texto;
+    whatsappModal.show();
+}
+
+function exportarProvinciaWhatsApp(provincia) {
+    const filtrados = lugaresData.filter(l => (l.provincia || 'Sin provincia') === provincia);
+    if(filtrados.length === 0) return;
+    let texto = _cabeceraWhatsApp();
+    texto += `*${provincia}*\n`;
+    texto += '--------------------\n';
+    filtrados.forEach(l => {
+        texto += _textoLugar(l);
+        texto += '\n';
+    });
+    texto += '\nEnlace publico para ver el detalle completo:\n' + window.location.href;
     document.getElementById('whatsappText').value = texto;
     whatsappModal.show();
 }
