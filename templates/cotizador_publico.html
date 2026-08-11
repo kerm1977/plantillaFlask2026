@@ -100,13 +100,6 @@ body { padding-top: 0 !important; }
                         <a id="detalleMapaRegreso" href="#" target="_blank" class="btn btn-outline-secondary flex-fill rounded-pill"><i class="bi bi-geo-alt-fill me-1"></i>Mapa de recogida</a>
                     </div>
                     <div class="col-12 mt-3">
-                        <label class="small text-muted">Precio</label>
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text" id="detalleMoneda"></span>
-                            <input type="number" class="form-control fw-bold" id="detallePrecio" onchange="guardarPrecio(lugarDetalleId, this.value)">
-                        </div>
-                    </div>
-                    <div class="col-12 mt-3">
                         <label class="small text-muted">Historial de precios</label>
                         <ul class="list-group list-group-flush" id="detalleHistorial"></ul>
                     </div>
@@ -283,10 +276,6 @@ function renderLugares(data) {
                     <div class="card-body p-4 d-flex flex-column justify-content-between">
                         <div>
                             <h6 class="fw-bold text-truncate mb-2" title="${l.nombre}">${l.nombre}</h6>
-                            <div class="input-group input-group-sm mb-3">
-                                <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
-                                <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" oninput="actualizarPrecio(${l.id}, this.value)" placeholder="Precio">
-                            </div>
                         </div>
                         <div class="d-flex gap-2 mt-auto">
                             <button onclick="verDetalle(${l.id})" class="btn btn-outline-orange rounded-pill flex-fill fw-bold">
@@ -295,6 +284,11 @@ function renderLugares(data) {
                             <button onclick="exportarLugarWhatsApp(${l.id})" class="btn btn-outline-success rounded-pill flex-fill fw-bold">
                                 <i class="bi bi-whatsapp me-1"></i>WhatsApp
                             </button>
+                        </div>
+                        <hr class="my-3">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
+                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" onchange="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
                         </div>
                     </div>
                 </div>
