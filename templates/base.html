@@ -82,7 +82,13 @@
     <!-- ========================================== -->
     <!-- BOTÓN FLOTANTE: COTIZADOR -->
     <!-- ========================================== -->
-    <a href="#" class="btn-cotizador-bus" title="Cotizador" onclick="abrirCotizadorBus(); return false;">
+    <a href="#" title="Cotizador" onclick="abrirCotizadorBus(); return false;"
+       style="position: fixed !important; right: 20px !important; bottom: 120px !important; z-index: 1050 !important;
+              width: 50px !important; height: 50px !important; border-radius: 50% !important;
+              background: rgba(0, 123, 255, 0.9) !important; color: white !important;
+              border: 1px solid rgba(255,255,255,0.3) !important; box-shadow: 0 4px 15px rgba(0,123,255,0.4) !important;
+              display: flex !important; justify-content: center !important; align-items: center !important;
+              text-decoration: none !important; cursor: pointer !important; transition: all 0.3s ease;">
         <i class="bi bi-bus-front fs-4"></i>
     </a>
 
@@ -307,6 +313,7 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Clave de Acceso</label>
                     <input type="password" class="form-control glass-input rounded-4 form-control-lg" id="claveCotizadorBus" placeholder="Ingresa la clave">
+                    <div class="small text-muted mt-2 text-uppercase text-center fw-bold">ESTE ESPACIO ESTÁ RESERVADO ÚNICAMENTE PARA TRANSAVI</div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4">
