@@ -142,6 +142,7 @@ body { padding-top: 0 !important; }
 const slug = '{{ cotizador.slug }}';
 const lugaresData = {{ lugares_json|tojson|safe }};
 let lugarDetalleId = null;
+const esSuper = {{ (session.get('role') == 'Superusuario')|tojson }};
 const cotizadorNombre = '{{ cotizador.nombre }}';
 const cotizadorTitulo = '{{ cotizador.titulo or '' }}';
 const cotizadorDescripcion = '{{ cotizador.descripcion or '' }}';
@@ -355,13 +356,40 @@ function renderHistorial(l) {
         return;
     }
     const moneda = l.moneda == 'colones' ? '₡' : '$';
-    const html = historial.slice().reverse().map(h => {
+    const html = historial.slice().reverse().map((h, i) => {
+        const originalIdx = historial.length - 1 - i;
         let precio = h.precio;
         if(precio === null || precio === undefined) precio = 'Sin precio';
         const fecha = h.fecha ? new Date(h.fecha).toLocaleString('es-CR') : 'Sin fecha';
-        return `<li class="list-group-item d-flex justify-content-between align-items-center small"><span class="fw-semibold">${moneda}${precio}</span><span class="text-muted small">${fecha}</span></li>`;
+        let botonEliminar = '';
+        if(esSuper) {
+            botonEliminar = `<button onclick="eliminarHistorial(${l.id}, ${originalIdx})" class="btn btn-sm btn-outline-danger border-0 p-0 ms-2" title="Eliminar"><i class="bi bi-trash"></i></button>`;
+        }
+        return `<li class="list-group-item d-flex justify-content-between align-items-center small"><span class="fw-semibold">${moneda}${precio}</span><span class="text-muted small">${fecha}${botonEliminar}</span></li>`;
     }).join('');
     ul.innerHTML = html;
+}
+async function eliminarHistorial(lugarId, idx) {
+    if(!confirm('¿Eliminar este precio del historial?')) return;
+    try {
+        const res = await fetch('/api/cotizadores/lugar/' + lugarId + '/precio-historial', {
+            method: 'DELETE',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({index: idx})
+        });
+        const d = await res.json();
+        if(d.ok) {
+            const l = lugaresData.find(x => x.id === lugarId);
+            if(l) {
+                l.precios_historial = d.precios_historial;
+                renderHistorial(l);
+            }
+        } else {
+            alert(d.error || 'Error');
+        }
+    } catch(e) {
+        alert('Error de conexion: ' + e.message);
+    }
 }
 async function guardarPrecio(id, valor) {
     const l = lugaresData.find(x => x.id === id);

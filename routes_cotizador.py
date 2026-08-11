@@ -405,3 +405,22 @@ def importar_cotizadores_json():
         db.session.rollback()
         print(f'[ERROR] Error al importar cotizadores: {e}')
         return jsonify({'error': str(e)}), 500
+
+@bp.route('/api/cotizadores/lugar/<int:lugar_id>/precio-historial', methods=['DELETE'])
+def eliminar_precio_historial(lugar_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    try:
+        lugar = CotizadorLugar.query.get_or_404(lugar_id)
+        data = request.get_json() or {}
+        idx = data.get('index')
+        historial = json.loads(lugar.precios_historial or '[]')
+        if isinstance(idx, int) and 0 <= idx < len(historial):
+            historial.pop(idx)
+        lugar.precios_historial = json.dumps(historial, ensure_ascii=False)
+        db.session.commit()
+        return jsonify({'ok': True, 'precios_historial': historial})
+    except Exception as e:
+        db.session.rollback()
+        print(f'[ERROR] Error al eliminar precio historial: {e}')
+        return jsonify({'error': str(e)}), 500
