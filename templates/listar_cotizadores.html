@@ -8,38 +8,47 @@
     {% if cotizadores %}
     <div class="card glass-panel border-0 shadow-sm">
         <div class="card-body">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Título (H1)</label>
-                <input type="text" class="form-control fs-4 fw-bold" id="titulo" value="{{ cotizadores[0].titulo or '' }}" placeholder="Ej: Cotizador de Caminatas 2026">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Nombre del Cotizador *</label>
-                <input type="text" class="form-control" id="nombre" value="{{ cotizadores[0].nombre }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Descripción</label>
-                <textarea class="form-control" id="descripcion" rows="3" placeholder="Descripción del cotizador...">{{ cotizadores[0].descripcion or '' }}</textarea>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Clave de Acceso *</label>
-                <input type="text" class="form-control" id="clave" value="{{ cotizadores[0].clave_acceso }}">
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Enlace Público</label>
-                <div class="input-group">
-                    <input type="text" class="form-control" value="{{ request.host_url }}cotizadores/{{ cotizadores[0].slug }}" readonly id="enlacePublico">
-                    <button class="btn btn-outline-orange" onclick="copiarEnlacePublico()">
-                        <i class="bi bi-clipboard"></i>
-                    </button>
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapseCotizador" aria-expanded="false" aria-controls="collapseCotizador" id="tituloH1Collapse">
+                <i class="bi bi-chevron-right"></i> Título (H1)
+            </h5>
+            <div class="collapse" id="collapseCotizador">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Título (H1)</label>
+                    <input type="text" class="form-control fs-4 fw-bold" id="titulo" value="{{ cotizadores[0].titulo or '' }}" placeholder="Ej: Cotizador de Caminatas 2026">
                 </div>
-                <small class="text-muted">Comparte este enlace para que las personas puedan ver y cotizar los lugares</small>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Nombre del Cotizador *</label>
+                    <input type="text" class="form-control" id="nombre" value="{{ cotizadores[0].nombre }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Descripción</label>
+                    <textarea class="form-control" id="descripcion" rows="3" placeholder="Descripción del cotizador...">{{ cotizadores[0].descripcion or '' }}</textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Clave de Acceso *</label>
+                    <input type="text" class="form-control" id="clave" value="{{ cotizadores[0].clave_acceso }}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Enlace Público</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" value="{{ request.host_url }}cotizadores/{{ cotizadores[0].slug }}" readonly id="enlacePublico">
+                        <button class="btn btn-outline-orange" onclick="copiarEnlacePublico()">
+                            <i class="bi bi-clipboard"></i>
+                        </button>
+                    </div>
+                    <small class="text-muted">Comparte este enlace para que las personas puedan ver y cotizar los lugares</small>
+                </div>
             </div>
             <hr>
-            <h5 class="fw-bold mb-3">Lugares</h5>
-            <div id="lugaresContainer" class="row g-3"></div>
-            <button onclick="agregarLugar()" class="btn btn-outline-orange mt-2">
-                <i class="bi bi-plus-circle me-1"></i>Agregar Lugar
-            </button>
+            <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapseLugares" aria-expanded="false" aria-controls="collapseLugares" id="lugaresCollapse">
+                <i class="bi bi-chevron-right"></i> Lugares
+            </h5>
+            <div class="collapse" id="collapseLugares">
+                <div id="lugaresContainer" class="row g-3"></div>
+                <button onclick="agregarLugar()" class="btn btn-outline-orange mt-2 w-100">
+                    <i class="bi bi-plus-circle me-1"></i>Agregar Lugar
+                </button>
+            </div>
             <hr>
             <button onclick="guardarCotizador()" class="btn btn-warning-orange w-100">
                 <i class="bi bi-save me-1"></i>Guardar Cambios
@@ -57,37 +66,10 @@
     {% endif %}
 </div>
 
-<!-- Modal de Confirmación para Eliminar Lugar -->
-<div class="modal fade" id="eliminarLugarModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirmar Eliminación</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de eliminar este lugar?</p>
-                <p class="text-danger small">Esta acción no se puede deshacer.</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-danger" onclick="confirmarEliminarLugar()">Eliminar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 const cotizadorId = {{ cotizadores[0].id if cotizadores else 'null' }};
 let lugares = [];
 const STORAGE_KEY = 'cotizador_borrador';
-let lugarIndexAEliminar = null;
-let eliminarLugarModal;
-
-document.addEventListener('DOMContentLoaded', function() {
-    eliminarLugarModal = new bootstrap.Modal(document.getElementById('eliminarLugarModal'));
-});
-
 {% if cotizadores %}
 {% for l in cotizadores[0].lugares %}
 lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
@@ -99,16 +81,11 @@ function agregarLugar() {
     renderLugares();
 }
 function eliminarLugar(idx) {
-    lugarIndexAEliminar = idx;
-    eliminarLugarModal.show();
-}
-function confirmarEliminarLugar() {
-    if(lugarIndexAEliminar !== null) {
-        lugares.splice(lugarIndexAEliminar,1);
-        lugarIndexAEliminar = null;
-        renderLugares();
-        eliminarLugarModal.hide();
-    }
+    if(!confirm('¿Estás seguro de eliminar este lugar?')) return;
+    if(!confirm('¿Realmente deseas eliminarlo? Esta acción no se puede deshacer.')) return;
+    if(!confirm('¿Confirmas definitivamente la eliminación?')) return;
+    lugares.splice(idx,1);
+    renderLugares();
 }
 function renderLugares() {
     const html = lugares.map((l,i) => `
