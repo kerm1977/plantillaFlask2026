@@ -202,6 +202,7 @@ function viewNote(id) {
     if (headerTitle) headerTitle.textContent = note.title;
     if (bodyTitle) bodyTitle.textContent = note.title;
     document.getElementById('noteViewContent').innerHTML = note.content;
+    updateNoteViewProgress();
     if (noteViewModal) noteViewModal.show();
 }
 
@@ -499,23 +500,36 @@ function toggleTodoCheck(checkbox) {
         label.classList.toggle('text-muted', checked);
     }
     updateNoteProgress();
+    updateNoteViewProgress();
 }
 
 function updateNoteProgress() {
-    const editor = document.getElementById('noteContentEditor');
-    if (!editor) return;
-    const checks = editor.querySelectorAll('input.note-check');
+    updateNoteProgressFor('noteContentEditor', 'noteProgressText', 'noteProgressBar', 'noteProgressContainer');
+}
+
+function updateNoteViewProgress() {
+    updateNoteProgressFor('noteViewContent', 'noteViewProgressText', 'noteViewProgressBar', 'noteViewProgressContainer');
+}
+
+function updateNoteProgressFor(contentId, textId, barId, containerId) {
+    const container = document.getElementById(contentId);
+    if (!container) return;
+    const checks = container.querySelectorAll('input.note-check');
+    const textEl = document.getElementById(textId);
+    const barEl = document.getElementById(barId);
+    const contEl = containerId ? document.getElementById(containerId) : null;
     if (checks.length === 0) {
-        document.getElementById('noteProgressContainer').classList.add('d-none');
+        if (contEl) contEl.classList.add('d-none');
         return;
     }
     const checked = Array.from(checks).filter(c => c.checked).length;
     const percent = Math.round((checked / checks.length) * 100);
-    document.getElementById('noteProgressContainer').classList.remove('d-none');
-    document.getElementById('noteProgressText').textContent = `${checked}/${checks.length} - ${percent}%`;
-    const bar = document.getElementById('noteProgressBar');
-    bar.style.width = `${percent}%`;
-    bar.setAttribute('aria-valuenow', percent);
+    if (contEl) contEl.classList.remove('d-none');
+    if (textEl) textEl.textContent = `${checked}/${checks.length} - ${percent}%`;
+    if (barEl) {
+        barEl.style.width = `${percent}%`;
+        barEl.setAttribute('aria-valuenow', percent);
+    }
 }
 
 function attachCheckboxListeners() {
