@@ -265,11 +265,11 @@ function insertCheckbox() {
         let listItems = '';
         lines.forEach((line, idx) => {
             const cid = `${id}-${idx}`;
-            listItems += `<li class="list-group-item d-flex align-items-center gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${cid}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${cid}" contenteditable="true">${escapeHtml(line.trim())}</label></li>`;
+            listItems += `<li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${cid}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${cid}" contenteditable="true">${escapeHtml(line.trim())}</label></li>`;
         });
         document.execCommand('insertHTML', false, `<ul class="list-group list-group-flush todo-list mb-2">${listItems}</ul>`);
     } else {
-        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-center gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
+        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
         document.execCommand('insertHTML', false, html);
     }
     
