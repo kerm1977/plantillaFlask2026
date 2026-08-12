@@ -12,6 +12,8 @@ let currentEditImage = null;
 let notesData = [];
 let notesPage = 1;
 const NOTES_PER_PAGE = 10;
+let deleteNotePendiente = null;
+let confirmDeleteNoteModal1, confirmDeleteNoteModal2, confirmDeleteNoteModal3;
 
 document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('notesModal');
@@ -37,6 +39,18 @@ document.addEventListener('DOMContentLoaded', function() {
     const imageViewModalEl = document.getElementById('noteImageViewModal');
     if (imageViewModalEl) {
         noteImageViewModal = new bootstrap.Modal(imageViewModalEl);
+    }
+    const confirmDeleteNoteEl1 = document.getElementById('confirmDeleteNoteModal1');
+    if (confirmDeleteNoteEl1) {
+        confirmDeleteNoteModal1 = new bootstrap.Modal(confirmDeleteNoteEl1);
+    }
+    const confirmDeleteNoteEl2 = document.getElementById('confirmDeleteNoteModal2');
+    if (confirmDeleteNoteEl2) {
+        confirmDeleteNoteModal2 = new bootstrap.Modal(confirmDeleteNoteEl2);
+    }
+    const confirmDeleteNoteEl3 = document.getElementById('confirmDeleteNoteModal3');
+    if (confirmDeleteNoteEl3) {
+        confirmDeleteNoteModal3 = new bootstrap.Modal(confirmDeleteNoteEl3);
     }
 
     // Detectar clic en imágenes del editor para verlas
@@ -234,8 +248,27 @@ async function saveNote() {
     }
 }
 
-async function deleteNote(id) {
-    if (!confirm('¿Eliminar esta nota?')) return;
+function deleteNote(id) {
+    deleteNotePendiente = id;
+    if (confirmDeleteNoteModal1) confirmDeleteNoteModal1.show();
+}
+
+function mostrarConfirmarNota(paso) {
+    if (deleteNotePendiente === null) return;
+    if (paso === 2) {
+        confirmDeleteNoteModal1._element.addEventListener('hidden.bs.modal', () => confirmDeleteNoteModal2.show(), {once:true});
+        confirmDeleteNoteModal1.hide();
+    } else if (paso === 3) {
+        confirmDeleteNoteModal2._element.addEventListener('hidden.bs.modal', () => confirmDeleteNoteModal3.show(), {once:true});
+        confirmDeleteNoteModal2.hide();
+    }
+}
+
+async function confirmarEliminarNota() {
+    if (deleteNotePendiente === null) return;
+    const id = deleteNotePendiente;
+    deleteNotePendiente = null;
+    confirmDeleteNoteModal3.hide();
     try {
         const r = await fetch(`/api/notes/${id}`, {method: 'DELETE'});
         const data = await r.json();
