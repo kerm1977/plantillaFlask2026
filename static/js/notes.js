@@ -503,6 +503,7 @@ function toggleTodoCheck(checkbox) {
 
 function updateNoteProgress() {
     const editor = document.getElementById('noteContentEditor');
+    if (!editor) return;
     const checks = editor.querySelectorAll('input.note-check');
     if (checks.length === 0) {
         document.getElementById('noteProgressContainer').classList.add('d-none');
