@@ -62,7 +62,7 @@
             </div>
             <hr>
             <h5 class="fw-bold mb-3 d-flex align-items-center gap-2" style="cursor:pointer;" data-bs-toggle="collapse" data-bs-target="#collapseLugares" aria-expanded="false" aria-controls="collapseLugares" id="lugaresCollapse">
-                <i class="bi bi-chevron-right"></i> Lugares
+                <i class="bi bi-chevron-right"></i> Lugares <span id="lugaresCount" class="ms-1 small text-muted">({{ cotizadores[0].lugares|length if cotizadores else 0 }})</span>
             </h5>
             <div class="collapse" id="collapseLugares">
                 <div id="lugaresContainer" class="row g-3"></div>
@@ -222,6 +222,8 @@ function renderLugares() {
         </div>
     `).join('');
     document.getElementById('lugaresContainer').innerHTML = html;
+    const count = document.getElementById('lugaresCount');
+    if(count) count.textContent = '(' + lugares.length + ')';
 }
 async function guardarCotizador() {
     const titulo = document.getElementById('titulo').value.trim();
