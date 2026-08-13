@@ -1,7 +1,7 @@
 // service-worker.js
 
 // Versión de la caché. Cámbiala para forzar la actualización del Service Worker y la caché.
-const CACHE_NAME = 'la-tribu-pwa-cache-v1.0.6';
+const CACHE_NAME = 'la-tribu-pwa-cache-v1.0.7';
 
 // Archivos esenciales para cachear durante la instalación.
 const urlsToCache = [
@@ -61,44 +61,45 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Estrategia: Cache First, then Network, with Offline Fallback for navigation.
-    event.respondWith(
-        caches.match(event.request)
-            .then((cachedResponse) => {
-                // Si el recurso está en la caché, lo servimos desde allí.
-                if (cachedResponse) {
-                    // Opcional: Actualizar la caché en segundo plano (stale-while-revalidate)
-                    // fetch(event.request).then(networkResponse => {
-                    //     caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse));
-                    // });
-                    return cachedResponse;
-                }
+    const url = new URL(event.request.url);
+    const isStatic = url.pathname.startsWith('/static/');
+    const isNavigation = event.request.mode === 'navigate' || event.request.headers.get('accept')?.includes('text/html');
 
-                // Si no está en caché, vamos a la red.
-                return fetch(event.request)
-                    .then((networkResponse) => {
-                        // Si la respuesta es válida, la guardamos en caché para futuras solicitudes.
-                        if (networkResponse && networkResponse.status === 200) {
-                            const responseToCache = networkResponse.clone();
-                            caches.open(CACHE_NAME)
-                                .then((cache) => {
+    // Estrategia para páginas dinámicas: Network First, sin caché de HTML.
+    if (isNavigation) {
+        event.respondWith(
+            fetch(event.request)
+                .then((networkResponse) => networkResponse)
+                .catch(() => caches.match('/offline.html'))
+        );
+        return;
+    }
+
+    // Estrategia para estáticos: Cache First con actualización desde red.
+    if (isStatic) {
+        event.respondWith(
+            caches.match(event.request)
+                .then((cachedResponse) => {
+                    const fetchPromise = fetch(event.request)
+                        .then((networkResponse) => {
+                            if (networkResponse && networkResponse.status === 200) {
+                                const responseToCache = networkResponse.clone();
+                                caches.open(CACHE_NAME).then((cache) => {
                                     cache.put(event.request, responseToCache);
                                 });
-                        }
-                        return networkResponse;
-                    });
-            })
-            .catch(() => {
-                // Si todo falla (sin caché y sin red), mostramos la página offline.
-                // Esto es crucial para las solicitudes de navegación.
-                if (event.request.mode === 'navigate') {
-                    return caches.match('/offline.html');
-                }
-                // Para otros tipos de solicitudes, puedes devolver una respuesta de error genérica.
-                return new Response("Contenido no disponible sin conexión.", {
-                    status: 404,
-                    statusText: "Offline"
-                });
-            })
+                            }
+                            return networkResponse;
+                        })
+                        .catch(() => cachedResponse);
+                    return cachedResponse || fetchPromise;
+                })
+        );
+        return;
+    }
+
+    // Resto de solicitudes: red, con fallback a caché si existe.
+    event.respondWith(
+        fetch(event.request)
+            .catch(() => caches.match(event.request))
     );
 });

@@ -1,7 +1,7 @@
 import re
 import json
 from datetime import datetime
-from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for
+from flask import Blueprint, request, jsonify, session, render_template, redirect, url_for, make_response
 from models_cotizador import Cotizador, CotizadorLugar
 from db import db
 
@@ -182,7 +182,10 @@ def cotizador_publico_slug(slug):
             'precio': l.precio,
             'precios_historial': json.loads(l.precios_historial or '[]')
         })
-    return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
+    resp = make_response(render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 @bp.route('/cotizador/<slug>')
 def cotizador_publico(slug):
@@ -203,7 +206,10 @@ def cotizador_publico(slug):
             'precio': l.precio,
             'precios_historial': json.loads(l.precios_historial or '[]')
         })
-    return render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados)
+    resp = make_response(render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    return resp
 
 @bp.route('/cotizadores/<slug>/verificar', methods=['POST'])
 def verificar_clave_slug(slug):
