@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>{{ note.title }} - Nota Compartida</title>
+
+    <!-- PWA: acceso directo instalable en Android/escritorio para esta nota -->
+    <link rel="manifest" href="{{ url_for('main.note_public_manifest', token=token) }}">
+    <meta name="theme-color" content="#ff8c00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="{{ note.title }}">
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='uploads/icons/icon-192x192.jpg') }}">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=3">
+    <style>
+        body { min-height: 100vh; padding: 20px 0 60px; }
+        #pubContentEditor {
+            min-height: 60vh;
+        }
+        #pubContentEditor a { color: #ff8c00; font-weight: bold; text-decoration: underline; }
+        .todo-list .list-group-item {
+            border: 0;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            background: rgba(255,255,255,0.5);
+        }
+        .todo-list li, .todo-list .list-group-item {
+            display: flex !important;
+            align-items: flex-start !important;
+            gap: 0.5rem !important;
+            padding-left: 0 !important;
+            margin-left: 0 !important;
+            list-style: none !important;
+        }
+        .todo-list, .todo-list ul, .todo-list ol {
+            padding-left: 0 !important;
+            margin-left: 0 !important;
+            list-style: none !important;
+        }
+        .todo-list .form-check-input { margin-top: 0.2em !important; flex-shrink: 0 !important; cursor: pointer; }
+        .todo-list .form-check-label { word-break: break-word; flex: 1; margin-bottom: 0; }
+        .todo-list .form-check-input:checked + .form-check-label { text-decoration: line-through; opacity: 0.6; }
+        #pubToolbar .btn { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        @media (max-width: 576px) {
+            #pubToolbar .btn { width: 36px; height: 36px; font-size: 0.9rem; }
+        }
+        #pubSaveStatus { transition: opacity 0.3s ease; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 900px;">
+        <div class="glass-panel rounded-4 p-3 p-md-4 shadow-lg">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-people-fill text-orange fs-4"></i>
+                    <h5 class="fw-bold text-dark mb-0">Nota Colaborativa</h5>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-outline-warning rounded-pill" id="pubInstallBtn" onclick="pubInstallShortcut()">
+                        <i class="bi bi-phone me-1"></i>Instalar acceso directo
+                    </button>
+                    <span id="pubSaveStatus" class="small text-muted"></span>
+                </div>
+            </div>
+
+            <input type="text" id="pubTitleInput" class="form-control form-control-lg rounded-pill border-0 bg-white bg-opacity-75 mb-3" placeholder="Título de la nota" value="{{ note.title }}">
+
+            <!-- BARRA DE HERRAMIENTAS -->
+            <div id="pubToolbar" class="d-flex flex-wrap gap-1 mb-2 p-2 bg-white bg-opacity-50 rounded-3">
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+                <div class="vr mx-1"></div>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+                <div class="vr mx-1"></div>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+                <div class="vr mx-1"></div>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubInsertCheckbox()" title="To-do"><i class="bi bi-check-square"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="pubInsertLink()" title="Enlace"><i class="bi bi-link-45deg"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('pubImageFile').click()" title="Imagen"><i class="bi bi-image"></i></button>
+                <button class="btn btn-sm btn-light rounded-circle" onclick="openEmojiPicker('pubContentEditor')" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
+                <input type="file" id="pubImageFile" accept="image/*" style="display:none;" onchange="pubUploadImage(this)">
+            </div>
+
+            <div id="pubContentEditor" contenteditable="true" class="form-control bg-white bg-opacity-75 border-0 rounded-3 p-3">{{ note.content|safe }}</div>
+
+            <div class="small text-muted mt-3 text-center">
+                <i class="bi bi-info-circle me-1"></i>Los cambios se guardan automáticamente. Comparte este enlace con quien quieras que edite contigo.
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/emoji_picker.js') }}?v=1"></script>
+    <script>
+        const PUB_TOKEN = "{{ token }}";
+        let pubSaveTimeout = null;
+        let pubDeferredInstallEvent = null;
+
+        window.addEventListener('beforeinstallprompt', function(e) {
+            e.preventDefault();
+            pubDeferredInstallEvent = e;
+            const btn = document.getElementById('pubInstallBtn');
+            if (btn) btn.style.display = 'inline-block';
+        });
+
+        function pubInstallShortcut() {
+            if (pubDeferredInstallEvent) {
+                pubDeferredInstallEvent.prompt();
+                pubDeferredInstallEvent.userChoice.finally(() => {
+                    pubDeferredInstallEvent = null;
+                    const btn = document.getElementById('pubInstallBtn');
+                    if (btn) btn.style.display = 'none';
+                });
+            } else {
+                const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+                if (isIOS) {
+                    alert('En iPhone/iPad: toca el botón "Compartir" y luego "Agregar a pantalla de inicio".');
+                } else {
+                    alert('Abre el menú de tu navegador (⋮) y selecciona "Instalar app" o "Agregar a pantalla de inicio".');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+            const editor = document.getElementById('pubContentEditor');
+            const titleInput = document.getElementById('pubTitleInput');
+            editor.addEventListener('input', schedulePubSave);
+            editor.addEventListener('keydown', pubHandleEnter);
+            titleInput.addEventListener('input', schedulePubSave);
+            editor.querySelectorAll('input.note-check').forEach(ch => {
+                const li = ch.closest('li');
+                if (li) {
+                    const isChecked = li.getAttribute('data-checked') === 'true';
+                    ch.checked = isChecked;
+                }
+            });
+        });
+
+        function pubExecCmd(command) {
+            try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+            document.execCommand(command, false, null);
+            document.getElementById('pubContentEditor').focus();
+            schedulePubSave();
+        }
+
+        function pubInsertCheckbox() {
+            const editor = document.getElementById('pubContentEditor');
+            editor.focus();
+            const id = 'pub-check-' + Date.now();
+            const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="pubToggleCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
+            document.execCommand('insertHTML', false, html);
+            schedulePubSave();
+        }
+
+        function pubToggleCheck(checkbox) {
+            const li = checkbox.closest('li');
+            if (!li) return;
+            li.setAttribute('data-checked', checkbox.checked ? 'true' : 'false');
+            schedulePubSave();
+        }
+
+        function pubInsertLink() {
+            const text = window.getSelection().toString();
+            const displayText = text || prompt('Texto del enlace:', '');
+            if (displayText === null) return;
+            let url = prompt('URL del enlace (https://...):', '');
+            if (!url) return;
+            if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+            document.getElementById('pubContentEditor').focus();
+            document.execCommand('insertHTML', false, `<a href="${url}" target="_blank" rel="noopener">${displayText || url}</a>`);
+            schedulePubSave();
+        }
+
+        async function pubUploadImage(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const formData = new FormData();
+            formData.append('image', file);
+            try {
+                const r = await fetch(`/api/notes/public/${PUB_TOKEN}/upload-image`, {method: 'POST', body: formData});
+                const data = await r.json();
+                if (data.ok) {
+                    document.getElementById('pubContentEditor').focus();
+                    document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3 my-2" style="max-width:100%;" alt="Imagen">`);
+                    schedulePubSave();
+                } else {
+                    alert(data.error || 'Error al subir imagen');
+                }
+            } catch(e) {
+                alert('Error de conexión al subir imagen');
+            }
+            input.value = '';
+        }
+
+        function pubHandleEnter(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const label = e.target.closest('label');
+                if (label) {
+                    const li = label.closest('li');
+                    const ul = li ? li.closest('ul') : null;
+                    if (!ul) return;
+                    e.preventDefault();
+                    const id = 'pub-check-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
+                    const newLi = document.createElement('li');
+                    newLi.className = 'list-group-item d-flex align-items-center gap-2 p-2 todo-item';
+                    newLi.setAttribute('data-checked', 'false');
+                    newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="pubToggleCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label>`;
+                    li.after(newLi);
+                    const newLabel = newLi.querySelector('label');
+                    if (newLabel) {
+                        newLabel.focus();
+                        const range = document.createRange();
+                        range.selectNodeContents(newLabel);
+                        range.collapse(true);
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                    schedulePubSave();
+                }
+            }
+        }
+
+        function schedulePubSave() {
+            const statusEl = document.getElementById('pubSaveStatus');
+            if (statusEl) statusEl.textContent = 'Escribiendo...';
+            clearTimeout(pubSaveTimeout);
+            pubSaveTimeout = setTimeout(savePublicNote, 900);
+        }
+
+        async function savePublicNote() {
+            const statusEl = document.getElementById('pubSaveStatus');
+            const title = document.getElementById('pubTitleInput').value.trim() || 'Sin título';
+            const content = document.getElementById('pubContentEditor').innerHTML;
+            try {
+                const r = await fetch(`/api/notes/public/${PUB_TOKEN}`, {
+                    method: 'PUT',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({title, content})
+                });
+                const data = await r.json();
+                if (data.ok && statusEl) {
+                    statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
+                    setTimeout(() => { if (statusEl.textContent.includes('Guardado')) statusEl.textContent = ''; }, 2000);
+                }
+            } catch(e) {
+                if (statusEl) statusEl.innerHTML = '<i class="bi bi-exclamation-circle text-danger me-1"></i>Error al guardar';
+            }
+        }
+    </script>
+<!-- MODAL PARA EMOJIS -->
+<div class="modal fade" id="emojiPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-emoji-smile text-orange me-2"></i>Emojis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between gap-1 mb-2">
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="left" onclick="setEmojiAlign('left')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="center" onclick="setEmojiAlign('center')" title="Centro"><i class="bi bi-text-center"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="right" onclick="setEmojiAlign('right')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="justify" onclick="setEmojiAlign('justify')" title="Justificado"><i class="bi bi-justify"></i></button>
+                </div>
+                <div id="emojiGrid" class="d-flex flex-wrap gap-1 justify-content-center" style="max-height: 260px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

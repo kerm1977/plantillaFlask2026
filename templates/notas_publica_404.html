@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Enlace no encontrado - La Tribu</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=3">
+</head>
+<body class="d-flex align-items-center justify-content-center" style="min-height:100vh;">
+    <div class="glass-panel rounded-4 p-5 text-center shadow-lg" style="max-width:420px;">
+        <i class="bi bi-link-45deg text-danger" style="font-size:3rem;"></i>
+        <h4 class="fw-bold mt-3">Enlace no válido</h4>
+        <p class="text-muted">Este enlace de nota pública no existe o ya fue desactivado.</p>
+        <a href="/" class="btn btn-orange rounded-pill px-4 fw-bold">Ir al inicio</a>
+    </div>
+</body>
+</html>

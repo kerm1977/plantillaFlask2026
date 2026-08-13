@@ -14,6 +14,7 @@ let notesPage = 1;
 const NOTES_PER_PAGE = 10;
 let deleteNotePendiente = null;
 let confirmDeleteNoteModal1, confirmDeleteNoteModal2, confirmDeleteNoteModal3;
+let notePublicLinkModal = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('notesModal');
@@ -52,6 +53,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmDeleteNoteEl3) {
         confirmDeleteNoteModal3 = new bootstrap.Modal(confirmDeleteNoteEl3);
     }
+    const notePublicLinkEl = document.getElementById('notePublicLinkModal');
+    if (notePublicLinkEl) {
+        notePublicLinkModal = new bootstrap.Modal(notePublicLinkEl);
+    }
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
 
     // Detectar clic en imágenes del editor para verlas
     const editor = document.getElementById('noteContentEditor');
@@ -282,8 +288,12 @@ async function confirmarEliminarNota() {
 
 // WYSIWYG Commands
 function execCmd(command) {
-    document.execCommand(command, false, null);
+    // Aseguramos que el navegador use estilos CSS (text-align, etc.) en lugar de
+    // atributos legacy. Sin esto, algunos navegadores móviles no aplican bien
+    // la alineación (izquierda/derecha/justificado) en contenteditable.
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     document.getElementById('noteContentEditor').focus();
+    document.execCommand(command, false, null);
     updateNoteProgress();
 }
 
@@ -609,6 +619,98 @@ function attachCheckboxListeners() {
         }
     });
     updateNoteProgress();
+}
+
+// Enlace Público (colaborativo, sin clave)
+async function shareCurrentNote() {
+    if (!currentNoteId) {
+        alert('Primero guarda la nota para poder generar el enlace público.');
+        return;
+    }
+    try {
+        const r = await fetch(`/api/notes/${currentNoteId}/share`, {method: 'POST'});
+        const data = await r.json();
+        if (data.ok) {
+            const fullUrl = window.location.origin + data.url;
+            const input = document.getElementById('notePublicLinkInput');
+            if (input) input.value = fullUrl;
+            if (notePublicLinkModal) notePublicLinkModal.show();
+        } else {
+            alert(data.error || 'Error al generar el enlace público');
+        }
+    } catch (e) {
+        console.error('Error generando enlace público:', e);
+        alert('Error de conexión al generar el enlace');
+    }
+}
+
+function copyPublicLink() {
+    const input = document.getElementById('notePublicLinkInput');
+    if (!input || !input.value) return;
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        const btn = document.getElementById('copyPublicLinkBtn');
+        if (btn) {
+            const old = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copiado';
+            setTimeout(() => { btn.innerHTML = old; }, 1500);
+        }
+    }).catch(() => {
+        document.execCommand('copy');
+    });
+}
+
+async function unshareCurrentNote() {
+    if (!currentNoteId) return;
+    if (!confirm('¿Desactivar el enlace público? Nadie podrá seguir usándolo.')) return;
+    try {
+        const r = await fetch(`/api/notes/${currentNoteId}/unshare`, {method: 'POST'});
+        const data = await r.json();
+        if (data.ok) {
+            if (notePublicLinkModal) notePublicLinkModal.hide();
+        }
+    } catch (e) {
+        console.error('Error desactivando enlace:', e);
+    }
+}
+
+// JSON Export/Import por nota individual
+function exportSingleNoteJSON() {
+    const title = document.getElementById('noteTitleInput').value.trim() || 'Sin título';
+    const content = document.getElementById('noteContentEditor').innerHTML;
+    const data = {
+        title,
+        content,
+        exported_at: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${title.replace(/[^a-z0-9\u00C0-\u024F\u1E00-\u1EFF]/gi, '_')}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function importSingleNoteJSON() {
+    document.getElementById('singleJsonImportInput').click();
+}
+
+async function handleSingleJSONImport(input) {
+    const file = input.files[0];
+    if (!file) return;
+    try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        document.getElementById('noteTitleInput').value = data.title || '';
+        document.getElementById('noteContentEditor').innerHTML = data.content || '';
+        attachCheckboxListeners();
+        updateNoteProgress();
+    } catch (e) {
+        console.error('Error importando JSON de nota:', e);
+        alert('Archivo JSON inválido');
+    }
+    input.value = '';
 }
 
 // JSON Export/Import

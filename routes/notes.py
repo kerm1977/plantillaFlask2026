@@ -1,4 +1,4 @@
-from flask import request, jsonify, session, current_app, send_file
+from flask import request, jsonify, session, current_app, send_file, render_template
 from models import Note
 from db import db
 from routes import bp
@@ -9,12 +9,33 @@ import base64
 import io
 import tempfile
 from html import escape
+import re
+import unicodedata
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
 from reportlab.pdfgen import canvas as pdfcanvas
 from reportlab.lib.utils import ImageReader
 
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+
+def _slugify(text, max_len=40):
+    """Convierte un título en un slug corto y legible (sin tildes, minúsculas, guiones)."""
+    text = unicodedata.normalize('NFKD', text or '').encode('ascii', 'ignore').decode('ascii')
+    text = text.lower()
+    text = re.sub(r'[^a-z0-9]+', '-', text).strip('-')
+    return text[:max_len].strip('-') or 'nota'
+
+
+def _generate_public_slug(title):
+    """Genera un slug único basado en el título: ej. 'reunion-julio-a1b2c3'."""
+    base = _slugify(title)
+    for _ in range(10):
+        suffix = uuid.uuid4().hex[:6]
+        candidate = f"{base}-{suffix}"
+        if not Note.query.filter_by(public_token=candidate).first():
+            return candidate
+    return f"{base}-{uuid.uuid4().hex[:10]}"
 
 
 @bp.route('/api/notes', methods=['GET'])
@@ -65,6 +86,106 @@ def delete_note(note_id):
     db.session.delete(note)
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/api/notes/<int:note_id>/share', methods=['POST'])
+def share_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    note = Note.query.get(note_id)
+    if not note or note.user_id != session['user_id']:
+        return jsonify({'error': 'Nota no encontrada'}), 404
+    if not note.public_token:
+        note.public_token = _generate_public_slug(note.title)
+        db.session.commit()
+    return jsonify({'ok': True, 'token': note.public_token, 'url': f'/notas/publicas/{note.public_token}'})
+
+
+@bp.route('/api/notes/<int:note_id>/unshare', methods=['POST'])
+def unshare_note(note_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'No autorizado'}), 401
+    note = Note.query.get(note_id)
+    if not note or note.user_id != session['user_id']:
+        return jsonify({'error': 'Nota no encontrada'}), 404
+    note.public_token = None
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@bp.route('/notas/publicas/<token>', methods=['GET'])
+def note_public_page(token):
+    note = Note.query.filter_by(public_token=token).first()
+    if not note:
+        return render_template('notas_publica_404.html'), 404
+    return render_template('notas_publica.html', token=token, note=note)
+
+
+@bp.route('/notas/publicas/<token>/manifest.json', methods=['GET'])
+def note_public_manifest(token):
+    note = Note.query.filter_by(public_token=token).first()
+    if not note:
+        return jsonify({'error': 'No encontrada'}), 404
+    title = note.title or 'Nota Compartida'
+    manifest = {
+        'name': title,
+        'short_name': title[:20],
+        'description': f'Nota colaborativa: {title}',
+        'start_url': f'/notas/publicas/{token}',
+        'scope': f'/notas/publicas/{token}',
+        'display': 'standalone',
+        'background_color': '#ffffff',
+        'theme_color': '#ff8c00',
+        'icons': [
+            {'src': '/static/uploads/icons/icon-192x192.jpg', 'type': 'image/jpeg', 'sizes': '192x192', 'purpose': 'any maskable'},
+            {'src': '/static/uploads/icons/icon-512x512.jpg', 'type': 'image/jpeg', 'sizes': '512x512', 'purpose': 'any maskable'}
+        ]
+    }
+    return jsonify(manifest)
+
+
+@bp.route('/api/notes/public/<token>', methods=['GET'])
+def get_public_note(token):
+    note = Note.query.filter_by(public_token=token).first()
+    if not note:
+        return jsonify({'error': 'Enlace inválido o expirado'}), 404
+    return jsonify({'ok': True, 'title': note.title, 'content': note.content, 'updated_at': note.updated_at.isoformat()})
+
+
+@bp.route('/api/notes/public/<token>', methods=['PUT'])
+def update_public_note(token):
+    note = Note.query.filter_by(public_token=token).first()
+    if not note:
+        return jsonify({'error': 'Enlace inválido o expirado'}), 404
+    data = request.json or {}
+    note.title = data.get('title', note.title)
+    note.content = data.get('content', note.content)
+    note.updated_at = datetime.utcnow()
+    db.session.commit()
+    return jsonify({'ok': True, 'updated_at': note.updated_at.isoformat()})
+
+
+@bp.route('/api/notes/public/<token>/upload-image', methods=['POST'])
+def upload_public_note_image(token):
+    note = Note.query.filter_by(public_token=token).first()
+    if not note:
+        return jsonify({'error': 'Enlace inválido o expirado'}), 404
+    if 'image' not in request.files:
+        return jsonify({'error': 'No se envió imagen'}), 400
+    file = request.files['image']
+    if file.filename == '':
+        return jsonify({'error': 'Nombre vacío'}), 400
+    ext = file.filename.rsplit('.', 1)[-1].lower()
+    if ext not in ALLOWED_IMAGE_EXTENSIONS:
+        return jsonify({'error': 'Formato no permitido'}), 400
+
+    upload_dir = os.path.join(current_app.root_path, 'static', 'uploads', 'notes')
+    os.makedirs(upload_dir, exist_ok=True)
+    filename = f'note_{uuid.uuid4().hex[:8]}_{file.filename}'
+    filepath = os.path.join(upload_dir, filename)
+    file.save(filepath)
+
+    return jsonify({'ok': True, 'url': f'/static/uploads/notes/{filename}'})
 
 
 @bp.route('/api/notes/export-json', methods=['GET'])

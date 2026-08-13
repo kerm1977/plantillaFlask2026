@@ -256,6 +256,21 @@ def _migrate_event_date_changes():
         print(f"[Migration] Error en _migrate_event_date_changes: {e}")
 
 
+def _migrate_notes():
+    """Agrega la columna public_token a la tabla note si no existe."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(note)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if 'public_token' not in existing_cols:
+            cursor.execute("ALTER TABLE note ADD COLUMN public_token VARCHAR(64)")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_notes: {e}")
+
+
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
@@ -298,6 +313,8 @@ def create_app():
         _migrate_cotizador()
         # Migración: historial de cambios de fechas de eventos
         _migrate_event_date_changes()
+        # Migración: enlace público de notas
+        _migrate_notes()
         
         # Inyecta automáticamente los superusuarios
         inject_superusers()
