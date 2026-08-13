@@ -317,7 +317,10 @@
                 <img src="{{ url_for('static', filename='uploads/icon-192.png') }}" alt="TRANSAVI" style="width:80px;height:80px;border-radius:50%;object-fit:cover;" class="mb-3 shadow">
                 <div class="mb-3 text-start">
                     <label class="form-label fw-semibold">Clave de Acceso</label>
-                    <input type="password" class="form-control glass-input rounded-4 form-control-lg" id="claveCotizadorBus" placeholder="Ingresa la clave">
+                    <div class="position-relative">
+                        <input type="password" class="form-control glass-input rounded-4 form-control-lg pe-5" id="claveCotizadorBus" placeholder="Ingresa la clave">
+                        <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 fs-5" style="cursor:pointer; color:#6c757d;" id="toggleClaveCotizadorBus" onclick="toggleClaveCotizadorBusVisibilidad()"></i>
+                    </div>
                     <div class="small text-muted mt-2 text-uppercase text-center fw-bold">ESTE ESPACIO ESTÁ RESERVADO ÚNICAMENTE PARA TRANSAVI</div>
                 </div>
             </div>
@@ -328,19 +331,58 @@
     </div>
 </div>
 
+<!-- MODAL: ERROR DE ACCESO AL COTIZADOR (z-index superior al modal de acceso) -->
+<div class="modal fade" id="cotizadorBusErrorModal" tabindex="-1" style="z-index: 1100;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0" id="cotizadorBusErrorText"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 let cotizadorBusModal;
+let cotizadorBusErrorModal;
 let cotizadorBusSlug = null;
 
 function abrirCotizadorBus() {
     if(!cotizadorBusModal) cotizadorBusModal = new bootstrap.Modal(document.getElementById('cotizadorBusModal'));
+    if(!cotizadorBusErrorModal) cotizadorBusErrorModal = new bootstrap.Modal(document.getElementById('cotizadorBusErrorModal'));
     cotizadorBusModal.show();
+}
+
+function showCotizadorBusError(mensaje) {
+    const el = document.getElementById('cotizadorBusErrorText');
+    if(el) el.textContent = mensaje;
+    if(!cotizadorBusErrorModal) cotizadorBusErrorModal = new bootstrap.Modal(document.getElementById('cotizadorBusErrorModal'));
+    cotizadorBusErrorModal.show();
+}
+
+function toggleClaveCotizadorBusVisibilidad() {
+    const input = document.getElementById('claveCotizadorBus');
+    const icon = document.getElementById('toggleClaveCotizadorBus');
+    if(input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    }
 }
 
 async function ingresarCotizadorBus() {
     const clave = document.getElementById('claveCotizadorBus').value.trim();
     if(!clave) {
-        alert('Ingresa la clave');
+        showCotizadorBusError('Ingrese la clave de acceso.');
         return;
     }
     if(!cotizadorBusSlug) {
@@ -348,12 +390,12 @@ async function ingresarCotizadorBus() {
             const res = await fetch('/api/cotizadores/unico');
             const d = await res.json().catch(() => ({}));
             if(!d.slug) {
-                alert('No hay un cotizador activo');
+                showCotizadorBusError('No hay un cotizador activo.');
                 return;
             }
             cotizadorBusSlug = d.slug;
         } catch(e) {
-            alert('Error al obtener el cotizador');
+            showCotizadorBusError('Error al obtener el cotizador.');
             return;
         }
     }
@@ -365,10 +407,10 @@ async function ingresarCotizadorBus() {
             cotizadorBusModal.hide();
             window.location.href = '/cotizadores/' + cotizadorBusSlug;
         } else {
-            alert(d.error || 'Clave incorrecta');
+            showCotizadorBusError(d.error || 'Clave incorrecta. Por favor, verifique e intente de nuevo.');
         }
     } catch(e) {
-        alert('Error al verificar la clave');
+        showCotizadorBusError('Error al verificar la clave.');
     }
 }
 </script>
