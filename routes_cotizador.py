@@ -183,8 +183,10 @@ def cotizador_publico_slug(slug):
             'precios_historial': json.loads(l.precios_historial or '[]')
         })
     resp = make_response(render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados))
-    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, no-transform, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    resp.headers['Vary'] = '*'
     return resp
 
 @bp.route('/cotizador/<slug>')
@@ -207,8 +209,10 @@ def cotizador_publico(slug):
             'precios_historial': json.loads(l.precios_historial or '[]')
         })
     resp = make_response(render_template('cotizador_publico.html', cotizador=cotizador, lugares_json=lugares_serializados))
-    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, no-transform, max-age=0'
     resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    resp.headers['Vary'] = '*'
     return resp
 
 @bp.route('/cotizadores/<slug>/verificar', methods=['POST'])
