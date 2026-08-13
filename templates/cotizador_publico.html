@@ -137,7 +137,10 @@ body { padding-top: 0 !important; }
             <div class="modal-body pt-2 px-4 pb-4">
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Clave de Acceso</label>
-                    <input type="password" class="form-control glass-input rounded-4 form-control-lg" id="clave" placeholder="Ingresa la clave">
+                    <div class="position-relative">
+                        <input type="password" class="form-control glass-input rounded-4 form-control-lg pe-5" id="clave" placeholder="Ingresa la clave">
+                        <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 fs-5" style="cursor:pointer; color:#6c757d;" id="toggleClave" onclick="toggleClaveVisibilidad()"></i>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer border-0 pt-0 pb-4 px-4">
@@ -146,6 +149,25 @@ body { padding-top: 0 !important; }
         </div>
     </div>
 </div>
+
+<!-- Modal de Error de Contraseña -->
+<div class="modal fade" id="claveErrorModal" tabindex="-1" style="z-index: 1100;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0" id="claveErrorText"></p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const slug = '{{ cotizador.slug }}';
 const lugaresData = {{ lugares_json|tojson|safe }};
@@ -156,6 +178,7 @@ const cotizadorTitulo = '{{ cotizador.titulo or '' }}';
 const cotizadorDescripcion = '{{ cotizador.descripcion or '' }}';
 let claveGuardada = '';
 let passwordModal;
+let claveErrorModal;
 let whatsappModal;
 let detalleModal;
 let confirmDeleteModal;
@@ -168,6 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
     whatsappModal = new bootstrap.Modal(document.getElementById('whatsappModal'));
     detalleModal = new bootstrap.Modal(document.getElementById('detalleModal'));
     confirmDeleteModal = new bootstrap.Modal(document.getElementById('confirmDeleteModal'));
+    claveErrorModal = new bootstrap.Modal(document.getElementById('claveErrorModal'));
 
     document.getElementById('buscadorCotizador').addEventListener('input', filtrarLugares);
 
@@ -181,9 +205,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
 async function verificarClave(claveExterna) {
     const clave = (claveExterna || document.getElementById('clave').value).trim();
-    if(!clave) return;
+    if(!clave) {
+        showClaveError('Ingrese la clave de acceso.');
+        return;
+    }
     const res = await fetch('/cotizadores/' + slug + '/verificar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave})});
-    const d = await res.json();
+    const d = await res.json().catch(() => ({error:'Error del servidor'}));
     if(d.ok) {
         sessionStorage.setItem('transaviClave', clave);
         claveGuardada = clave;
@@ -192,11 +219,29 @@ async function verificarClave(claveExterna) {
         lugaresVisibles = lugaresData;
         renderLugares(lugaresVisibles);
     } else {
-        alert('Clave incorrecta');
+        showClaveError(d.error || 'Clave incorrecta. Por favor, verifique e intente de nuevo.');
         if(claveExterna) {
             document.getElementById('clave').value = claveExterna;
             passwordModal.show();
         }
+    }
+}
+
+function showClaveError(mensaje) {
+    const el = document.getElementById('claveErrorText');
+    if(el) el.textContent = mensaje;
+    if(claveErrorModal) claveErrorModal.show();
+}
+
+function toggleClaveVisibilidad() {
+    const input = document.getElementById('clave');
+    const icon = document.getElementById('toggleClave');
+    if(input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
     }
 }
 function _limpiarTexto(texto) {
