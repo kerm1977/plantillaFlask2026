@@ -93,7 +93,7 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
         }
 
         const badgeClass = getBadgeClass(ev.dificultad);
-        const imgPath = ev.poster || ev.imagen || 'https://via.placeholder.com/270x480?text=Sin+Imagen';
+        const imgPath = ev.poster || ev.imagen || '/static/img/placeholder.svg';
         const { dateDisplay } = formatDateDisplay(ev, mesesNombres);
         const isPrivate = ev.solo_chat || ev.logistica_segura;
         const { destinoDisplay, timeDisplay } = getPrivateDisplay(ev, isPrivate);

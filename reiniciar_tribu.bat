@@ -10,8 +10,8 @@ echo [*] Eliminando cache compilada...
 if exist "__pycache__" rmdir /S /Q "__pycache__"
 if exist "routes\__pycache__" rmdir /S /Q "routes\__pycache__"
 
-echo [*] Iniciando ejecutarR.bat...
-start "" "ejecutarR.bat"
+echo [*] Iniciando ejecutar.bat...
+start "" "ejecutar.bat"
 
 echo [OK] Proceso de reinicio iniciado.
 timeout /t 5

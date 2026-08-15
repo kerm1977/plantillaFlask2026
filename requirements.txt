@@ -6,3 +6,6 @@ bcrypt
 Pillow
 reportlab
 openpyxl
+Flask-SocketIO
+eventlet
+pymysql

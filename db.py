@@ -19,7 +19,14 @@ def configure_db_uri():
     elif 'TAILSCALE_IP' in os.environ:
         # Configuración para red local/Tailscale (MySQL)
         host = os.environ.get('TAILSCALE_IP')
-        return f'mysql+pymysql://root:root@{host}/pwa_db'
+        db_user = os.environ.get('DB_USER', 'root')
+        db_pass = os.environ.get('DB_PASS')
+        db_name = os.environ.get('DB_NAME', 'pwa_db')
+        if not db_pass:
+            print('[db] TAILSCALE_IP definido pero DB_PASS vacío; usando SQLite de respaldo')
+            basedir = os.path.abspath(os.path.dirname(__file__))
+            return 'sqlite:///' + os.path.join(basedir, 'local_app.db')
+        return f'mysql+pymysql://{db_user}:{db_pass}@{host}/{db_name}'
     
     else:
         # Entorno local por defecto (o Fallback seguro en la nube) -> SQLite

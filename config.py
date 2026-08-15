@@ -36,11 +36,9 @@ def _get_or_create_secret_key():
 
 class Config:
     SECRET_KEY = _get_or_create_secret_key()
-    DEBUG = True  # Mantenido para estabilidad del servidor
-    
     # Superusuarios
     SUPERUSER_EMAILS = os.environ.get('SUPERUSER_EMAILS', 'kenth1977@gmail.com,lthikingcr@gmail.com').split(',')
-    SUPERUSER_PASSWORD = os.environ.get('SUPERUSER_PASSWORD', 'CR129x7848n')
+    SUPERUSER_PASSWORD = os.environ.get('SUPERUSER_PASSWORD')
     
     # Base de datos
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -49,7 +47,8 @@ class Config:
     TEMPLATES_AUTO_RELOAD = True
     
     # Seguridad
-    SESSION_COOKIE_SECURE = not DEBUG
+    DEBUG = os.environ.get('FLASK_DEBUG', 'True').lower() in ('1', 'true', 'yes')
+    SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() in ('1', 'true', 'yes')
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     

@@ -16,7 +16,7 @@ function renderGridCard(ev, currentMonthId, isExpanded, imgPath, badgeClass, des
                 ${superUserBtns}
                 <div class="event-img-container border-bottom border-white border-2 position-relative">
                     ${overlay}
-                    <img src="${imgPath}" onerror="this.src='https://via.placeholder.com/270x480?text=Error+Imagen'">
+                    <img src="${imgPath}" onerror="this.onerror=null;this.src='/static/img/placeholder.svg'">
                     <span class="badge-dificultad ${badgeClass}">${ev.dificultad}</span>
                 </div>
                 <div class="p-3 d-flex flex-column flex-grow-1">

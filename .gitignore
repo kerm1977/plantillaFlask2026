@@ -1,6 +1,49 @@
-backups/*.zip
+# Entornos y caché
 __pycache__/
 *.pyc
+*.pyo
 env/
 venv/
+.venv/
+
+# Claves y configuración local
 .secret_key
+cloudflared_token.txt
+.cloudflared_token
+config_local.py
+
+# Bases de datos y datos
+*.db
+*.sqlite
+*.sqlite3
+local_app.db
+contactos.json
+db_export_*.json
+*.json~
+
+# Logs
+*.log
+flask_*.log
+
+# Certificados y claves
+*.pem
+*.key
+*.crt
+
+# Backups y snapshots locales
+backups/
+templates_BACKUP_*/
+
+# Archivos temporales y del sistema
+*.tmp
+*.temp
+*.bak
+*.swp
+*.orig
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.code-workspace

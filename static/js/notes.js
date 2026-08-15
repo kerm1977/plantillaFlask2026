@@ -15,6 +15,9 @@ const NOTES_PER_PAGE = 10;
 let deleteNotePendiente = null;
 let confirmDeleteNoteModal1, confirmDeleteNoteModal2, confirmDeleteNoteModal3;
 let notePublicLinkModal = null;
+let noteOptionsModal = null;
+let confirmDeleteTodoModal = null;
+let todoToDeleteBtn = null;
 
 document.addEventListener('DOMContentLoaded', function() {
     const modalEl = document.getElementById('notesModal');
@@ -56,6 +59,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const notePublicLinkEl = document.getElementById('notePublicLinkModal');
     if (notePublicLinkEl) {
         notePublicLinkModal = new bootstrap.Modal(notePublicLinkEl);
+    }
+    const noteOptionsEl = document.getElementById('noteOptionsModal');
+    if (noteOptionsEl) {
+        noteOptionsModal = new bootstrap.Modal(noteOptionsEl);
+    }
+    const confirmDeleteTodoEl = document.getElementById('confirmDeleteTodoModal');
+    if (confirmDeleteTodoEl) {
+        confirmDeleteTodoModal = new bootstrap.Modal(confirmDeleteTodoEl);
     }
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
 
@@ -191,6 +202,8 @@ function createNewNote() {
     document.getElementById('createNoteBtnContainer').classList.add('d-none');
     document.getElementById('noteProgressContainer').classList.add('d-none');
     attachCheckboxListeners();
+    setupNoteAutoSaveListeners();
+    if (typeof collabLeave === 'function') collabLeave();
 }
 
 function editNote(id) {
@@ -204,6 +217,51 @@ function editNote(id) {
     document.getElementById('createNoteBtnContainer').classList.add('d-none');
     attachCheckboxListeners();
     updateNoteProgress();
+    setupNoteAutoSaveListeners();
+    if (typeof collabJoin === 'function') collabJoin('note-' + id, 'noteContentEditor');
+}
+
+function setupNoteAutoSaveListeners() {
+    const editor = document.getElementById('noteContentEditor');
+    const titleInput = document.getElementById('noteTitleInput');
+    if (editor) editor.oninput = scheduleNoteAutoSave;
+    if (titleInput) titleInput.oninput = scheduleNoteAutoSave;
+}
+
+let noteAutoSaveTimeout = null;
+
+function scheduleNoteAutoSave() {
+    clearTimeout(noteAutoSaveTimeout);
+    noteAutoSaveTimeout = setTimeout(autoSaveNote, 900);
+}
+
+async function autoSaveNote() {
+    const title = document.getElementById('noteTitleInput').value.trim() || 'Sin título';
+    const content = document.getElementById('noteContentEditor').innerHTML;
+    try {
+        let url = '/api/notes';
+        let method = 'POST';
+        if (currentNoteId) {
+            url = `/api/notes/${currentNoteId}`;
+            method = 'PUT';
+        }
+        const r = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, content})
+        });
+        const data = await r.json();
+        if (data.ok && !currentNoteId && data.id) {
+            currentNoteId = data.id;
+            if (typeof collabJoin === 'function') collabJoin('note-' + currentNoteId, 'noteContentEditor');
+        }
+    } catch (e) {
+        console.error('Error en autoguardado de nota:', e);
+    }
+}
+
+function openNoteOptionsModal() {
+    if (noteOptionsModal) noteOptionsModal.show();
 }
 
 function cancelEdit() {
@@ -211,6 +269,7 @@ function cancelEdit() {
     document.getElementById('notesListContainer').classList.remove('d-none');
     document.getElementById('noteEditorContainer').classList.add('d-none');
     document.getElementById('createNoteBtnContainer').classList.remove('d-none');
+    if (typeof collabLeave === 'function') collabLeave();
 }
 
 function viewNote(id) {
@@ -309,12 +368,22 @@ function insertCheckbox() {
         let listItems = '';
         lines.forEach((line, idx) => {
             const cid = `${id}-${idx}`;
-            listItems += `<li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${cid}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${cid}" contenteditable="true">${escapeHtml(line.trim())}</label></li>`;
+            const text = escapeHtml(line.trim());
+            listItems += `<li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="toggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1">${text}</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="deleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button></li>`;
         });
         document.execCommand('insertHTML', false, `<ul class="list-group list-group-flush todo-list mb-2">${listItems}</ul>`);
     } else {
-        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
+        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="toggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1 new-todo-focus">Nueva tarea</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="deleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button></li></ul>`;
         document.execCommand('insertHTML', false, html);
+        const newLabel = editor.querySelector('.new-todo-focus');
+        if (newLabel) {
+            const range = document.createRange();
+            range.selectNodeContents(newLabel);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            newLabel.classList.remove('new-todo-focus');
+        }
     }
     
     document.getElementById('noteProgressContainer').classList.remove('d-none');
@@ -394,6 +463,15 @@ function moveImageToBottom() {
     const editor = document.getElementById('noteContentEditor');
     editor.appendChild(currentEditImage);
     if (noteImageViewModal) noteImageViewModal.hide();
+}
+
+function deleteImageFromView() {
+    if (!currentEditImage) return;
+    currentEditImage.remove();
+    currentEditImage = null;
+    if (noteImageViewModal) noteImageViewModal.hide();
+    updateNoteProgress();
+    scheduleNoteAutoSave();
 }
 
 function openImageEdit(img) {
@@ -537,13 +615,73 @@ function toggleTodoCheck(checkbox) {
     if (!li) return;
     const checked = checkbox.checked;
     li.setAttribute('data-checked', checked ? 'true' : 'false');
-    const label = li.querySelector('label');
+    const label = li.querySelector('.form-check-label');
     if (label) {
         label.classList.toggle('text-decoration-line-through', checked);
         label.classList.toggle('text-muted', checked);
     }
     updateNoteProgress();
     updateNoteViewProgress();
+}
+
+function deleteTodoItem(btn) {
+    todoToDeleteBtn = btn;
+    if (confirmDeleteTodoModal) {
+        confirmDeleteTodoModal.show();
+    } else {
+        const li = btn.closest('li');
+        if (li) {
+            li.remove();
+            updateNoteProgress();
+            scheduleNoteAutoSave();
+        }
+        todoToDeleteBtn = null;
+    }
+}
+
+function confirmDeleteTodo() {
+    if (confirmDeleteTodoModal) confirmDeleteTodoModal.hide();
+    if (todoToDeleteBtn) {
+        const li = todoToDeleteBtn.closest('li');
+        if (li) {
+            li.remove();
+            updateNoteProgress();
+            scheduleNoteAutoSave();
+        }
+    }
+    todoToDeleteBtn = null;
+}
+
+function cancelDeleteTodo() {
+    todoToDeleteBtn = null;
+    if (confirmDeleteTodoModal) confirmDeleteTodoModal.hide();
+}
+
+function normalizeTodoItems(editor) {
+    editor.querySelectorAll('li.todo-item').forEach(li => {
+        const input = li.querySelector('input.note-check');
+        const label = li.querySelector('.form-check-label');
+        if (input) {
+            input.setAttribute('contenteditable', 'false');
+            input.setAttribute('onchange', 'toggleTodoCheck(this)');
+            input.removeAttribute('id');
+        }
+        if (label) {
+            label.removeAttribute('contenteditable');
+            label.removeAttribute('for');
+            label.classList.remove('new-todo-focus');
+        }
+        if (!li.querySelector('button[onclick^="deleteTodoItem"]')) {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-link text-danger p-0 ms-1';
+            btn.type = 'button';
+            btn.setAttribute('contenteditable', 'false');
+            btn.setAttribute('tabindex', '-1');
+            btn.setAttribute('onclick', 'deleteTodoItem(this)');
+            btn.innerHTML = '<i class="bi bi-trash"></i>';
+            li.appendChild(btn);
+        }
+    });
 }
 
 function updateNoteProgress() {
@@ -579,30 +717,39 @@ function attachCheckboxListeners() {
     const editor = document.getElementById('noteContentEditor');
     editor.addEventListener('keydown', function(e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            const label = e.target.closest('label');
-            if (label) {
-                const li = label.closest('li');
-                const ul = li ? li.closest('ul') : null;
-                if (!ul) return;
-                e.preventDefault();
-                const id = 'note-check-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-                const newLi = document.createElement('li');
-                newLi.className = 'list-group-item d-flex align-items-center gap-2 p-2 todo-item';
-                newLi.setAttribute('data-checked', 'false');
-                newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="toggleTodoCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label>`;
-                li.after(newLi);
-                const newLabel = newLi.querySelector('label');
-                if (newLabel) {
-                    newLabel.focus();
-                    const range = document.createRange();
-                    range.selectNodeContents(newLabel);
-                    range.collapse(true);
-                    const sel = window.getSelection();
-                    sel.removeAllRanges();
-                    sel.addRange(range);
-                }
-                updateNoteProgress();
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            let node = range.commonAncestorContainer;
+            if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+            const label = node ? node.closest('.form-check-label') : null;
+            if (!label) return;
+            const li = label.closest('li');
+            const ul = li ? li.closest('ul') : null;
+            if (!ul) return;
+            e.preventDefault();
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(label);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            const before = preCaretRange.toString();
+            const after = label.textContent.substring(before.length);
+            label.textContent = before;
+            const newLi = document.createElement('li');
+            newLi.className = 'list-group-item d-flex align-items-start gap-2 p-2 todo-item';
+            newLi.setAttribute('data-checked', 'false');
+            const newText = after ? escapeHtml(after) : 'Nueva tarea';
+            newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="toggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1">${newText}</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="deleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button>`;
+            li.after(newLi);
+            const newLabel = newLi.querySelector('.form-check-label');
+            if (newLabel) {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(newLabel);
+                if (after) newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
             }
+            updateNoteProgress();
+            scheduleNoteAutoSave();
         }
     });
     // Sincronizar estados visuales al cargar nota
@@ -611,7 +758,7 @@ function attachCheckboxListeners() {
         if (li) {
             const isChecked = li.getAttribute('data-checked') === 'true';
             ch.checked = isChecked;
-            const label = li.querySelector('label');
+            const label = li.querySelector('.form-check-label');
             if (label) {
                 label.classList.toggle('text-decoration-line-through', isChecked);
                 label.classList.toggle('text-muted', isChecked);
@@ -619,6 +766,7 @@ function attachCheckboxListeners() {
         }
     });
     updateNoteProgress();
+    normalizeTodoItems(editor);
 }
 
 // Enlace Público (colaborativo, sin clave)
@@ -634,6 +782,7 @@ async function shareCurrentNote() {
             const fullUrl = window.location.origin + data.url;
             const input = document.getElementById('notePublicLinkInput');
             if (input) input.value = fullUrl;
+            if (noteOptionsModal) noteOptionsModal.hide();
             if (notePublicLinkModal) notePublicLinkModal.show();
         } else {
             alert(data.error || 'Error al generar el enlace público');
@@ -817,7 +966,7 @@ function exportNoteImage(format, ext) {
 // WhatsApp Share
 function shareNoteWhatsApp() {
     const title = document.getElementById('noteTitleInput').value || 'Nota';
-    const content = stripHtml(document.getElementById('noteContentEditor').innerHTML);
+    const content = htmlToWhatsApp(document.getElementById('noteContentEditor').innerHTML);
     const text = `*${title}*\n\n${content}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
@@ -841,7 +990,7 @@ function exportViewNotePDF() {
 
 function exportViewNoteWhatsApp() {
     if (!currentViewNote) return;
-    const text = `*${currentViewNote.title}*\n\n${stripHtml(currentViewNote.content)}`;
+    const text = `*${currentViewNote.title}*\n\n${htmlToWhatsApp(currentViewNote.content)}`;
     const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
     window.open(url, '_blank');
 }
@@ -963,6 +1112,84 @@ function stripHtml(html) {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
+}
+
+function htmlToWhatsApp(html) {
+    const tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    return convertNodeToWhatsApp(tmp).replace(/\n{3,}/g, '\n\n').trim();
+}
+
+function convertNodeToWhatsApp(node) {
+    let out = '';
+    Array.from(node.childNodes).forEach(child => {
+        if (child.nodeType === 3) {
+            out += child.textContent
+                .replace(/\*/g, '\\*')
+                .replace(/_/g, '\\_')
+                .replace(/~/g, '\\~')
+                .replace(/`/g, '\\`');
+            return;
+        }
+        if (child.nodeType !== 1) return;
+        const tag = child.tagName.toLowerCase();
+        if (tag === 'br') {
+            out += '\n';
+        } else if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4' || tag === 'h5' || tag === 'h6') {
+            out += '*' + convertNodeToWhatsApp(child).trim() + '*\n';
+        } else if (tag === 'p' || tag === 'div') {
+            const text = convertNodeToWhatsApp(child).trim();
+            if (text) out += text + '\n';
+        } else if (tag === 'b' || tag === 'strong') {
+            out += '*' + convertNodeToWhatsApp(child).trim() + '*';
+        } else if (tag === 'i' || tag === 'em') {
+            out += '_' + convertNodeToWhatsApp(child).trim() + '_';
+        } else if (tag === 's' || tag === 'strike' || tag === 'del') {
+            out += '~' + convertNodeToWhatsApp(child).trim() + '~';
+        } else if (tag === 'u') {
+            out += convertNodeToWhatsApp(child);
+        } else if (tag === 'a') {
+            const href = child.getAttribute('href') || '';
+            out += convertNodeToWhatsApp(child).trim() + ' (' + href + ')';
+        } else if (tag === 'img') {
+            out += '[imagen]';
+        } else if (tag === 'hr') {
+            out += '---\n';
+        } else if (tag === 'ul' || tag === 'ol') {
+            Array.from(child.children).forEach((li, idx) => {
+                if (li.tagName.toLowerCase() !== 'li') return;
+                if (li.classList.contains('todo-item')) {
+                    const cb = li.querySelector('input.note-check');
+                    const checked = cb && (cb.checked || cb.hasAttribute('checked') || li.getAttribute('data-checked') === 'true');
+                    const label = li.querySelector('.form-check-label');
+                    const text = label ? label.textContent : convertNodeToWhatsApp(li);
+                    out += (checked ? '[x]' : '[ ]') + ' ' + text.trim() + '\n';
+                } else {
+                    const marker = tag === 'ul' ? '•' : (idx + 1) + '.';
+                    out += marker + ' ' + convertNodeToWhatsApp(li).trim() + '\n';
+                }
+            });
+        } else if (tag === 'li') {
+            if (child.classList.contains('todo-item')) {
+                const cb = child.querySelector('input.note-check');
+                const checked = cb && (cb.checked || cb.hasAttribute('checked') || child.getAttribute('data-checked') === 'true');
+                const label = child.querySelector('.form-check-label');
+                const text = label ? label.textContent : convertNodeToWhatsApp(child);
+                out += (checked ? '[x]' : '[ ]') + ' ' + text.trim() + '\n';
+            } else {
+                out += '• ' + convertNodeToWhatsApp(child).trim() + '\n';
+            }
+        } else if (tag === 'span') {
+            if (child.classList.contains('text-decoration-line-through')) {
+                out += '~' + convertNodeToWhatsApp(child).trim() + '~';
+            } else {
+                out += convertNodeToWhatsApp(child);
+            }
+        } else {
+            out += convertNodeToWhatsApp(child);
+        }
+    });
+    return out;
 }
 
 function formatDate(isoString) {

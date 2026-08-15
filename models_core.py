@@ -102,3 +102,21 @@ class EventRegistration(db.Model):
     hiker_id = db.Column(db.Integer, db.ForeignKey('hiker.id'), nullable=False)
     estado_pago = db.Column(db.String(50), default='Pendiente')
     fecha_inscripcion = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Holiday(db.Model):
+    __tablename__ = 'holidays'
+    id = db.Column(db.String(80), primary_key=True)
+    month = db.Column(db.Integer, nullable=False)
+    day = db.Column(db.Integer, nullable=True)
+    nth_weekday_n = db.Column(db.Integer, nullable=True)
+    nth_weekday_weekday = db.Column(db.Integer, nullable=True)
+    title = db.Column(db.String(255), nullable=False)
+    subtitle = db.Column(db.String(255), nullable=True)
+    icon = db.Column(db.String(100), nullable=True)
+    confetti_colors = db.Column(db.Text, default='[]')
+    song = db.Column(db.String(255), nullable=True)
+    enabled = db.Column(db.Boolean, default=True)
+    is_custom = db.Column(db.Boolean, default=False)
+    background = db.Column(db.String(100), nullable=True)
+    border = db.Column(db.String(100), nullable=True)

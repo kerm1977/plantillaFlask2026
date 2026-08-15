@@ -56,7 +56,7 @@ const STORAGE_KEY = 'cotizador_borrador';
 
 {% if cotizador %}
 {% for l in cotizador.lugares %}
-lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
+lugares.push({id:{{ l.id }},nombre:'{{ l.nombre }}',provincia:'{{ l.provincia or '' }}',duracion:'{{ l.duracion }}',tipo_caminata:'{{ l.tipo_caminata or 'circular' }}',fecha_ida:'{{ l.fecha_ida or '' }}',fecha_regreso:'{{ l.fecha_regreso or '' }}',hora:'{{ l.hora or '' }}',maps_ida:'{{ l.maps_ida or '' }}',maps_regreso:'{{ l.maps_regreso or '' }}',moneda:'{{ l.moneda }}',order:{{ l.order }}});
 {% endfor %}
 {% else %}
 // Cargar borrador desde localStorage si existe
@@ -97,7 +97,7 @@ function limpiarBorrador() {
 }
 
 function agregarLugar() {
-    lugares.push({nombre:'',provincia:'',duracion:'1_dia',fecha_ida:'',fecha_regreso:'',hora:'',maps_ida:'',maps_regreso:'',moneda:'colones',order:lugares.length});
+    lugares.push({nombre:'',provincia:'',duracion:'1_dia',tipo_caminata:'circular',fecha_ida:'',fecha_regreso:'',hora:'',maps_ida:'',maps_regreso:'',moneda:'colones',order:lugares.length});
     renderLugares();
     guardarBorrador();
 }
@@ -132,9 +132,16 @@ function renderLugares() {
                     </div>
                     <div class="col-12">
                         <label class="form-label small text-muted mb-1">Duración</label>
-                        <select class="form-select" onchange="lugares[${i}].duracion=this.value;guardarBorrador()">
+                        <select class="form-select" onchange="lugares[${i}].duracion=this.value;guardarBorrador();renderLugares()">
                             <option value="1_dia" ${l.duracion=='1_dia'?'selected':''}>1 día</option>
                             <option value="multiples_dias" ${l.duracion=='multiples_dias'?'selected':''}>Múltiples días</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-muted mb-1">Tipo de caminata</label>
+                        <select class="form-select" onchange="lugares[${i}].tipo_caminata=this.value;guardarBorrador();renderLugares()">
+                            <option value="circular" ${l.tipo_caminata=='circular'?'selected':''}>Circular</option>
+                            <option value="lineal" ${l.tipo_caminata=='lineal'?'selected':''}>Lineal</option>
                         </select>
                     </div>
                     <div class="col-6">
@@ -150,12 +157,12 @@ function renderLugares() {
                         <input type="time" class="form-control" value="${l.hora}" onchange="lugares[${i}].hora=this.value;guardarBorrador()">
                     </div>
                     <div class="col-6">
-                        <label class="form-label small text-muted mb-1">Maps Ida</label>
-                        <input class="form-control" placeholder="Enlace Maps" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value;guardarBorrador()">
+                        <label class="form-label small text-muted mb-1">${l.tipo_caminata=='lineal'?'Mapa Ida':'Mapa'}</label>
+                        <input class="form-control" placeholder="${l.tipo_caminata=='lineal'?'Enlace Mapa Ida':'Enlace Mapa'}" value="${l.maps_ida}" onchange="lugares[${i}].maps_ida=this.value;guardarBorrador()">
                     </div>
-                    <div class="col-6">
-                        <label class="form-label small text-muted mb-1">Maps Regreso</label>
-                        <input class="form-control" placeholder="Enlace Maps" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value;guardarBorrador()">
+                    <div class="col-6" style="display:${l.tipo_caminata=='lineal'?'block':'none'}">
+                        <label class="form-label small text-muted mb-1">Mapa Regreso</label>
+                        <input class="form-control" placeholder="Enlace Mapa Regreso" value="${l.maps_regreso}" onchange="lugares[${i}].maps_regreso=this.value;guardarBorrador()">
                     </div>
                     <div class="col-6">
                         <label class="form-label small text-muted mb-1">Moneda</label>

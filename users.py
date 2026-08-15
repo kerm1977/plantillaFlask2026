@@ -14,7 +14,7 @@ def inject_superusers():
     for email in Config.SUPERUSER_EMAILS:
         email = email.lower().strip()
         user = User.query.filter_by(email=email).first()
-        if not user:
+        if not user and Config.SUPERUSER_PASSWORD:
             new_super = User(
                 role='Superusuario',
                 weight=100,

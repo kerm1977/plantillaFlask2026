@@ -5,6 +5,7 @@ from datetime import datetime, date
 from sqlalchemy import func
 from db import db
 from routes import bp
+from helpers.holidays import get_today_holiday
 
 
 @bp.route('/')
@@ -15,7 +16,8 @@ def home():
         func.strftime('%m-%d', Hiker.fecha_nacimiento) == today.strftime('%m-%d'),
         Hiker.fecha_nacimiento != None
     ).all()
-    return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers)
+    today_holiday = get_today_holiday(today)
+    return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday)
 
 
 @bp.route('/api/eventos-activos')

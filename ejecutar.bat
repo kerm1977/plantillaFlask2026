@@ -31,19 +31,19 @@ if errorlevel 1 goto iniciar_cloudflare
 
 :iniciar_cloudflare
 echo [*] Liberando puertos...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do taskkill /F /PID %%a > nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do tasklist /NH /FI "PID eq %%a" | findstr /i "python.exe" >nul && taskkill /F /PID %%a > nul 2>&1
 start "TRIBU_WATCHER" cmd /c "%~f0" TRIBU_WATCHER
 start "CLOUD_WATCHER" cmd /c "%~f0" CLOUD_WATCHER
 goto fin
 
 :iniciar_tailscale
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do taskkill /F /PID %%a > nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do tasklist /NH /FI "PID eq %%a" | findstr /i "python.exe" >nul && taskkill /F /PID %%a > nul 2>&1
 start "TRIBU_WATCHER" cmd /c "%~f0" TRIBU_WATCHER
 start "TAIL_WATCHER" cmd /c "%~f0" TAIL_WATCHER
 goto fin
 
 :iniciar_ambos
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do taskkill /F /PID %%a > nul 2>&1
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :5050 ^| findstr LISTENING') do tasklist /NH /FI "PID eq %%a" | findstr /i "python.exe" >nul && taskkill /F /PID %%a > nul 2>&1
 start "TRIBU_WATCHER" cmd /c "%~f0" TRIBU_WATCHER
 start "CLOUD_WATCHER" cmd /c "%~f0" CLOUD_WATCHER
 start "TAIL_WATCHER" cmd /c "%~f0" TAIL_WATCHER
@@ -90,8 +90,9 @@ title CLOUDFLARE_TUNNEL_TRIBU
 color 0E
 
 :cloud_loop
+set /p TOKEN=<cloudflared_token.txt
 echo [!] CONECTANDO CON CLOUDFLARE...
-cloudflared.exe tunnel run --token eyJhIjoiZmZhMDJmYjFkYjUwMzBhMGYzMjBlYjAxMTIxYzJjZmEiLCJ0IjoiZTY3YjVhYWQtMTVjZi00N2M4LTk3YzctZjQzNTlhMDIwNzExIiwicyI6Ik56WmlNRFpqWW1NdFkyWTRZaTAwTVdNMExXRXpPRE10WVdFeVltVTNZbUpoTkRjdyJ9
+cloudflared.exe tunnel run --token %TOKEN%
 echo [X] TUNEL DESCONECTADO O CERRADO. ¡Forzando reconexion en 3 segundos!
 timeout /t 3 > nul
 goto cloud_loop

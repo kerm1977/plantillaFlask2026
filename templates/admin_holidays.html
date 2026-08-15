@@ -1,0 +1,1388 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h2 class="fw-bold text-orange mb-0"><i class="bi bi-calendar-event me-2"></i>Triggers de Días Festivos</h2>
+        <button class="btn btn-orange rounded-pill fw-bold" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg me-1"></i>Crear trigger</button>
+    </div>
+    <p class="text-secondary small mb-3">
+        Tocá una celebración para editarla. Los personalizados se pueden eliminar.
+    </p>
+    <div id="mensaje" class="alert d-none mb-3"></div>
+    <div class="row g-3">
+        {% for h in holidays %}
+        <div class="col-6 col-md-4 col-lg-3" id="card-{{ h.id }}">
+            <div class="card glass-panel border-0 shadow-sm h-100 text-center p-3 position-relative" style="cursor:pointer;" onclick="abrirModal('{{ h.id }}')">
+                {% if h.song %}<i class="bi bi-music-note-beam position-absolute top-0 end-0 m-2 text-secondary" title="Tiene canción: {{ h.song }}"></i>{% endif %}
+                <div style="font-size:2.8rem;">
+                    {% set icon_val = h.icon | default(h.emoji) %}
+                    {% if icon_val.startswith('bi-') or icon_val.startswith('bi ') %}
+                        <i class="{{ icon_val }}"></i>
+                    {% else %}
+                        <span>{{ icon_val }}</span>
+                    {% endif %}
+                </div>
+                <div class="fw-bold text-dark mt-2">{{ h.title }}</div>
+                <div class="small text-secondary mt-1">
+                    {% if h.day %}
+                        {{ '%02d' % h.month }}/{{ '%02d' % h.day }}
+                    {% else %}
+                        {{ h.nth_weekday[0] }}º domingo de {{ h.month }}
+                    {% endif %}
+                </div>
+                <span class="badge rounded-pill mt-2 {% if h.enabled %}bg-success{% else %}bg-secondary{% endif %}" id="badge-{{ h.id }}">
+                    {{ 'Activo' if h.enabled else 'Inactivo' }}
+                </span>
+                {% if h.custom %}
+                <button type="button" class="btn btn-sm btn-link text-danger position-absolute bottom-0 end-0 p-2" style="font-size:1.1rem; z-index:10;" title="Eliminar" onclick="event.stopPropagation(); eliminarFeriado('{{ h.id }}')">
+                    <i class="bi bi-trash"></i>
+                </button>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal fade" id="holidayModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
+        <div id="modal-preview" style="font-size:2.5rem;"></div>
+        <h5 class="modal-title fw-bold text-dark mt-1" id="modal-nombre"></h5>
+        <p class="text-secondary small mb-0" id="modal-fecha"></p>
+      </div>
+      <div class="modal-body pt-3 pb-2">
+        <input type="hidden" id="modal-id">
+        <input type="hidden" id="modal-custom">
+        <div class="mb-3">
+          <label for="modal-titulo" class="form-label fw-semibold small">Título del mensaje</label>
+          <input type="text" class="form-control" id="modal-titulo">
+        </div>
+        <div class="mb-3">
+          <label for="modal-subtitulo" class="form-label fw-semibold small">Mensaje de felicitación</label>
+          <textarea class="form-control" id="modal-subtitulo" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="modal-icono" class="form-label fw-semibold small">Ícono (emoji o clase bi-*)</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="modal-icono" placeholder="🎉 o bi bi-balloon">
+            <select class="form-select" id="modal-icono-preset" style="max-width:140px;">
+              <option value="">Sugerencias</option>
+              <optgroup label="Emojis">
+                <option value="🎉">🎉</option>
+                <option value="🎈">🎈</option>
+                <option value="🎁">🎁</option>
+                <option value="🎂">🎂</option>
+                <option value="🌹">🌹</option>
+                <option value="🌲">🌲</option>
+                <option value="🇨🇷">🇨🇷</option>
+                <option value="🎄">🎄</option>
+                <option value="🥂">🥂</option>
+                <option value="👔">👔</option>
+                <option value="❤️">❤️</option>
+              </optgroup>
+              <optgroup label="Emojis WhatsApp">
+                <option value="😀">😀</option>
+                <option value="😃">😃</option>
+                <option value="😄">😄</option>
+                <option value="😁">😁</option>
+                <option value="😆">😆</option>
+                <option value="😅">😅</option>
+                <option value="🤣">🤣</option>
+                <option value="😂">😂</option>
+                <option value="🙂">🙂</option>
+                <option value="😊">😊</option>
+                <option value="😇">😇</option>
+                <option value="🥰">🥰</option>
+                <option value="😍">😍</option>
+                <option value="🤩">🤩</option>
+                <option value="😘">😘</option>
+                <option value="😗">😗</option>
+                <option value="😚">😚</option>
+                <option value="😙">😙</option>
+                <option value="😋">😋</option>
+                <option value="😛">😛</option>
+                <option value="😜">😜</option>
+                <option value="🤪">🤪</option>
+                <option value="😝">😝</option>
+                <option value="🤑">🤑</option>
+                <option value="🤗">🤗</option>
+                <option value="🤭">🤭</option>
+                <option value="🤫">🤫</option>
+                <option value="🤔">🤔</option>
+                <option value="🤐">🤐</option>
+                <option value="🤨">🤨</option>
+                <option value="😐">😐</option>
+                <option value="😶">😶</option>
+                <option value="😏">😏</option>
+                <option value="😒">😒</option>
+                <option value="🙄">🙄</option>
+                <option value="😬">😬</option>
+                <option value="🤥">🤥</option>
+                <option value="😌">😌</option>
+                <option value="😔">😔</option>
+                <option value="😪">😪</option>
+                <option value="🤤">🤤</option>
+                <option value="😴">😴</option>
+                <option value="😷">😷</option>
+                <option value="🤒">🤒</option>
+                <option value="🤕">🤕</option>
+                <option value="🤢">🤢</option>
+                <option value="🤮">🤮</option>
+                <option value="🤧">🤧</option>
+                <option value="🥵">🥵</option>
+                <option value="🥶">🥶</option>
+                <option value="🥴">🥴</option>
+                <option value="😵">😵</option>
+                <option value="🤯">🤯</option>
+                <option value="🤠">🤠</option>
+                <option value="🥳">🥳</option>
+                <option value="🥸">🥸</option>
+                <option value="😎">😎</option>
+                <option value="🤓">🤓</option>
+                <option value="🧐">🧐</option>
+                <option value="😕">😕</option>
+                <option value="😟">😟</option>
+                <option value="🙁">🙁</option>
+                <option value="☹️">☹️</option>
+                <option value="😮">😮</option>
+                <option value="😯">😯</option>
+                <option value="😲">😲</option>
+                <option value="😳">😳</option>
+                <option value="🥺">🥺</option>
+                <option value="😦">😦</option>
+                <option value="😧">😧</option>
+                <option value="😨">😨</option>
+                <option value="😰">😰</option>
+                <option value="😥">😥</option>
+                <option value="😢">😢</option>
+                <option value="😭">😭</option>
+                <option value="😱">😱</option>
+                <option value="😖">😖</option>
+                <option value="😣">😣</option>
+                <option value="😞">😞</option>
+                <option value="😓">😓</option>
+                <option value="😩">😩</option>
+                <option value="😫">😫</option>
+                <option value="🥱">🥱</option>
+                <option value="😤">😤</option>
+                <option value="😡">😡</option>
+                <option value="😠">😠</option>
+                <option value="🤬">🤬</option>
+                <option value="😈">😈</option>
+                <option value="👿">👿</option>
+                <option value="💀">💀</option>
+                <option value="💩">💩</option>
+                <option value="🤡">🤡</option>
+                <option value="👻">👻</option>
+                <option value="👽">👽</option>
+                <option value="👾">👾</option>
+                <option value="🤖">🤖</option>
+                <option value="😺">😺</option>
+                <option value="😸">😸</option>
+                <option value="😹">😹</option>
+                <option value="😻">😻</option>
+                <option value="😼">😼</option>
+                <option value="😽">😽</option>
+                <option value="🙀">🙀</option>
+                <option value="😿">😿</option>
+                <option value="😾">😾</option>
+                <option value="🙈">🙈</option>
+                <option value="🙉">🙉</option>
+                <option value="🙊">🙊</option>
+                <option value="💌">💌</option>
+                <option value="💘">💘</option>
+                <option value="💝">💝</option>
+                <option value="💖">💖</option>
+                <option value="💗">💗</option>
+                <option value="💓">💓</option>
+                <option value="💞">💞</option>
+                <option value="💕">💕</option>
+                <option value="💟">💟</option>
+                <option value="❣️">❣️</option>
+                <option value="💔">💔</option>
+                <option value="❤️">❤️</option>
+                <option value="🧡">🧡</option>
+                <option value="💛">💛</option>
+                <option value="💚">💚</option>
+                <option value="💙">💙</option>
+                <option value="💜">💜</option>
+                <option value="🤎">🤎</option>
+                <option value="🖤">🖤</option>
+                <option value="🤍">🤍</option>
+                <option value="💋">💋</option>
+                <option value="💯">💯</option>
+                <option value="💢">💢</option>
+                <option value="💥">💥</option>
+                <option value="💫">💫</option>
+                <option value="💦">💦</option>
+                <option value="💨">💨</option>
+                <option value="💣">💣</option>
+                <option value="💬">💬</option>
+                <option value="💭">💭</option>
+                <option value="💤">💤</option>
+                <option value="🎉">🎉</option>
+                <option value="🎊">🎊</option>
+                <option value="🎈">🎈</option>
+                <option value="🎂">🎂</option>
+                <option value="🎁">🎁</option>
+                <option value="🎄">🎄</option>
+                <option value="🎃">🎃</option>
+                <option value="🎅">🎅</option>
+                <option value="🤶">🤶</option>
+                <option value="🎀">🎀</option>
+                <option value="🎆">🎆</option>
+                <option value="🎇">🎇</option>
+                <option value="🧨">🧨</option>
+                <option value="✨">✨</option>
+                <option value="🌟">🌟</option>
+                <option value="⭐">⭐</option>
+                <option value="🎶">🎶</option>
+                <option value="🎵">🎵</option>
+                <option value="🎸">🎸</option>
+                <option value="🎺">🎺</option>
+                <option value="🥁">🥁</option>
+                <option value="🎹">🎹</option>
+                <option value="🌹">🌹</option>
+                <option value="🌷">🌷</option>
+                <option value="🌸">🌸</option>
+                <option value="🌺">🌺</option>
+                <option value="🌻">🌻</option>
+                <option value="🌼">🌼</option>
+                <option value="🌲">🌲</option>
+                <option value="🌳">🌳</option>
+                <option value="🌴">🌴</option>
+                <option value="🌵">🌵</option>
+                <option value="🌾">🌾</option>
+                <option value="🌿">🌿</option>
+                <option value="☘️">☘️</option>
+                <option value="🍀">🍀</option>
+                <option value="🍁">🍁</option>
+                <option value="🍂">🍂</option>
+                <option value="🍃">🍃</option>
+                <option value="🍄">🍄</option>
+                <option value="🌰">🌰</option>
+                <option value="🦋">🦋</option>
+                <option value="🐞">🐞</option>
+                <option value="🐝">🐝</option>
+                <option value="🌞">🌞</option>
+                <option value="🌝">🌝</option>
+                <option value="🌛">🌛</option>
+                <option value="🌜">🌜</option>
+                <option value="🌈">🌈</option>
+                <option value="☀️">☀️</option>
+                <option value="🌤️">🌤️</option>
+                <option value="⛅">⛅</option>
+                <option value="🌦️">🌦️</option>
+                <option value="☁️">☁️</option>
+                <option value="❄️">❄️</option>
+                <option value="⛄">⛄</option>
+                <option value="🍿">🍿</option>
+                <option value="🍕">🍕</option>
+                <option value="🍔">🍔</option>
+                <option value="🍟">🍟</option>
+                <option value="🌭">🌭</option>
+                <option value="🥪">🥪</option>
+                <option value="🌮">🌮</option>
+                <option value="🌯">🌯</option>
+                <option value="🥗">🥗</option>
+                <option value="🥘">🥘</option>
+                <option value="🍳">🍳</option>
+                <option value="🍲">🍲</option>
+                <option value="🍜">🍜</option>
+                <option value="🍝">🍝</option>
+                <option value="🍠">🍠</option>
+                <option value="🍢">🍢</option>
+                <option value="🍣">🍣</option>
+                <option value="🍤">🍤</option>
+                <option value="🍥">🍥</option>
+                <option value="🍡">🍡</option>
+                <option value="🍦">🍦</option>
+                <option value="🍧">🍧</option>
+                <option value="🍨">🍨</option>
+                <option value="🍩">🍩</option>
+                <option value="🍪">🍪</option>
+                <option value="🎂">🎂</option>
+                <option value="🍰">🍰</option>
+                <option value="🧁">🧁</option>
+                <option value="🥧">🥧</option>
+                <option value="🍫">🍫</option>
+                <option value="🍬">🍬</option>
+                <option value="🍭">🍭</option>
+                <option value="🍮">🍮</option>
+                <option value="🍯">🍯</option>
+                <option value="🍼">🍼</option>
+                <option value="🥛">🥛</option>
+                <option value="☕">☕</option>
+                <option value="🍺">🍺</option>
+                <option value="🍻">🍻</option>
+                <option value="🥂">🥂</option>
+                <option value="🍷">🍷</option>
+                <option value="🍸">🍸</option>
+                <option value="🍹">🍹</option>
+                <option value="🍾">🍾</option>
+                <option value="🥃">🥃</option>
+                <option value="🍽️">🍽️</option>
+                <option value="🍴">🍴</option>
+                <option value="🥄">🥄</option>
+                <option value="🔪">🔪</option>
+                <option value="🏺">🏺</option>
+                <option value="🌍">🌍</option>
+                <option value="🌎">🌎</option>
+                <option value="🌏">🌏</option>
+                <option value="🌋">🌋</option>
+                <option value="🗻">🗻</option>
+                <option value="🏕️">🏕️</option>
+                <option value="🏖️">🏖️</option>
+                <option value="🏜️">🏜️</option>
+                <option value="🏝️">🏝️</option>
+                <option value="🏞️">🏞️</option>
+                <option value="🏟️">🏟️</option>
+                <option value="🏛️">🏛️</option>
+                <option value="🏗️">🏗️</option>
+                <option value="🧱">🧱</option>
+                <option value="🪨">🪨</option>
+                <option value="🪵">🪵</option>
+                <option value="🛖">🛖</option>
+                <option value="🏘️">🏘️</option>
+                <option value="🏚️">🏚️</option>
+                <option value="🏠">🏠</option>
+                <option value="🏡">🏡</option>
+                <option value="🏢">🏢</option>
+                <option value="🏣">🏣</option>
+                <option value="🏤">🏤</option>
+                <option value="🏥">🏥</option>
+                <option value="🏦">🏦</option>
+                <option value="🏨">🏨</option>
+                <option value="🏩">🏩</option>
+                <option value="🏪">🏪</option>
+                <option value="🏫">🏫</option>
+                <option value="🏬">🏬</option>
+                <option value="🏭">🏭</option>
+                <option value="🏯">🏯</option>
+                <option value="🏰">🏰</option>
+                <option value="💒">💒</option>
+                <option value="🗼">🗼</option>
+                <option value="🗽">🗽</option>
+                <option value="⛪">⛪</option>
+                <option value="🕌">🕌</option>
+                <option value="🛕">🛕</option>
+                <option value="🕍">🕍</option>
+                <option value="⛩️">⛩️</option>
+                <option value="🕋">🕋</option>
+                <option value="⛲">⛲</option>
+                <option value="⛺">⛺</option>
+                <option value="🌁">🌁</option>
+                <option value="🌃">🌃</option>
+                <option value="🏙️">🏙️</option>
+                <option value="🌄">🌄</option>
+                <option value="🌅">🌅</option>
+                <option value="🌆">🌆</option>
+                <option value="🌇">🌇</option>
+                <option value="🌉">🌉</option>
+                <option value="♨️">♨️</option>
+                <option value="🎠">🎠</option>
+                <option value="🎡">🎡</option>
+                <option value="🎢">🎢</option>
+                <option value="💈">💈</option>
+                <option value="🎪">🎪</option>
+                <option value="🚂">🚂</option>
+                <option value="🚃">🚃</option>
+                <option value="🚄">🚄</option>
+                <option value="🚅">🚅</option>
+                <option value="🚆">🚆</option>
+                <option value="🚇">🚇</option>
+                <option value="🚈">🚈</option>
+                <option value="🚉">🚉</option>
+                <option value="🚊">🚊</option>
+                <option value="🚝">🚝</option>
+                <option value="🚞">🚞</option>
+                <option value="🚋">🚋</option>
+                <option value="🚌">🚌</option>
+                <option value="🚍">🚍</option>
+                <option value="🚎">🚎</option>
+                <option value="🚐">🚐</option>
+                <option value="🚑">🚑</option>
+                <option value="🚒">🚒</option>
+                <option value="🚓">🚓</option>
+                <option value="🚔">🚔</option>
+                <option value="🚕">🚕</option>
+                <option value="🚖">🚖</option>
+                <option value="🚗">🚗</option>
+                <option value="🚘">🚘</option>
+                <option value="🚙">🚙</option>
+                <option value="🚚">🚚</option>
+                <option value="🚛">🚛</option>
+                <option value="🚜">🚜</option>
+                <option value="🏎️">🏎️</option>
+                <option value="🏍️">🏍️</option>
+                <option value="🛵">🛵</option>
+                <option value="🦽">🦽</option>
+                <option value="🦼">🦼</option>
+                <option value="🛺">🛺</option>
+                <option value="🚲">🚲</option>
+                <option value="🛴">🛴</option>
+                <option value="🛹">🛹</option>
+                <option value="🛼">🛼</option>
+                <option value="🚏">🚏</option>
+                <option value="🛣️">🛣️</option>
+                <option value="🛤️">🛤️</option>
+                <option value="🛢️">🛢️</option>
+                <option value="⛽">⛽</option>
+                <option value="🚨">🚨</option>
+                <option value="🚥">🚥</option>
+                <option value="🚦">🚦</option>
+                <option value="🛑">🛑</option>
+                <option value="🚧">🚧</option>
+                <option value="⚓">⚓</option>
+                <option value="⛵">⛵</option>
+                <option value="🛶">🛶</option>
+                <option value="🚤">🚤</option>
+                <option value="🛳️">🛳️</option>
+                <option value="⛴️">⛴️</option>
+                <option value="🛥️">🛥️</option>
+                <option value="🚢">🚢</option>
+                <option value="✈️">✈️</option>
+                <option value="🛩️">🛩️</option>
+                <option value="🛫">🛫</option>
+                <option value="🛬">🛬</option>
+                <option value="🪂">🪂</option>
+                <option value="💺">💺</option>
+                <option value="🚁">🚁</option>
+                <option value="🚟">🚟</option>
+                <option value="🚠">🚠</option>
+                <option value="🚡">🚡</option>
+                <option value="🛰️">🛰️</option>
+                <option value="🚀">🚀</option>
+                <option value="🛸">🛸</option>
+                <option value="🛎️">🛎️</option>
+                <option value="🧳">🧳</option>
+                <option value="⌚">⌚</option>
+                <option value="⏰">⏰</option>
+                <option value="⏱️">⏱️</option>
+                <option value="⏲️">⏲️</option>
+                <option value="🕰️">🕰️</option>
+                <option value="🌞">🌞</option>
+                <option value="🕛">🕛</option>
+                <option value="🕧">🕧</option>
+                <option value="🕐">🕐</option>
+                <option value="🕜">🕜</option>
+                <option value="🕑">🕑</option>
+                <option value="🕝">🕝</option>
+                <option value="🕒">🕒</option>
+                <option value="🕞">🕞</option>
+                <option value="🕓">🕓</option>
+                <option value="🕟">🕟</option>
+                <option value="🕔">🕔</option>
+                <option value="🕠">🕠</option>
+                <option value="🕕">🕕</option>
+                <option value="🕡">🕡</option>
+                <option value="🕖">🕖</option>
+                <option value="🕢">🕢</option>
+                <option value="🕗">🕗</option>
+                <option value="🕣">🕣</option>
+                <option value="🕘">🕘</option>
+                <option value="🕤">🕤</option>
+                <option value="🕙">🕙</option>
+                <option value="🕥">🕥</option>
+                <option value="🕚">🕚</option>
+                <option value="🕦">🕦</option>
+                <option value="🌑">🌑</option>
+                <option value="🌒">🌒</option>
+                <option value="🌓">🌓</option>
+                <option value="🌔">🌔</option>
+                <option value="🌕">🌕</option>
+                <option value="🌖">🌖</option>
+                <option value="🌗">🌗</option>
+                <option value="🌘">🌘</option>
+                <option value="🌙">🌙</option>
+                <option value="🌚">🌚</option>
+                <option value="🌛">🌛</option>
+                <option value="🌜">🌜</option>
+                <option value="🌡️">🌡️</option>
+                <option value="☀️">☀️</option>
+                <option value="🌤️">🌤️</option>
+                <option value="⛅">⛅</option>
+                <option value="🌦️">🌦️</option>
+                <option value="🌧️">🌧️</option>
+                <option value="⛈️">⛈️</option>
+                <option value="🌩️">🌩️</option>
+                <option value="🌨️">🌨️</option>
+                <option value="❄️">❄️</option>
+                <option value="☃️">☃️</option>
+                <option value="⛄">⛄</option>
+                <option value="🌬️">🌬️</option>
+                <option value="💨">💨</option>
+                <option value="💧">💧</option>
+                <option value="💦">💦</option>
+                <option value="☔">☔</option>
+                <option value="☂️">☂️</option>
+                <option value="🌊">🌊</option>
+                <option value="🎃">🎃</option>
+                <option value="🎄">🎄</option>
+                <option value="🎆">🎆</option>
+                <option value="🎇">🎇</option>
+                <option value="🧨">🧨</option>
+                <option value="✨">✨</option>
+                <option value="🎈">🎈</option>
+                <option value="🎉">🎉</option>
+                <option value="🎊">🎊</option>
+                <option value="🎋">🎋</option>
+                <option value="🎍">🎍</option>
+                <option value="🎎">🎎</option>
+                <option value="🎏">🎏</option>
+                <option value="🎐">🎐</option>
+                <option value="🎑">🎑</option>
+                <option value="🧧">🧧</option>
+                <option value="🎀">🎀</option>
+                <option value="🎁">🎁</option>
+                <option value="🎗️">🎗️</option>
+                <option value="🎟️">🎟️</option>
+                <option value="🎫">🎫</option>
+                <option value="🎖️">🎖️</option>
+                <option value="🏆">🏆</option>
+                <option value="🏅">🏅</option>
+                <option value="🥇">🥇</option>
+                <option value="🥈">🥈</option>
+                <option value="🥉">🥉</option>
+                <option value="⚽">⚽</option>
+                <option value="🏀">🏀</option>
+                <option value="🏈">🏈</option>
+                <option value="⚾">⚾</option>
+                <option value="🥎">🥎</option>
+                <option value="🎾">🎾</option>
+                <option value="🏐">🏐</option>
+                <option value="🏉">🏉</option>
+                <option value="🥏">🥏</option>
+                <option value="🎱">🎱</option>
+                <option value="🪀">🪀</option>
+                <option value="🏓">🏓</option>
+                <option value="🏸">🏸</option>
+                <option value="🏒">🏒</option>
+                <option value="🏑">🏑</option>
+                <option value="🥍">🥍</option>
+                <option value="🏏">🏏</option>
+                <option value="🥅">🥅</option>
+                <option value="⛳">⛳</option>
+                <option value="🪁">🪁</option>
+                <option value="🏹">🏹</option>
+                <option value="🎣">🎣</option>
+                <option value="🤿">🤿</option>
+                <option value="🥊">🥊</option>
+                <option value="🥋">🥋</option>
+                <option value="🎽">🎽</option>
+                <option value="🛹">🛹</option>
+                <option value="🛼">🛼</option>
+                <option value="🛷">🛷</option>
+                <option value="⛸️">⛸️</option>
+                <option value="🥌">🥌</option>
+                <option value="🎿">🎿</option>
+                <option value="⛷️">⛷️</option>
+                <option value="🏂">🏂</option>
+                <option value="🏋️">🏋️</option>
+                <option value="🤼">🤼</option>
+                <option value="🤸">🤸</option>
+                <option value="🤺">🤺</option>
+                <option value="🤾">🤾</option>
+                <option value="🤽">🤽</option>
+              </optgroup>
+              <optgroup label="Bootstrap Icons">
+                <option value="bi bi-balloon">bi bi-balloon</option>
+                <option value="bi bi-heart">bi bi-heart</option>
+                <option value="bi bi-gift">bi bi-gift</option>
+                <option value="bi bi-stars">bi bi-stars</option>
+                <option value="bi bi-sun">bi bi-sun</option>
+                <option value="bi bi-moon">bi bi-moon</option>
+                <option value="bi bi-music-note-beam">bi bi-music-note-beam</option>
+                <option value="bi bi-calendar-event">bi bi-calendar-event</option>
+                <option value="bi bi-emoji-smile">bi bi-emoji-smile</option>
+                <option value="bi bi-emoji-heart-eyes">bi bi-emoji-heart-eyes</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div id="modal-fecha-grupo" class="row d-none">
+          <div class="col-6 mb-3">
+            <label for="modal-mes" class="form-label fw-semibold small">Mes</label>
+            <input type="number" class="form-control" id="modal-mes" min="1" max="12">
+          </div>
+          <div class="col-6 mb-3">
+            <label for="modal-dia" class="form-label fw-semibold small">Día</label>
+            <input type="number" class="form-control" id="modal-dia" min="1" max="31">
+          </div>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-center mb-3">
+          <input class="form-check-input" type="checkbox" id="modal-activo">
+          <label class="form-check-label ms-2 fw-semibold" for="modal-activo">Activar trigger</label>
+        </div>
+        <div class="mb-3">
+          <label for="modal-cancion" class="form-label fw-semibold small">Canción del modal</label>
+          <select class="form-select" id="modal-cancion">
+            <option value="">Sin música</option>
+            {% for c in canciones %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="modal-cancion-file" class="form-label fw-semibold small">O subir una nueva canción</label>
+          <input class="form-control" type="file" id="modal-cancion-file" accept=".mp3,.wav,.ogg,.m4a,audio/*">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 flex-column gap-2">
+        <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold" onclick="guardarFeriado()">Guardar cambios</button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill w-100" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="newHolidayModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
+        <h5 class="modal-title fw-bold text-dark mt-1">Nuevo trigger festivo</h5>
+      </div>
+      <div class="modal-body pt-3 pb-2">
+        <div class="mb-3">
+          <label for="nuevo-titulo" class="form-label fw-semibold small">Título del mensaje</label>
+          <input type="text" class="form-control" id="nuevo-titulo">
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-subtitulo" class="form-label fw-semibold small">Mensaje de felicitación</label>
+          <textarea class="form-control" id="nuevo-subtitulo" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-icono" class="form-label fw-semibold small">Ícono (emoji o clase bi-*)</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="nuevo-icono" placeholder="🎉 o bi bi-balloon">
+            <select class="form-select" id="nuevo-icono-preset" style="max-width:140px;">
+              <option value="">Sugerencias</option>
+              <optgroup label="Emojis">
+                <option value="🎉">🎉</option>
+                <option value="🎈">🎈</option>
+                <option value="🎁">🎁</option>
+                <option value="🎂">🎂</option>
+                <option value="🌹">🌹</option>
+                <option value="🌲">🌲</option>
+                <option value="🇨🇷">🇨🇷</option>
+                <option value="🎄">🎄</option>
+                <option value="🥂">🥂</option>
+                <option value="👔">👔</option>
+                <option value="❤️">❤️</option>
+              </optgroup>
+              <optgroup label="Emojis WhatsApp">
+                <option value="😀">😀</option>
+                <option value="😃">😃</option>
+                <option value="😄">😄</option>
+                <option value="😁">😁</option>
+                <option value="😆">😆</option>
+                <option value="😅">😅</option>
+                <option value="🤣">🤣</option>
+                <option value="😂">😂</option>
+                <option value="🙂">🙂</option>
+                <option value="😊">😊</option>
+                <option value="😇">😇</option>
+                <option value="🥰">🥰</option>
+                <option value="😍">😍</option>
+                <option value="🤩">🤩</option>
+                <option value="😘">😘</option>
+                <option value="😗">😗</option>
+                <option value="😚">😚</option>
+                <option value="😙">😙</option>
+                <option value="😋">😋</option>
+                <option value="😛">😛</option>
+                <option value="😜">😜</option>
+                <option value="🤪">🤪</option>
+                <option value="😝">😝</option>
+                <option value="🤑">🤑</option>
+                <option value="🤗">🤗</option>
+                <option value="🤭">🤭</option>
+                <option value="🤫">🤫</option>
+                <option value="🤔">🤔</option>
+                <option value="🤐">🤐</option>
+                <option value="🤨">🤨</option>
+                <option value="😐">😐</option>
+                <option value="😶">😶</option>
+                <option value="😏">😏</option>
+                <option value="😒">😒</option>
+                <option value="🙄">🙄</option>
+                <option value="😬">😬</option>
+                <option value="🤥">🤥</option>
+                <option value="😌">😌</option>
+                <option value="😔">😔</option>
+                <option value="😪">😪</option>
+                <option value="🤤">🤤</option>
+                <option value="😴">😴</option>
+                <option value="😷">😷</option>
+                <option value="🤒">🤒</option>
+                <option value="🤕">🤕</option>
+                <option value="🤢">🤢</option>
+                <option value="🤮">🤮</option>
+                <option value="🤧">🤧</option>
+                <option value="🥵">🥵</option>
+                <option value="🥶">🥶</option>
+                <option value="🥴">🥴</option>
+                <option value="😵">😵</option>
+                <option value="🤯">🤯</option>
+                <option value="🤠">🤠</option>
+                <option value="🥳">🥳</option>
+                <option value="🥸">🥸</option>
+                <option value="😎">😎</option>
+                <option value="🤓">🤓</option>
+                <option value="🧐">🧐</option>
+                <option value="😕">😕</option>
+                <option value="😟">😟</option>
+                <option value="🙁">🙁</option>
+                <option value="☹️">☹️</option>
+                <option value="😮">😮</option>
+                <option value="😯">😯</option>
+                <option value="😲">😲</option>
+                <option value="😳">😳</option>
+                <option value="🥺">🥺</option>
+                <option value="😦">😦</option>
+                <option value="😧">😧</option>
+                <option value="😨">😨</option>
+                <option value="😰">😰</option>
+                <option value="😥">😥</option>
+                <option value="😢">😢</option>
+                <option value="😭">😭</option>
+                <option value="😱">😱</option>
+                <option value="😖">😖</option>
+                <option value="😣">😣</option>
+                <option value="😞">😞</option>
+                <option value="😓">😓</option>
+                <option value="😩">😩</option>
+                <option value="😫">😫</option>
+                <option value="🥱">🥱</option>
+                <option value="😤">😤</option>
+                <option value="😡">😡</option>
+                <option value="😠">😠</option>
+                <option value="🤬">🤬</option>
+                <option value="😈">😈</option>
+                <option value="👿">👿</option>
+                <option value="💀">💀</option>
+                <option value="💩">💩</option>
+                <option value="🤡">🤡</option>
+                <option value="👻">👻</option>
+                <option value="👽">👽</option>
+                <option value="👾">👾</option>
+                <option value="🤖">🤖</option>
+                <option value="😺">😺</option>
+                <option value="😸">😸</option>
+                <option value="😹">😹</option>
+                <option value="😻">😻</option>
+                <option value="😼">😼</option>
+                <option value="😽">😽</option>
+                <option value="🙀">🙀</option>
+                <option value="😿">😿</option>
+                <option value="😾">😾</option>
+                <option value="🙈">🙈</option>
+                <option value="🙉">🙉</option>
+                <option value="🙊">🙊</option>
+                <option value="💌">💌</option>
+                <option value="💘">💘</option>
+                <option value="💝">💝</option>
+                <option value="💖">💖</option>
+                <option value="💗">💗</option>
+                <option value="💓">💓</option>
+                <option value="💞">💞</option>
+                <option value="💕">💕</option>
+                <option value="💟">💟</option>
+                <option value="❣️">❣️</option>
+                <option value="💔">💔</option>
+                <option value="❤️">❤️</option>
+                <option value="🧡">🧡</option>
+                <option value="💛">💛</option>
+                <option value="💚">💚</option>
+                <option value="💙">💙</option>
+                <option value="💜">💜</option>
+                <option value="🤎">🤎</option>
+                <option value="🖤">🖤</option>
+                <option value="🤍">🤍</option>
+                <option value="💋">💋</option>
+                <option value="💯">💯</option>
+                <option value="💢">💢</option>
+                <option value="💥">💥</option>
+                <option value="💫">💫</option>
+                <option value="💦">💦</option>
+                <option value="💨">💨</option>
+                <option value="💣">💣</option>
+                <option value="💬">💬</option>
+                <option value="💭">💭</option>
+                <option value="💤">💤</option>
+                <option value="🎉">🎉</option>
+                <option value="🎊">🎊</option>
+                <option value="🎈">🎈</option>
+                <option value="🎂">🎂</option>
+                <option value="🎁">🎁</option>
+                <option value="🎄">🎄</option>
+                <option value="🎃">🎃</option>
+                <option value="🎅">🎅</option>
+                <option value="🤶">🤶</option>
+                <option value="🎀">🎀</option>
+                <option value="🎆">🎆</option>
+                <option value="🎇">🎇</option>
+                <option value="🧨">🧨</option>
+                <option value="✨">✨</option>
+                <option value="🌟">🌟</option>
+                <option value="⭐">⭐</option>
+                <option value="🎶">🎶</option>
+                <option value="🎵">🎵</option>
+                <option value="🎸">🎸</option>
+                <option value="🎺">🎺</option>
+                <option value="🥁">🥁</option>
+                <option value="🎹">🎹</option>
+                <option value="🌹">🌹</option>
+                <option value="🌷">🌷</option>
+                <option value="🌸">🌸</option>
+                <option value="🌺">🌺</option>
+                <option value="🌻">🌻</option>
+                <option value="🌼">🌼</option>
+                <option value="🌲">🌲</option>
+                <option value="🌳">🌳</option>
+                <option value="🌴">🌴</option>
+                <option value="🌵">🌵</option>
+                <option value="🌾">🌾</option>
+                <option value="🌿">🌿</option>
+                <option value="☘️">☘️</option>
+                <option value="🍀">🍀</option>
+                <option value="🍁">🍁</option>
+                <option value="🍂">🍂</option>
+                <option value="🍃">🍃</option>
+                <option value="🍄">🍄</option>
+                <option value="🌰">🌰</option>
+                <option value="🦋">🦋</option>
+                <option value="🐞">🐞</option>
+                <option value="🐝">🐝</option>
+                <option value="🌞">🌞</option>
+                <option value="🌝">🌝</option>
+                <option value="🌛">🌛</option>
+                <option value="🌜">🌜</option>
+                <option value="🌈">🌈</option>
+                <option value="☀️">☀️</option>
+                <option value="🌤️">🌤️</option>
+                <option value="⛅">⛅</option>
+                <option value="🌦️">🌦️</option>
+                <option value="☁️">☁️</option>
+                <option value="❄️">❄️</option>
+                <option value="⛄">⛄</option>
+                <option value="🍿">🍿</option>
+                <option value="🍕">🍕</option>
+                <option value="🍔">🍔</option>
+                <option value="🍟">🍟</option>
+                <option value="🌭">🌭</option>
+                <option value="🥪">🥪</option>
+                <option value="🌮">🌮</option>
+                <option value="🌯">🌯</option>
+                <option value="🥗">🥗</option>
+                <option value="🥘">🥘</option>
+                <option value="🍳">🍳</option>
+                <option value="🍲">🍲</option>
+                <option value="🍜">🍜</option>
+                <option value="🍝">🍝</option>
+                <option value="🍠">🍠</option>
+                <option value="🍢">🍢</option>
+                <option value="🍣">🍣</option>
+                <option value="🍤">🍤</option>
+                <option value="🍥">🍥</option>
+                <option value="🍡">🍡</option>
+                <option value="🍦">🍦</option>
+                <option value="🍧">🍧</option>
+                <option value="🍨">🍨</option>
+                <option value="🍩">🍩</option>
+                <option value="🍪">🍪</option>
+                <option value="🎂">🎂</option>
+                <option value="🍰">🍰</option>
+                <option value="🧁">🧁</option>
+                <option value="🥧">🥧</option>
+                <option value="🍫">🍫</option>
+                <option value="🍬">🍬</option>
+                <option value="🍭">🍭</option>
+                <option value="🍮">🍮</option>
+                <option value="🍯">🍯</option>
+                <option value="🍼">🍼</option>
+                <option value="🥛">🥛</option>
+                <option value="☕">☕</option>
+                <option value="🍺">🍺</option>
+                <option value="🍻">🍻</option>
+                <option value="🥂">🥂</option>
+                <option value="🍷">🍷</option>
+                <option value="🍸">🍸</option>
+                <option value="🍹">🍹</option>
+                <option value="🍾">🍾</option>
+                <option value="🥃">🥃</option>
+                <option value="🍽️">🍽️</option>
+                <option value="🍴">🍴</option>
+                <option value="🥄">🥄</option>
+                <option value="🔪">🔪</option>
+                <option value="🏺">🏺</option>
+                <option value="🌍">🌍</option>
+                <option value="🌎">🌎</option>
+                <option value="🌏">🌏</option>
+                <option value="🌋">🌋</option>
+                <option value="🗻">🗻</option>
+                <option value="🏕️">🏕️</option>
+                <option value="🏖️">🏖️</option>
+                <option value="🏜️">🏜️</option>
+                <option value="🏝️">🏝️</option>
+                <option value="🏞️">🏞️</option>
+                <option value="🏟️">🏟️</option>
+                <option value="🏛️">🏛️</option>
+                <option value="🏗️">🏗️</option>
+                <option value="🧱">🧱</option>
+                <option value="🪨">🪨</option>
+                <option value="🪵">🪵</option>
+                <option value="🛖">🛖</option>
+                <option value="🏘️">🏘️</option>
+                <option value="🏚️">🏚️</option>
+                <option value="🏠">🏠</option>
+                <option value="🏡">🏡</option>
+                <option value="🏢">🏢</option>
+                <option value="🏣">🏣</option>
+                <option value="🏤">🏤</option>
+                <option value="🏥">🏥</option>
+                <option value="🏦">🏦</option>
+                <option value="🏨">🏨</option>
+                <option value="🏩">🏩</option>
+                <option value="🏪">🏪</option>
+                <option value="🏫">🏫</option>
+                <option value="🏬">🏬</option>
+                <option value="🏭">🏭</option>
+                <option value="🏯">🏯</option>
+                <option value="🏰">🏰</option>
+                <option value="💒">💒</option>
+                <option value="🗼">🗼</option>
+                <option value="🗽">🗽</option>
+                <option value="⛪">⛪</option>
+                <option value="🕌">🕌</option>
+                <option value="🛕">🛕</option>
+                <option value="🕍">🕍</option>
+                <option value="⛩️">⛩️</option>
+                <option value="🕋">🕋</option>
+                <option value="⛲">⛲</option>
+                <option value="⛺">⛺</option>
+                <option value="🌁">🌁</option>
+                <option value="🌃">🌃</option>
+                <option value="🏙️">🏙️</option>
+                <option value="🌄">🌄</option>
+                <option value="🌅">🌅</option>
+                <option value="🌆">🌆</option>
+                <option value="🌇">🌇</option>
+                <option value="🌉">🌉</option>
+                <option value="♨️">♨️</option>
+                <option value="🎠">🎠</option>
+                <option value="🎡">🎡</option>
+                <option value="🎢">🎢</option>
+                <option value="💈">💈</option>
+                <option value="🎪">🎪</option>
+                <option value="🚂">🚂</option>
+                <option value="🚃">🚃</option>
+                <option value="🚄">🚄</option>
+                <option value="🚅">🚅</option>
+                <option value="🚆">🚆</option>
+                <option value="🚇">🚇</option>
+                <option value="🚈">🚈</option>
+                <option value="🚉">🚉</option>
+                <option value="🚊">🚊</option>
+                <option value="🚝">🚝</option>
+                <option value="🚞">🚞</option>
+                <option value="🚋">🚋</option>
+                <option value="🚌">🚌</option>
+                <option value="🚍">🚍</option>
+                <option value="🚎">🚎</option>
+                <option value="🚐">🚐</option>
+                <option value="🚑">🚑</option>
+                <option value="🚒">🚒</option>
+                <option value="🚓">🚓</option>
+                <option value="🚔">🚔</option>
+                <option value="🚕">🚕</option>
+                <option value="🚖">🚖</option>
+                <option value="🚗">🚗</option>
+                <option value="🚘">🚘</option>
+                <option value="🚙">🚙</option>
+                <option value="🚚">🚚</option>
+                <option value="🚛">🚛</option>
+                <option value="🚜">🚜</option>
+                <option value="🏎️">🏎️</option>
+                <option value="🏍️">🏍️</option>
+                <option value="🛵">🛵</option>
+                <option value="🦽">🦽</option>
+                <option value="🦼">🦼</option>
+                <option value="🛺">🛺</option>
+                <option value="🚲">🚲</option>
+                <option value="🛴">🛴</option>
+                <option value="🛹">🛹</option>
+                <option value="🛼">🛼</option>
+                <option value="🚏">🚏</option>
+                <option value="🛣️">🛣️</option>
+                <option value="🛤️">🛤️</option>
+                <option value="🛢️">🛢️</option>
+                <option value="⛽">⛽</option>
+                <option value="🚨">🚨</option>
+                <option value="🚥">🚥</option>
+                <option value="🚦">🚦</option>
+                <option value="🛑">🛑</option>
+                <option value="🚧">🚧</option>
+                <option value="⚓">⚓</option>
+                <option value="⛵">⛵</option>
+                <option value="🛶">🛶</option>
+                <option value="🚤">🚤</option>
+                <option value="🛳️">🛳️</option>
+                <option value="⛴️">⛴️</option>
+                <option value="🛥️">🛥️</option>
+                <option value="🚢">🚢</option>
+                <option value="✈️">✈️</option>
+                <option value="🛩️">🛩️</option>
+                <option value="🛫">🛫</option>
+                <option value="🛬">🛬</option>
+                <option value="🪂">🪂</option>
+                <option value="💺">💺</option>
+                <option value="🚁">🚁</option>
+                <option value="🚟">🚟</option>
+                <option value="🚠">🚠</option>
+                <option value="🚡">🚡</option>
+                <option value="🛰️">🛰️</option>
+                <option value="🚀">🚀</option>
+                <option value="🛸">🛸</option>
+                <option value="🛎️">🛎️</option>
+                <option value="🧳">🧳</option>
+                <option value="⌚">⌚</option>
+                <option value="⏰">⏰</option>
+                <option value="⏱️">⏱️</option>
+                <option value="⏲️">⏲️</option>
+                <option value="🕰️">🕰️</option>
+                <option value="🌞">🌞</option>
+                <option value="🕛">🕛</option>
+                <option value="🕧">🕧</option>
+                <option value="🕐">🕐</option>
+                <option value="🕜">🕜</option>
+                <option value="🕑">🕑</option>
+                <option value="🕝">🕝</option>
+                <option value="🕒">🕒</option>
+                <option value="🕞">🕞</option>
+                <option value="🕓">🕓</option>
+                <option value="🕟">🕟</option>
+                <option value="🕔">🕔</option>
+                <option value="🕠">🕠</option>
+                <option value="🕕">🕕</option>
+                <option value="🕡">🕡</option>
+                <option value="🕖">🕖</option>
+                <option value="🕢">🕢</option>
+                <option value="🕗">🕗</option>
+                <option value="🕣">🕣</option>
+                <option value="🕘">🕘</option>
+                <option value="🕤">🕤</option>
+                <option value="🕙">🕙</option>
+                <option value="🕥">🕥</option>
+                <option value="🕚">🕚</option>
+                <option value="🕦">🕦</option>
+                <option value="🌑">🌑</option>
+                <option value="🌒">🌒</option>
+                <option value="🌓">🌓</option>
+                <option value="🌔">🌔</option>
+                <option value="🌕">🌕</option>
+                <option value="🌖">🌖</option>
+                <option value="🌗">🌗</option>
+                <option value="🌘">🌘</option>
+                <option value="🌙">🌙</option>
+                <option value="🌚">🌚</option>
+                <option value="🌛">🌛</option>
+                <option value="🌜">🌜</option>
+                <option value="🌡️">🌡️</option>
+                <option value="☀️">☀️</option>
+                <option value="🌤️">🌤️</option>
+                <option value="⛅">⛅</option>
+                <option value="🌦️">🌦️</option>
+                <option value="🌧️">🌧️</option>
+                <option value="⛈️">⛈️</option>
+                <option value="🌩️">🌩️</option>
+                <option value="🌨️">🌨️</option>
+                <option value="❄️">❄️</option>
+                <option value="☃️">☃️</option>
+                <option value="⛄">⛄</option>
+                <option value="🌬️">🌬️</option>
+                <option value="💨">💨</option>
+                <option value="💧">💧</option>
+                <option value="💦">💦</option>
+                <option value="☔">☔</option>
+                <option value="☂️">☂️</option>
+                <option value="🌊">🌊</option>
+                <option value="🎃">🎃</option>
+                <option value="🎄">🎄</option>
+                <option value="🎆">🎆</option>
+                <option value="🎇">🎇</option>
+                <option value="🧨">🧨</option>
+                <option value="✨">✨</option>
+                <option value="🎈">🎈</option>
+                <option value="🎉">🎉</option>
+                <option value="🎊">🎊</option>
+                <option value="🎋">🎋</option>
+                <option value="🎍">🎍</option>
+                <option value="🎎">🎎</option>
+                <option value="🎏">🎏</option>
+                <option value="🎐">🎐</option>
+                <option value="🎑">🎑</option>
+                <option value="🧧">🧧</option>
+                <option value="🎀">🎀</option>
+                <option value="🎁">🎁</option>
+                <option value="🎗️">🎗️</option>
+                <option value="🎟️">🎟️</option>
+                <option value="🎫">🎫</option>
+                <option value="🎖️">🎖️</option>
+                <option value="🏆">🏆</option>
+                <option value="🏅">🏅</option>
+                <option value="🥇">🥇</option>
+                <option value="🥈">🥈</option>
+                <option value="🥉">🥉</option>
+                <option value="⚽">⚽</option>
+                <option value="🏀">🏀</option>
+                <option value="🏈">🏈</option>
+                <option value="⚾">⚾</option>
+                <option value="🥎">🥎</option>
+                <option value="🎾">🎾</option>
+                <option value="🏐">🏐</option>
+                <option value="🏉">🏉</option>
+                <option value="🥏">🥏</option>
+                <option value="🎱">🎱</option>
+                <option value="🪀">🪀</option>
+                <option value="🏓">🏓</option>
+                <option value="🏸">🏸</option>
+                <option value="🏒">🏒</option>
+                <option value="🏑">🏑</option>
+                <option value="🥍">🥍</option>
+                <option value="🏏">🏏</option>
+                <option value="🥅">🥅</option>
+                <option value="⛳">⛳</option>
+                <option value="🪁">🪁</option>
+                <option value="🏹">🏹</option>
+                <option value="🎣">🎣</option>
+                <option value="🤿">🤿</option>
+                <option value="🥊">🥊</option>
+                <option value="🥋">🥋</option>
+                <option value="🎽">🎽</option>
+                <option value="🛹">🛹</option>
+                <option value="🛼">🛼</option>
+                <option value="🛷">🛷</option>
+                <option value="⛸️">⛸️</option>
+                <option value="🥌">🥌</option>
+                <option value="🎿">🎿</option>
+                <option value="⛷️">⛷️</option>
+                <option value="🏂">🏂</option>
+                <option value="🏋️">🏋️</option>
+                <option value="🤼">🤼</option>
+                <option value="🤸">🤸</option>
+                <option value="🤺">🤺</option>
+                <option value="🤾">🤾</option>
+                <option value="🤽">🤽</option>
+              </optgroup>
+              <optgroup label="Bootstrap Icons">
+                <option value="bi bi-balloon">bi bi-balloon</option>
+                <option value="bi bi-heart">bi bi-heart</option>
+                <option value="bi bi-gift">bi bi-gift</option>
+                <option value="bi bi-stars">bi bi-stars</option>
+                <option value="bi bi-sun">bi bi-sun</option>
+                <option value="bi bi-moon">bi bi-moon</option>
+                <option value="bi bi-music-note-beam">bi bi-music-note-beam</option>
+                <option value="bi bi-calendar-event">bi bi-calendar-event</option>
+                <option value="bi bi-emoji-smile">bi bi-emoji-smile</option>
+                <option value="bi bi-emoji-heart-eyes">bi bi-emoji-heart-eyes</option>
+              </optgroup>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label for="nuevo-mes" class="form-label fw-semibold small">Mes</label>
+            <input type="number" class="form-control" id="nuevo-mes" min="1" max="12" value="1">
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-dia" class="form-label fw-semibold small">Día</label>
+            <input type="number" class="form-control" id="nuevo-dia" min="1" max="31" value="1">
+          </div>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-center mb-3">
+          <input class="form-check-input" type="checkbox" id="nuevo-activo" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-activo">Activar trigger</label>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-cancion" class="form-label fw-semibold small">Canción del modal</label>
+          <select class="form-select" id="nuevo-cancion">
+            <option value="">Sin música</option>
+            {% for c in canciones %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-cancion-file" class="form-label fw-semibold small">O subir una nueva canción</label>
+          <input class="form-control" type="file" id="nuevo-cancion-file" accept=".mp3,.wav,.ogg,.m4a,audio/*">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 flex-column gap-2">
+        <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold" onclick="guardarNuevoFeriado()">Crear trigger</button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill w-100" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const HOLIDAYS = {{ holidays | tojson }};
+let modalInstance = null;
+let nuevoModalInstance = null;
+
+function mostrarMensaje(texto, ok) {
+    const el = document.getElementById('mensaje');
+    el.textContent = texto;
+    el.className = 'alert ' + (ok ? 'alert-success' : 'alert-danger');
+    el.classList.remove('d-none');
+    setTimeout(() => el.classList.add('d-none'), 3000);
+}
+
+function renderIcono(val) {
+    if (!val) return '';
+    val = String(val).trim();
+    if (val.startsWith('bi-') || val.startsWith('bi ')) {
+        return '<i class="' + val + '"></i>';
+    }
+    return '<span>' + val + '</span>';
+}
+
+function abrirModal(id) {
+    const h = HOLIDAYS.find(x => x.id === id);
+    if (!h) return;
+    document.getElementById('modal-id').value = h.id;
+    document.getElementById('modal-custom').value = h.custom ? '1' : '';
+    document.getElementById('modal-nombre').textContent = h.id;
+    document.getElementById('modal-fecha').textContent = h.day
+        ? ('0' + h.month).slice(-2) + '/' + ('0' + h.day).slice(-2)
+        : (h.nth_weekday ? h.nth_weekday[0] + 'º domingo de ' + h.month : '');
+    document.getElementById('modal-titulo').value = h.title || '';
+    document.getElementById('modal-subtitulo').value = h.subtitle || '';
+    const icono = h.icon || h.emoji || '🎉';
+    document.getElementById('modal-icono').value = icono;
+    document.getElementById('modal-preview').innerHTML = renderIcono(icono);
+    document.getElementById('modal-activo').checked = h.enabled;
+
+    const fechaGrupo = document.getElementById('modal-fecha-grupo');
+    if (h.custom) {
+        fechaGrupo.classList.remove('d-none');
+        document.getElementById('modal-mes').value = h.month;
+        document.getElementById('modal-dia').value = h.day;
+    } else {
+        fechaGrupo.classList.add('d-none');
+    }
+
+    const select = document.getElementById('modal-cancion');
+    select.value = h.song || '';
+    if (h.song && !select.querySelector('option[value="' + h.song.replace(/"/g, '\\"') + '"]')) {
+        const opt = document.createElement('option');
+        opt.value = h.song;
+        opt.textContent = h.song;
+        select.appendChild(opt);
+        select.value = h.song;
+    }
+    document.getElementById('modal-cancion-file').value = '';
+    modalInstance = new bootstrap.Modal(document.getElementById('holidayModal'));
+    modalInstance.show();
+}
+
+function abrirModalNuevo() {
+    document.getElementById('nuevo-titulo').value = '';
+    document.getElementById('nuevo-subtitulo').value = '';
+    document.getElementById('nuevo-icono').value = '🎉';
+    document.getElementById('nuevo-mes').value = new Date().getMonth() + 1;
+    document.getElementById('nuevo-dia').value = new Date().getDate();
+    document.getElementById('nuevo-activo').checked = true;
+    document.getElementById('nuevo-cancion').value = '';
+    document.getElementById('nuevo-cancion-file').value = '';
+    nuevoModalInstance = new bootstrap.Modal(document.getElementById('newHolidayModal'));
+    nuevoModalInstance.show();
+}
+
+function armarFormData(idPrefix) {
+    const formData = new FormData();
+    formData.append('title', document.getElementById(idPrefix + 'titulo').value);
+    formData.append('subtitle', document.getElementById(idPrefix + 'subtitulo').value);
+    formData.append('icon', document.getElementById(idPrefix + 'icono').value);
+    formData.append('enabled', document.getElementById(idPrefix + 'activo').checked ? 'true' : 'false');
+    formData.append('song', document.getElementById(idPrefix + 'cancion').value);
+    const fileInput = document.getElementById(idPrefix + 'cancion-file');
+    if (fileInput.files[0]) formData.append('song_file', fileInput.files[0]);
+    return formData;
+}
+
+async function guardarFeriado() {
+    const id = document.getElementById('modal-id').value;
+    const isCustom = document.getElementById('modal-custom').value === '1';
+    const formData = armarFormData('modal-');
+    if (isCustom) {
+        formData.append('month', document.getElementById('modal-mes').value);
+        formData.append('day', document.getElementById('modal-dia').value);
+    }
+    try {
+        const res = await fetch('/api/holidays/' + id, {method: 'POST', body: formData});
+        const d = await res.json();
+        if (d.ok) {
+            mostrarMensaje('Guardado correctamente', true);
+            if (modalInstance) modalInstance.hide();
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            mostrarMensaje(d.error || 'Error al guardar', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
+
+async function guardarNuevoFeriado() {
+    const formData = armarFormData('nuevo-');
+    formData.append('month', document.getElementById('nuevo-mes').value);
+    formData.append('day', document.getElementById('nuevo-dia').value);
+    try {
+        const res = await fetch('/api/holidays/custom', {method: 'POST', body: formData});
+        const d = await res.json();
+        if (d.ok) {
+            mostrarMensaje('Trigger creado', true);
+            if (nuevoModalInstance) nuevoModalInstance.hide();
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            mostrarMensaje(d.error || 'Error al crear', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
+
+async function eliminarFeriado(id) {
+    if (!confirm('¿Eliminar este trigger personalizado?')) return;
+    try {
+        const res = await fetch('/api/holidays/custom/' + id, {method: 'DELETE'});
+        const d = await res.json();
+        if (d.ok) {
+            mostrarMensaje('Eliminado', true);
+            setTimeout(() => window.location.reload(), 700);
+        } else {
+            mostrarMensaje(d.error || 'Error al eliminar', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
+
+document.getElementById('modal-icono').addEventListener('input', function() {
+    document.getElementById('modal-preview').innerHTML = renderIcono(this.value);
+});
+document.getElementById('modal-icono-preset').addEventListener('change', function() {
+    document.getElementById('modal-icono').value = this.value;
+    document.getElementById('modal-preview').innerHTML = renderIcono(this.value);
+    this.value = '';
+});
+document.getElementById('nuevo-icono-preset').addEventListener('change', function() {
+    document.getElementById('nuevo-icono').value = this.value;
+    this.value = '';
+});
+</script>
+{% endblock %}

@@ -102,11 +102,15 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notes_collab.js') }}?v=1"></script>
     <script src="{{ url_for('static', filename='js/emoji_picker.js') }}?v=1"></script>
     <script>
         const PUB_TOKEN = "{{ token }}";
         let pubSaveTimeout = null;
         let pubDeferredInstallEvent = null;
+        let pubConfirmDeleteTodoModal = null;
+        let pubTodoToDeleteBtn = null;
 
         window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
@@ -137,6 +141,10 @@
             try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
             const editor = document.getElementById('pubContentEditor');
             const titleInput = document.getElementById('pubTitleInput');
+            const pubConfirmDeleteTodoEl = document.getElementById('pubConfirmDeleteTodoModal');
+            if (pubConfirmDeleteTodoEl) {
+                pubConfirmDeleteTodoModal = new bootstrap.Modal(pubConfirmDeleteTodoEl);
+            }
             editor.addEventListener('input', schedulePubSave);
             editor.addEventListener('keydown', pubHandleEnter);
             titleInput.addEventListener('input', schedulePubSave);
@@ -147,6 +155,10 @@
                     ch.checked = isChecked;
                 }
             });
+            pubNormalizeTodoItems(editor);
+            if (typeof collabJoin === 'function') {
+                collabJoin('pub-' + PUB_TOKEN, 'pubContentEditor');
+            }
         });
 
         function pubExecCmd(command) {
@@ -159,9 +171,17 @@
         function pubInsertCheckbox() {
             const editor = document.getElementById('pubContentEditor');
             editor.focus();
-            const id = 'pub-check-' + Date.now();
-            const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="pubToggleCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label></li></ul>`;
+            const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="pubToggleCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1 new-todo-focus">Nueva tarea</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="pubDeleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button></li></ul>`;
             document.execCommand('insertHTML', false, html);
+            const newLabel = editor.querySelector('.new-todo-focus');
+            if (newLabel) {
+                const range = document.createRange();
+                range.selectNodeContents(newLabel);
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+                newLabel.classList.remove('new-todo-focus');
+            }
             schedulePubSave();
         }
 
@@ -170,6 +190,64 @@
             if (!li) return;
             li.setAttribute('data-checked', checkbox.checked ? 'true' : 'false');
             schedulePubSave();
+        }
+
+        function pubDeleteTodoItem(btn) {
+            pubTodoToDeleteBtn = btn;
+            if (pubConfirmDeleteTodoModal) {
+                pubConfirmDeleteTodoModal.show();
+            } else {
+                const li = btn.closest('li');
+                if (li) {
+                    li.remove();
+                    schedulePubSave();
+                }
+                pubTodoToDeleteBtn = null;
+            }
+        }
+
+        function pubConfirmDeleteTodo() {
+            if (pubConfirmDeleteTodoModal) pubConfirmDeleteTodoModal.hide();
+            if (pubTodoToDeleteBtn) {
+                const li = pubTodoToDeleteBtn.closest('li');
+                if (li) {
+                    li.remove();
+                    schedulePubSave();
+                }
+            }
+            pubTodoToDeleteBtn = null;
+        }
+
+        function pubCancelDeleteTodo() {
+            pubTodoToDeleteBtn = null;
+            if (pubConfirmDeleteTodoModal) pubConfirmDeleteTodoModal.hide();
+        }
+
+        function pubNormalizeTodoItems(editor) {
+            editor.querySelectorAll('li.todo-item').forEach(li => {
+                const input = li.querySelector('input.note-check');
+                const label = li.querySelector('.form-check-label');
+                if (input) {
+                    input.setAttribute('contenteditable', 'false');
+                    input.setAttribute('onchange', 'pubToggleCheck(this)');
+                    input.removeAttribute('id');
+                }
+                if (label) {
+                    label.removeAttribute('contenteditable');
+                    label.removeAttribute('for');
+                    label.classList.remove('new-todo-focus');
+                }
+                if (!li.querySelector('button[onclick^="pubDeleteTodoItem"]')) {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn btn-sm btn-link text-danger p-0 ms-1';
+                    btn.type = 'button';
+                    btn.setAttribute('contenteditable', 'false');
+                    btn.setAttribute('tabindex', '-1');
+                    btn.setAttribute('onclick', 'pubDeleteTodoItem(this)');
+                    btn.innerHTML = '<i class="bi bi-trash"></i>';
+                    li.appendChild(btn);
+                }
+            });
         }
 
         function pubInsertLink() {
@@ -207,31 +285,45 @@
 
         function pubHandleEnter(e) {
             if (e.key === 'Enter' && !e.shiftKey) {
-                const label = e.target.closest('label');
-                if (label) {
-                    const li = label.closest('li');
-                    const ul = li ? li.closest('ul') : null;
-                    if (!ul) return;
-                    e.preventDefault();
-                    const id = 'pub-check-' + Date.now() + '-' + Math.random().toString(36).substr(2, 5);
-                    const newLi = document.createElement('li');
-                    newLi.className = 'list-group-item d-flex align-items-center gap-2 p-2 todo-item';
-                    newLi.setAttribute('data-checked', 'false');
-                    newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" id="${id}" onchange="pubToggleCheck(this)" contenteditable="false"><label class="form-check-label flex-grow-1" for="${id}" contenteditable="true">Nueva tarea</label>`;
-                    li.after(newLi);
-                    const newLabel = newLi.querySelector('label');
-                    if (newLabel) {
-                        newLabel.focus();
-                        const range = document.createRange();
-                        range.selectNodeContents(newLabel);
-                        range.collapse(true);
-                        const sel = window.getSelection();
-                        sel.removeAllRanges();
-                        sel.addRange(range);
-                    }
-                    schedulePubSave();
+                const sel = window.getSelection();
+                if (!sel.rangeCount) return;
+                const range = sel.getRangeAt(0);
+                let node = range.commonAncestorContainer;
+                if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+                const label = node ? node.closest('.form-check-label') : null;
+                if (!label) return;
+                const li = label.closest('li');
+                const ul = li ? li.closest('ul') : null;
+                if (!ul) return;
+                e.preventDefault();
+                const preCaretRange = range.cloneRange();
+                preCaretRange.selectNodeContents(label);
+                preCaretRange.setEnd(range.endContainer, range.endOffset);
+                const before = preCaretRange.toString();
+                const after = label.textContent.substring(before.length);
+                label.textContent = before;
+                const newLi = document.createElement('li');
+                newLi.className = 'list-group-item d-flex align-items-start gap-2 p-2 todo-item';
+                newLi.setAttribute('data-checked', 'false');
+                const newText = after ? escapeHtmlTodoPub(after) : 'Nueva tarea';
+                newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="pubToggleCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1">${newText}</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="pubDeleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button>`;
+                li.after(newLi);
+                const newLabel = newLi.querySelector('.form-check-label');
+                if (newLabel) {
+                    const newRange = document.createRange();
+                    newRange.selectNodeContents(newLabel);
+                    if (after) newRange.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(newRange);
                 }
+                schedulePubSave();
             }
+        }
+
+        function escapeHtmlTodoPub(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         function schedulePubSave() {
@@ -277,6 +369,25 @@
                     <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="justify" onclick="setEmojiAlign('justify')" title="Justificado"><i class="bi bi-justify"></i></button>
                 </div>
                 <div id="emojiGrid" class="d-flex flex-wrap gap-1 justify-content-center" style="max-height: 260px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar TODO Público -->
+<div class="modal fade" id="pubConfirmDeleteTodoModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Eliminar este elemento del to-do? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal" onclick="pubCancelDeleteTodo()">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="pubConfirmDeleteTodo()">Eliminar</button>
             </div>
         </div>
     </div>

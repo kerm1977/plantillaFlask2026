@@ -145,28 +145,8 @@
                         <button class="btn btn-outline-secondary rounded-pill px-3" onclick="cancelEdit()">
                             <i class="bi bi-x-lg me-1"></i>Cancelar
                         </button>
-                        <div class="vr mx-1"></div>
-                        <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportNoteJPG()">
-                            <i class="bi bi-image me-1"></i>JPG
-                        </button>
-                        <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
-                            <i class="bi bi-file-earmark-image me-1"></i>PNG
-                        </button>
-                        <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportNotePDF()">
-                            <i class="bi bi-filetype-pdf me-1"></i>PDF
-                        </button>
-                        <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
-                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
-                        </button>
-                        <div class="vr mx-1"></div>
-                        <button class="btn btn-outline-warning rounded-pill px-3" onclick="shareCurrentNote()">
-                            <i class="bi bi-link-45deg me-1"></i>Enlace Público
-                        </button>
-                        <button class="btn btn-outline-dark rounded-pill px-3" onclick="exportSingleNoteJSON()">
-                            <i class="bi bi-filetype-json me-1"></i>JSON
-                        </button>
-                        <button class="btn btn-outline-dark rounded-pill px-3" onclick="importSingleNoteJSON()">
-                            <i class="bi bi-upload me-1"></i>Importar JSON
+                        <button class="btn btn-orange rounded-pill px-3 ms-auto" onclick="openNoteOptionsModal()" title="Más opciones">
+                            <i class="bi bi-three-dots-vertical me-1"></i>Opciones
                         </button>
                         <input type="file" id="singleJsonImportInput" accept=".json" style="display:none;" onchange="handleSingleJSONImport(this)">
                     </div>
@@ -304,6 +284,9 @@
                     <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToBottom()">
                         <i class="bi bi-arrow-down me-1"></i>Abajo
                     </button>
+                    <button class="btn btn-danger rounded-pill px-3" onclick="deleteImageFromView()">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
                     <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
                         <i class="bi bi-x-lg me-1"></i>Cerrar
                     </button>
@@ -389,6 +372,47 @@
     </div>
 </div>
 
+<!-- MODAL DE OPCIONES DE NOTA -->
+<div class="modal fade" id="noteOptionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-three-dots-vertical text-orange me-2"></i>Opciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="small fw-bold text-muted mb-1">Exportar</div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportNoteJPG()">
+                        <i class="bi bi-image me-1"></i>JPG
+                    </button>
+                    <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
+                        <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </button>
+                </div>
+                <div class="small fw-bold text-muted mb-1">Compartir y respaldar</div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-warning rounded-pill px-3" onclick="shareCurrentNote()">
+                        <i class="bi bi-link-45deg me-1"></i>Enlace Público
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="exportSingleNoteJSON()">
+                        <i class="bi bi-filetype-json me-1"></i>Exportar JSON
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="importSingleNoteJSON()">
+                        <i class="bi bi-upload me-1"></i>Importar JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL DE VISTA DE NOTA -->
 <div class="modal fade" id="noteViewModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -422,7 +446,7 @@
                     <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportViewNotePDF()">
                         <i class="bi bi-filetype-pdf me-1"></i>PDF
                     </button>
-                    <button class="btn btn-outline-success rounded-pill px-3" onclick="shareViewNoteWhatsApp()">
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="exportViewNoteWhatsApp()">
                         <i class="bi bi-whatsapp me-1"></i>WhatsApp
                     </button>
                 </div>
@@ -483,6 +507,25 @@
             <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
                 <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
                 <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmarEliminarNota()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar TODO -->
+<div class="modal fade" id="confirmDeleteTodoModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Eliminar este elemento del to-do? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal" onclick="cancelDeleteTodo()">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmDeleteTodo()">Eliminar</button>
             </div>
         </div>
     </div>

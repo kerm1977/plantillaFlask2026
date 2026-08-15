@@ -1,9 +1,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v10.8';
-const STATIC_CACHE   = 'la-tribu-static-v10.8';
-const PAGES_CACHE    = 'la-tribu-pages-v10.8';
+const CACHE_NAME     = 'la-tribu-v10.9';
+const STATIC_CACHE   = 'la-tribu-static-v10.9';
+const PAGES_CACHE    = 'la-tribu-pages-v10.9';
 const OFFLINE_URL    = '/offline';
 
 // ── Shell completo precacheado al instalar ─────────────────────────────────
@@ -75,11 +75,8 @@ self.addEventListener('fetch', event => {
     // Ignorar peticiones a dominios externos (Cloudflare, CDNs, etc.)
     if (url.origin !== self.location.origin) return;
 
-    // 1. Uploads de usuarios → siempre Network, nunca cachear
+    // 1. Uploads de usuarios → NO interceptar, dejar que el navegador maneje el error directamente
     if (url.pathname.startsWith('/static/uploads/')) {
-        event.respondWith(
-            fetch(event.request).catch(() => new Response('', { status: 404 }))
-        );
         return;
     }
 

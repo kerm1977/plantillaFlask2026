@@ -287,7 +287,7 @@ function renderLugares(data) {
 
     let html = '';
     let idx = 0;
-    const porPagina = 10;
+    const porPagina = 12;
     for(const [provincia, lugares] of Object.entries(grupos)) {
         const provId = 'prov-' + idx;
         const pagina = paginaActual[provincia] || 1;
@@ -307,7 +307,7 @@ function renderLugares(data) {
                 </div>
                 <hr class="mt-2 mb-3">
             </div>
-            <div class="col-12 collapse provincia-grupo" id="${provId}">
+            <div class="col-12 collapse show provincia-grupo" id="${provId}">
                 <div class="row g-4">
         `;
         html += visibles.map(l => `
@@ -328,7 +328,7 @@ function renderLugares(data) {
                         <hr class="my-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
-                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio||''}" onchange="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
+                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio == null ? '' : l.precio}" oninput="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
                         </div>
                     </div>
                 </div>
@@ -364,9 +364,14 @@ function actualizarPrecio(id, valor) {
 function toggleProvincia(id) {
     const el = document.getElementById(id);
     if(!el) return;
-    const abierta = el.classList.contains('show');
-    document.querySelectorAll('.provincia-grupo').forEach(x => x.classList.remove('show'));
-    if(!abierta) el.classList.add('show');
+    const icon = document.getElementById('icon-' + id);
+    if(el.classList.contains('show')) {
+        el.classList.remove('show');
+        if(icon) icon.className = 'bi bi-chevron-right ms-2';
+    } else {
+        el.classList.add('show');
+        if(icon) icon.className = 'bi bi-chevron-down ms-2';
+    }
 }
 function cambiarPagina(provincia, pagina) {
     paginaActual[provincia] = Math.max(1, pagina);
@@ -383,22 +388,38 @@ function verDetalle(id) {
     duracionBadge.className = 'badge ' + (l.duracion == '1_dia' ? 'bg-info' : 'bg-warning text-dark');
     document.getElementById('detalleFechaIda').textContent = l.fecha_ida || 'Por definir';
     document.getElementById('detalleFechaRegreso').textContent = l.fecha_regreso || 'Por definir';
+    document.getElementById('detalleFechaRegreso').parentElement.style.display = l.duracion == 'multiples_dias' ? 'block' : 'none';
     document.getElementById('detalleHora').textContent = l.hora || 'Por definir';
     const mapaIda = document.getElementById('detalleMapaIda');
     const mapaRegreso = document.getElementById('detalleMapaRegreso');
-    if(l.maps_ida) {
-        mapaIda.href = l.maps_ida;
-        mapaIda.classList.remove('disabled');
+    const tipo = l.tipo_caminata || 'circular';
+    if(tipo == 'lineal') {
+        mapaIda.textContent = 'Mapa de inicio';
+        mapaRegreso.style.display = 'block';
+        if(l.maps_ida) {
+            mapaIda.href = l.maps_ida;
+            mapaIda.classList.remove('disabled');
+        } else {
+            mapaIda.href = '#';
+            mapaIda.classList.add('disabled');
+        }
+        if(l.maps_regreso) {
+            mapaRegreso.href = l.maps_regreso;
+            mapaRegreso.classList.remove('disabled');
+        } else {
+            mapaRegreso.href = '#';
+            mapaRegreso.classList.add('disabled');
+        }
     } else {
-        mapaIda.href = '#';
-        mapaIda.classList.add('disabled');
-    }
-    if(l.maps_regreso) {
-        mapaRegreso.href = l.maps_regreso;
-        mapaRegreso.classList.remove('disabled');
-    } else {
-        mapaRegreso.href = '#';
-        mapaRegreso.classList.add('disabled');
+        mapaIda.textContent = 'Mapa';
+        mapaRegreso.style.display = 'none';
+        if(l.maps_ida) {
+            mapaIda.href = l.maps_ida;
+            mapaIda.classList.remove('disabled');
+        } else {
+            mapaIda.href = '#';
+            mapaIda.classList.add('disabled');
+        }
     }
     renderHistorial(l);
     detalleModal.show();
@@ -452,46 +473,88 @@ async function confirmarEliminarHistorial() {
         alert('Error de conexion: ' + e.message);
     }
 }
-async function guardarPrecio(id, valor) {
+let guardarPrecioTimers = {};
+let guardarPrecioSeq = {};
+
+async function enviarPrecio(id, nuevo) {
     const l = lugaresData.find(x => x.id === id);
     if(!l) return;
-    const nuevo = valor ? parseFloat(valor) : null;
-    if(l.precio == nuevo) return;
-    l.precio = nuevo;
-    if(!l.precios_historial) l.precios_historial = [];
-    l.precios_historial.push({precio: nuevo, fecha: new Date().toISOString()});
-    renderHistorial(l);
+    const seq = (guardarPrecioSeq[id] || 0) + 1;
+    guardarPrecioSeq[id] = seq;
     try {
         const precios = {[id]: nuevo};
         const res = await fetch('/cotizadores/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
         const d = await res.json();
-        if(!d.ok) alert(d.error || 'Error al guardar precio');
+        if(!d.ok) { alert(d.error || 'Error al guardar precio'); return; }
+        // Ignorar respuestas desfasadas
+        if (guardarPrecioSeq[id] !== seq) return;
+        const guardado = d.guardados ? d.guardados[id] : null;
+        if(guardado) {
+            l.precio = guardado.precio;
+            l.precios_historial = guardado.precios_historial || l.precios_historial;
+        }
+        const input = document.getElementById('precio_'+id);
+        if(input) input.value = l.precio == null ? '' : l.precio;
+        renderHistorial(l);
     } catch(e) {
         alert('Error de conexion: ' + e.message);
     }
 }
+
+function guardarPrecio(id, valor) {
+    const l = lugaresData.find(x => x.id === id);
+    if(!l) return;
+    const nuevo = valor ? parseFloat(valor) : null;
+    if(l.precio == nuevo) return;
+    clearTimeout(guardarPrecioTimers[id]);
+    guardarPrecioTimers[id] = setTimeout(() => enviarPrecio(id, nuevo), 800);
+}
 async function guardarPrecios() {
     const precios = {};
     lugaresData.forEach(l => {
-        if(l.precio) precios[l.id] = l.precio;
+        if (l.precio !== null && l.precio !== undefined) precios[l.id] = l.precio;
     });
-    const res = await fetch('/cotizadores/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
-    const d = await res.json();
-    if(d.ok) alert('Precios guardados correctamente');
-    else alert(d.error || 'Error');
+    try {
+        const res = await fetch('/cotizadores/' + slug + '/guardar', {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({clave:claveGuardada,precios})});
+        const d = await res.json();
+        if(!d.ok) { alert(d.error || 'Error'); return; }
+        if(d.guardados) {
+            Object.entries(d.guardados).forEach(([key, guardado]) => {
+                const lid = parseInt(key);
+                const ll = lugaresData.find(x => x.id === lid);
+                if(ll) {
+                    ll.precio = guardado.precio;
+                    ll.precios_historial = guardado.precios_historial || ll.precios_historial;
+                    const input = document.getElementById('precio_'+lid);
+                    if(input) input.value = ll.precio == null ? '' : ll.precio;
+                }
+            });
+        }
+        alert('Precios guardados correctamente');
+    } catch(e) {
+        alert('Error de conexion: ' + e.message);
+    }
 }
 function _textoLugar(l) {
     const precio = l.precio || '';
     const moneda = l.moneda == 'colones' ? '₡' : '$';
+    const tipo = l.tipo_caminata || 'circular';
+    const duracion = l.duracion == '1_dia' ? '1 dia' : 'Multiples dias';
     let texto = `- Nombre: ${l.nombre}\n`;
     texto += `- Provincia: ${l.provincia || 'Pendiente'}\n`;
-    texto += `- Duracion: ${l.duracion == '1_dia' ? '1 dia' : 'Multiples dias'}\n`;
+    texto += `- Duracion: ${duracion}\n`;
     texto += `- Salida: ${l.fecha_ida || 'Pendiente'}\n`;
-    texto += `- Regreso: ${l.fecha_regreso || 'Pendiente'}\n`;
+    if(l.duracion === 'multiples_dias') {
+        texto += `- Regreso: ${l.fecha_regreso || 'Pendiente'}\n`;
+    }
     texto += `- Hora: ${l.hora || 'Pendiente'}\n`;
     if(precio) texto += `- Precio: ${moneda}${precio}\n`;
-    texto += `- Mapa de inicio: ${l.maps_ida || 'Pendiente'}\n`;
-    texto += `- Mapa de recogida: ${l.maps_regreso || 'Pendiente'}\n`;
+    if(tipo === 'lineal') {
+        texto += `- Mapa de inicio: ${l.maps_ida || 'Pendiente'}\n`;
+        texto += `- Mapa de recogida: ${l.maps_regreso || 'Pendiente'}\n`;
+    } else {
+        texto += `- Mapa: ${l.maps_ida || 'Pendiente'}\n`;
+    }
     return texto;
 }
 

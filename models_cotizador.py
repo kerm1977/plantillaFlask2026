@@ -22,6 +22,7 @@ class CotizadorLugar(db.Model):
     nombre = db.Column(db.String(500), nullable=False)
     provincia = db.Column(db.String(100))
     duracion = db.Column(db.String(20), default='1_dia')  # 1_dia o multiples_dias
+    tipo_caminata = db.Column(db.String(20), default='circular')  # circular o lineal
     fecha_ida = db.Column(db.String(20))
     fecha_regreso = db.Column(db.String(20))
     hora = db.Column(db.String(10))
