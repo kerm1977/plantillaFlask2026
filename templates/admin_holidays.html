@@ -3,13 +3,73 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
         <h2 class="fw-bold text-orange mb-0"><i class="bi bi-calendar-event me-2"></i>Triggers de Días Festivos</h2>
-        <button class="btn btn-orange rounded-pill fw-bold" onclick="abrirModalNuevo()"><i class="bi bi-plus-lg me-1"></i>Crear trigger</button>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-dark rounded-pill fw-bold" onclick="mostrarVista('music')"><i class="bi bi-music-note-beamed me-1"></i>Música</button>
+            <button class="btn btn-orange rounded-pill fw-bold" onclick="mostrarVista('triggers'); abrirModalNuevo()"><i class="bi bi-plus-lg me-1"></i>Crear trigger</button>
+        </div>
     </div>
-    <p class="text-secondary small mb-3">
+    <p id="triggers-text" class="text-secondary small mb-3">
         Tocá una celebración para editarla. Los personalizados se pueden eliminar.
     </p>
     <div id="mensaje" class="alert d-none mb-3"></div>
-    <div class="row g-3">
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="glass-panel rounded-4 p-4 shadow-sm border border-white border-opacity-50">
+                <h4 class="fw-bold text-dark mb-3"><i class="bi bi-journal-text text-orange me-2"></i>Nota del día</h4>
+                <p class="small text-secondary">Seleccioná una nota para que aparezca como trigger de primera entrada. Por defecto solo la ven los superusuarios.</p>
+                <div class="mb-3">
+                    <label for="activeNoteSelect" class="form-label small fw-semibold">Nota activa</label>
+                    <select class="form-select" id="activeNoteSelect">
+                        <option value="">-- Ninguna --</option>
+                        {% for n in notes %}
+                        <option value="{{ n.id }}" {% if active_note and active_note.id == n.id %}selected{% endif %}>{{ n.title }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="activeNotePublic" {% if active_note and active_note.is_public %}checked{% endif %}>
+                    <label class="form-check-label fw-semibold" for="activeNotePublic">Hacer pública para todos</label>
+                </div>
+                <button class="btn btn-orange rounded-pill w-100 fw-bold" onclick="guardarNotaActiva()">
+                    <i class="bi bi-save me-1"></i>Guardar nota activa
+                </button>
+                {% if active_note %}
+                <button class="btn btn-outline-secondary rounded-pill w-100 fw-bold mt-2" onclick="limpiarNotaActiva()">
+                    <i class="bi bi-x-lg me-1"></i>Desactivar
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div id="music-view" class="d-none glass-panel rounded-4 p-4 shadow-sm border border-white border-opacity-50 mb-4">
+      <h4 class="fw-bold text-dark mb-3"><i class="bi bi-music-note-beamed me-2 text-orange"></i>Música de fondo</h4>
+      <div class="form-check form-switch d-flex justify-content-start align-items-center mb-3">
+        <input class="form-check-input" type="checkbox" id="bg-enabled" {% if background_music.enabled %}checked{% endif %}>
+        <label class="form-check-label ms-2 fw-semibold" for="bg-enabled">Activar música de fondo</label>
+      </div>
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label for="bg-songs" class="form-label fw-semibold small mb-0">Canciones (seleccioná una o varias)</label>
+          <div class="btn-group btn-group-sm" role="group">
+            <button type="button" class="btn btn-outline-primary" onclick="seleccionarTodasCanciones(true)">Todas</button>
+            <button type="button" class="btn btn-outline-secondary" onclick="seleccionarTodasCanciones(false)">Ninguna</button>
+          </div>
+        </div>
+        <select class="form-select" id="bg-songs" multiple size="5">
+          {% for c in canciones %}
+          <option value="{{ c }}" {% if c in background_music.songs %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-check form-switch d-flex justify-content-start align-items-center mb-3">
+        <input class="form-check-input" type="checkbox" id="bg-random" {% if background_music.random %}checked{% endif %}>
+        <label class="form-check-label ms-2 fw-semibold" for="bg-random">Reproducción aleatoria</label>
+      </div>
+      <button class="btn btn-orange rounded-pill w-100 fw-bold" onclick="guardarMusicaFondo()">
+        <i class="bi bi-save me-1"></i>Guardar música de fondo
+      </button>
+    </div>
+    <div id="triggers-view" class="row g-3">
         {% for h in holidays %}
         <div class="col-6 col-md-4 col-lg-3" id="card-{{ h.id }}">
             <div class="card glass-panel border-0 shadow-sm h-100 text-center p-3 position-relative" style="cursor:pointer;" onclick="abrirModal('{{ h.id }}')">
@@ -604,17 +664,63 @@
         </div>
         <div id="modal-fecha-grupo" class="row d-none">
           <div class="col-6 mb-3">
-            <label for="modal-mes" class="form-label fw-semibold small">Mes</label>
-            <input type="number" class="form-control" id="modal-mes" min="1" max="12">
+            <label for="modal-mes" class="form-label fw-semibold small">Mes inicio</label>
+            <select class="form-select" id="modal-mes">
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
           </div>
           <div class="col-6 mb-3">
-            <label for="modal-dia" class="form-label fw-semibold small">Día</label>
-            <input type="number" class="form-control" id="modal-dia" min="1" max="31">
+            <label for="modal-dia" class="form-label fw-semibold small">Día inicio</label>
+            <select class="form-select" id="modal-dia">
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="modal-fin-mes" class="form-label fw-semibold small">Mes fin</label>
+            <select class="form-select" id="modal-fin-mes">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="modal-fin-dia" class="form-label fw-semibold small">Día fin</label>
+            <select class="form-select" id="modal-fin-dia">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
           </div>
         </div>
-        <div class="form-check form-switch d-flex justify-content-center mb-3">
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
           <input class="form-check-input" type="checkbox" id="modal-activo">
           <label class="form-check-label ms-2 fw-semibold" for="modal-activo">Activar trigger</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="modal-autoplay">
+          <label class="form-check-label ms-2 fw-semibold" for="modal-autoplay">Reproducir canción automáticamente</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="modal-confeti" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="modal-confeti">Mostrar confeti</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="modal-reproductor" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="modal-reproductor">Mostrar reproductor de música</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="modal-superuser">
+          <label class="form-check-label ms-2 fw-semibold" for="modal-superuser">Solo superusuarios o administradores</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="modal-link-activo">
+          <label class="form-check-label ms-2 fw-semibold" for="modal-link-activo">Activar enlace</label>
+        </div>
+        <div class="mb-3">
+          <label for="modal-link" class="form-label fw-semibold small">URL del enlace</label>
+          <input type="url" class="form-control" id="modal-link" placeholder="https://...">
+        </div>
+        <div class="mb-3">
+          <label for="modal-mensaje" class="form-label fw-semibold small">Mensaje personalizado</label>
+          <textarea class="form-control" id="modal-mensaje" rows="2" placeholder="Dejar en blanco para usar el mensaje predeterminado"></textarea>
         </div>
         <div class="mb-3">
           <label for="modal-cancion" class="form-label fw-semibold small">Canción del modal</label>
@@ -642,7 +748,7 @@
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content glass-modal border-0 shadow-lg">
       <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
-        <h5 class="modal-title fw-bold text-dark mt-1">Nuevo trigger festivo</h5>
+        <h5 class="modal-title fw-bold text-dark mt-1">Nuevo trigger</h5>
       </div>
       <div class="modal-body pt-3 pb-2">
         <div class="mb-3">
@@ -1194,17 +1300,63 @@
         </div>
         <div class="row">
           <div class="col-6 mb-3">
-            <label for="nuevo-mes" class="form-label fw-semibold small">Mes</label>
-            <input type="number" class="form-control" id="nuevo-mes" min="1" max="12" value="1">
+            <label for="nuevo-mes" class="form-label fw-semibold small">Mes inicio</label>
+            <select class="form-select" id="nuevo-mes">
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
           </div>
           <div class="col-6 mb-3">
-            <label for="nuevo-dia" class="form-label fw-semibold small">Día</label>
-            <input type="number" class="form-control" id="nuevo-dia" min="1" max="31" value="1">
+            <label for="nuevo-dia" class="form-label fw-semibold small">Día inicio</label>
+            <select class="form-select" id="nuevo-dia">
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-fin-mes" class="form-label fw-semibold small">Mes fin</label>
+            <select class="form-select" id="nuevo-fin-mes">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-fin-dia" class="form-label fw-semibold small">Día fin</label>
+            <select class="form-select" id="nuevo-fin-dia">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
           </div>
         </div>
-        <div class="form-check form-switch d-flex justify-content-center mb-3">
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
           <input class="form-check-input" type="checkbox" id="nuevo-activo" checked>
           <label class="form-check-label ms-2 fw-semibold" for="nuevo-activo">Activar trigger</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-autoplay">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-autoplay">Reproducir canción automáticamente</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-confeti" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-confeti">Mostrar confeti</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-reproductor" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-reproductor">Mostrar reproductor de música</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-superuser">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-superuser">Solo superusuarios o administradores</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-link-activo">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-link-activo">Activar enlace</label>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-link" class="form-label fw-semibold small">URL del enlace</label>
+          <input type="url" class="form-control" id="nuevo-link" placeholder="https://...">
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-mensaje" class="form-label fw-semibold small">Mensaje personalizado</label>
+          <textarea class="form-control" id="nuevo-mensaje" rows="2" placeholder="Dejar en blanco para usar el mensaje predeterminado"></textarea>
         </div>
         <div class="mb-3">
           <label for="nuevo-cancion" class="form-label fw-semibold small">Canción del modal</label>
@@ -1250,6 +1402,21 @@ function renderIcono(val) {
     return '<span>' + val + '</span>';
 }
 
+function mostrarVista(vista) {
+    const text = document.getElementById('triggers-text');
+    const cards = document.getElementById('triggers-view');
+    const music = document.getElementById('music-view');
+    if (vista === 'music') {
+        text.classList.add('d-none');
+        cards.classList.add('d-none');
+        music.classList.remove('d-none');
+    } else {
+        text.classList.remove('d-none');
+        cards.classList.remove('d-none');
+        music.classList.add('d-none');
+    }
+}
+
 function abrirModal(id) {
     const h = HOLIDAYS.find(x => x.id === id);
     if (!h) return;
@@ -1265,12 +1432,21 @@ function abrirModal(id) {
     document.getElementById('modal-icono').value = icono;
     document.getElementById('modal-preview').innerHTML = renderIcono(icono);
     document.getElementById('modal-activo').checked = h.enabled;
+    document.getElementById('modal-autoplay').checked = h.autoplay;
+    document.getElementById('modal-confeti').checked = h.show_confetti !== false;
+    document.getElementById('modal-mensaje').value = h.custom_message || '';
+    document.getElementById('modal-reproductor').checked = h.show_player !== false;
+    document.getElementById('modal-superuser').checked = h.superuser_only === true;
+    document.getElementById('modal-link-activo').checked = h.link_enabled === true;
+    document.getElementById('modal-link').value = h.link_url || '';
 
     const fechaGrupo = document.getElementById('modal-fecha-grupo');
     if (h.custom) {
         fechaGrupo.classList.remove('d-none');
         document.getElementById('modal-mes').value = h.month;
         document.getElementById('modal-dia').value = h.day;
+        document.getElementById('modal-fin-mes').value = h.end_month || '';
+        document.getElementById('modal-fin-dia').value = h.end_day || '';
     } else {
         fechaGrupo.classList.add('d-none');
     }
@@ -1295,7 +1471,16 @@ function abrirModalNuevo() {
     document.getElementById('nuevo-icono').value = '🎉';
     document.getElementById('nuevo-mes').value = new Date().getMonth() + 1;
     document.getElementById('nuevo-dia').value = new Date().getDate();
+    document.getElementById('nuevo-fin-mes').value = '';
+    document.getElementById('nuevo-fin-dia').value = '';
     document.getElementById('nuevo-activo').checked = true;
+    document.getElementById('nuevo-autoplay').checked = false;
+    document.getElementById('nuevo-confeti').checked = true;
+    document.getElementById('nuevo-mensaje').value = '';
+    document.getElementById('nuevo-reproductor').checked = true;
+    document.getElementById('nuevo-superuser').checked = false;
+    document.getElementById('nuevo-link-activo').checked = false;
+    document.getElementById('nuevo-link').value = '';
     document.getElementById('nuevo-cancion').value = '';
     document.getElementById('nuevo-cancion-file').value = '';
     nuevoModalInstance = new bootstrap.Modal(document.getElementById('newHolidayModal'));
@@ -1308,6 +1493,13 @@ function armarFormData(idPrefix) {
     formData.append('subtitle', document.getElementById(idPrefix + 'subtitulo').value);
     formData.append('icon', document.getElementById(idPrefix + 'icono').value);
     formData.append('enabled', document.getElementById(idPrefix + 'activo').checked ? 'true' : 'false');
+    formData.append('autoplay', document.getElementById(idPrefix + 'autoplay').checked ? 'true' : 'false');
+    formData.append('show_confetti', document.getElementById(idPrefix + 'confeti').checked ? 'true' : 'false');
+    formData.append('custom_message', document.getElementById(idPrefix + 'mensaje').value);
+    formData.append('show_player', document.getElementById(idPrefix + 'reproductor').checked ? 'true' : 'false');
+    formData.append('superuser_only', document.getElementById(idPrefix + 'superuser').checked ? 'true' : 'false');
+    formData.append('link_enabled', document.getElementById(idPrefix + 'link-activo').checked ? 'true' : 'false');
+    formData.append('link_url', document.getElementById(idPrefix + 'link').value);
     formData.append('song', document.getElementById(idPrefix + 'cancion').value);
     const fileInput = document.getElementById(idPrefix + 'cancion-file');
     if (fileInput.files[0]) formData.append('song_file', fileInput.files[0]);
@@ -1321,6 +1513,8 @@ async function guardarFeriado() {
     if (isCustom) {
         formData.append('month', document.getElementById('modal-mes').value);
         formData.append('day', document.getElementById('modal-dia').value);
+        formData.append('end_month', document.getElementById('modal-fin-mes').value);
+        formData.append('end_day', document.getElementById('modal-fin-dia').value);
     }
     try {
         const res = await fetch('/api/holidays/' + id, {method: 'POST', body: formData});
@@ -1341,6 +1535,8 @@ async function guardarNuevoFeriado() {
     const formData = armarFormData('nuevo-');
     formData.append('month', document.getElementById('nuevo-mes').value);
     formData.append('day', document.getElementById('nuevo-dia').value);
+    formData.append('end_month', document.getElementById('nuevo-fin-mes').value);
+    formData.append('end_day', document.getElementById('nuevo-fin-dia').value);
     try {
         const res = await fetch('/api/holidays/custom', {method: 'POST', body: formData});
         const d = await res.json();
@@ -1384,5 +1580,66 @@ document.getElementById('nuevo-icono-preset').addEventListener('change', functio
     document.getElementById('nuevo-icono').value = this.value;
     this.value = '';
 });
+
+function seleccionarTodasCanciones(seleccionar) {
+    const select = document.getElementById('bg-songs');
+    for (const opt of select.options) {
+        opt.selected = seleccionar;
+    }
+}
+
+async function guardarMusicaFondo() {
+    const formData = new FormData();
+    formData.append('enabled', document.getElementById('bg-enabled').checked ? 'true' : 'false');
+    formData.append('random', document.getElementById('bg-random').checked ? 'true' : 'false');
+    const select = document.getElementById('bg-songs');
+    for (const opt of select.options) {
+        if (opt.selected) formData.append('songs', opt.value);
+    }
+    try {
+        const res = await fetch('/api/background-music', {method: 'POST', body: formData});
+        const d = await res.json();
+        if (d.ok) {
+            mostrarMensaje('Música de fondo guardada', true);
+        } else {
+            mostrarMensaje(d.error || 'Error al guardar', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
+
+async function guardarNotaActiva() {
+    const noteId = document.getElementById('activeNoteSelect').value;
+    const isPublic = document.getElementById('activeNotePublic').checked;
+    const body = JSON.stringify({note_id: noteId, is_public: isPublic});
+    try {
+        const res = await fetch('/api/active-note', {method: 'POST', headers: {'Content-Type':'application/json'}, body});
+        const d = await res.json();
+        if (d.ok) {
+            mostrarMensaje('Nota activa guardada', true);
+        } else {
+            mostrarMensaje(d.error || 'Error al guardar', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
+
+async function limpiarNotaActiva() {
+    try {
+        const res = await fetch('/api/active-note', {method: 'DELETE'});
+        const d = await res.json();
+        if (d.ok) {
+            document.getElementById('activeNoteSelect').value = '';
+            document.getElementById('activeNotePublic').checked = false;
+            mostrarMensaje('Nota activa desactivada', true);
+        } else {
+            mostrarMensaje(d.error || 'Error al desactivar', false);
+        }
+    } catch (e) {
+        mostrarMensaje('Error de red', false);
+    }
+}
 </script>
 {% endblock %}

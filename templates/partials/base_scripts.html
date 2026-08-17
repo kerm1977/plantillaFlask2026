@@ -28,5 +28,100 @@
     <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notes_collab.js') }}?v=1"></script>
     <script src="{{ url_for('static', filename='js/notes.js') }}?v=19"></script>
+<script>
+(function() {
+    const STORAGE_KEY = 'admin_pines_v1';
+    const generarId = (texto) => {
+        return (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    };
+    const obtenerPines = () => {
+        try { 
+            const arr = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            return Array.isArray(arr) ? arr.slice(0, 2) : [];
+        } catch { return []; }
+    };
+    const guardarPines = (pines) => localStorage.setItem(STORAGE_KEY, JSON.stringify(pines));
+
+    function renderizarPinesMovil() {
+        const contenedor = document.getElementById('mobilePinnedContainer');
+        if(!contenedor) return;
+        contenedor.innerHTML = '';
+        const pines = obtenerPines();
+        if(pines.length === 0) { return; }
+        const fuentes = document.querySelectorAll('.admin-tools-dropdown .dropdown-item[data-pin-id]');
+        pines.forEach(pinId => {
+            const fuente = Array.from(fuentes).find(a => a.dataset.pinId === pinId);
+            if(!fuente) return;
+            const iconoEl = fuente.querySelector('i:first-child');
+            const icono = iconoEl ? iconoEl.className.split(' ').filter(c => c === 'bi' || c.startsWith('bi-')).join(' ') : 'bi bi-question';
+            const texto = (fuente.textContent || '').trim().replace(/\s+/g, ' ');
+            const href = fuente.getAttribute('href') || '#';
+            const onclick = fuente.getAttribute('onclick') || '';
+            const modalToggle = fuente.getAttribute('data-bs-toggle') || '';
+            const modalTarget = fuente.getAttribute('data-bs-target') || '';
+            const a = document.createElement('a');
+            a.className = 'mobile-nav-item';
+            a.href = href;
+            a.innerHTML = `<i class="${icono} fs-3 mb-1"></i><span>${texto}</span>`;
+            if(modalToggle) a.setAttribute('data-bs-toggle', modalToggle);
+            if(modalTarget) a.setAttribute('data-bs-target', modalTarget);
+            if(onclick) a.setAttribute('onclick', onclick);
+            contenedor.appendChild(a);
+        });
+    }
+
+    function togglePinAdmin(pin, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        const a = pin.closest('a.dropdown-item');
+        if(!a || !a.dataset.pinId) return;
+        let pines = obtenerPines();
+        const idx = pines.indexOf(a.dataset.pinId);
+        if(idx === -1 && pines.length >= 2) {
+            alert('Solo puedes fijar 2 accesos directos.');
+            return;
+        }
+        if(idx > -1) {
+            pines.splice(idx, 1);
+            pin.classList.remove('bi-pin-fill', 'text-orange');
+            pin.classList.add('bi-pin');
+        } else {
+            pines.push(a.dataset.pinId);
+            pin.classList.remove('bi-pin');
+            pin.classList.add('bi-pin-fill', 'text-orange');
+        }
+        guardarPines(pines);
+        renderizarPinesMovil();
+    }
+
+    function inicializarPinesAdmin() {
+        const items = document.querySelectorAll('.admin-tools-dropdown .dropdown-item');
+        if(!items.length) return;
+        items.forEach((a, i) => {
+            if(a.dataset.pinId) return;
+            const label = (a.textContent || '').trim();
+            a.dataset.pinId = generarId(label) || `admin-tool-${i}`;
+            const pin = document.createElement('i');
+            pin.className = 'bi bi-pin ms-auto pin-herramienta';
+            pin.style.cssText = 'cursor:pointer; font-size:1rem; z-index:1;';
+            pin.setAttribute('role', 'button');
+            pin.setAttribute('tabindex', '0');
+            pin.setAttribute('aria-label', 'Fijar acceso directo');
+            pin.onclick = function(ev) { togglePinAdmin(this, ev); };
+            a.appendChild(pin);
+        });
+        const guardados = obtenerPines();
+        items.forEach(a => {
+            if(guardados.includes(a.dataset.pinId)) {
+                const pin = a.querySelector('.pin-herramienta');
+                if(pin) { pin.classList.remove('bi-pin'); pin.classList.add('bi-pin-fill', 'text-orange'); }
+            }
+        });
+        renderizarPinesMovil();
+    }
+
+    document.addEventListener('DOMContentLoaded', inicializarPinesAdmin);
+})();
+</script>
+
 </body>
 </html>

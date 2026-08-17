@@ -1,0 +1,56 @@
+{% if active_note %}
+<!-- MODAL DE NOTA ACTIVA: {{ active_note.id }} -->
+<div class="modal fade" id="activeNoteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
+        <i class="bi bi-journal-text text-orange" style="font-size:3rem;"></i>
+        <h4 class="fw-bold text-dark mt-2 mb-0">{{ active_note.title }}</h4>
+      </div>
+      <div class="modal-body pt-3 pb-2">
+        <div class="bg-white bg-opacity-75 rounded-4 p-3" style="max-height:50vh; overflow-y:auto;">
+          <div id="activeNoteContent">{{ active_note.content | safe }}</div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 flex-column gap-2">
+        <button type="button" class="btn btn-warning-orange rounded-pill w-100 fw-bold" onclick="dismissActiveNoteForever()">
+          No volver a mostrar
+        </button>
+        <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold" data-bs-dismiss="modal">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+    const NOTE_KEY = 'activeNoteDismissed_{{ active_note.id }}';
+    const NOTE_FOREVER_KEY = 'activeNoteDismissedForever_{{ active_note.id }}';
+    const today = new Date().toISOString().slice(0, 10);
+
+    window.dismissActiveNoteForever = function() {
+        localStorage.setItem(NOTE_FOREVER_KEY, '1');
+        const modalEl = document.getElementById('activeNoteModal');
+        if (modalEl) bootstrap.Modal.getInstance(modalEl).hide();
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        if (localStorage.getItem(NOTE_FOREVER_KEY) === '1' || localStorage.getItem(NOTE_KEY) === today) return;
+        const modalEl = document.getElementById('activeNoteModal');
+        if (!modalEl) return;
+        setTimeout(function() {
+            const modal = new bootstrap.Modal(modalEl);
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                if (localStorage.getItem(NOTE_FOREVER_KEY) !== '1') {
+                    localStorage.setItem(NOTE_KEY, today);
+                }
+            }, { once: true });
+            modal.show();
+        }, 1200);
+    });
+})();
+</script>
+{% endif %}

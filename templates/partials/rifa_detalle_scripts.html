@@ -4,7 +4,7 @@
         id: {{ rifa.id }},
         name: {{ rifa.name|tojson }},
         raffle_number: {{ rifa.raffle_number|tojson }},
-        price: {{ rifa.price }}
+        price: {{ rifa.price|int }}
     };
 </script>
 <script src="/static/js/rifa_detalle_ui.js?v=9.5"></script>

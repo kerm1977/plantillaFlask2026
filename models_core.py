@@ -117,6 +117,25 @@ class Holiday(db.Model):
     confetti_colors = db.Column(db.Text, default='[]')
     song = db.Column(db.String(255), nullable=True)
     enabled = db.Column(db.Boolean, default=True)
+    autoplay = db.Column(db.Boolean, default=False)
     is_custom = db.Column(db.Boolean, default=False)
     background = db.Column(db.String(100), nullable=True)
     border = db.Column(db.String(100), nullable=True)
+    show_confetti = db.Column(db.Boolean, default=True)
+    custom_message = db.Column(db.Text, nullable=True)
+    show_player = db.Column(db.Boolean, default=True)
+    end_month = db.Column(db.Integer, nullable=True)
+    end_day = db.Column(db.Integer, nullable=True)
+    superuser_only = db.Column(db.Boolean, default=False)
+    link_url = db.Column(db.String(500), nullable=True)
+    link_enabled = db.Column(db.Boolean, default=False)
+
+
+class BackgroundMusic(db.Model):
+    __tablename__ = 'background_music'
+    id = db.Column(db.Integer, primary_key=True)
+    enabled = db.Column(db.Boolean, default=False)
+    songs = db.Column(db.Text, default='[]')
+    random = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

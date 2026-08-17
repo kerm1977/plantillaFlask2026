@@ -15,59 +15,42 @@
             <i class="bi bi-inbox fs-1 d-block mb-2"></i>No hay rifas creadas.
         </div>
         {% else %}
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Nombre</th>
-                        <th class="d-none d-md-table-cell">Precio</th>
-                        <th class="d-none d-md-table-cell">Fecha</th>
-                        <th class="d-none d-md-table-cell">Vendidos</th>
-                        <th class="d-none d-md-table-cell">Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for rifa in rifas %}
-                    <tr>
-                        <td>{{ rifa.raffle_number }}</td>
-                        <td>{{ rifa.name }}</td>
-                        <td class="d-none d-md-table-cell">₡{{ rifa.price }}</td>
-                        <td class="d-none d-md-table-cell">{{ rifa.raffle_date }}</td>
-                        <td class="d-none d-md-table-cell">
-                            <span class="badge bg-success">{{ rifa.total_sold }}</span>
-                            {% if rifa.total_canceled > 0 %}
-                            <span class="badge bg-secondary">{{ rifa.total_canceled }} cancelados</span>
-                            {% endif %}
-                        </td>
-                        <td class="d-none d-md-table-cell">
-                            {% if rifa.is_active %}
-                            <span class="badge bg-success">Activa</span>
-                            {% else %}
-                            <span class="badge bg-secondary">Cerrada</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            <div class="d-flex gap-1 flex-wrap">
-                                <a href="{{ url_for('main.rifa_detalle', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Ver">
-                                    <i class="bi bi-eye"></i>
-                                </a>
-                                <a href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Selecciones">
-                                    <i class="bi bi-list-check"></i>
-                                </a>
-                                <a href="{{ url_for('main.editar_rifa', raffle_id=rifa.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Editar">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <button onclick="eliminarRifa({{ rifa.id }})" class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="d-flex flex-column gap-3">
+            {% for rifa in rifas %}
+            <div class="p-3 rounded-4" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);">
+                <div class="fw-bold text-dark mb-1 d-flex align-items-center flex-wrap gap-2">
+                    <span class="badge rounded-pill" style="background:rgba(255,140,0,0.15);border:1px solid rgba(255,140,0,0.3);color:#ff8c00;">#{{ rifa.raffle_number }}</span>
+                    {{ rifa.name }}
+                </div>
+                <div class="small text-secondary d-flex flex-wrap gap-3 align-items-center">
+                    <span><i class="bi bi-cash-coin me-1 text-success"></i>{{ rifa.price|colones }}</span>
+                    <span><i class="bi bi-calendar3 me-1 text-primary"></i>{{ rifa.raffle_date }}</span>
+                    <span><i class="bi bi-cart-check me-1 text-info"></i>{{ rifa.total_sold }} vendidos</span>
+                    <span>
+                        {% if rifa.is_active %}
+                        <span class="badge bg-success rounded-pill">Activa</span>
+                        {% else %}
+                        <span class="badge bg-secondary rounded-pill">Cerrada</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <hr class="my-2" style="border-top:1px solid rgba(255,255,255,0.35);opacity:0.7;">
+                <div class="d-flex justify-content-center gap-4 align-items-center">
+                    <a href="{{ url_for('main.rifa_detalle', raffle_id=rifa.id) }}" class="btn btn-link p-1 text-decoration-none" title="Ver">
+                        <i class="bi bi-eye text-info fs-4"></i>
+                    </a>
+                    <a href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id) }}" class="btn btn-link p-1 text-decoration-none" title="Selecciones">
+                        <i class="bi bi-list-check text-success fs-4"></i>
+                    </a>
+                    <a href="{{ url_for('main.editar_rifa', raffle_id=rifa.id) }}" class="btn btn-link p-1 text-decoration-none" title="Editar">
+                        <i class="bi bi-pencil text-warning fs-4"></i>
+                    </a>
+                    <button onclick="eliminarRifa({{ rifa.id }})" class="btn btn-link p-1 text-decoration-none" title="Eliminar">
+                        <i class="bi bi-trash text-danger fs-4"></i>
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% endif %}
     </div>

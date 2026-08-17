@@ -105,3 +105,51 @@ def backup_restore(backup_id):
         return jsonify({'ok': True, 'restart': True})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/admin/backup/open/<backup_id>')
+def backup_open_folder(backup_id):
+    """Abre la carpeta de respaldos del sistema, opcionalmente cerca del ZIP indicado."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    entry = next((e for e in _load_meta() if e['id'] == backup_id), None)
+    if not entry: return jsonify({'error': 'No encontrado'}), 404
+    zip_path = os.path.join(_BACKUP_DIR, entry['filename'])
+    if not os.path.exists(zip_path): return jsonify({'error': 'Archivo no encontrado'}), 404
+    try:
+        os.startfile(_BACKUP_DIR)
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/admin/backup/open-folder')
+def backup_open_root():
+    """Abre la carpeta raíz donde se guardan todos los respaldos."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    os.makedirs(_BACKUP_DIR, exist_ok=True)
+    try:
+        os.startfile(_BACKUP_DIR)
+        return jsonify({'ok': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/api/admin/backup/folder')
+def backup_folder():
+    """Devuelve la ruta de la carpeta de respaldos y el listado de archivos."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    os.makedirs(_BACKUP_DIR, exist_ok=True)
+    files = []
+    for name in sorted(os.listdir(_BACKUP_DIR), reverse=True):
+        full = os.path.join(_BACKUP_DIR, name)
+        if not os.path.isfile(full):
+            continue
+        files.append({
+            'name': name,
+            'size': os.path.getsize(full),
+            'modified': datetime.fromtimestamp(os.path.getmtime(full)).isoformat()
+        })
+    return jsonify({'ok': True, 'path': _BACKUP_DIR, 'files': files})

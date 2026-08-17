@@ -31,68 +31,81 @@ document.addEventListener('DOMContentLoaded', function() {
         
         <h2 class="fw-bold text-orange mb-3"><i class="bi bi-list-check me-2"></i>Selecciones: {{ rifa.name }}</h2>
         
-        <div class="mb-3">
-            <label class="form-label fw-bold">Establecer Ganadores (separados por coma)</label>
+        <div class="p-3 rounded-4 mb-3" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);">
+            <label class="form-label fw-bold text-dark">
+                <i class="bi bi-trophy-fill text-warning me-2"></i>Establecer Ganadores (separados por coma)
+            </label>
             <div class="input-group">
-                <input type="text" id="winnersInput" class="form-control" placeholder="Ej: 05, 23, 47" value="{{ winners|join(', ') }}">
-                <button onclick="setWinners()" class="btn btn-orange">Guardar</button>
+                <input type="text" id="winnersInput" class="form-control rounded-start-pill" style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);" placeholder="Ej: 05, 23, 47" value="{{ winners|join(', ') }}">
+                <button onclick="setWinners()" class="btn btn-orange rounded-end-pill px-4 fw-bold" type="button">
+                    <i class="bi bi-floppy me-1"></i>Guardar
+                </button>
             </div>
         </div>
         
-        <div class="table-responsive">
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th>Número</th>
-                        <th>Nombre</th>
-                        <th>Teléfono</th>
-                        <th>Pago</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Ganador</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for sel in selecciones %}
-                    <tr class="{% if sel.is_canceled %}text-muted{% endif %}">
-                        <td><strong>{{ sel.number }}</strong></td>
-                        <td>{{ sel.customer_name }}</td>
-                        <td>{{ sel.customer_phone }}</td>
-                        <td>{{ sel.payment_method }}</td>
-                        <td>{{ sel.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-                        <td>
-                            {% if sel.is_canceled %}
-                            <span class="badge bg-secondary">Cancelado</span>
-                            {% else %}
-                            <span class="badge bg-success">Activo</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if sel.number in winners %}
-                            <span class="badge bg-warning text-dark">🏆 GANADOR</span>
-                            {% endif %}
-                        </td>
-                        <td>
-                            {% if not sel.is_canceled %}
-                            {% if session.get('role') == 'Superusuario' %}
-                            <button onclick="eliminarSeleccion({{ sel.id }})" class="btn btn-sm btn-outline-danger rounded-pill me-1" title="Eliminar (Superusuario)">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
-                            {% endif %}
-                            <a href="https://wa.me/{{ sel.customer_phone | replace('+', '') }}?text={{ sel.raffle.name }} - Número: {{ sel.number }} - Total: ₡{{ sel.raffle.price }}" 
-                               target="_blank" 
-                               class="btn btn-sm btn-outline-orange rounded-pill" 
-                               title="Enviar por WhatsApp">
-                                <i class="bi bi-whatsapp"></i>
-                            </a>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div class="d-flex flex-column gap-3">
+            {% for sel in selecciones %}
+            <div class="p-3 rounded-4" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);{% if sel.is_canceled %}opacity:0.7;{% endif %}">
+                <div class="fw-bold text-dark mb-1 d-flex align-items-center flex-wrap gap-2">
+                    <span class="badge rounded-pill" style="background:rgba(255,140,0,0.15);border:1px solid rgba(255,140,0,0.3);color:#ff8c00;">#{{ sel.number }}</span>
+                    {{ sel.customer_name }}
+                    {% if sel.number in winners %}
+                    <span class="badge bg-warning text-dark rounded-pill">🏆 GANADOR</span>
+                    {% endif %}
+                </div>
+                <div class="small text-secondary d-flex flex-wrap gap-3 align-items-center">
+                    <span><i class="bi bi-telephone me-1 text-primary"></i>{{ sel.customer_phone }}</span>
+                    <span><i class="bi bi-cash-coin me-1 text-success"></i>{{ sel.payment_method }}</span>
+                    <span><i class="bi bi-calendar3 me-1 text-info"></i>{{ sel.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+                    <span>
+                        {% if sel.is_canceled %}
+                        <span class="badge bg-secondary rounded-pill">Cancelado</span>
+                        {% else %}
+                        <span class="badge bg-success rounded-pill">Activo</span>
+                        {% endif %}
+                    </span>
+                </div>
+                <hr class="my-2" style="border-top:1px solid rgba(255,255,255,0.35);opacity:0.7;">
+                <div class="d-flex justify-content-center gap-4 align-items-center">
+                    {% if not sel.is_canceled %}
+                    {% if session.get('role') == 'Superusuario' %}
+                    <button onclick="eliminarSeleccion({{ sel.id }})" class="btn btn-link p-1 text-decoration-none" title="Eliminar (Superusuario)">
+                        <i class="bi bi-trash text-danger fs-4"></i>
+                    </button>
+                    {% endif %}
+                    <a href="https://wa.me/{{ sel.customer_phone | replace('+', '') }}?text={{ sel.raffle.name }} - Número: {{ sel.number }} - Total: {{ sel.raffle.price|colones }}" 
+                       target="_blank" 
+                       class="btn btn-link p-1 text-decoration-none" 
+                       title="Enviar por WhatsApp">
+                        <i class="bi bi-whatsapp text-success fs-4"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
         </div>
+
+        {% if pagination and pagination.pages > 1 %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center flex-wrap gap-2">
+                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                    <a class="page-link rounded-pill" {% if pagination.has_prev %}href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id, page=pagination.prev_num) }}"{% else %}href="#"{% endif %} style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);color:#ff8c00;">Anterior</a>
+                </li>
+                {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                    <li class="page-item {% if p == pagination.page %}active{% endif %}">
+                        <a class="page-link rounded-pill" href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id, page=p) }}" style="{% if p == pagination.page %}background:#ff8c00;border:1px solid #ff8c00;color:#fff;{% else %}background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);color:#ff8c00;{% endif %}">{{ p }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link rounded-pill" style="background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#666;">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                    <a class="page-link rounded-pill" {% if pagination.has_next %}href="{{ url_for('main.ver_selecciones', raffle_id=rifa.id, page=pagination.next_num) }}"{% else %}href="#"{% endif %} style="background:rgba(255,255,255,0.25);border:1px solid rgba(255,255,255,0.4);color:#ff8c00;">Siguiente</a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
     </div>
 </div>
 

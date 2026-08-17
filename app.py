@@ -1,6 +1,9 @@
 # app.py
-import eventlet
-eventlet.monkey_patch()
+try:
+    import eventlet
+    eventlet.monkey_patch()
+except Exception:
+    pass
 
 import os
 from flask import Flask
@@ -18,6 +21,7 @@ import models_core, models_forms, models_rifas, models_publicaciones, models_cot
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+    app.config['TEMPLATES_AUTO_RELOAD'] = True
     
     # Agregar logging para debug de templates
     import logging
@@ -36,6 +40,12 @@ def create_app():
     app.register_blueprint(bp)
     app.register_blueprint(bp_cotizador)
 
+    @app.template_filter('colones')
+    def colones_filter(value):
+        try:
+            return f"₡{int(float(value)):,}"
+        except (ValueError, TypeError, AttributeError):
+            return value
 
     # Crear tablas e inyectar usuarios dentro del contexto de la aplicación
     with app.app_context():

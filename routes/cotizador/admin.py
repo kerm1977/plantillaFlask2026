@@ -122,6 +122,11 @@ def actualizar_cotizador(id):
         
         # Agregar nuevos lugares
         for lugar_data in data.get('lugares', []):
+            precio_raw = lugar_data.get('precio')
+            try:
+                precio = float(str(precio_raw)) if precio_raw is not None and str(precio_raw).strip() != '' else None
+            except (ValueError, TypeError):
+                precio = None
             lugar = CotizadorLugar(
                 cotizador_id=id,
                 nombre=lugar_data.get('nombre'),
@@ -134,6 +139,7 @@ def actualizar_cotizador(id):
                 maps_ida=lugar_data.get('maps_ida'),
                 maps_regreso=lugar_data.get('maps_regreso'),
                 moneda=lugar_data.get('moneda', 'colones'),
+                precio=precio,
                 order=lugar_data.get('order', 0)
             )
             db.session.add(lugar)

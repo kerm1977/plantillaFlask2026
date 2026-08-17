@@ -77,6 +77,7 @@ from routes import (        # noqa: E402, F401
     auth,
     events,
     events_crud,
+    publicaciones,
     music,
     rifas_json_backup,
     gpx,

@@ -259,7 +259,7 @@ function renderizarCotizacion() {
             <div class="lugar-card">
                 <div class="provincia">${l.provincia || 'Sin provincia'}</div>
                 <h5>${l.nombre}</h5>
-                <div class="precio">${moneda === 'colones' ? '₡' : '$'}${precio.toLocaleString()}</div>
+                <div class="precio">${moneda === 'colones' ? '₡' : '$'}${Number(precio).toLocaleString(undefined, {maximumFractionDigits: 0})}</div>
             </div>
         </div>
     `;

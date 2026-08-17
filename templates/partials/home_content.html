@@ -58,7 +58,7 @@
         <div class="col-12 col-md-10 col-lg-8">
             <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50 flex-wrap gap-2">
                 
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-grow-1 justify-content-evenly">
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
                         <i class="bi bi-search fs-5"></i>
                     </button>
@@ -77,6 +77,20 @@
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#divisasModal" title="Calculadora de Divisas">
                         <i class="bi bi-currency-exchange fs-5"></i>
                     </button>
+                    <a id="btnFacebookHome" href="https://www.facebook.com/LaTribuDeLosLibres/"
+                       target="_blank" rel="noopener"
+                       class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 text-decoration-none"
+                       style="width: 42px; height: 42px; color: #1877F2;"
+                       title="Facebook de La Tribu. Mantené presionado para copiar el enlace.">
+                        <i class="bi bi-facebook fs-5"></i>
+                    </a>
+                    <a href="https://wa.me/50686227500?text=Hola%2C%20solicito%20informaci%C3%B3n%20de%20las%20caminatas%20de%20La%20Tribu%20y%20c%C3%B3mo%20unirme.%20Mi%20nombre%3A%20___%20%2F%20tel%C3%A9fono%3A%20___.%20Gracias."
+                       target="_blank" rel="noopener"
+                       class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 text-decoration-none"
+                       style="width: 42px; height: 42px; color: #25D366;"
+                       title="WhatsApp: 8622-7500 | Lunes a sábado, 8 a.m. - 6 p.m. | Información de caminatas y cómo unirse">
+                        <i class="bi bi-whatsapp fs-5"></i>
+                    </a>
                 </div>
 
                 <div class="d-flex align-items-center flex-wrap gap-2 justify-content-end">
@@ -180,3 +194,73 @@
         </div>
     </div>
 </div>
+
+<script>
+(function() {
+    const fbBtn = document.getElementById('btnFacebookHome');
+    if (!fbBtn) return;
+
+    let timer = null;
+    let longPress = false;
+    const url = fbBtn.getAttribute('href');
+
+    function copyLink() {
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function() {
+                    alert('¡Enlace de Facebook copiado! Podés pegarlo en WhatsApp.');
+                }).catch(function() {
+                    fallbackCopy();
+                });
+            } else {
+                fallbackCopy();
+            }
+        } catch (e) {
+            fallbackCopy();
+        }
+    }
+
+    function fallbackCopy() {
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('¡Enlace de Facebook copiado! Podés pegarlo en WhatsApp.');
+    }
+
+    function start(e) {
+        longPress = false;
+        timer = setTimeout(function() {
+            longPress = true;
+            if (e && e.preventDefault) e.preventDefault();
+            copyLink();
+        }, 800);
+    }
+
+    function cancel() {
+        if (timer) {
+            clearTimeout(timer);
+            timer = null;
+        }
+    }
+
+    fbBtn.addEventListener('touchstart', start, {passive: false});
+    fbBtn.addEventListener('touchend', cancel);
+    fbBtn.addEventListener('touchmove', cancel);
+    fbBtn.addEventListener('touchcancel', cancel);
+    fbBtn.addEventListener('mousedown', start);
+    fbBtn.addEventListener('mouseup', cancel);
+    fbBtn.addEventListener('mouseleave', cancel);
+    fbBtn.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    fbBtn.addEventListener('click', function(e) {
+        if (longPress) {
+            e.preventDefault();
+            longPress = false;
+        }
+    });
+})();
+</script>

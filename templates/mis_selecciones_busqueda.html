@@ -76,12 +76,12 @@ function mostrarResultados(selections) {
         <div class="rounded-4 p-4 mb-3" style="background: rgba(255,255,255,0.7); border-left: 4px solid #ff8c00;">
             <h5 class="fw-bold">${group.raffle_name}</h5>
             <p class="mb-1"><strong>Nombre:</strong> ${group.customer_name}</p>
-            <p class="mb-1"><strong>Precio por número:</strong> ₡${group.price}</p>
+            <p class="mb-1"><strong>Precio por número:</strong> ₡${Number(group.price).toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
             <div class="mb-2">
                 <strong>Números seleccionados:</strong><br>
                 ${numbersHtml}
             </div>
-            <p class="fw-bold text-orange fs-5">Total a pagar: ₡${group.total}</p>
+            <p class="fw-bold text-orange fs-5">Total a pagar: ₡${Number(group.total).toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
             <div class="d-flex gap-2 flex-wrap">
                 <a href="/rifas/${group.raffle_id}" class="btn btn-orange rounded-pill">
                     <i class="bi bi-plus-circle me-1"></i>Agregar más números

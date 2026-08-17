@@ -29,7 +29,7 @@ body { padding-top: 0 !important; }
             <div class="card-body p-4">
                 <div class="input-group input-group-lg">
                     <span class="input-group-text bg-white border-0 ps-3"><i class="bi bi-search text-orange fs-5"></i></span>
-                    <input type="text" class="form-control border-0 shadow-none" id="buscadorCotizador" placeholder="Buscar lugar, provincia, precio, fecha, hora..." autocomplete="off">
+                    <input type="text" class="form-control border-0 shadow-none" id="buscadorCotizador" placeholder="Buscar lugar, provincia, precio, fecha, hora, código..." autocomplete="off">
                 </div>
             </div>
         </div>
@@ -76,6 +76,7 @@ body { padding-top: 0 !important; }
                 <div class="text-center mb-3">
                     <h6 class="fw-bold text-orange fs-5" id="detalleProvincia"></h6>
                     <span id="detalleDuracion" class="badge"></span>
+                    <span id="detalleTipo" class="badge ms-1"></span>
                 </div>
                 <div class="row g-3">
                     <div class="col-6">
@@ -195,6 +196,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('buscadorCotizador').addEventListener('input', filtrarLugares);
 
+    _prepararCodigos();
+
     const claveSession = sessionStorage.getItem('transaviClave');
     if(claveSession) {
         verificarClave(claveSession);
@@ -258,7 +261,7 @@ function filtrarLugares() {
             const precioLimpio = _limpiarTexto(l.precio).replace(/\D/g, '');
             const datos = [
                 l.nombre, l.provincia, l.duracion, l.fecha_ida, l.fecha_regreso,
-                l.hora, l.moneda, l.precio, precioLimpio
+                l.hora, l.moneda, l.precio, precioLimpio, l.codigo || ''
             ].join(' ');
             return _limpiarTexto(datos).includes(termino);
         });
@@ -328,7 +331,7 @@ function renderLugares(data) {
                         <hr class="my-3">
                         <div class="input-group input-group-sm">
                             <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
-                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${l.precio == null ? '' : l.precio}" oninput="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
+                            <input type="number" class="form-control fw-bold" id="precio_${l.id}" value="${(l.precio == null || l.precio === '' || l.precio === undefined) ? '' : Math.trunc(parseFloat(l.precio))}" oninput="guardarPrecio(${l.id}, this.value)" placeholder="Precio">
                         </div>
                     </div>
                 </div>
@@ -390,12 +393,16 @@ function verDetalle(id) {
     document.getElementById('detalleFechaRegreso').textContent = l.fecha_regreso || 'Por definir';
     document.getElementById('detalleFechaRegreso').parentElement.style.display = l.duracion == 'multiples_dias' ? 'block' : 'none';
     document.getElementById('detalleHora').textContent = l.hora || 'Por definir';
+    const tipo = l.tipo_caminata || 'circular';
+    const tipoBadge = document.getElementById('detalleTipo');
+    tipoBadge.textContent = (tipo == 'lineal' ? 'Lineal' : 'Circular');
+    tipoBadge.className = 'badge ms-1 ' + (tipo == 'lineal' ? 'bg-dark text-white' : 'bg-secondary');
     const mapaIda = document.getElementById('detalleMapaIda');
     const mapaRegreso = document.getElementById('detalleMapaRegreso');
-    const tipo = l.tipo_caminata || 'circular';
+    mapaIda.style.display = 'inline-flex';
     if(tipo == 'lineal') {
-        mapaIda.textContent = 'Mapa de inicio';
-        mapaRegreso.style.display = 'block';
+        mapaIda.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i>Mapa de inicio';
+        mapaRegreso.style.display = 'inline-flex';
         if(l.maps_ida) {
             mapaIda.href = l.maps_ida;
             mapaIda.classList.remove('disabled');
@@ -411,8 +418,9 @@ function verDetalle(id) {
             mapaRegreso.classList.add('disabled');
         }
     } else {
-        mapaIda.textContent = 'Mapa';
+        mapaIda.innerHTML = '<i class="bi bi-geo-alt-fill me-1"></i>Mapa';
         mapaRegreso.style.display = 'none';
+        mapaIda.style.display = 'inline-flex';
         if(l.maps_ida) {
             mapaIda.href = l.maps_ida;
             mapaIda.classList.remove('disabled');
@@ -436,12 +444,13 @@ function renderHistorial(l) {
         const originalIdx = historial.length - 1 - i;
         let precio = h.precio;
         if(precio === null || precio === undefined) precio = 'Sin precio';
+        const precioText = typeof precio === 'number' ? Number(precio).toLocaleString(undefined, {maximumFractionDigits: 0}) : precio;
         const fecha = h.fecha ? new Date(h.fecha).toLocaleString('es-CR') : 'Sin fecha';
         let botonEliminar = '';
         if(esSuper) {
             botonEliminar = `<button onclick="eliminarHistorial(${l.id}, ${originalIdx})" class="btn btn-sm btn-outline-danger border-0 p-0 ms-2" title="Eliminar"><i class="bi bi-trash"></i></button>`;
         }
-        return `<li class="list-group-item d-flex justify-content-between align-items-center small"><span class="fw-semibold">${moneda}${precio}</span><span class="text-muted small">${fecha}${botonEliminar}</span></li>`;
+        return `<li class="list-group-item d-flex justify-content-between align-items-center small"><span class="fw-semibold">${moneda}${precioText}</span><span class="text-muted small">${fecha}${botonEliminar}</span></li>`;
     }).join('');
     ul.innerHTML = html;
 }
@@ -494,7 +503,7 @@ async function enviarPrecio(id, nuevo) {
             l.precios_historial = guardado.precios_historial || l.precios_historial;
         }
         const input = document.getElementById('precio_'+id);
-        if(input) input.value = l.precio == null ? '' : l.precio;
+        if(input) input.value = (l.precio == null || l.precio === '') ? '' : Math.trunc(parseFloat(l.precio));
         renderHistorial(l);
     } catch(e) {
         alert('Error de conexion: ' + e.message);
@@ -535,14 +544,35 @@ async function guardarPrecios() {
         alert('Error de conexion: ' + e.message);
     }
 }
-function _textoLugar(l) {
+function _abreviaturaProvincia(nombre) {
+    const limpio = (nombre || 'XX').toString().toUpperCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Z0-9\s]/g, '').trim();
+    const partes = limpio.split(/\s+/).filter(p => p);
+    if(partes.length >= 2) {
+        return partes.slice(0, 2).map(p => p[0]).join('');
+    }
+    return (partes[0] || 'XX').substring(0, 2);
+}
+
+function _prepararCodigos() {
+    const indices = {};
+    lugaresData.forEach(l => {
+        const provincia = l.provincia || 'Sin provincia';
+        if(!indices[provincia]) indices[provincia] = 0;
+        indices[provincia]++;
+        l.codigo = _abreviaturaProvincia(provincia) + '-' + String(indices[provincia]).padStart(2, '0');
+    });
+}
+
+function _textoLugar(l, prefijo = '') {
     const precio = l.precio || '';
     const moneda = l.moneda == 'colones' ? '₡' : '$';
     const tipo = l.tipo_caminata || 'circular';
     const duracion = l.duracion == '1_dia' ? '1 dia' : 'Multiples dias';
     let texto = `- Nombre: ${l.nombre}\n`;
+    if(prefijo) texto += `- Codigo: ${prefijo}\n`;
     texto += `- Provincia: ${l.provincia || 'Pendiente'}\n`;
     texto += `- Duracion: ${duracion}\n`;
+    texto += `- Tipo: ${tipo == 'lineal' ? 'Lineal' : 'Circular'}\n`;
     texto += `- Salida: ${l.fecha_ida || 'Pendiente'}\n`;
     if(l.duracion === 'multiples_dias') {
         texto += `- Regreso: ${l.fecha_regreso || 'Pendiente'}\n`;
@@ -580,8 +610,9 @@ function exportarWhatsApp() {
     for(const [provincia, lugares] of Object.entries(grupos)) {
         texto += `*${provincia}*\n`;
         texto += '--------------------\n';
-        lugares.forEach(l => {
-            texto += _textoLugar(l);
+        lugares.forEach((l, i) => {
+            const prefijo = _abreviaturaProvincia(provincia) + '-' + String(i + 1).padStart(2, '0');
+            texto += _textoLugar(l, prefijo);
             texto += '\n';
         });
     }
@@ -597,10 +628,13 @@ function exportarWhatsApp() {
 function exportarLugarWhatsApp(id) {
     const l = lugaresData.find(x => x.id === id);
     if(!l) return;
+    const provincia = l.provincia || 'Sin provincia';
+    const index = lugaresData.filter(x => (x.provincia || 'Sin provincia') === provincia).findIndex(x => x.id === l.id) + 1;
+    const prefijo = _abreviaturaProvincia(provincia) + '-' + String(index).padStart(2, '0');
     let texto = _cabeceraWhatsApp();
     texto += `*${l.nombre}*\n`;
     texto += '--------------------\n';
-    texto += _textoLugar(l);
+    texto += _textoLugar(l, prefijo);
     texto += '\nEnlace publico para ver el detalle completo:\n' + window.location.href;
     document.getElementById('whatsappText').value = texto;
     whatsappModal.show();
@@ -612,8 +646,9 @@ function exportarProvinciaWhatsApp(provincia) {
     let texto = _cabeceraWhatsApp();
     texto += `*${provincia}*\n`;
     texto += '--------------------\n';
-    filtrados.forEach(l => {
-        texto += _textoLugar(l);
+    filtrados.forEach((l, i) => {
+        const prefijo = _abreviaturaProvincia(provincia) + '-' + String(i + 1).padStart(2, '0');
+        texto += _textoLugar(l, prefijo);
         texto += '\n';
     });
     texto += '\nEnlace publico para ver el detalle completo:\n' + window.location.href;

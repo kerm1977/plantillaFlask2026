@@ -33,6 +33,7 @@ flask_*.log
 # Backups y snapshots locales
 backups/
 templates_BACKUP_*/
+data/
 
 # Archivos temporales y del sistema
 *.tmp

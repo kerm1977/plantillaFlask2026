@@ -143,8 +143,8 @@
                     const res = await fetch(`/api/admin/delete_hiker/${currentHikerId}`, {method:'DELETE'});
                     const data = await res.json();
                     if (data.success) { document.querySelector('#hikerModal .btn-close').click(); loadHikers(); }
-                    else { alert(data.error||"No se pudo eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
-                } catch (err) { alert("Error de conexión al eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; } }
+                    else { alert(data.error||"No se pudo eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; }}
+                } catch (err) { alert("Error de conexión al eliminar."); if (btn) { btn.disabled=false; btn.className='btn btn-outline-danger fw-bold px-3 py-2 rounded-pill shadow-sm w-100'; btn.innerHTML='<i class="bi bi-trash-fill me-1"></i> Eliminar'; }}
             }
         });
     }

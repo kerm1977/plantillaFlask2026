@@ -5,7 +5,8 @@ from datetime import datetime, date
 from sqlalchemy import func
 from db import db
 from routes import bp
-from helpers.holidays import get_today_holiday
+from helpers.holidays import get_today_holiday, get_background_music
+from helpers.active_note import get_active_note
 
 
 @bp.route('/')
@@ -17,7 +18,13 @@ def home():
         Hiker.fecha_nacimiento != None
     ).all()
     today_holiday = get_today_holiday(today)
-    return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday)
+    if today_holiday and today_holiday.get('superuser_only') and session.get('role') not in ('Superusuario', 'Administrador'):
+        today_holiday = None
+    active_note = get_active_note()
+    if active_note and not active_note.get('is_public') and session.get('role') not in ('Superusuario', 'Administrador'):
+        active_note = None
+    background_music = get_background_music()
+    return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday, active_note=active_note, background_music=background_music)
 
 
 @bp.route('/api/eventos-activos')

@@ -1,0 +1,10 @@
+Flask
+Flask-SQLAlchemy
+SQLAlchemy
+Werkzeug
+bcrypt
+Pillow
+reportlab
+openpyxl
+Flask-SocketIO
+pymysql

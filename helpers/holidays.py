@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import json
 import os
 from db import db
-from models_core import Holiday
+from models_core import Holiday, BackgroundMusic
 
 
 _UNSET = object()
@@ -187,6 +187,15 @@ def _holiday_to_dict(row):
         'confetti_colors': json.loads(row.confetti_colors) if row.confetti_colors else list(_DEFAULT_CONFETTI),
         'song': row.song or '',
         'enabled': row.enabled,
+        'autoplay': row.autoplay,
+        'show_confetti': row.show_confetti if row.show_confetti is not None else True,
+        'custom_message': row.custom_message or '',
+        'show_player': row.show_player if row.show_player is not None else True,
+        'end_month': row.end_month,
+        'end_day': row.end_day,
+        'superuser_only': row.superuser_only if row.superuser_only is not None else False,
+        'link_url': row.link_url or '',
+        'link_enabled': row.link_enabled if row.link_enabled is not None else False,
         'custom': row.is_custom,
     }
     if row.nth_weekday_n is not None and row.nth_weekday_weekday is not None:
@@ -218,6 +227,15 @@ def _ensure_base_holidays():
                 confetti_colors=json.dumps(h.get('confetti_colors', _DEFAULT_CONFETTI)),
                 song=h.get('song', ''),
                 enabled=True,
+                autoplay=False,
+                show_confetti=True,
+                custom_message='',
+                show_player=True,
+                end_month=None,
+                end_day=None,
+                superuser_only=False,
+                link_url='',
+                link_enabled=False,
                 is_custom=False,
                 background=h.get('background'),
                 border=h.get('border'),
@@ -241,7 +259,7 @@ def get_holiday(holiday_id):
     return _holiday_to_dict(row) if row else None
 
 
-def update_holiday_override(holiday_id, enabled=None, title=None, subtitle=None, icon=None, song=_UNSET):
+def update_holiday_override(holiday_id, enabled=None, autoplay=None, show_confetti=None, custom_message=_UNSET, show_player=None, end_month=None, end_day=None, superuser_only=None, link_url=_UNSET, link_enabled=None, title=None, subtitle=None, icon=None, song=_UNSET):
     """Actualiza un feriado en la base de datos. Campos con _UNSET se ignoran."""
     _ensure_base_holidays()
     row = Holiday.query.get(holiday_id)
@@ -249,6 +267,24 @@ def update_holiday_override(holiday_id, enabled=None, title=None, subtitle=None,
         return None
     if enabled is not None:
         row.enabled = bool(enabled)
+    if autoplay is not None:
+        row.autoplay = bool(autoplay)
+    if show_confetti is not None:
+        row.show_confetti = bool(show_confetti)
+    if custom_message is not _UNSET:
+        row.custom_message = str(custom_message).strip() or None
+    if show_player is not None:
+        row.show_player = bool(show_player)
+    if end_month is not None:
+        row.end_month = int(end_month) if end_month else None
+    if end_day is not None:
+        row.end_day = int(end_day) if end_day else None
+    if superuser_only is not None:
+        row.superuser_only = bool(superuser_only)
+    if link_url is not _UNSET:
+        row.link_url = str(link_url).strip() or None
+    if link_enabled is not None:
+        row.link_enabled = bool(link_enabled)
     if title is not None:
         row.title = str(title).strip()
     if subtitle is not None:
@@ -261,13 +297,26 @@ def update_holiday_override(holiday_id, enabled=None, title=None, subtitle=None,
     return _holiday_to_dict(row)
 
 
+def _is_in_holiday_range(today, month, day, end_month, end_day):
+    """Retorna True si hoy cae dentro del rango de fechas."""
+    if end_month is None or end_day is None:
+        return today.month == month and today.day == day
+    year = today.year
+    start = date(year, month, day)
+    end = date(year, end_month, end_day)
+    if end < start:
+        end = date(year + 1, end_month, end_day)
+    return start <= today <= end
+
+
 def get_today_holiday(today):
     """Retorna el dict del feriado activo que corresponde a la fecha dada, o None."""
     _ensure_base_holidays()
     for row in Holiday.query.filter_by(enabled=True).all():
         h = _holiday_to_dict(row)
-        if h.get('day') is not None and today.month == h['month'] and today.day == h['day']:
-            return h
+        if h.get('day') is not None:
+            if _is_in_holiday_range(today, h['month'], h['day'], h.get('end_month'), h.get('end_day')):
+                return h
         if h.get('nth_weekday') and today == nth_weekday(today.year, h['month'], h['nth_weekday'][1], h['nth_weekday'][0]):
             return h
     return None
@@ -313,6 +362,28 @@ def _normalize_to_row(data, holiday_id, is_custom=True, existing=None):
     colors = data.get('confetti_colors') or list(_DEFAULT_CONFETTI)
     row.confetti_colors = json.dumps(colors)
     row.enabled = bool(data.get('enabled', True))
+    if 'autoplay' in data:
+        row.autoplay = str(data['autoplay']).strip().lower() in ('true', '1', 'on')
+    if 'show_confetti' in data:
+        row.show_confetti = str(data['show_confetti']).strip().lower() in ('true', '1', 'on')
+    if 'custom_message' in data:
+        row.custom_message = str(data['custom_message']).strip() or None
+    if 'show_player' in data:
+        row.show_player = str(data['show_player']).strip().lower() in ('true', '1', 'on')
+    if 'end_month' in data and data['end_month']:
+        row.end_month = int(data['end_month'])
+    else:
+        row.end_month = None
+    if 'end_day' in data and data['end_day']:
+        row.end_day = int(data['end_day'])
+    else:
+        row.end_day = None
+    if 'superuser_only' in data:
+        row.superuser_only = str(data['superuser_only']).strip().lower() in ('true', '1', 'on')
+    if 'link_url' in data:
+        row.link_url = str(data['link_url']).strip() or None
+    if 'link_enabled' in data:
+        row.link_enabled = str(data['link_enabled']).strip().lower() in ('true', '1', 'on')
     row.song = str(data.get('song', '')).strip() or None
     row.nth_weekday_n = None
     row.nth_weekday_weekday = None
@@ -349,3 +420,38 @@ def delete_custom_holiday(holiday_id):
     db.session.delete(row)
     db.session.commit()
     return True
+
+
+def _music_to_dict(row):
+    return {
+        'id': row.id,
+        'enabled': row.enabled,
+        'songs': json.loads(row.songs) if row.songs else [],
+        'random': row.random,
+    }
+
+
+def get_background_music():
+    """Retorna la configuración de música de fondo."""
+    row = BackgroundMusic.query.filter_by(id=1).first()
+    if not row:
+        row = BackgroundMusic(id=1, enabled=False, songs='[]', random=True)
+        db.session.add(row)
+        db.session.commit()
+    return _music_to_dict(row)
+
+
+def update_background_music(enabled=None, songs=None, random=None):
+    """Actualiza la configuración de música de fondo."""
+    row = BackgroundMusic.query.filter_by(id=1).first()
+    if not row:
+        row = BackgroundMusic(id=1)
+        db.session.add(row)
+    if enabled is not None:
+        row.enabled = bool(enabled)
+    if songs is not None:
+        row.songs = json.dumps(songs)
+    if random is not None:
+        row.random = bool(random)
+    db.session.commit()
+    return _music_to_dict(row)

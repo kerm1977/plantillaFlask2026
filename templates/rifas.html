@@ -50,7 +50,7 @@
                 <!-- Meta total -->
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="rounded-4 p-3 text-center h-100" style="background:rgba(255,255,255,0.6);border:1px solid rgba(255,140,0,0.15);">
-                        <div style="font-size:1.4rem;font-weight:900;color:#1a1a1a;">₡{{ '{:,.0f}'.format(stats.meta) }}</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#1a1a1a;">{{ stats.meta|colones }}</div>
                         <small class="text-secondary fw-semibold">Meta Total</small>
                         <div class="mt-1"><small class="text-muted">100 × precio × rifas</small></div>
                     </div>
@@ -58,7 +58,7 @@
                 <!-- Recaudado -->
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="rounded-4 p-3 text-center h-100" style="background:rgba(40,167,69,0.08);border:1px solid rgba(40,167,69,0.2);">
-                        <div style="font-size:1.4rem;font-weight:900;color:#198754;">₡{{ '{:,.0f}'.format(stats.recaudado) }}</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#198754;">{{ stats.recaudado|colones }}</div>
                         <small class="text-secondary fw-semibold">Recaudado</small>
                         <div class="mt-1"><small class="text-success fw-bold">{{ stats.porcentaje }}% de la meta</small></div>
                     </div>
@@ -66,7 +66,7 @@
                 <!-- Pendiente -->
                 <div class="col-12 col-md-6 col-lg-3">
                     <div class="rounded-4 p-3 text-center h-100" style="background:rgba(220,53,69,0.07);border:1px solid rgba(220,53,69,0.15);">
-                        <div style="font-size:1.4rem;font-weight:900;color:#dc3545;">₡{{ '{:,.0f}'.format(stats.pendiente) }}</div>
+                        <div style="font-size:1.4rem;font-weight:900;color:#dc3545;">{{ stats.pendiente|colones }}</div>
                         <small class="text-secondary fw-semibold">Por Recaudar</small>
                         <div class="mt-1"><small class="text-muted">{{ 100 - stats.porcentaje }}% restante</small></div>
                     </div>
@@ -78,7 +78,7 @@
                 <div class="d-flex justify-content-between small mb-1">
                     <span class="text-muted">₡0</span>
                     <span class="fw-bold text-orange">{{ stats.porcentaje }}% recaudado</span>
-                    <span class="text-muted">₡{{ '{:,.0f}'.format(stats.meta) }}</span>
+                    <span class="text-muted">{{ stats.meta|colones }}</span>
                 </div>
                 <div class="progress" style="height:12px;border-radius:8px;background:rgba(0,0,0,0.08);">
                     <div class="progress-bar" role="progressbar"
@@ -118,7 +118,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
                                 <small class="text-secondary">Precio:</small>
-                                <span class="fw-bold text-orange fs-5">₡{{ rifa.price }}</span>
+                                <span class="fw-bold text-orange fs-5">{{ rifa.price|colones }}</span>
                             </div>
                             <div class="text-end">
                                 <small class="text-secondary">Premio:</small>

@@ -4,13 +4,10 @@
 
 cd ~/plantillaFlask2026 || { echo "[!] No se encontro ~/plantillaFlask2026"; exit 1; }
 
-# Ignorar cambios de permisos para evitar conflictos con git
-command -v git >/dev/null 2>&1 && git config core.fileMode false
-
 # Evitar que Android duerma Termux mientras corre
 command -v termux-wake-lock >/dev/null && termux-wake-lock
 
-# Asegurar que este script siga ejecutable
+# Asegurar que este script sigue ejecutable
 test -f "$0" && chmod +x "$0"
 
 # Instalar herramientas basicas si faltan
@@ -31,10 +28,10 @@ rm -rf __pycache__
 rm -rf routes/__pycache__
 
 echo "[*] Actualizando desde GitHub..."
-git pull
+git pull || true
 
 echo "[*] Instalando dependencias Python..."
-pip install -r requirements.txt
+pip install -r requirements_termux.txt
 
 echo "[*] Iniciando Flask en segundo plano..."
 tmux kill-session -t tribu_app 2>/dev/null || true
@@ -48,19 +45,26 @@ if ! command -v cloudflared >/dev/null 2>&1; then
 fi
 
 echo "[*] Iniciando Cloudflare Tunnel..."
-if [ -f ~/.cloudflared_token ]; then
-    TOKEN=$(cat ~/.cloudflared_token | tr -d '\r\n')
+TOKEN_FILE=""
+if [ -f cloudflared_token.txt ]; then
+    TOKEN_FILE="cloudflared_token.txt"
+elif [ -f ~/.cloudflared_token ]; then
+    TOKEN_FILE="$HOME/.cloudflared_token"
+fi
+
+if [ -n "$TOKEN_FILE" ]; then
+    TOKEN=$(cat "$TOKEN_FILE" | tr -d '\r\n')
     tmux kill-session -t tribu_cloud 2>/dev/null || true
     tmux new -d -s tribu_cloud "cloudflared tunnel run --token '$TOKEN'"
     echo "[OK] La Tribu y Cloudflare reiniciados."
-    echo "    Flask local: https://localhost:5050"
+    echo "    Flask local: http://localhost:5050"
     echo "    Dominio: https://latribu.top"
-    echo "    Para ver: tmux attach -t tribu_app"
+    echo "    Para ver app: tmux attach -t tribu_app"
     echo "    Para tunel: tmux attach -t tribu_cloud"
 else
-    echo "[OK] Flask reiniciado, pero no se encontro ~/.cloudflared_token"
-    echo "    Solo local: https://localhost:5050"
-    echo "    Para ver: tmux attach -t tribu_app"
+    echo "[OK] Flask reiniciado, pero no se encontro token de Cloudflare"
+    echo "    Solo local: http://localhost:5050"
+    echo "    Para ver app: tmux attach -t tribu_app"
 fi
 
 echo "[*] Listo. Para detener todo: tmux kill-session -t tribu_app; tmux kill-session -t tribu_cloud"

@@ -181,13 +181,14 @@ def ver_selecciones(raffle_id):
         flash('Acceso denegado', 'danger')
         return redirect(url_for('main.home'))
     rifa = Raffle.query.get_or_404(raffle_id)
-    selecciones = RaffleSelection.query.filter_by(raffle_id=raffle_id).order_by(
-        RaffleSelection.created_at.desc()).all()
+    page = request.args.get('page', 1, type=int)
+    pagination = RaffleSelection.query.filter_by(raffle_id=raffle_id).order_by(
+        RaffleSelection.created_at.desc()).paginate(page=page, per_page=10, error_out=False)
     try:
         winners = json.loads(rifa.winning_numbers) if rifa.winning_numbers else []
     except Exception:
         winners = []
-    return render_template('rifa_selecciones.html', rifa=rifa, selecciones=selecciones, winners=winners)
+    return render_template('rifa_selecciones.html', rifa=rifa, selecciones=pagination.items, pagination=pagination, winners=winners)
 
 
 # ── BUSCAR GANADOR POR NÚMERO ────────────────────────────────────────────────

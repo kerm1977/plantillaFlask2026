@@ -23,10 +23,17 @@
                     <p class="fw-semibold text-dark mb-0" style="font-size:1.1rem;">
                         {% if icono.startswith('bi-') or icono.startswith('bi ') %}<i class="{{ icono }}"></i>{% else %}{{ icono }}{% endif %} {{ today_holiday.title }} {% if icono.startswith('bi-') or icono.startswith('bi ') %}<i class="{{ icono }}"></i>{% else %}{{ icono }}{% endif %}
                     </p>
+                    {% if today_holiday.get('custom_message') %}
+                    <p class="small text-secondary mb-0">{{ today_holiday.custom_message }}</p>
+                    {% else %}
                     <p class="small text-secondary mb-0">Te lo desea La Tribu de Los Libres</p>
+                    {% endif %}
+                    {% if today_holiday.get('link_enabled') and today_holiday.get('link_url') %}
+                    <a href="{{ today_holiday.link_url }}" target="_blank" class="btn btn-sm btn-outline-orange rounded-pill mt-3">Abrir enlace</a>
+                    {% endif %}
                 </div>
-                {% if today_holiday.get('song') %}
-                <audio id="holidayAudio" controls style="width:100%;"
+                {% if today_holiday.get('song') and today_holiday.get('show_player', True) %}
+                <audio id="holidayAudio" controls style="width:100%;" {% if today_holiday.get('autoplay') %}autoplay{% endif %}
                        src="{{ url_for('static', filename='musica/' + today_holiday.song) }}">
                     Tu navegador no soporta el reproductor de audio.
                 </audio>
@@ -44,7 +51,7 @@
     </div>
 </div>
 
-{% if today_holiday.get('song') %}
+{% if today_holiday.get('song') and today_holiday.get('show_player', True) %}
 <button id="holidayStopBtn" type="button" class="btn btn-sm btn-dark position-fixed"
         style="top:1rem; left:1rem; z-index:1060; opacity:0.85; display:none;"
         onclick="stopHolidayAudio()" aria-label="Detener sonido">
@@ -89,12 +96,17 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         if (localStorage.getItem(HOLIDAY_FOREVER_KEY) === '1' || localStorage.getItem(HOLIDAY_KEY) === today) return;
+        if (audio && {{ today_holiday.get('autoplay', False)|tojson }}) {
+            audio.play().catch(function(e) { console.log('Autoplay bloqueado:', e); });
+        }
         setTimeout(function() {
             const modal = new bootstrap.Modal(document.getElementById('holidayModal'));
             const modalEl = document.getElementById('holidayModal');
             modalEl.addEventListener('shown.bs.modal', function() {
                 if (stopBtn) stopBtn.style.display = 'block';
+                {% if today_holiday.get('show_confetti', True) %}
                 launchConfetti();
+                {% endif %}
                 if (audio) {
                     audio.play().catch(function(e) { console.log('Autoplay bloqueado:', e); });
                 }

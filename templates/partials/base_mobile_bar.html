@@ -1,9 +1,10 @@
     <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
-    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-evenly gap-3 px-3">
+    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-evenly">
         <a href="/" class="mobile-nav-item">
             <i class="bi bi-house-door-fill fs-3 mb-1"></i>
             <span>Inicio</span>
         </a>
+        <div id="mobilePinnedContainer" style="display: contents;"></div>
         <!-- Logo de Sueños -->
         <a id="logoSuenosMobileLink" href="#" target="_blank" class="d-none d-md-none">
             <img id="logoSuenosMobile" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-mobile animate-heartbeat">

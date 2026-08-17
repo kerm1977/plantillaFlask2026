@@ -109,7 +109,7 @@ function renderLugares() {
                     <div class="mt-3 pt-3 border-top">
                         <div class="input-group">
                             <span class="input-group-text ${l.moneda=='colones'?'bg-success text-white':'bg-primary text-white'}">${l.moneda=='colones'?'₡':'$'}</span>
-                            <input type="number" class="form-control form-control-sm fw-bold" id="precio_${l.id}" value="${l.precio||''}" placeholder="Precio" readonly>
+                            <input type="number" class="form-control form-control-sm fw-bold" id="precio_${l.id}" value="${(l.precio == null || l.precio === '' || l.precio === undefined) ? '' : Math.trunc(parseFloat(l.precio))}" placeholder="Precio" readonly>
                         </div>
                     </div>
                 </div>
@@ -179,6 +179,8 @@ function eliminarCotizador() {
         }
     });
 }
+
+
 renderLugares();
 </script>
 {% endblock %}
