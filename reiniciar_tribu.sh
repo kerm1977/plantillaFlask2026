@@ -35,7 +35,7 @@ pip install -r requirements_termux.txt
 
 echo "[*] Iniciando Flask en segundo plano..."
 tmux kill-session -t tribu_app 2>/dev/null || true
-tmux new -d -s tribu_app "cd ~/plantillaFlask2026 && python app.py; sleep 3600"
+tmux new -d -s tribu_app "cd ~/plantillaFlask2026 && mkdir -p data && python app.py > data/app.log 2>&1; sleep 3600"
 
 echo "[*] Verificando cloudflared..."
 if ! command -v cloudflared >/dev/null 2>&1; then
