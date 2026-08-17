@@ -14,25 +14,26 @@ def inject_superusers():
     for email in Config.SUPERUSER_EMAILS:
         email = email.lower().strip()
         user = User.query.filter_by(email=email).first()
-        if not user and Config.SUPERUSER_PASSWORD:
-            new_super = User(
-                role='Superusuario',
-                weight=100,
-                name='Kenneth',
-                last_name_1='Ruiz',
-                last_name_2='Matamoros',
-                email=email,
-                password_hash=hash_password(Config.SUPERUSER_PASSWORD),
-                status='Activo',
-                avatar='default.png'
-            )
-            db.session.add(new_super)
-            print(f"--- Superusuario inyectado: {email} ---")
+        if not user:
+            if Config.SUPERUSER_PASSWORD:
+                new_super = User(
+                    role='Superusuario',
+                    weight=100,
+                    name='Kenneth',
+                    last_name_1='Ruiz',
+                    last_name_2='Matamoros',
+                    email=email,
+                    password_hash=hash_password(Config.SUPERUSER_PASSWORD),
+                    status='Activo',
+                    avatar='default.png'
+                )
+                db.session.add(new_super)
+                print(f"--- Superusuario inyectado: {email} ---")
         else:
             if user.role != 'Superusuario' or user.weight != 100:
-                 user.role = 'Superusuario'
-                 user.weight = 100
-                 db.session.add(user)
-                 print(f"--- Rol corregido a Superusuario para: {email} ---")
+                user.role = 'Superusuario'
+                user.weight = 100
+                db.session.add(user)
+                print(f"--- Rol corregido a Superusuario para: {email} ---")
 
     db.session.commit()
