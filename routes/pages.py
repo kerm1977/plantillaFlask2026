@@ -21,7 +21,7 @@ def home():
     if today_holiday and today_holiday.get('superuser_only') and session.get('role') not in ('Superusuario', 'Administrador'):
         today_holiday = None
     active_note = get_active_note()
-    if active_note and not active_note.get('is_public') and session.get('role') not in ('Superusuario', 'Administrador'):
+    if active_note and not active_note.get('is_public') and not today_holiday and session.get('role') not in ('Superusuario', 'Administrador'):
         active_note = None
     background_music = get_background_music()
     return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday, active_note=active_note, background_music=background_music)
