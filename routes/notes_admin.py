@@ -2,7 +2,7 @@ from flask import request, jsonify, session, current_app, send_file, render_temp
 from flask_socketio import join_room, leave_room, emit
 from models import Note
 from db import db
-from routes import bp
+from routes import bp, ALLOWED_IMAGE_EXTENSIONS
 from socketio_instance import socketio
 from datetime import datetime
 import os
