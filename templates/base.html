@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=5">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_hero.css') }}?v=1">
 
     {% include 'partials/base_styles.html' %}
 </head>
@@ -37,7 +38,10 @@
             <div class="container-fluid">
                 <!-- Marca de la Navbar SÚPER LIMPIA -->
                 <a class="navbar-brand text-orange fw-bold fs-4 d-flex align-items-center gap-2" href="/">
-                    <i class="bi bi-compass"></i> La Tribu
+                    <span class="brand-logo-halo">
+                        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="44">
+                    </span>
+                    <span class="d-none d-md-inline">La Tribu</span>
                 </a>
                 <div class="ms-auto d-flex align-items-center gap-3">
                     {% if session.get('user_id') %}
@@ -60,6 +64,8 @@
             </div>
         </nav>
     </div>
+
+    {% block hero %}{% endblock %}
 
     <!-- Contenido Principal -->
     <main class="container mt-2 mt-md-5 mb-5 pb-5 content-wrapper">

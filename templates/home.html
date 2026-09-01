@@ -1,6 +1,10 @@
 <!-- Archivo: templates/home.html -->
 {% extends "base.html" %}
 
+{% block hero %}
+{% include 'partials/home_hero.html' %}
+{% endblock %}
+
 {% block content %}
 
 {% include 'partials/home_styles.html' %}
