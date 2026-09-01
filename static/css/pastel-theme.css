@@ -1,0 +1,125 @@
+/* Tema pastel: reemplaza la mayoría de los acentos naranjas por colores pastel suaves */
+
+:root {
+  --primary-orange: #ff9a8b;
+  --primary-hover: #ff7f70;
+
+  --pastel-coral: #ff9a8b;
+  --pastel-salmon: #f4a261;
+  --pastel-yellow: #f9d89c;
+  --pastel-green: #a8d5ba;
+  --pastel-blue: #a2d2ff;
+  --pastel-lavender: #b5a7d9;
+  --pastel-pink: #f4c2c2;
+}
+
+/* Enlaces generales */
+a {
+  color: var(--pastel-coral) !important;
+}
+a:hover,
+a:focus {
+  color: var(--pastel-lavender) !important;
+}
+
+/* Clases personalizadas naranja */
+.text-orange {
+  color: var(--pastel-coral) !important;
+}
+.bg-orange {
+  background-color: var(--pastel-salmon) !important;
+}
+.border-orange {
+  border-color: var(--pastel-blue) !important;
+}
+
+.btn-orange {
+  background-color: var(--pastel-green) !important;
+  border-color: var(--pastel-green) !important;
+  color: #333 !important;
+}
+.btn-orange:hover,
+.btn-orange:focus {
+  background-color: var(--pastel-blue) !important;
+  border-color: var(--pastel-blue) !important;
+  color: #333 !important;
+}
+
+.btn-outline-orange {
+  color: var(--pastel-lavender) !important;
+  border-color: var(--pastel-lavender) !important;
+}
+.btn-outline-orange:hover,
+.btn-outline-orange:focus {
+  background-color: var(--pastel-lavender) !important;
+  color: #fff !important;
+}
+
+.btn-warning-orange {
+  background-color: var(--pastel-yellow) !important;
+  border-color: var(--pastel-yellow) !important;
+  color: #333 !important;
+}
+.btn-warning-orange:hover,
+.btn-warning-orange:focus {
+  background-color: var(--pastel-pink) !important;
+  border-color: var(--pastel-pink) !important;
+  color: #333 !important;
+}
+
+/* Acentos de componentes globales */
+.btn-global-back {
+  background-color: var(--pastel-coral) !important;
+  color: #fff !important;
+}
+.btn-global-back:hover {
+  background-color: var(--pastel-pink) !important;
+}
+
+.btn-pwa {
+  background-color: var(--pastel-green) !important;
+  color: #333 !important;
+}
+
+.custom-navbar {
+  border-bottom-color: var(--pastel-blue) !important;
+}
+
+.mobile-bottom-bar {
+  border-top-color: var(--pastel-blue) !important;
+}
+
+.custom-alert {
+  border-color: var(--pastel-coral) !important;
+}
+
+/* Formularios */
+.glass-input:focus,
+.custom-modal input:focus,
+.custom-modal select:focus {
+  border-color: var(--pastel-lavender) !important;
+  box-shadow: 0 0 0 0.25rem rgba(165, 180, 210, 0.25) !important;
+}
+
+/* Calendario / eventos */
+.mes-titulo {
+  color: var(--pastel-coral) !important;
+  border-bottom-color: var(--pastel-coral) !important;
+}
+.evento-item {
+  border-left-color: var(--pastel-coral) !important;
+}
+
+/* Sliders / controles */
+.image-editor-controls input[type=range]::-webkit-slider-thumb {
+  border-color: var(--pastel-coral) !important;
+}
+.glass-range::-webkit-slider-thumb {
+  background: var(--pastel-coral) !important;
+}
+
+/* Spinner de carga */
+.spinner-border.text-orange,
+.text-orange.spinner-border {
+  color: var(--pastel-coral) !important;
+}
