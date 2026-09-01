@@ -96,6 +96,29 @@ body::before {
 .custom-navbar {
     padding: 0.8rem 2rem;
     z-index: 1040;
+    position: relative;
+}
+
+/* Reflejo dinámico naranja claro en navbars */
+.custom-navbar::before,
+.mobile-bottom-bar::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(120deg, transparent 30%, rgba(255, 180, 100, 0.10) 45%, rgba(255, 220, 170, 0.15) 50%, rgba(255, 180, 100, 0.10) 55%, transparent 70%);
+    background-size: 250% 100%;
+    pointer-events: none;
+    z-index: 0;
+    animation: navbar-shine 4s ease-in-out infinite;
+}
+
+@keyframes navbar-shine {
+    0% { background-position: 200% 0; }
+    50% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
 }
 
 /* Ajustes de Mobile Bottom Bar */
