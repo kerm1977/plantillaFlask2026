@@ -150,3 +150,22 @@
   75% { color: rgba(255, 200, 0, 0.85); }
   100% { color: rgba(255, 140, 0, 0.85); }
 }
+
+/* Hero detrás de la barra de navegación en el home */
+.home-hero-page #navbar-top {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+  position: relative;
+}
+
+.home-hero-page #navbar-top .custom-navbar {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  z-index: 1030;
+}
+
+.home-hero-page .home-hero-wrapper {
+  z-index: 0;
+}

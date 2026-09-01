@@ -31,9 +31,9 @@
 
     {% include 'partials/base_styles.html' %}
 </head>
-<body>
+<body{% block body_attrs %}{% endblock %}>
     <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
-    <div class="container mt-4">
+    <div id="navbar-top" class="container mt-4">
         <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
             <div class="container-fluid">
                 <!-- Marca de la Navbar SÚPER LIMPIA -->
