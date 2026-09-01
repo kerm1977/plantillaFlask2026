@@ -49,6 +49,21 @@ body::before {
     }
 }
 
+/* Fondo pizarrón para la página de caminatas */
+.caminatas-page {
+    background: #33383d;
+    color: #f8f9fa;
+}
+
+.caminatas-page::before {
+    display: none;
+}
+
+.caminatas-page .text-dark,
+.caminatas-page .text-muted {
+    color: #f8f9fa !important;
+}
+
 .glass-panel {
     background: rgba(255, 255, 255, 0.4);
     backdrop-filter: blur(10px);
