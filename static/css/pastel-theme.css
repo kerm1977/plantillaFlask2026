@@ -62,17 +62,15 @@ footer a:hover,
   color: #FF0000 !important;
 }
 
-/* Iconos de Caminatas con colores totalmente diferentes */
-#btnToggleOpciones i.bi-search {
-  color: #f4a261 !important;
-}
+/* Iconos de Caminatas con colores totalmente diferentes y bordes a juego */
+#btnToggleOpciones i.bi-search,
 .search-container .bi-search {
-  color: #a2d2ff !important;
+  color: #2ecc71 !important;
 }
 
 button[title="Oración de La Tribu"] i.bi-stars,
 #prayerModalToggle i.bi-stars {
-  color: #ffd700 !important;
+  color: #d4a017 !important;
 }
 
 #btnInstallPWA i.bi-download {
@@ -111,6 +109,63 @@ a[href*="wa.me"] {
 
 #btnViewList i.bi-list-ul {
   color: #a2d2ff !important;
+}
+
+/* Bordes de los botones circulares/pastilla con el mismo color de su ícono */
+#btnToggleOpciones,
+.search-container .btn {
+  border-color: #2ecc71 !important;
+}
+
+button[title="Oración de La Tribu"] {
+  border-color: #d4a017 !important;
+}
+
+#btnInstallPWA {
+  border-color: #b5a7d9 !important;
+}
+
+button[title="Quiénes Somos"] {
+  border-color: #ff9a8b !important;
+}
+
+#btnOpenPlayer {
+  border-color: #f4a261 !important;
+}
+
+button[title="Calculadora de Divisas"] {
+  border-color: #a8d5ba !important;
+}
+
+#btnFacebookHome {
+  border-color: #1877F2 !important;
+}
+
+a[href*="wa.me"] {
+  border-color: #25D366 !important;
+}
+
+#btnToggleAllMonths {
+  border-color: #f4c2c2 !important;
+}
+
+#btnViewGrid {
+  border-color: #b5a7d9 !important;
+}
+
+#btnViewList {
+  border-color: #a2d2ff !important;
+}
+
+/* Eliminar borde naranja por defecto de .btn-glass-action */
+.btn-glass-action {
+  border-color: rgba(180, 180, 180, 0.5) !important;
+  color: #666 !important;
+}
+.btn-glass-action:hover {
+  border-color: rgba(120, 120, 120, 0.8) !important;
+  color: #333 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Clases personalizadas naranja */
