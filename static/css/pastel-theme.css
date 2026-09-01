@@ -13,13 +13,104 @@
   --pastel-pink: #f4c2c2;
 }
 
-/* Enlaces generales */
+/* Enlaces generales (sin !important para no pisar iconos de redes) */
 a {
-  color: var(--pastel-coral) !important;
+  color: var(--pastel-coral);
 }
 a:hover,
 a:focus {
-  color: var(--pastel-lavender) !important;
+  color: var(--pastel-lavender);
+}
+
+/* Botón hero "Nuestras caminatas": fondo pastel amarillo, texto negro */
+.hero-content .btn-hero {
+  background: #f9d89c !important;
+  color: #000 !important;
+  border: none !important;
+}
+.hero-content .btn-hero:hover,
+.hero-content .btn-hero:focus {
+  background: #f4a261 !important;
+  color: #000 !important;
+}
+
+/* Footer: textos legales y enlaces unificados al color del copyright */
+footer a,
+.ft-legal-compact a {
+  color: #bbb !important;
+}
+footer a:hover,
+.ft-legal-compact a:hover {
+  color: #fff !important;
+}
+.ft-legal-compact,
+.ft-main-item p {
+  color: #bbb !important;
+}
+
+/* Iconos de redes sociales del footer con colores oficiales */
+.ft-social-list .bi-facebook {
+  color: #1877F2 !important;
+}
+.ft-social-list .bi-instagram {
+  color: #E4405F !important;
+}
+.ft-social-list .bi-whatsapp {
+  color: #25D366 !important;
+}
+.ft-social-list .bi-youtube {
+  color: #FF0000 !important;
+}
+
+/* Iconos de Caminatas con colores totalmente diferentes */
+#btnToggleOpciones i.bi-search {
+  color: #f4a261 !important;
+}
+.search-container .bi-search {
+  color: #a2d2ff !important;
+}
+
+button[title="Oración de La Tribu"] i.bi-stars,
+#prayerModalToggle i.bi-stars {
+  color: #ffd700 !important;
+}
+
+#btnInstallPWA i.bi-download {
+  color: #b5a7d9 !important;
+}
+
+button[title="Quiénes Somos"] i.bi-info-circle {
+  color: #ff9a8b !important;
+}
+
+#btnOpenPlayer i.bi-music-note-beamed {
+  color: #f4a261 !important;
+}
+
+button[title="Calculadora de Divisas"] i.bi-currency-exchange {
+  color: #a8d5ba !important;
+}
+
+#btnFacebookHome,
+#btnFacebookHome i.bi-facebook {
+  color: #1877F2 !important;
+}
+
+a[href*="wa.me"] i.bi-whatsapp,
+a[href*="wa.me"] {
+  color: #25D366 !important;
+}
+
+#btnToggleAllMonths i.bi-arrows-expand {
+  color: #f4c2c2 !important;
+}
+
+#btnViewGrid i.bi-grid-fill {
+  color: #b5a7d9 !important;
+}
+
+#btnViewList i.bi-list-ul {
+  color: #a2d2ff !important;
 }
 
 /* Clases personalizadas naranja */
@@ -55,11 +146,14 @@ a:focus {
   color: #fff !important;
 }
 
+.btn-warning,
 .btn-warning-orange {
   background-color: var(--pastel-yellow) !important;
   border-color: var(--pastel-yellow) !important;
   color: #333 !important;
 }
+.btn-warning:hover,
+.btn-warning:focus,
 .btn-warning-orange:hover,
 .btn-warning-orange:focus {
   background-color: var(--pastel-pink) !important;
