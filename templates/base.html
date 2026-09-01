@@ -73,6 +73,8 @@
         {% endblock %}
     </main>
 
+    {% block footer %}{% endblock %}
+
     <!-- Botón Volver Atrás Global (OCULTO EN INICIO) -->
     {% if request.path != '/' %}
     <button id="btnBack" class="btn-global-back" onclick="window.location.href='https://www.latribu.top';" title="Volver Atrás">
