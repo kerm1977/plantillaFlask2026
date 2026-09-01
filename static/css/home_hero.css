@@ -169,3 +169,16 @@
 .home-hero-page .home-hero-wrapper {
   z-index: 0;
 }
+
+.home-hero-page #navbar-top .container-fluid {
+  justify-content: flex-end;
+}
+
+.home-hero-page #navbar-top .navbar-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  white-space: nowrap;
+}
