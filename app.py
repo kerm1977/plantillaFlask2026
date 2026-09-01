@@ -15,7 +15,7 @@ from users import inject_superusers
 from socketio_instance import socketio
 from migrations import run_migrations
 
-import models_core, models_forms, models_rifas, models_publicaciones, models_cotizador  # Cargar todos los modelos
+import models_core, models_forms, models_rifas, models_publicaciones, models_cotizador, models_home_media  # Cargar todos los modelos
 
 
 def create_app():

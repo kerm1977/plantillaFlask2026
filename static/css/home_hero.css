@@ -309,3 +309,112 @@ footer input[type="submit"] {
 .ft-legal-sep {
   margin: 0 0.5rem;
 }
+
+/* Carrusel de medios en el home */
+.hero-slides {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  z-index: 0;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.hero-slide .home-hero-img,
+.hero-slide .hero-media-video,
+.hero-slide .hero-link-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-media-video iframe,
+.hero-media-video > span {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.hero-facebook-wrap .fb-video,
+.hero-facebook-wrap .fb-xfbml-parse-ignore {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.hero-link-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  text-decoration: none;
+}
+
+.hero-link-slide::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.hero-link-title {
+  position: relative;
+  color: #fff;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  padding: 1rem 2rem;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  border-radius: 2rem;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.hero-media-controls {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 0.5rem 0.75rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.hero-media-controls .btn {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #333;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.hero-media-controls .btn:hover {
+  background: #fff;
+  color: #000;
+}
+
+.hero-volume {
+  width: 90px;
+  accent-color: #ff8c00;
+}

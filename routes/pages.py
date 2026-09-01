@@ -1,5 +1,5 @@
 from flask import render_template, session, redirect, url_for, jsonify, request, make_response
-from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent
+from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia
 from models_core import EventDateChange
 from datetime import datetime, date
 from sqlalchemy import func
@@ -28,7 +28,8 @@ def _home_context():
 
 @bp.route('/')
 def home():
-    return render_template('home.html')
+    home_media = HomeMedia.query.filter_by(is_active=True).order_by(HomeMedia.sort_order.asc(), HomeMedia.id.asc()).all()
+    return render_template('home.html', home_media=home_media)
 
 
 @bp.route('/caminatas')

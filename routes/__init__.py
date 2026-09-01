@@ -94,6 +94,7 @@ from routes import (        # noqa: E402, F401
     forms_responses,
     rifas_admin, rifas_public, rifas_json_backup, agenda, notes,
     admin_holidays,
+    home_media,
 )
 
 # Re-exportar para app.py
