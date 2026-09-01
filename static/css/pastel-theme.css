@@ -272,3 +272,200 @@ a[href*="wa.me"] {
 .text-orange.spinner-border {
   color: var(--pastel-coral) !important;
 }
+
+/* Iconos de herramientas administrativas con colores pastel variados */
+/* Azul pastel */
+.bi-speedometer2,
+.bi-journal-medical,
+.bi-calendar-event,
+.bi-calendar3,
+.bi-calendar-check,
+.bi-calendar-check-fill,
+.bi-calendar-heart-fill,
+.bi-database-fill-gear,
+.bi-gear-fill,
+.bi-inbox,
+.bi-list-check,
+.bi-list-ul,
+.bi-grid-fill,
+.bi-shield-lock-fill,
+.bi-lock-fill,
+.bi-lock {
+  color: #a2d2ff !important;
+}
+
+/* Verde pastel */
+.bi-search,
+.bi-arrow-clockwise,
+.bi-check-circle,
+.bi-check-circle-fill,
+.bi-check-lg,
+.bi-check2,
+.bi-check2-circle,
+.bi-check-square,
+.bi-arrow-counterclockwise,
+.bi-save,
+.bi-floppy,
+.bi-cloud-upload-fill,
+.bi-cloud-arrow-down-fill,
+.bi-cloud-download-fill,
+.bi-download,
+.bi-upload,
+.bi-arrow-down,
+.bi-arrow-up {
+  color: #2ecc71 !important;
+}
+
+/* Coral pastel */
+.bi-people-fill,
+.bi-person-check-fill,
+.bi-person-circle,
+.bi-person-plus,
+.bi-person-plus-fill,
+.bi-person-lines-fill,
+.bi-heart-fill,
+.bi-heart-pulse,
+.bi-heart-pulse-fill,
+.bi-bag-check-fill,
+.bi-cart-plus,
+.bi-people {
+  color: #ff9a8b !important;
+}
+
+/* Salmón pastel */
+.bi-card-list,
+.bi-database-down,
+.bi-database,
+.bi-filetype-json,
+.bi-file-earmark,
+.bi-file-earmark-spreadsheet,
+.bi-file-earmark-excel-fill,
+.bi-file-earmark-text-fill,
+.bi-file-earmark-image,
+.bi-file-earmark-upload,
+.bi-file-pdf,
+.bi-file-text,
+.bi-filetype-pdf,
+.bi-clipboard,
+.bi-clipboard-data,
+.bi-journal-text,
+.bi-journal,
+.bi-calendar-x {
+  color: #f4a261 !important;
+}
+
+/* Lavanda pastel */
+.bi-pencil,
+.bi-pencil-square,
+.bi-pencil-fill,
+.bi-link-45deg,
+.bi-share,
+.bi-share-fill,
+.bi-box-arrow-up-right,
+.bi-box-arrow-in-right,
+.bi-arrow-left,
+.bi-arrow-left-right,
+.bi-magic,
+.bi-image,
+.bi-images,
+.bi-type-bold,
+.bi-type-italic,
+.bi-type-underline,
+.bi-type-strikethrough,
+.bi-text-left,
+.bi-text-center,
+.bi-text-right,
+.bi-justify,
+.bi-list-ol,
+.bi-three-dots-vertical,
+.bi-gear {
+  color: #b5a7d9 !important;
+}
+
+/* Amarillo pastel */
+.bi-plus,
+.bi-plus-lg,
+.bi-plus-circle,
+.bi-plus-circle-dotted,
+.bi-plus-circle-fill,
+.bi-stars,
+.bi-music-note,
+.bi-music-note-beamed,
+.bi-play-circle-fill,
+.bi-pause-circle-fill,
+.bi-skip-start-fill,
+.bi-skip-end-fill,
+.bi-soundwave,
+.bi-trophy,
+.bi-trophy-fill,
+.bi-tag-fill,
+.bi-exclamation-triangle,
+.bi-exclamation-triangle-fill,
+.bi-exclamation-octagon-fill {
+  color: #f9d89c !important;
+}
+
+/* Rosa pastel */
+.bi-trash,
+.bi-trash-fill,
+.bi-trash3,
+.bi-trash-check-fill,
+.bi-x-circle,
+.bi-x-circle-fill,
+.bi-x-lg,
+.bi-x,
+.bi-slash-circle,
+.bi-x-octagon,
+.bi-eraser {
+  color: #f4c2c2 !important;
+}
+
+/* Menta pastel */
+.bi-eye,
+.bi-eye-fill,
+.bi-eye-slash,
+.bi-zoom-in,
+.bi-map,
+.bi-map-fill,
+.bi-geo-alt,
+.bi-geo-alt-fill,
+.bi-telephone,
+.bi-telephone-fill,
+.bi-phone,
+.bi-credit-card,
+.bi-credit-card-fill,
+.bi-bank,
+.bi-cash-coin,
+.bi-ui-checks,
+.bi-airplane-fill,
+.bi-bus-front,
+.bi-info-circle,
+.bi-info-circle-fill {
+  color: #a8d5ba !important;
+}
+
+/* Dorado pastel */
+.bi-lightbulb-fill,
+.bi-lightbulb,
+.bi-bullseye,
+.bi-question-circle,
+.bi-info-circle {
+  color: #ffd700 !important;
+}
+
+/* Redes sociales: conservar colores oficiales */
+.bi-facebook {
+  color: #1877F2 !important;
+}
+.bi-whatsapp {
+  color: #25D366 !important;
+}
+.bi-instagram {
+  color: #E4405F !important;
+}
+.bi-youtube {
+  color: #FF0000 !important;
+}
+.bi-tiktok {
+  color: #000000 !important;
+}
