@@ -105,7 +105,7 @@
 .brand-logo-halo img {
   position: relative;
   z-index: 1;
-  height: 44px;
+  height: 60px;
   width: auto;
   display: block;
   border-radius: 50%;
@@ -168,10 +168,6 @@
 
 .home-hero-page .home-hero-wrapper {
   z-index: 0;
-}
-
-.home-hero-page #navbar-top .container-fluid {
-  justify-content: flex-end;
 }
 
 .home-hero-page #navbar-top .navbar-brand {
