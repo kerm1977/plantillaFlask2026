@@ -1,7 +1,7 @@
 /* Estilos base para el efecto Glassmorphism */
 body {
-    background: linear-gradient(120deg, #ffe0bd 0%, #ffcc99 100%);
-    background-attachment: fixed;
+    background: #f5f2eb;
+    color: #333;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -10,20 +10,7 @@ body {
 }
 
 body::before {
-    content: "";
-    position: fixed;
-    top: -20%;
-    left: -20%;
-    width: 140%;
-    height: 140%;
-    background:
-        radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.35) 0%, rgba(255, 230, 200, 0.2) 25%, rgba(255, 204, 153, 0.1) 45%, transparent 70%),
-        radial-gradient(circle at 70% 70%, rgba(255, 255, 255, 0.25) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 20% at 50% 50%, rgba(255, 255, 255, 0.12) 0%, transparent 60%);
-    filter: blur(40px);
-    z-index: -1;
-    animation: nebulaMove 20s ease-in-out infinite;
-    pointer-events: none;
+    display: none;
 }
 
 @keyframes nebulaMove {
