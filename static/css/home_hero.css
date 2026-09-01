@@ -179,6 +179,18 @@
   white-space: nowrap;
 }
 
+/* Logo de navbar centrado en escritorio en todas las páginas */
+.custom-navbar .container-fluid {
+  position: relative;
+}
+.custom-navbar .navbar-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
 /* Footer pegado directamente debajo del hero */
 .home-hero-page main.content-wrapper {
   margin-top: 0 !important;

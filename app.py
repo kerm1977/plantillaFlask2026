@@ -40,6 +40,14 @@ def create_app():
     app.register_blueprint(bp)
     app.register_blueprint(bp_cotizador)
 
+    @app.after_request
+    def no_cache_private_pages(response):
+        if not request.path.startswith('/static'):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '-1'
+        return response
+
     @app.template_filter('colones')
     def colones_filter(value):
         try:

@@ -67,7 +67,7 @@ window.submitLogin = async function() {
             body: JSON.stringify({ email: email, password: password })
         });
         const result = await response.json();
-        if (response.ok) window.location.reload();
+        if (response.ok) window.location.replace(window.location.href);
         else showMessage('loginMessage', result.error || 'Error al iniciar sesión');
     } catch (err) { showMessage('loginMessage', 'Error de conexión'); }
 };
