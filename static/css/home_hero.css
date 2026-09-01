@@ -183,6 +183,6 @@
 .mobile-bottom-bar .mobile-nav-item:hover,
 .mobile-bottom-bar .mobile-nav-item:hover i,
 .mobile-bottom-bar .mobile-nav-item:hover span {
-  color: #ff5e00 !important;
+  color: #000 !important;
   transition: color 0.15s ease;
 }
