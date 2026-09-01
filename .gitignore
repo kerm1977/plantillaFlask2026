@@ -44,6 +44,12 @@ data/
 .DS_Store
 Thumbs.db
 
+# Archivos multimedia subidos (no van al repo)
+static/uploads/*.mp4
+static/uploads/*.mov
+static/uploads/*.webm
+static/uploads/home_media/
+
 # IDEs
 .vscode/
 .idea/

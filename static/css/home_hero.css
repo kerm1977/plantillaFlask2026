@@ -340,6 +340,14 @@ footer input[type="submit"] {
   object-fit: cover;
 }
 
+@media (min-width: 768px) {
+  .hero-slide .home-hero-img,
+  .hero-slide .hero-media-video {
+    object-fit: contain;
+    background: #111;
+  }
+}
+
 .hero-media-video iframe,
 .hero-media-video > span {
   position: absolute;
