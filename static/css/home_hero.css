@@ -187,15 +187,12 @@
   transition: color 0.15s ease;
 }
 
-/* Footer */
-body.home-hero-page {
-  display: flex;
-  min-height: 100vh;
-  flex-direction: column;
-}
-
-body.home-hero-page main {
-  flex: 1;
+/* Footer pegado directamente debajo del hero */
+.home-hero-page main.content-wrapper {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 footer {
