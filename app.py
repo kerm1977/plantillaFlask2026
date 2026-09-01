@@ -6,7 +6,7 @@ except Exception:
     pass
 
 import os
-from flask import Flask
+from flask import Flask, request
 from config import Config
 from db import db, configure_db_uri
 from routes import bp, inject_site_content
