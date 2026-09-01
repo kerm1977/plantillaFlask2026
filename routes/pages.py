@@ -9,8 +9,7 @@ from helpers.holidays import get_today_holiday, get_background_music
 from helpers.active_note import get_active_note
 
 
-@bp.route('/')
-def home():
+def _home_context():
     notifications = Notification.query.all()
     today = date.today()
     birthday_hikers = Hiker.query.filter(
@@ -24,7 +23,17 @@ def home():
     if active_note and not active_note.get('is_public') and not today_holiday and session.get('role') not in ('Superusuario', 'Administrador'):
         active_note = None
     background_music = get_background_music()
-    return render_template('home.html', notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday, active_note=active_note, background_music=background_music)
+    return dict(notifications=notifications, birthday_hikers=birthday_hikers, today_holiday=today_holiday, active_note=active_note, background_music=background_music)
+
+
+@bp.route('/')
+def home():
+    return render_template('home.html')
+
+
+@bp.route('/caminatas')
+def caminatas():
+    return render_template('caminatas.html', **_home_context())
 
 
 @bp.route('/api/eventos-activos')

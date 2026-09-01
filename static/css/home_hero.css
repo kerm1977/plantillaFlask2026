@@ -178,3 +178,11 @@
   z-index: 2;
   white-space: nowrap;
 }
+
+/* Hover naranja fuerte en la barra inferior móvil */
+.mobile-bottom-bar .mobile-nav-item:hover,
+.mobile-bottom-bar .mobile-nav-item:hover i,
+.mobile-bottom-bar .mobile-nav-item:hover span {
+  color: #ff5e00 !important;
+  transition: color 0.15s ease;
+}
