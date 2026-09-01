@@ -53,7 +53,7 @@
     </div>
 
 
-    <!-- CONTROLES SUPERIORES: BOTÓN OPCIONES, ORACIÓN Y VISTA -->
+    <!-- CONTROLES SUPERIORES -->
     <div class="row justify-content-center mb-3">
         <div class="col-12 col-md-10 col-lg-8">
             <div class="d-flex justify-content-between align-items-center pb-3 border-bottom border-white border-opacity-50 flex-wrap gap-2">
@@ -62,14 +62,8 @@
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="collapse" data-bs-target="#filtersCollapse" id="btnToggleOpciones" title="Opciones de Búsqueda">
                         <i class="bi bi-search fs-5"></i>
                     </button>
-                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#prayerModal" title="Oración de La Tribu">
-                        <i class="bi bi-stars fs-5"></i>
-                    </button>
                     <button id="btnInstallPWA" class="btn btn-orange rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0 d-none" style="width: 42px; height: 42px;" onclick="installPWA()" title="Instalar App">
                         <i class="bi bi-download fs-5"></i>
-                    </button>
-                    <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" data-bs-toggle="modal" data-bs-target="#aboutModal" title="Quiénes Somos">
-                        <i class="bi bi-info-circle fs-5"></i>
                     </button>
                     <button class="btn btn-glass-action rounded-circle shadow-sm d-flex align-items-center justify-content-center p-0" style="width: 42px; height: 42px;" type="button" id="btnOpenPlayer" onclick="openMusicPlayer()" title="Reproductor de Música">
                         <i class="bi bi-music-note-beamed fs-5"></i>
@@ -149,41 +143,6 @@
         </div>
     </div>
     
-    <!-- SECCIÓN DE NOTA DE LA TRIBU (COLAPSABLE Y JUSTIFICADA) -->
-    <div class="row justify-content-center mt-3 mb-5">
-        <div class="col-12 col-md-10 col-lg-8">
-            <div class="glass-panel rounded-4 p-4 shadow-sm border border-white border-opacity-50">
-                <!-- Cabecera Clickable -->
-                <div class="d-inline-flex align-items-center user-select-none" 
-                     data-bs-toggle="collapse" 
-                     data-bs-target="#collapseNotaTribu" 
-                     aria-expanded="false" 
-                     aria-controls="collapseNotaTribu" 
-                     style="cursor: pointer;">
-                    <h4 class="fw-bold text-dark mb-0 me-2 d-flex align-items-center">
-                        <i class="bi bi-info-circle-fill text-orange me-2"></i>Nota:
-                    </h4>
-                    <!-- La flechita que girará -->
-                    <i class="bi bi-chevron-down fs-5 text-dark" id="notaChevron"></i>
-                </div>
-
-                <!-- Contenido Colapsable -->
-                <div class="collapse mt-3" id="collapseNotaTribu">
-                    <div class="text-secondary" style="text-align: justify; line-height: 1.7; font-size: 0.95rem;">
-                        <p class="mb-3">La Tribu de Los Libres es un grupo Privado del Cantón de La Unión de Cartago Costa Rica. Aunque somos Tour Operadores Oficiales del Camino de Costa Rica  no organizamos eventos fuera de nuestra comunidad de La Tribu. No estamos cerrados a agregar a más aventurer@s que deseen formar parte de esta comunidad, pero intentamos mantener un ambiente libre de indeseables situaciones y personas que con mala intención se acercan a La Tribu. Por respeto y seguridad de tod@s los caminantes decidimos cuántas personas llevaremos a ciertas rutas según su complejidad y dificultad. Preferimos la Personalización que lo masivo. Puedes comunicarte a los teléfonos <strong>86227500</strong> y <strong>86529837</strong>.</p>
-                        
-                        <p class="mb-4">No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas.</p>
-                        
-                        <div class="text-center text-md-start">
-                            <a href="https://www.facebook.com/LaTribuDeLosLibres/" target="_blank" class="btn btn-outline-orange rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center">
-                                <i class="bi bi-facebook fs-5 me-2"></i>Visítanos en Facebook
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <script>

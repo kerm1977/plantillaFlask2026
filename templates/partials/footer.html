@@ -3,11 +3,11 @@
     <div class="ft-main-item">
       <h2 class="ft-title">Quiénes somos</h2>
       <ul>
-        <li><a href="#">Nuestra historia</a></li>
-        <li><a href="#">Misión</a></li>
+        <li><a href="{{ url_for('main.nuestra_historia') }}">Nuestra historia</a></li>
+        <li><a href="{{ url_for('main.mision') }}">Misión</a></li>
         <li><a href="#">Equipo</a></li>
         <li><a href="#">Aliados</a></li>
-        <li><a href="#">Beneficios</a></li>
+        <li><a href="{{ url_for('main.nuestra_oracion') }}">Nuestra oración</a></li>
       </ul>
     </div>
     <div class="ft-main-item">
@@ -18,36 +18,18 @@
         <li><a href="#">Recomendaciones</a></li>
       </ul>
     </div>
-    <div class="ft-main-item">
-      <h2 class="ft-title">Contáctanos</h2>
-      <p>Suscríbete para recibir novedades.</p>
-      <form onsubmit="event.preventDefault();">
-        <input type="email" name="email" placeholder="Correo electrónico">
-        <input type="submit" value="Suscribirme">
-      </form>
-    </div>
   </section>
 
   <section class="ft-social">
     <ul class="ft-social-list">
       <li>
-        <a href="#" target="_blank" rel="noopener" aria-label="Facebook">
+        <a href="https://www.facebook.com/LaTribuDeLosLibres/" target="_blank" rel="noopener" aria-label="Facebook">
           <i class="bi bi-facebook"></i>
         </a>
       </li>
       <li>
-        <a href="#" target="_blank" rel="noopener" aria-label="Instagram">
-          <i class="bi bi-instagram"></i>
-        </a>
-      </li>
-      <li>
-        <a href="#" target="_blank" rel="noopener" aria-label="WhatsApp">
+        <a href="https://wa.me/50686227500?text=Hola%2C%20solicito%20informaci%C3%B3n%20de%20las%20caminatas%20de%20La%20Tribu%20y%20c%C3%B3mo%20unirme.%20Mi%20nombre%3A%20___%20%2F%20tel%C3%A9fono%3A%20___.%20Gracias." target="_blank" rel="noopener" aria-label="WhatsApp">
           <i class="bi bi-whatsapp"></i>
-        </a>
-      </li>
-      <li>
-        <a href="#" target="_blank" rel="noopener" aria-label="YouTube">
-          <i class="bi bi-youtube"></i>
         </a>
       </li>
     </ul>

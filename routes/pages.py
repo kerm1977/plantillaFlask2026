@@ -1,5 +1,5 @@
 from flask import render_template, session, redirect, url_for, jsonify, request, make_response
-from models import Notification, Event, Hiker, Publicacion, LogoConfig
+from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent
 from models_core import EventDateChange
 from datetime import datetime, date
 from sqlalchemy import func
@@ -34,6 +34,29 @@ def home():
 @bp.route('/caminatas')
 def caminatas():
     return render_template('caminatas.html', **_home_context())
+
+
+from routes.about import DEFAULT_SITE_CONTENT
+
+
+def _get_site_text(key):
+    row = SiteContent.query.filter_by(key=key).first()
+    return row.value if row else DEFAULT_SITE_CONTENT.get(key, '')
+
+
+@bp.route('/nuestra-historia')
+def nuestra_historia():
+    return render_template('nuestra_historia.html', historia_text=_get_site_text('quienes_somos'))
+
+
+@bp.route('/mision')
+def mision():
+    return render_template('mision.html', mision_text=_get_site_text('nota'))
+
+
+@bp.route('/nuestra-oracion')
+def nuestra_oracion():
+    return render_template('nuestra_oracion.html', oracion_text=_get_site_text('oracion'))
 
 
 @bp.route('/api/eventos-activos')

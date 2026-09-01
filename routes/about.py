@@ -45,6 +45,10 @@ DEFAULT_SITE_CONTENT = {
         "QUE TU PROTECCIÓN LLEGUE A LOS DEMÁS GRUPOS Y SENDERISTAS DEL MUNDO QUE COMPARTEN NUESTRA MISMA PASIÓN PARA QUE LLEVEMOS UN CORAZÓN PASIVO, ALEGRE Y SERENO CON UN ESPÍRITU PROTECTOR DE LA NATURALEZA Y NUESTRO ENTORNO, DISFRUTANDO ASÍ CADA PASO QUE DAMOS EN NUESTRA NACIÓN Y NUESTRA TIERRA.\n\n"
         "QUE HOY LA NATURALEZA Y LA MONTAÑA SE SOMETAN A TU ORDEN Y A TU PROTECCIÓN..... PARA QUE CONVIVAMOS CON ELLA DE MANERA PASIVA Y ARMONIOSA.\n\n"
         "FORTALECE NUESTRA AMISTAD, NUESTRA HERMANDAD Y DIOS CUBRA CON SU SANGRE PRECIOSA A ESTE GRUPO LLAMADO LA TRIBU."
+    ),
+    'nota': (
+        "La Tribu de Los Libres es un grupo Privado del Cantón de La Unión de Cartago Costa Rica. Aunque somos Tour Operadores Oficiales del Camino de Costa Rica, no organizamos eventos fuera de nuestra comunidad de La Tribu. No estamos cerrados a agregar a más aventurer@s que deseen formar parte de esta comunidad, pero intentamos mantener un ambiente libre de indeseables situaciones y personas que con mala intención se acercan a La Tribu. Por respeto y seguridad de tod@s los caminantes decidimos cuántas personas llevaremos a ciertas rutas según su complejidad y dificultad. Preferimos la Personalización que lo masivo. Puedes comunicarte a los teléfonos 86227500 y 86529837.\n\n"
+        "No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas."
     )
 }
 

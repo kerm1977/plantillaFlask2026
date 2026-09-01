@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Misión - La Tribu{% endblock %}
+
+{% block content %}
+<div class="container animate__animated animate__fadeIn py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="glass-panel rounded-5 p-4 p-md-5 shadow-sm border-0">
+        <h1 class="fw-bold text-dark mb-4"><i class="bi bi-bullseye text-orange me-3"></i>Misión</h1>
+        <div class="text-dark lh-lg" style="white-space: pre-line; font-size: 1.05rem; text-align: justify;">
+          {{ mision_text }}
+        </div>
+        <div class="mt-4 text-center text-md-start">
+          <a href="https://www.facebook.com/LaTribuDeLosLibres/" target="_blank" class="btn btn-outline-orange rounded-pill px-4 fw-bold shadow-sm d-inline-flex align-items-center">
+            <i class="bi bi-facebook fs-5 me-2"></i>Visítanos en Facebook
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block footer %}{% include 'partials/footer.html' %}{% endblock %}
