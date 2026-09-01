@@ -112,7 +112,7 @@ body::before {
     background-size: 250% 100%;
     pointer-events: none;
     z-index: 0;
-    animation: navbar-shine 4s ease-in-out infinite;
+    animation: navbar-shine 10s ease-in-out infinite;
 }
 
 @keyframes navbar-shine {
