@@ -115,7 +115,7 @@ body::before {
 }
 
 .mobile-nav-item {
-    color: #495057;
+    color: #fff;
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -126,7 +126,7 @@ body::before {
 }
 
 .mobile-nav-item:hover, .mobile-nav-item:active {
-    color: var(--primary-orange, #ff8c00);
+    color: #000;
     transform: translateY(-2px);
 }
 

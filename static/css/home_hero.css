@@ -179,14 +179,6 @@
   white-space: nowrap;
 }
 
-/* Hover naranja fuerte en la barra inferior móvil */
-.mobile-bottom-bar .mobile-nav-item:hover,
-.mobile-bottom-bar .mobile-nav-item:hover i,
-.mobile-bottom-bar .mobile-nav-item:hover span {
-  color: #000 !important;
-  transition: color 0.15s ease;
-}
-
 /* Footer pegado directamente debajo del hero */
 .home-hero-page main.content-wrapper {
   margin-top: 0 !important;
