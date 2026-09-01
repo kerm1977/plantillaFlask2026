@@ -62,7 +62,7 @@
   window.fbAsyncInit = function() {
     FB.init({
       appId: '',
-      xfbml: true,
+      xfbml: false,
       version: 'v18.0'
     });
     FB.Event.subscribe('xfbml.ready', function(msg) {
@@ -74,6 +74,9 @@
       }
     });
     if (window.initHomeCarousel) window.initHomeCarousel();
+    if (window.FB && window.FB.XFBML && window.FB.XFBML.parse) {
+      window.FB.XFBML.parse(document.getElementById('heroSlides'));
+    }
   };
 
   (function(d, s, id) {
@@ -299,9 +302,6 @@
     if (carouselInitialized) return;
     carouselInitialized = true;
     setupControls();
-    if (window.FB && window.FB.XFBML && window.FB.XFBML.parse) {
-      window.FB.XFBML.parse(document.getElementById('heroSlides'));
-    }
     showSlide(0);
     startAutoplay();
   };

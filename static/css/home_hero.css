@@ -348,8 +348,9 @@ footer input[type="submit"] {
   height: 100% !important;
 }
 
-.hero-facebook-wrap .fb-video,
-.hero-facebook-wrap .fb-xfbml-parse-ignore {
+.hero-facebook-wrap,
+.hero-facebook-wrap > span,
+.hero-facebook-wrap iframe {
   width: 100% !important;
   height: 100% !important;
 }
