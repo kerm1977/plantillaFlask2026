@@ -1,9 +1,5 @@
-<!-- Administración del carrusel del home -->
+<!-- Modal administración del carrusel del home -->
 {% if session.get('role') == 'Superusuario' %}
-<button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #6f42c1; border: 2px solid #6f42c1;" data-bs-toggle="modal" data-bs-target="#homeMediaAdminModal">
-    <i class="bi bi-images me-2"></i>Administrar Carrusel
-</button>
-
 <div class="modal fade" id="homeMediaAdminModal" tabindex="-1" aria-labelledby="homeMediaAdminModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content glass-modal border-0 shadow-lg">
