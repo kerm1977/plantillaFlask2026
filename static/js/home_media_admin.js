@@ -10,17 +10,21 @@
   const urlGroup = document.getElementById('hmUrlGroup');
   const fileGroup = document.getElementById('hmFileGroup');
   const previewContainer = document.getElementById('hmPreview');
+  const urlInput = document.getElementById('hmUrl');
+  const fileInput = document.getElementById('hmFile');
 
   function toggleFields() {
     const type = typeSelect.value;
-    if (type === 'image') {
+    if (type === 'image' || type === 'video') {
       urlGroup.classList.add('d-none');
       fileGroup.classList.remove('d-none');
-      document.getElementById('hmUrl').removeAttribute('required');
+      urlInput.required = false;
+      fileInput.required = true;
     } else {
       urlGroup.classList.remove('d-none');
       fileGroup.classList.add('d-none');
-      document.getElementById('hmUrl').setAttribute('required', 'required');
+      urlInput.required = type !== 'link';
+      fileInput.required = false;
     }
   }
 
@@ -42,7 +46,7 @@
   }
 
   function typeLabel(type) {
-    const map = { image: 'Imagen', youtube: 'YouTube', facebook: 'Facebook', link: 'Enlace' };
+    const map = { image: 'Imagen', video: 'Video archivo', youtube: 'YouTube', facebook: 'Facebook', link: 'Enlace' };
     return map[type] || type;
   }
 
@@ -53,7 +57,7 @@
     }
     let html = '<div class="list-group list-group-flush rounded-4">';
     items.forEach((item, idx) => {
-      const thumb = item.type === 'image'
+      const thumb = item.type === 'image' || item.type === 'video'
         ? `<img src="/static/uploads/home_media/${item.filename}" class="rounded-3" style="width:64px;height:48px;object-fit:cover;">`
         : `<span class="badge bg-secondary">${typeLabel(item.type)}</span>`;
       html += `

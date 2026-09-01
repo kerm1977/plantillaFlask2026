@@ -46,10 +46,10 @@ def api_home_media_create():
     sort_order = int(data.get('sort_order', 0) or 0)
     filename = None
 
-    if media_type == 'image':
+    if media_type in ('image', 'video'):
         file = request.files.get('file')
         if not file or file.filename == '':
-            return jsonify({'error': 'Debe subir una imagen'}), 400
+            return jsonify({'error': 'Debe subir un archivo'}), 400
         if not _allowed_file(file.filename):
             return jsonify({'error': 'Formato no permitido'}), 400
         _ensure_upload_dir()
@@ -102,7 +102,7 @@ def api_home_media_update(media_id):
             url = _normalize_youtube_url(url)
         item.url = url
 
-    if item.type == 'image':
+    if item.type in ('image', 'video'):
         file = request.files.get('file')
         if file and file.filename != '':
             if not _allowed_file(file.filename):

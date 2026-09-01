@@ -5,6 +5,10 @@
         <div class="hero-slide {% if loop.first %}active{% endif %}" data-type="{{ item.type }}" data-index="{{ loop.index0 }}">
             {% if item.type == 'image' %}
                 <img class="home-hero-img" src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" alt="{{ item.title or 'La Tribu' }}" loading="eager">
+            {% elif item.type == 'video' %}
+                <video class="hero-media-video hero-local-video" muted playsinline loop preload="auto" poster="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}">
+                    <source src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" type="video/mp4">
+                </video>
             {% elif item.type == 'youtube' %}
                 <div class="hero-media-video" id="yt-player-{{ item.id }}" data-yt-url="{{ item.url }}"></div>
             {% elif item.type == 'facebook' %}
@@ -128,6 +132,10 @@
     showSlide((current + 1) % slides.length);
   }
 
+  function getLocalVideo(slide) {
+    return slide && slide.querySelector('video.hero-local-video');
+  }
+
   function pauseSlideMedia(idx) {
     const slide = slides[idx];
     if (!slide) return;
@@ -138,6 +146,9 @@
     } else if (type === 'facebook') {
       const fb = window._fbPlayers && window._fbPlayers[idx];
       if (fb && fb.pause) fb.pause();
+    } else if (type === 'video') {
+      const v = getLocalVideo(slide);
+      if (v) v.pause();
     }
   }
 
@@ -158,6 +169,13 @@
         if (isMuted) fb.mute(); else fb.unmute();
         try { fb.setVolume(volume / 100); } catch (e) {}
         fb.play();
+      }
+    } else if (type === 'video') {
+      const v = getLocalVideo(slide);
+      if (v) {
+        v.muted = isMuted;
+        v.volume = volume / 100;
+        v.play().catch(function() {});
       }
     }
   }
@@ -211,6 +229,9 @@
         if (fb) {
           if (isMuted) fb.mute(); else fb.unmute();
         }
+      } else if (type === 'video') {
+        const v = getLocalVideo(slides[current]);
+        if (v) v.muted = isMuted;
       }
     });
 
@@ -225,6 +246,9 @@
         if (fb && fb.setVolume) {
           try { fb.setVolume(volume / 100); } catch (e) {}
         }
+      } else if (type === 'video') {
+        const v = getLocalVideo(slides[current]);
+        if (v) v.volume = volume / 100;
       }
     });
   }
