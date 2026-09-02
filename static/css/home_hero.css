@@ -84,7 +84,7 @@
   color: #fff;
 }
 
-/* Halo giratorio alrededor del botón "Nuestras caminatas" */
+/* Luz animada alrededor del borde del botón "Nuestras caminatas" */
 .btn-hero-halo {
   position: relative;
   display: inline-block;
@@ -94,32 +94,29 @@
 .btn-hero-halo::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 140%;
-  height: 160%;
-  border-radius: 2.5rem;
-  color: rgba(255, 140, 0, 0.9);
+  inset: -4px;
+  border-radius: 2rem;
+  padding: 2px;
   background: conic-gradient(
     from 0deg,
-    transparent,
-    currentColor,
-    transparent 55%,
-    currentColor,
-    transparent
+    rgba(255, 140, 0, 0),
+    rgba(255, 140, 0, 0.95) 12%,
+    rgba(255, 255, 255, 0.75) 25%,
+    rgba(255, 140, 0, 0) 38%
   );
-  -webkit-mask: radial-gradient(transparent 55%, rgba(0, 0, 0, 1) 70%);
-  mask: radial-gradient(transparent 55%, rgba(0, 0, 0, 1) 70%);
-  filter: blur(8px) brightness(1.35);
-  transform: translate(-50%, -50%) rotate(0deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  transform: rotate(0deg);
   z-index: -1;
   pointer-events: none;
-  animation: btn-hero-halo-glow 4s linear infinite;
+  animation: btn-hero-halo-spin 3s linear infinite;
 }
 
-@keyframes btn-hero-halo-glow {
+@keyframes btn-hero-halo-spin {
   to {
-    transform: translate(-50%, -50%) rotate(360deg);
+    transform: rotate(360deg);
   }
 }
 
@@ -265,6 +262,12 @@ footer {
   padding-bottom: 6rem;
 }
 
+@media (min-width: 768px) {
+  footer {
+    padding-bottom: 10px;
+  }
+}
+
 footer a {
   text-decoration: none;
   color: #eee;
@@ -291,6 +294,13 @@ footer ul {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .ft-main {
+    padding-left: 120px;
+    padding-right: 1.875rem;
+  }
 }
 
 .ft-main-item {

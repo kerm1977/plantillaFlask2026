@@ -134,7 +134,10 @@ body::before {
     border-top-right-radius: 20px;
 }
 
-.mobile-nav-item {
+.mobile-nav-item,
+.mobile-nav-item:visited,
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
     color: #000;
     text-decoration: none;
     display: flex;
@@ -145,7 +148,8 @@ body::before {
     transition: all 0.3s ease;
 }
 
-.mobile-nav-item:hover, .mobile-nav-item:active {
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
     color: #333;
     transform: translateY(-2px);
 }
