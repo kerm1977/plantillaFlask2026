@@ -94,15 +94,15 @@
 .btn-hero-halo::before {
   content: "";
   position: absolute;
-  inset: -4px;
-  border-radius: 2rem;
-  padding: 2px;
+  inset: -5px;
+  border-radius: 999px;
+  padding: 3px;
   background: conic-gradient(
     from 0deg,
-    rgba(255, 140, 0, 0),
-    rgba(255, 140, 0, 0.95) 12%,
-    rgba(255, 255, 255, 0.75) 25%,
-    rgba(255, 140, 0, 0) 38%
+    transparent 0%,
+    rgba(255, 140, 0, 0.95) 0.5%,
+    rgba(255, 255, 255, 0.9) 3%,
+    transparent 6%
   );
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
