@@ -68,10 +68,26 @@
   padding: 0.9rem 2.25rem;
   font-size: 1.15rem;
   font-weight: 700;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 180, 120, 0.6), 0 0 28px rgba(255, 180, 120, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   text-decoration: none;
   display: inline-block;
+  animation: hero-btn-glow 4s ease-in-out infinite;
+}
+
+@keyframes hero-btn-glow {
+  0%, 100% {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 180, 120, 0.6), 0 0 28px rgba(255, 180, 120, 0.3);
+  }
+  25% {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(220, 235, 150, 0.6), 0 0 28px rgba(220, 235, 150, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(100, 220, 160, 0.6), 0 0 28px rgba(100, 220, 160, 0.3);
+  }
+  75% {
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), 0 0 14px rgba(255, 220, 120, 0.6), 0 0 28px rgba(255, 220, 120, 0.3);
+  }
 }
 
 .hero-content .btn-hero:hover,
@@ -84,22 +100,11 @@
   color: #fff;
 }
 
-/* Luz animada alrededor del borde del botón "Nuestras caminatas" */
+/* Luz suave que cambia de color alrededor del botón "Nuestras caminatas" */
 .btn-hero-halo {
   position: relative;
   display: inline-block;
   z-index: 1;
-}
-
-.btn-halo-svg {
-  position: absolute;
-  top: -5px;
-  left: -5px;
-  width: calc(100% + 10px);
-  height: calc(100% + 10px);
-  z-index: 2;
-  pointer-events: none;
-  overflow: visible;
 }
 
 .hero-mobile-bar {
