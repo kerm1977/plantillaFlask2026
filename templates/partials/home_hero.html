@@ -6,7 +6,7 @@
             {% if item.type == 'image' %}
                 <img class="home-hero-img" src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" alt="{{ item.title or 'La Tribu' }}" loading="eager">
             {% elif item.type == 'video' %}
-                <video class="hero-media-video hero-local-video" muted playsinline preload="auto">
+                <video class="hero-media-video hero-local-video" playsinline preload="auto">
                     <source src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" type="video/mp4">
                 </video>
             {% elif item.type == 'youtube' %}
@@ -109,7 +109,7 @@
 
   let current = 0;
   let isPlaying = true;
-  let isMuted = true;
+  let isMuted = false;
   let volume = 50;
   let interval = null;
   let ytReady = false;
@@ -282,8 +282,7 @@
           fs: 0,
           rel: 0,
           modestbranding: 1,
-          playsinline: 1,
-          mute: 1
+          playsinline: 1
         },
         events: {
           onReady: function() {}
@@ -313,6 +312,7 @@
       if (v) v.addEventListener('ended', nextSlide);
     });
     setupControls();
+    updateMuteIcon();
     showSlide(0);
   };
 
