@@ -39,11 +39,6 @@
             <div class="container-fluid">
                 <!-- Marca de la Navbar SÚPER LIMPIA -->
                 <span class="fw-bold fs-4 text-dark">La Tribu</span>
-                <a class="navbar-brand d-flex align-items-center" href="/">
-                    <span class="brand-logo-halo">
-                        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="60">
-                    </span>
-                </a>
                 <div class="ms-auto d-flex align-items-center gap-3">
                     {% if session.get('user_id') %}
                         {% set nav_avatar = session.get('avatar') or '' %}

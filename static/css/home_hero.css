@@ -159,6 +159,15 @@
   100% { color: rgba(255, 180, 120, 0.95); }
 }
 
+/* Logo con halo centrado en la mobile bottom bar (mitad arriba, mitad adentro) */
+.mobile-bottom-bar .mobile-nav-logo {
+  position: absolute;
+  top: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1035;
+}
+
 /* Hero detrás de la barra de navegación en el home */
 .home-hero-page #navbar-top {
   margin-top: 0 !important;

@@ -5,11 +5,11 @@
             <span>Inicio</span>
         </a>
         <div id="mobilePinnedContainer" style="display: contents;"></div>
-        <!-- Logo de Sueños -->
-        <a id="logoSuenosMobileLink" href="#" target="_blank" class="d-none d-md-none">
-            <img id="logoSuenosMobile" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-mobile animate-heartbeat">
+        <a href="/" class="mobile-nav-logo">
+            <span class="brand-logo-halo">
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="60">
+            </span>
         </a>
-        <img id="logoSuenosMobileNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-mobile d-block d-md-none animate-heartbeat">
         {% if request.endpoint == 'main.rifa_detalle' %}
         <button id="mobileSelectBtn" onclick="toggleMobileSelection()" class="mobile-nav-item border-0 bg-transparent">
             <i class="bi bi-cart-plus fs-3 mb-1"></i>
