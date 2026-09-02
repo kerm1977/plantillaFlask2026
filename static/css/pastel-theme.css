@@ -23,13 +23,13 @@ a:focus {
 }
 
 /* Botón hero "Nuestras caminatas": fondo pastel amarillo, texto negro */
-.hero-content .btn-hero {
+.hero-mobile-bar .btn-hero {
   background: #f9d89c !important;
   color: #000 !important;
   border: none !important;
 }
-.hero-content .btn-hero:hover,
-.hero-content .btn-hero:focus {
+.hero-mobile-bar .btn-hero:hover,
+.hero-mobile-bar .btn-hero:focus {
   background: #f4a261 !important;
   color: #000 !important;
 }

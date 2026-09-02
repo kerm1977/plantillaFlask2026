@@ -47,19 +47,19 @@
 }
 
 .hero-content h1 {
-  font-weight: 900;
-  font-size: clamp(2.4rem, 6vw, 5rem);
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
   line-height: 1.05;
-  margin-bottom: 0.75rem;
 }
 
-.hero-content p {
-  font-size: clamp(1.1rem, 2.5vw, 1.65rem);
+.hero-content .lead {
+  font-size: clamp(1.1rem, 2.5vw, 1.75rem);
   font-weight: 500;
-  margin-bottom: 1.75rem;
+  opacity: 0.95;
 }
 
-.hero-content .btn-hero {
+.hero-mobile-bar .btn-hero {
   background: #ff8c00;
   color: #fff;
   border: none;
@@ -73,8 +73,8 @@
   display: inline-block;
 }
 
-.hero-content .btn-hero:hover,
-.hero-content .btn-hero:focus {
+.hero-mobile-bar .btn-hero:hover,
+.hero-mobile-bar .btn-hero:focus {
   transform: translateY(-3px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
   background: #e67e00;
@@ -418,13 +418,14 @@ footer input[type="submit"] {
 
 .hero-media-controls {
   position: absolute;
-  bottom: 1.5rem;
-  right: 1.5rem;
-  z-index: 3;
+  bottom: 0;
+  right: 1rem;
+  transform: translateY(50%);
+  z-index: 10;
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.35);
   padding: 0.5rem 0.75rem;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
