@@ -221,6 +221,11 @@ a[href*="wa.me"] {
   background-color: var(--pastel-coral) !important;
   color: #fff !important;
 }
+.btn-global-back i,
+.btn-global-back svg {
+  color: #000 !important;
+  fill: #000 !important;
+}
 .btn-global-back:hover {
   background-color: var(--pastel-pink) !important;
 }
