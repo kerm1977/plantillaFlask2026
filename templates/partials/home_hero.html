@@ -1,19 +1,23 @@
 <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
     <defs>
         <filter id="halo-glow" x="-50%" y="-50%" width="300%" height="300%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
             <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="glow"/>
             <feMerge>
                 <feMergeNode in="glow"/>
                 <feMergeNode in="SourceGraphic"/>
             </feMerge>
         </filter>
-        <linearGradient id="halo-comet" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="#ff8c00" stop-opacity="0"/>
-            <stop offset="30%" stop-color="#ff8c00" stop-opacity="0.6"/>
-            <stop offset="60%" stop-color="#ffdf7e" stop-opacity="0.9"/>
-            <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
-        </linearGradient>
+        <radialGradient id="halo-dot" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="40%" stop-color="#ffffff" stop-opacity="0.85"/>
+            <stop offset="70%" stop-color="rgba(255, 180, 120, 0.95)">
+                <animate attributeName="stop-color" values="rgba(255, 180, 120, 0.95);rgba(220, 235, 150, 0.95);rgba(100, 220, 160, 0.95);rgba(255, 220, 120, 0.95);rgba(255, 180, 120, 0.95)" keyTimes="0;0.25;0.5;0.75;1" dur="32s" repeatCount="indefinite"/>
+            </stop>
+            <stop offset="100%" stop-color="rgba(255, 180, 120, 0)" stop-opacity="0">
+                <animate attributeName="stop-color" values="rgba(255, 180, 120, 0);rgba(220, 235, 150, 0);rgba(100, 220, 160, 0);rgba(255, 220, 120, 0);rgba(255, 180, 120, 0)" keyTimes="0;0.25;0.5;0.75;1" dur="32s" repeatCount="indefinite"/>
+            </stop>
+        </radialGradient>
     </defs>
 </svg>
 <div class="home-hero-wrapper" id="homeHeroCarousel">
@@ -62,9 +66,9 @@
             <span class="btn-hero-halo">
                 <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
                 <svg class="btn-halo-svg" viewBox="0 0 200 60" preserveAspectRatio="none">
-                    <ellipse rx="12" ry="5" fill="url(#halo-comet)" filter="url(#halo-glow)" opacity="0.95">
+                    <circle r="7" fill="url(#halo-dot)" filter="url(#halo-glow)" opacity="0.95">
                         <animateMotion dur="3s" repeatCount="indefinite" path="M 25 5 L 175 5 A 25 25 0 0 1 175 55 L 25 55 A 25 25 0 0 1 25 5" rotate="auto"/>
-                    </ellipse>
+                    </circle>
                 </svg>
             </span>
         </div>
