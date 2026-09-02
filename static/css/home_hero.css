@@ -519,3 +519,16 @@ footer input[type="submit"] {
   width: 90px;
   accent-color: #ff8c00;
 }
+
+/* Videos locales: máximo 720p y sin estirar más allá del original */
+.hero-slide .hero-local-video {
+  width: auto;
+  height: auto;
+  max-width: min(1280px, 100%);
+  max-height: min(720px, 100%);
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
