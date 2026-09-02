@@ -60,6 +60,11 @@ def nuestra_oracion():
     return render_template('nuestra_oracion.html', oracion_text=_get_site_text('oracion'))
 
 
+@bp.route('/terminos')
+def terminos():
+    return render_template('terminos.html')
+
+
 @bp.route('/api/eventos-activos')
 def api_eventos_activos():
     eventos = []
