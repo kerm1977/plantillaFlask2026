@@ -7,7 +7,6 @@
 <style>
   .editable-wrap { position: relative; }
   .edit-pencil {
-    cursor: pointer;
     color: #ff8c00;
     font-size: 1rem;
     margin-left: 0.5rem;
@@ -18,8 +17,9 @@
     text-align: justify;
     outline: none;
     min-height: 1.5em;
+    cursor: text;
   }
-  .editable-text[contenteditable="true"] {
+  .editable-text[contenteditable="true"]:focus {
     outline: 2px dashed #ff8c00;
     background: rgba(255, 140, 0, 0.05);
     padding: 0.5rem;
@@ -39,50 +39,27 @@
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
           <h2 class="card-title fw-bold text-dark mb-3">Nuestra historia
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" onclick="enableEdit(this)" title="Editar"></i>{% endif %}
+            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
           </h2>
-          <div class="text-dark lh-lg editable-text" data-key="quienes_somos">{{ historia_text }}</div>
+          <div class="text-dark lh-lg editable-text" data-key="quienes_somos" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ historia_text }}</div>
         </div>
       </section>
 
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
           <h2 class="card-title fw-bold text-dark mb-3">Misión
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" onclick="enableEdit(this)" title="Editar"></i>{% endif %}
+            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
           </h2>
-          <div class="text-dark lh-lg editable-text" data-key="nota">{{ mision_text }}</div>
-        </div>
-      </section>
-
-      <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
-        <div class="card-body p-4 p-md-5 editable-wrap">
-          <h2 class="card-title fw-bold text-dark mb-3">Equipo
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" onclick="enableEdit(this)" title="Editar"></i>{% endif %}
-          </h2>
-          <div class="text-dark lh-lg editable-text" data-key="equipo">{{ equipo_text }}</div>
-        </div>
-      </section>
-
-      <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
-        <div class="card-body p-4 p-md-5 editable-wrap">
-          <h2 class="card-title fw-bold text-dark mb-3">Nuestra música
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" onclick="enableEdit(this)" title="Editar"></i>{% endif %}
-          </h2>
-          <div class="text-dark lh-lg editable-text" data-key="musica">{{ musica_text }}</div>
-          <div class="mt-3 text-center">
-            <a href="{{ url_for('main.nuestra_musica') }}" class="btn btn-orange rounded-pill px-4 fw-bold">
-              <i class="bi bi-music-note-beamed me-2"></i>Ir al reproductor
-            </a>
-          </div>
+          <div class="text-dark lh-lg editable-text" data-key="nota" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ mision_text }}</div>
         </div>
       </section>
 
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
           <h2 class="card-title fw-bold text-dark mb-3">Nuestra oración
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" onclick="enableEdit(this)" title="Editar"></i>{% endif %}
+            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
           </h2>
-          <div class="text-dark lh-lg editable-text" data-key="oracion">{{ oracion_text }}</div>
+          <div class="text-dark lh-lg editable-text" data-key="oracion" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ oracion_text }}</div>
         </div>
       </section>
 
@@ -92,47 +69,26 @@
 
 {% if is_super %}
 <script>
-(function() {
-  'use strict';
-
-  function enableEdit(icon) {
-    const wrap = icon.closest('.editable-wrap');
-    const text = wrap.querySelector('.editable-text');
-    if (!text) return;
-    text.contentEditable = 'true';
-    text.focus();
-
-    function onBlur() {
-      text.contentEditable = 'false';
-      text.removeEventListener('blur', onBlur);
-      saveEdit(text);
+async function saveEdit(el) {
+  const key = el.dataset.key;
+  const value = el.innerText;
+  el.classList.add('saving');
+  try {
+    const res = await fetch('/api/site-content/' + encodeURIComponent(key), {
+      method: 'PUT',
+      headers: { 'Content-Type': 'text/plain' },
+      body: value
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      alert('No se pudo guardar el contenido.');
     }
-    text.addEventListener('blur', onBlur);
+  } catch (e) {
+    alert('Error de red al guardar.');
+  } finally {
+    el.classList.remove('saving');
   }
-
-  async function saveEdit(el) {
-    const key = el.dataset.key;
-    const value = el.innerText;
-    el.classList.add('saving');
-    try {
-      const res = await fetch('/api/site-content/' + encodeURIComponent(key), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'text/plain' },
-        body: value
-      });
-      const data = await res.json();
-      if (!data.ok) {
-        alert('No se pudo guardar el contenido.');
-      }
-    } catch (e) {
-      alert('Error de red al guardar.');
-    } finally {
-      el.classList.remove('saving');
-    }
-  }
-
-  window.enableEdit = enableEdit;
-})();
+}
 </script>
 {% endif %}
 {% endblock %}
