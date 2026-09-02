@@ -520,15 +520,12 @@ footer input[type="submit"] {
   accent-color: #ff8c00;
 }
 
-/* Videos locales: máximo 720p y sin estirar más allá del original */
+/* Videos locales: cubrir todo el hero, anclados arriba y recortando lados si es necesario */
 .hero-slide .hero-local-video {
-  width: auto;
-  height: auto;
-  max-width: min(1280px, 100%);
-  max-height: min(720px, 100%);
-  inset: auto;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  transform: none;
+  object-fit: cover;
+  object-position: top center;
 }
