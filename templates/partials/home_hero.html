@@ -6,7 +6,7 @@
             {% if item.type == 'image' %}
                 <img class="home-hero-img" src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" alt="{{ item.title or 'La Tribu' }}" loading="eager">
             {% elif item.type == 'video' %}
-                <video class="hero-media-video hero-local-video" muted playsinline loop preload="auto" poster="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}">
+                <video class="hero-media-video hero-local-video" muted playsinline preload="auto">
                     <source src="{{ url_for('static', filename='uploads/home_media/' + item.filename) }}" type="video/mp4">
                 </video>
             {% elif item.type == 'youtube' %}
@@ -122,13 +122,19 @@
   const volumeInput = document.getElementById('heroVolume');
 
   function showSlide(idx) {
+    if (idx === current && slides.length > 1) return;
+    pauseSlideMedia(current);
     slides.forEach(function(s, i) {
       s.classList.toggle('active', i === idx);
     });
-    const prev = (idx - 1 + slides.length) % slides.length;
-    pauseSlideMedia(prev);
-    playSlideMedia(idx);
     current = idx;
+    const type = slides[current].dataset.type;
+    if (type === 'video') {
+      stopAutoplay();
+    } else {
+      startAutoplay();
+    }
+    playSlideMedia(current);
   }
 
   function nextSlide() {
@@ -210,7 +216,8 @@
       isPlaying = !isPlaying;
       updatePlayPauseIcon();
       if (isPlaying) {
-        startAutoplay();
+        const type = slides[current].dataset.type;
+        if (type !== 'video') startAutoplay();
         playSlideMedia(current);
       } else {
         stopAutoplay();
@@ -301,9 +308,12 @@
   window.initHomeCarousel = function() {
     if (carouselInitialized) return;
     carouselInitialized = true;
+    slides.forEach(function(slide) {
+      const v = getLocalVideo(slide);
+      if (v) v.addEventListener('ended', nextSlide);
+    });
     setupControls();
     showSlide(0);
-    startAutoplay();
   };
 
   // Inicializar controles inmediatamente; los reproductores se activan cuando cada API esté lista.
