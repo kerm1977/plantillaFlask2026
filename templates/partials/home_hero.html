@@ -1,12 +1,19 @@
 <svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
     <defs>
-        <filter id="halo-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+        <filter id="halo-glow" x="-50%" y="-50%" width="300%" height="300%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+            <feColorMatrix in="blur" type="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -7" result="glow"/>
             <feMerge>
-                <feMergeNode in="blur"/>
+                <feMergeNode in="glow"/>
                 <feMergeNode in="SourceGraphic"/>
             </feMerge>
         </filter>
+        <linearGradient id="halo-comet" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#ff8c00" stop-opacity="0"/>
+            <stop offset="30%" stop-color="#ff8c00" stop-opacity="0.6"/>
+            <stop offset="60%" stop-color="#ffdf7e" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="1"/>
+        </linearGradient>
     </defs>
 </svg>
 <div class="home-hero-wrapper" id="homeHeroCarousel">
@@ -55,9 +62,9 @@
             <span class="btn-hero-halo">
                 <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
                 <svg class="btn-halo-svg" viewBox="0 0 200 60" preserveAspectRatio="none">
-                    <circle r="4" fill="#ff8c00" filter="url(#halo-glow)">
+                    <ellipse rx="12" ry="5" fill="url(#halo-comet)" filter="url(#halo-glow)" opacity="0.95">
                         <animateMotion dur="3s" repeatCount="indefinite" path="M 25 5 L 175 5 A 25 25 0 0 1 175 55 L 25 55 A 25 25 0 0 1 25 5" rotate="auto"/>
-                    </circle>
+                    </ellipse>
                 </svg>
             </span>
         </div>
