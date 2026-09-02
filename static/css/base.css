@@ -138,7 +138,7 @@ body::before {
 .mobile-nav-item:visited,
 .mobile-nav-item:hover,
 .mobile-nav-item:active {
-    color: #000;
+    color: #000 !important;
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -146,6 +146,13 @@ body::before {
     font-size: 0.8rem;
     font-weight: 500;
     transition: all 0.3s ease;
+}
+
+.mobile-nav-item i,
+.mobile-nav-item:hover i,
+.mobile-nav-item:active i,
+.mobile-nav-item:visited i {
+    color: #000 !important;
 }
 
 .mobile-nav-item:hover,
