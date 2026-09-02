@@ -94,20 +94,25 @@
 .btn-hero-halo::before {
   content: "";
   position: absolute;
-  inset: -6px;
+  inset: -5px;
   border-radius: 999px;
+  padding: 3px;
   background: conic-gradient(
     from 0deg,
     transparent 0%,
-    rgba(255, 140, 0, 0.95) 0.5%,
-    rgba(255, 255, 255, 0.9) 3%,
-    transparent 6%
+    rgba(255, 140, 0, 1) 0%,
+    rgba(255, 220, 180, 1) 2%,
+    transparent 5%
   );
-  z-index: -1;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  z-index: 2;
   pointer-events: none;
   transform: rotate(0deg);
   animation: btn-hero-halo-spin 3s linear infinite;
-  filter: drop-shadow(0 0 5px rgba(255, 140, 0, 0.85));
+  filter: drop-shadow(0 0 6px rgba(255, 140, 0, 0.9));
 }
 
 @keyframes btn-hero-halo-spin {
