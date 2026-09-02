@@ -38,11 +38,15 @@
     {% endif %}
 
     <div class="hero-overlay">
-        <div class="hero-content"></div>
+        <div class="hero-content d-none d-md-block">
+            <h1 class="mb-3">La Tribu de los Libres</h1>
+            <p class="lead mb-4">Caminatas y familia</p>
+            <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
+        </div>
     </div>
 </div>
 
-<div class="hero-mobile-bar text-center">
+<div class="hero-mobile-bar d-md-none text-center">
     <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
 </div>
 
