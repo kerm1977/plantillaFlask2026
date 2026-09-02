@@ -292,7 +292,7 @@ footer ul {
 }
 
 .ft-main {
-  padding: 1.25rem 1.875rem;
+  padding: 1.25rem 1.875rem 0.625rem;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
@@ -331,7 +331,7 @@ footer input[type="submit"] {
 }
 
 .ft-social {
-  padding: 0 1.875rem 1.25rem;
+  padding: 0 1.875rem 0.625rem;
 }
 
 .ft-social-list {
@@ -353,7 +353,7 @@ footer input[type="submit"] {
 
 .ft-legal-compact {
   text-align: center;
-  padding: 0.625rem 1.875rem 1.25rem;
+  padding: 0.625rem 1.875rem 0.625rem;
   font-size: 0.85rem;
   color: #bbb;
 }
@@ -374,6 +374,21 @@ footer input[type="submit"] {
 
 .ft-legal-sep {
   margin: 0 0.5rem;
+}
+
+.pulse-heart {
+  display: inline-block;
+  color: #ff0000;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.25);
+  }
 }
 
 /* Carrusel de medios en el home */
