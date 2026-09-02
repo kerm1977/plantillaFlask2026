@@ -114,6 +114,7 @@
   let isPlaying = true;
   let isMuted = false;
   let volume = 50;
+  let resumeAt = null;
   let interval = null;
   let ytReady = false;
   let carouselInitialized = false;
@@ -124,8 +125,8 @@
   const muteBtn = document.getElementById('heroMute');
   const volumeInput = document.getElementById('heroVolume');
 
-  function showSlide(idx) {
-    if (idx === current && slides.length > 1) return;
+  function showSlide(idx, force) {
+    if (idx === current && slides.length > 1 && !force) return;
     pauseSlideMedia(current);
     slides.forEach(function(s, i) {
       s.classList.toggle('active', i === idx);
@@ -168,11 +169,16 @@
     if (!isPlaying) return;
     const slide = slides[idx];
     const type = slide.dataset.type;
+    let usedResume = false;
     if (type === 'youtube') {
       const player = ytPlayers[slide.firstElementChild.id];
       if (player && player.playVideo) {
         if (isMuted) player.mute(); else player.unMute();
         player.setVolume(volume);
+        if (resumeAt && player.seekTo) {
+          player.seekTo(resumeAt, true);
+          usedResume = true;
+        }
         player.playVideo();
       }
     } else if (type === 'facebook') {
@@ -187,9 +193,14 @@
       if (v) {
         v.muted = isMuted;
         v.volume = volume / 100;
+        if (resumeAt) {
+          v.currentTime = resumeAt;
+          usedResume = true;
+        }
         v.play().catch(function() {});
       }
     }
+    if (usedResume) resumeAt = null;
   }
 
   function startAutoplay() {
@@ -212,6 +223,60 @@
     muteBtn.innerHTML = isMuted
       ? '<i class="bi bi-volume-mute-fill"></i>'
       : '<i class="bi bi-volume-up-fill"></i>';
+  }
+
+  function getSlideResumeTime(idx) {
+    const slide = slides[idx];
+    if (!slide) return 0;
+    const type = slide.dataset.type;
+    if (type === 'video') {
+      const v = getLocalVideo(slide);
+      return v ? v.currentTime : 0;
+    } else if (type === 'youtube') {
+      const player = ytPlayers[slide.firstElementChild.id];
+      return (player && player.getCurrentTime) ? player.getCurrentTime() : 0;
+    }
+    return 0;
+  }
+
+  function saveCarouselState() {
+    try {
+      const state = {
+        current: current,
+        isPlaying: isPlaying,
+        isMuted: isMuted,
+        volume: volume,
+        resumeAt: getSlideResumeTime(current),
+        slideType: slides[current] ? slides[current].dataset.type : '',
+        savedAt: Date.now()
+      };
+      localStorage.setItem('homeCarouselState', JSON.stringify(state));
+    } catch (e) {}
+  }
+
+  function loadCarouselState() {
+    try {
+      const raw = localStorage.getItem('homeCarouselState');
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (!state || typeof state.current !== 'number' || state.current < 0 || state.current >= slides.length) return;
+      current = state.current;
+      isPlaying = state.isPlaying !== false;
+      isMuted = state.isMuted === true;
+      volume = (typeof state.volume === 'number') ? state.volume : 50;
+      resumeAt = (typeof state.resumeAt === 'number' && state.resumeAt > 0) ? state.resumeAt : null;
+    } catch (e) {}
+  }
+
+  function handleVisibility() {
+    if (document.hidden) {
+      saveCarouselState();
+      pauseSlideMedia(current);
+    } else {
+      if (isPlaying) playSlideMedia(current);
+      const type = slides[current] ? slides[current].dataset.type : '';
+      if (isPlaying && type !== 'video') startAutoplay();
+    }
   }
 
   function setupControls() {
@@ -310,13 +375,18 @@
   window.initHomeCarousel = function() {
     if (carouselInitialized) return;
     carouselInitialized = true;
+    loadCarouselState();
     slides.forEach(function(slide) {
       const v = getLocalVideo(slide);
       if (v) v.addEventListener('ended', nextSlide);
     });
     setupControls();
+    updatePlayPauseIcon();
     updateMuteIcon();
-    showSlide(0);
+    if (volumeInput) volumeInput.value = volume;
+    showSlide(current, true);
+    window.addEventListener('beforeunload', saveCarouselState);
+    document.addEventListener('visibilitychange', handleVisibility);
   };
 
   // Inicializar controles inmediatamente; los reproductores se activan cuando cada API esté lista.
