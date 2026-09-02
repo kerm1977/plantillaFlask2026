@@ -59,6 +59,7 @@
   opacity: 0.95;
 }
 
+.hero-content .btn-hero,
 .hero-mobile-bar .btn-hero {
   background: #ff8c00;
   color: #fff;
@@ -73,6 +74,8 @@
   display: inline-block;
 }
 
+.hero-content .btn-hero:hover,
+.hero-content .btn-hero:focus,
 .hero-mobile-bar .btn-hero:hover,
 .hero-mobile-bar .btn-hero:focus {
   transform: translateY(-3px);
