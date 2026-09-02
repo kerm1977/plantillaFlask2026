@@ -10,9 +10,9 @@
 
 @media (max-width: 767px) {
   .home-hero-wrapper {
-    height: 56.25vw;
-    min-height: 220px;
-    max-height: 60vh;
+    height: 70vw;
+    min-height: 260px;
+    max-height: 65vh;
   }
 }
 
