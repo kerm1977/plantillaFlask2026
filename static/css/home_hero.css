@@ -8,6 +8,14 @@
   background: #111;
 }
 
+@media (max-width: 767px) {
+  .home-hero-wrapper {
+    height: 56.25vw;
+    min-height: 220px;
+    max-height: 60vh;
+  }
+}
+
 .home-hero-img {
   position: absolute;
   top: 0;
