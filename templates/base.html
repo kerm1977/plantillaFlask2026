@@ -78,7 +78,7 @@
 
     <!-- Botón Volver Atrás Global (OCULTO EN INICIO) -->
     {% if request.path != '/' %}
-    <button id="btnBack" class="btn-global-back" onclick="window.location.href='{{ url_for('main.home') }}';" title="Volver al inicio">
+    <button id="btnBack" class="btn-global-back" onclick="window.location.href='{{ url_for('main.caminatas') if request.path == '/terminos' else url_for('main.home') }}';" title="Volver">
         <i class="bi bi-arrow-left fs-4"></i>
     </button>
     {% endif %}

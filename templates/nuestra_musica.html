@@ -1,0 +1,21 @@
+<!-- Archivo: templates/nuestra_musica.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5 text-center">
+  <h1 class="fw-bold text-dark mb-4"><i class="bi bi-music-note-beamed text-orange me-3"></i>Nuestra Música</h1>
+  <p class="text-muted">Disfruta las canciones de La Tribu.</p>
+  <button class="btn btn-orange rounded-pill px-4 fw-bold shadow-sm" onclick="openMusicPlayer()">
+    <i class="bi bi-play-circle-fill me-2"></i>Abrir reproductor
+  </button>
+</div>
+
+{% include 'partials/home_music_player.html' %}
+{% include 'partials/home_music_scripts.html' %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', openMusicPlayer);
+</script>
+{% endblock %}
+
+{% block footer %}{% include 'partials/footer.html' %}{% endblock %}

@@ -65,6 +65,11 @@ def terminos():
     return render_template('terminos.html')
 
 
+@bp.route('/nuestra-musica')
+def nuestra_musica():
+    return render_template('nuestra_musica.html')
+
+
 @bp.route('/api/eventos-activos')
 def api_eventos_activos():
     eventos = []
