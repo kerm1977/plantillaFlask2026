@@ -1,3 +1,14 @@
+<svg style="position:absolute;width:0;height:0;overflow:hidden;" aria-hidden="true">
+    <defs>
+        <filter id="halo-glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur"/>
+            <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+</svg>
 <div class="home-hero-wrapper" id="homeHeroCarousel">
     {% if home_media %}
     <div class="hero-slides" id="heroSlides">
@@ -43,6 +54,11 @@
             <p class="lead mb-4">Caminatas y familia</p>
             <span class="btn-hero-halo">
                 <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
+                <svg class="btn-halo-svg" viewBox="0 0 200 60" preserveAspectRatio="none">
+                    <circle r="4" fill="#ff8c00" filter="url(#halo-glow)">
+                        <animateMotion dur="3s" repeatCount="indefinite" path="M 25 5 L 175 5 A 25 25 0 0 1 175 55 L 25 55 A 25 25 0 0 1 25 5" rotate="auto"/>
+                    </circle>
+                </svg>
             </span>
         </div>
     </div>
@@ -51,6 +67,11 @@
 <div class="hero-mobile-bar d-md-none text-center">
     <span class="btn-hero-halo">
         <a href="{{ url_for('main.caminatas') }}" class="btn btn-hero">Nuestras caminatas</a>
+        <svg class="btn-halo-svg" viewBox="0 0 200 60" preserveAspectRatio="none">
+            <circle r="4" fill="#ff8c00" filter="url(#halo-glow)">
+                <animateMotion dur="3s" repeatCount="indefinite" path="M 25 5 L 175 5 A 25 25 0 0 1 175 55 L 25 55 A 25 25 0 0 1 25 5" rotate="auto"/>
+            </circle>
+        </svg>
     </span>
 </div>
 
