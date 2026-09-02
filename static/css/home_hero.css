@@ -530,7 +530,7 @@ footer input[type="submit"] {
   object-position: top center;
 }
 
-/* Texto de bienvenida sobre el video (solo móvil) */
+/* Barra blur de bienvenida (solo móvil) */
 .hero-welcome-text {
   position: absolute;
   top: 0;
@@ -539,12 +539,15 @@ footer input[type="submit"] {
   text-align: center;
   z-index: 3;
   pointer-events: none;
-  padding: 0.35rem 0 0;
+  padding: 0.45rem 0.75rem 0.4rem;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 }
 
 .hero-welcome-label {
   display: inline-block;
-  padding: 0 0.75rem;
   font-size: clamp(1rem, 4.5vw, 1.5rem);
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -554,15 +557,4 @@ footer input[type="submit"] {
   text-shadow:
     0 0 6px rgba(255, 140, 0, 0.9),
     0 0 14px rgba(0, 0, 0, 0.9);
-}
-
-/* Barra blur debajo del texto de bienvenida */
-.hero-welcome-bar {
-  height: 2.2rem;
-  width: 100%;
-  margin-top: 0.25rem;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
 }
