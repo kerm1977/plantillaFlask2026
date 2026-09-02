@@ -49,7 +49,9 @@ DEFAULT_SITE_CONTENT = {
     'nota': (
         "La Tribu de Los Libres es un grupo Privado del Cantón de La Unión de Cartago Costa Rica. Aunque somos Tour Operadores Oficiales del Camino de Costa Rica, no organizamos eventos fuera de nuestra comunidad de La Tribu. No estamos cerrados a agregar a más aventurer@s que deseen formar parte de esta comunidad, pero intentamos mantener un ambiente libre de indeseables situaciones y personas que con mala intención se acercan a La Tribu. Por respeto y seguridad de tod@s los caminantes decidimos cuántas personas llevaremos a ciertas rutas según su complejidad y dificultad. Preferimos la Personalización que lo masivo. Puedes comunicarte a los teléfonos 86227500 y 86529837.\n\n"
         "No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas."
-    )
+    ),
+    'equipo': '',
+    'musica': ''
 }
 
 def inject_site_content():
@@ -78,5 +80,19 @@ def update_about():
                 row.value = payload[key]
             else:
                 db.session.add(SiteContent(key=key, value=payload[key]))
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+@bp.route('/api/site-content/<key>', methods=['PUT'])
+def update_site_content(key):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    value = request.get_data(as_text=True)
+    row = SiteContent.query.filter_by(key=key).first()
+    if row:
+        row.value = value
+    else:
+        db.session.add(SiteContent(key=key, value=value))
     db.session.commit()
     return jsonify({'ok': True})

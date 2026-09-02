@@ -70,6 +70,18 @@ def nuestra_musica():
     return render_template('nuestra_musica.html')
 
 
+@bp.route('/quienes-somos')
+def quienes_somos():
+    return render_template('quienes_somos.html',
+        historia_text=_get_site_text('quienes_somos'),
+        mision_text=_get_site_text('nota'),
+        oracion_text=_get_site_text('oracion'),
+        equipo_text=_get_site_text('equipo'),
+        musica_text=_get_site_text('musica'),
+        is_super=session.get('role') == 'Superusuario'
+    )
+
+
 @bp.route('/api/eventos-activos')
 def api_eventos_activos():
     eventos = []
