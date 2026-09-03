@@ -51,7 +51,8 @@ DEFAULT_SITE_CONTENT = {
         "No publicamos las caminatas en Facebook ni en otra red social a menos que sea material como videos, música o fotografías. No aportamos horarios, fechas ni lugares de salida a menos que sea en el chat oficial de La Tribu, para mantener un perfil bajo ante personas mal intencionadas."
     ),
     'equipo': '',
-    'musica': ''
+    'musica': '',
+    'caminatas_2027': 'Información de Caminatas 2027 próximamente.'
 }
 
 def inject_site_content():

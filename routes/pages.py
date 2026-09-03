@@ -70,6 +70,11 @@ def nuestra_musica():
     return render_template('nuestra_musica.html')
 
 
+@bp.route('/caminatas-2027')
+def caminatas_2027():
+    return render_template('caminatas_2027.html', caminatas_2027_text=_get_site_text('caminatas_2027'))
+
+
 @bp.route('/quienes-somos')
 def quienes_somos():
     return render_template('quienes_somos.html',
