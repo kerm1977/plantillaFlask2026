@@ -6,53 +6,67 @@
 {% block content %}
 
 <div class="container py-5 animate__animated animate__fadeIn">
-  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
-    <h1 class="fw-bold text-dark m-0"><i class="bi bi-calendar-event text-orange me-3"></i>Caminatas 2027</h1>
-    {% if is_super %}
-    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="abrirCrear()">
-      <i class="bi bi-plus-lg me-2"></i>Agregar
-    </button>
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0">Caminatas 2027</h1>
+    {% if caminatas_2027_text %}
+    <p class="text-muted mt-2 mb-0">{{ caminatas_2027_text }}</p>
     {% endif %}
   </div>
 
   {% if eventos %}
-  <div class="row g-4">
-    {% for ev in eventos %}
-    {% set precio_val = ev.precio | default(0, true) | int %}
-    {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
-    {% set fecha_text %}
-      {% if ev.dias == 1 and ev.fecha_unica %}
-        {% set p = ev.fecha_unica.split('-') %}
-        {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
-      {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
-        {% set pi = ev.fecha_inicio.split('-') %}
-        {% set pr = ev.fecha_regreso.split('-') %}
-        {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
-      {% else %}
-        Por definir
-      {% endif %}
-    {% endset %}
+  <div class="accordion" id="accordionProvincias">
+    {% for provincia, items in eventos|sort(attribute='provincia')|groupby('provincia') %}
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
+          {{ provincia or 'Sin provincia' }}
+          <span class="badge rounded-pill ms-auto" style="background:#ff8c00;">{{ items|length }}</span>
+        </button>
+      </h2>
+      <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
+        <div class="accordion-body pt-0">
+          <div class="row g-4">
+            {% for ev in items %}
+            {% set precio_val = ev.precio | default(0, true) | int %}
+            {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+            {% set fecha_text %}
+              {% if ev.dias == 1 and ev.fecha_unica %}
+                {% set p = ev.fecha_unica.split('-') %}
+                {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
+              {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
+                {% set pi = ev.fecha_inicio.split('-') %}
+                {% set pr = ev.fecha_regreso.split('-') %}
+                {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
+              {% else %}
+                Por definir
+              {% endif %}
+            {% endset %}
 
-    <div class="col-12 col-md-6 col-lg-4">
-      <div class="card border-0 rounded-4 shadow-sm h-100 glass-panel position-relative">
-        <div class="card-body p-4">
-          <div class="d-flex align-items-start gap-3 mb-3">
-            <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3" style="width:70px;height:70px;object-fit:cover;" alt="{{ ev.nombre_lugar }}">
-            <div>
-              <h5 class="fw-bold text-dark mb-1">{{ ev.nombre_lugar }}</h5>
-              <small class="text-muted">{{ fecha_text | trim }}</small>
+            <div class="col-12 col-md-6 col-lg-4">
+              <div class="card border-0 rounded-4 shadow-sm h-100 glass-panel position-relative">
+                <div class="card-body p-4">
+                  <div class="d-flex align-items-start gap-3 mb-3">
+                    <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3" style="width:70px;height:70px;object-fit:cover;" alt="{{ ev.nombre_lugar }}">
+                    <div>
+                      <h5 class="fw-bold text-dark mb-1">{{ ev.nombre_lugar }}</h5>
+                      <small class="text-muted">{{ fecha_text | trim }}</small>
+                    </div>
+                  </div>
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="badge rounded-pill" style="background:#ff8c00;">{{ ev.dificultad or 'Paseo' }}</span>
+                    <span class="fw-bold text-dark">{{ precio_mostrar }}</span>
+                  </div>
+                  {% if is_super %}
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-outline-orange rounded-pill flex-fill" onclick="editarEvento({{ ev.id }})"><i class="bi bi-pencil me-1"></i>Editar</button>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})"><i class="bi bi-trash"></i></button>
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
             </div>
+            {% endfor %}
           </div>
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <span class="badge rounded-pill" style="background:#ff8c00;">{{ ev.dificultad or 'Paseo' }}</span>
-            <span class="fw-bold text-dark">{{ precio_mostrar }}</span>
-          </div>
-          {% if is_super %}
-          <div class="d-flex gap-2">
-            <button class="btn btn-sm btn-outline-orange rounded-pill flex-fill" onclick="editarEvento({{ ev.id }})"><i class="bi bi-pencil me-1"></i>Editar</button>
-            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})"><i class="bi bi-trash"></i></button>
-          </div>
-          {% endif %}
         </div>
       </div>
     </div>
@@ -65,6 +79,12 @@
   </div>
   {% endif %}
 </div>
+
+{% if is_super %}
+<button class="btn btn-orange rounded-circle shadow-lg d-flex align-items-center justify-content-center" onclick="abrirCrear()" title="Agregar Caminata 2027" style="position: fixed; bottom: calc(var(--nav-mobile-height, 70px) + 60px); right: 20px; width: 50px; height: 50px; z-index: 1046;">
+  <i class="bi bi-plus-lg fs-4"></i>
+</button>
+{% endif %}
 
 <!-- Modal crear/editar -->
 <div class="modal fade" id="eventoModal" tabindex="-1" aria-hidden="true">
