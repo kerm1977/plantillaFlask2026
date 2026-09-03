@@ -52,7 +52,7 @@ DEFAULT_SITE_CONTENT = {
     ),
     'equipo': '',
     'musica': '',
-    'caminatas_2027': 'Información de Caminatas 2027 próximamente.'
+    'caminatas_2027': 'Información de Prox Caminatas próximamente.'
 }
 
 def inject_site_content():
