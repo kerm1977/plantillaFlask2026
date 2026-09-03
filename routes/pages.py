@@ -86,6 +86,16 @@ def caminatas_2027():
         eventos=eventos)
 
 
+@bp.route('/caminatas-2027/<int:event_id>')
+def ver_caminata_2027(event_id):
+    is_super = session.get('role') == 'Superusuario'
+    evento = Event.query.get_or_404(event_id)
+    return render_template('ver_caminata_2027.html',
+        caminatas_2027_text=_get_site_text('caminatas_2027'),
+        is_super=is_super,
+        event=evento)
+
+
 @bp.route('/quienes-somos')
 def quienes_somos():
     return render_template('quienes_somos.html',

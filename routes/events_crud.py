@@ -126,3 +126,37 @@ def delete_event(event_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": "Error al eliminar evento"}), 500
+
+
+@bp.route('/api/caminatas-2027/<int:event_id>/upload-image', methods=['POST'])
+def upload_caminata_2027_image(event_id):
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    evento = Event.query.get_or_404(event_id)
+    file = request.files.get('image')
+    if not file or file.filename == '':
+        return jsonify({"error": "No se envió imagen"}), 400
+    if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
+        return jsonify({"error": "Formato de imagen no permitido"}), 400
+
+    filename = secure_filename(f"caminata2027_{event_id}_{os.urandom(4).hex()}_{file.filename}")
+    upload_dir = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'static', 'uploads', 'caminatas_2027')
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, filename))
+    return jsonify({"ok": True, "url": f"/static/uploads/caminatas_2027/{filename}"})
+
+
+@bp.route('/api/caminatas-2027/<int:event_id>/save-itinerario', methods=['POST'])
+def save_caminata_2027_itinerario(event_id):
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    evento = Event.query.get_or_404(event_id)
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "JSON no recibido"}), 400
+
+    evento.itinerario = data.get('itinerario', evento.itinerario)
+    db.session.commit()
+    return jsonify({"ok": True})

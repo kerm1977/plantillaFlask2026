@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% block title %}{{ event.nombre_lugar }} - Caminatas 2027 - La Tribu{% endblock %}
+
+{% block content %}
+{% set precio_val = event.precio | default(0, true) | int %}
+{% set precio_text = event.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+
+<div class="container py-5 animate__animated animate__fadeIn">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0">{{ event.nombre_lugar }}</h1>
+    <p class="text-muted mb-0">
+      {{ event.provincia or '' }}{% if event.provincia %} · {% endif %}{{ event.dificultad or 'Paseo' }} · {{ precio_text }}
+    </p>
+  </div>
+
+  <div class="row justify-content-center mb-4">
+    <div class="col-12 col-md-5 col-lg-4 text-center">
+      <img src="{{ url_for('static', filename='uploads/' + event.poster) if event.poster else url_for('static', filename='default.png') }}" class="rounded-4 shadow" style="width:100%;max-width:320px;aspect-ratio:9/16;object-fit:cover;" alt="{{ event.nombre_lugar }}">
+    </div>
+  </div>
+
+  {% if is_super %}
+  <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+    <div class="vr mx-1"></div>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+    <div class="vr mx-1"></div>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+    <div class="vr mx-1"></div>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
+    <input type="file" id="caminataImageFile" accept="image/*" style="display:none;" onchange="caminataUploadImage(this)">
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('left')" title="Imagen a la izquierda"><i class="bi bi-image"></i><i class="bi bi-arrow-left ms-1 small"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('center')" title="Imagen centrada"><i class="bi bi-image"></i><i class="bi bi-text-center ms-1 small"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('right')" title="Imagen a la derecha"><i class="bi bi-image"></i><i class="bi bi-arrow-right ms-1 small"></i></button>
+    <div class="vr mx-1"></div>
+    <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="caminataSave()"><i class="bi bi-save me-1"></i>Guardar</button>
+  </div>
+  <div class="text-center mb-2"><span id="caminataSaveStatus" class="small text-muted"></span></div>
+  {% endif %}
+
+  <div class="row justify-content-center mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="glass-panel rounded-4 p-1 shadow-sm">
+        <div id="caminataPreview" class="p-3 bg-white bg-opacity-75 rounded-3" {% if is_super %}contenteditable="true"{% else %}contenteditable="false"{% endif %} style="min-height:50vh;">
+          {% if event.itinerario %}
+          {{ event.itinerario|safe }}
+          {% else %}
+          <p class="text-muted">No hay contenido informativo aún.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mb-4">
+    <button class="btn btn-outline-orange rounded-pill me-2" onclick="caminataExport('png')"><i class="bi bi-file-earmark-image me-1"></i>PNG</button>
+    <button class="btn btn-outline-orange rounded-pill me-2" onclick="caminataExport('jpg')"><i class="bi bi-file-earmark-image me-1"></i>JPG</button>
+    <button class="btn btn-outline-orange rounded-pill" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+  </div>
+</div>
+
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const CAMINATA_ID = {{ event.id }};
+  document.addEventListener('DOMContentLoaded', function() {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+  });
+
+  function caminataExecCmd(command) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand(command, false, null);
+    document.getElementById('caminataPreview').focus();
+  }
+
+  async function caminataUploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/upload-image`, {method: 'POST', body: formData});
+      const data = await r.json();
+      if (data.ok) {
+        document.getElementById('caminataPreview').focus();
+        document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`);
+      } else {
+        alert(data.error || 'Error al subir imagen');
+      }
+    } catch(e) {
+      alert('Error de conexión al subir imagen');
+    }
+    input.value = '';
+  }
+
+  function caminataImageAlign(position) {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    let node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    const img = node && node.tagName === 'IMG' ? node : (node ? node.querySelector('img') : null);
+    if (!img) return;
+    if (position === 'left') {
+      img.style.float = 'left'; img.style.margin = '0 1rem 1rem 0'; img.style.display = 'inline';
+    } else if (position === 'right') {
+      img.style.float = 'right'; img.style.margin = '0 0 1rem 1rem'; img.style.display = 'inline';
+    } else {
+      img.style.float = 'none'; img.style.display = 'block'; img.style.margin = '0 auto 1rem auto';
+    }
+  }
+
+  async function caminataSave() {
+    const statusEl = document.getElementById('caminataSaveStatus');
+    if (statusEl) statusEl.textContent = 'Guardando...';
+    const content = document.getElementById('caminataPreview').innerHTML;
+    try {
+      const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/save-itinerario`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({itinerario: content})
+      });
+      const data = await r.json();
+      if (data.ok && statusEl) {
+        statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
+        setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
+      } else {
+        alert(data.error || 'Error al guardar');
+        if (statusEl) statusEl.textContent = '';
+      }
+    } catch(e) {
+      alert('Error de conexión al guardar');
+      if (statusEl) statusEl.textContent = '';
+    }
+  }
+
+  async function caminataExport(format) {
+    const preview = document.getElementById('caminataPreview');
+    if (typeof html2canvas === 'undefined') {
+      alert('Espere a que cargue html2canvas o recargue la pÃ¡gina.');
+      return;
+    }
+    try {
+      const canvas = await html2canvas(preview, {scale: 2, useCORS: true});
+      if (format === 'png') {
+        const link = document.createElement('a');
+        link.download = `caminata_{{ event.id }}_{{ event.nombre_lugar|replace(' ', '_') }}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      } else if (format === 'jpg') {
+        const link = document.createElement('a');
+        link.download = `caminata_{{ event.id }}_{{ event.nombre_lugar|replace(' ', '_') }}.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
+      } else if (format === 'pdf') {
+        if (typeof jspdf === 'undefined' || !jspdf.jsPDF) {
+          alert('Espere a que cargue jsPDF o recargue la pÃ¡gina.');
+          return;
+        }
+        const { jsPDF } = jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgData = canvas.toDataURL('image/png');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const scale = Math.min(1, pageHeight / pdfHeight);
+        const finalWidth = pdfWidth * scale;
+        const finalHeight = pdfHeight * scale;
+        const x = (pdfWidth - finalWidth) / 2;
+        pdf.addImage(imgData, 'PNG', x, 0, finalWidth, finalHeight);
+        pdf.save(`caminata_{{ event.id }}_{{ event.nombre_lugar|replace(' ', '_') }}.pdf`);
+      }
+    } catch(e) {
+      console.error(e);
+      alert('Error al exportar');
+    }
+  }
+</script>
+{% endblock %}
