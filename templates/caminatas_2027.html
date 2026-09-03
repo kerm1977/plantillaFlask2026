@@ -1,19 +1,90 @@
 {% extends "base.html" %}
-{% block title %}Prox Caminatas - La Tribu{% endblock %}
+{% block title %}Caminatas 2027 - La Tribu{% endblock %}
+
+{% set meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] %}
 
 {% block content %}
-<div class="container animate__animated animate__fadeIn py-5">
-  <div class="row justify-content-center">
-    <div class="col-lg-8">
-      <div class="glass-panel rounded-5 p-4 p-md-5 shadow-sm border-0">
-        <h1 class="fw-bold text-dark mb-4"><i class="bi bi-calendar-event text-orange me-3"></i>Prox Caminatas</h1>
-        <div class="text-dark lh-lg" style="white-space: pre-line; font-size: 1.05rem; text-align: justify;">
-          {{ caminatas_2027_text }}
+{% include 'partials/eventos_styles.html' %}
+
+<div class="container py-5 animate__animated animate__fadeIn">
+  <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+    <h1 class="fw-bold text-dark m-0"><i class="bi bi-calendar-event text-orange me-3"></i>Caminatas 2027</h1>
+    {% if is_super %}
+    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="abrirCrear()">
+      <i class="bi bi-plus-lg me-2"></i>Agregar
+    </button>
+    {% endif %}
+  </div>
+
+  {% if eventos %}
+  <div class="row g-4">
+    {% for ev in eventos %}
+    {% set precio_val = ev.precio | default(0, true) | int %}
+    {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+    {% set fecha_text %}
+      {% if ev.dias == 1 and ev.fecha_unica %}
+        {% set p = ev.fecha_unica.split('-') %}
+        {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
+      {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
+        {% set pi = ev.fecha_inicio.split('-') %}
+        {% set pr = ev.fecha_regreso.split('-') %}
+        {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
+      {% else %}
+        Por definir
+      {% endif %}
+    {% endset %}
+
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card border-0 rounded-4 shadow-sm h-100 glass-panel position-relative">
+        <div class="card-body p-4">
+          <div class="d-flex align-items-start gap-3 mb-3">
+            <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3" style="width:70px;height:70px;object-fit:cover;" alt="{{ ev.nombre_lugar }}">
+            <div>
+              <h5 class="fw-bold text-dark mb-1">{{ ev.nombre_lugar }}</h5>
+              <small class="text-muted">{{ fecha_text | trim }}</small>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="badge rounded-pill" style="background:#ff8c00;">{{ ev.dificultad or 'Paseo' }}</span>
+            <span class="fw-bold text-dark">{{ precio_mostrar }}</span>
+          </div>
+          {% if is_super %}
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-orange rounded-pill flex-fill" onclick="editarEvento({{ ev.id }})"><i class="bi bi-pencil me-1"></i>Editar</button>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})"><i class="bi bi-trash"></i></button>
+          </div>
+          {% endif %}
         </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x fs-1"></i>
+    <p class="mt-2">Aún no hay caminatas registradas para 2027.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Modal crear/editar -->
+<div class="modal fade" id="eventoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-3 px-md-4 pb-4 pt-0">
+        {% include 'partials/eventos_form_basic.html' %}
+        {% include 'partials/eventos_form_incluye.html' %}
       </div>
     </div>
   </div>
 </div>
+
+{% include 'partials/eventos_modal_alerta.html' %}
+{% include 'partials/caminatas_2027_script.html' %}
+{% include 'partials/eventos_script.html' %}
 {% endblock %}
 
 {% block footer %}{% include 'partials/footer.html' %}{% endblock %}

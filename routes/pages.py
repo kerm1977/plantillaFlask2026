@@ -2,7 +2,7 @@ from flask import render_template, session, redirect, url_for, jsonify, request,
 from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia
 from models_core import EventDateChange
 from datetime import datetime, date
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from db import db
 from routes import bp
 from helpers.holidays import get_today_holiday, get_background_music
@@ -72,7 +72,18 @@ def nuestra_musica():
 
 @bp.route('/caminatas-2027')
 def caminatas_2027():
-    return render_template('caminatas_2027.html', caminatas_2027_text=_get_site_text('caminatas_2027'))
+    is_super = session.get('role') == 'Superusuario'
+    eventos = Event.query.filter(
+        or_(
+            Event.fecha_unica.like('2027-%'),
+            Event.fecha_inicio.like('2027-%'),
+            Event.fecha_regreso.like('2027-%')
+        )
+    ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
+    return render_template('caminatas_2027.html',
+        caminatas_2027_text=_get_site_text('caminatas_2027'),
+        is_super=is_super,
+        eventos=eventos)
 
 
 @bp.route('/quienes-somos')

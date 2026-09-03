@@ -54,6 +54,38 @@ def get_events():
     return response
 
 
+@bp.route('/api/get_event/<int:event_id>', methods=['GET'])
+def get_event(event_id):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    e = Event.query.get_or_404(event_id)
+    return jsonify({
+        'id': e.id,
+        'poster': e.poster,
+        'nombre_lugar': e.nombre_lugar,
+        'dificultad': e.dificultad,
+        'actividad': e.actividad,
+        'moneda': e.moneda,
+        'precio': e.precio,
+        'reserva': e.reserva,
+        'capacidad': e.capacidad,
+        'sinpe': e.sinpe,
+        'cuenta': e.cuenta,
+        'solo_chat': e.solo_chat,
+        'logistica_segura': e.logistica_segura,
+        'dias': e.dias,
+        'fecha_unica': e.fecha_unica,
+        'fecha_inicio': e.fecha_inicio,
+        'fecha_regreso': e.fecha_regreso,
+        'hora_salida': e.hora_salida,
+        'lugar_salida': e.lugar_salida,
+        'puntos_recogida': e.puntos_recogida,
+        'itinerario': e.itinerario,
+        'incluye': e.incluye,
+        'is_sold_out': e.is_sold_out
+    })
+
+
 @bp.route('/api/toggle_espacio/<int:event_id>', methods=['POST'])
 def toggle_espacio(event_id):
     if 'user_id' not in session or session.get('role') != 'Superusuario':
