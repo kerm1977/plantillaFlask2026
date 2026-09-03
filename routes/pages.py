@@ -75,9 +75,9 @@ def caminatas_2027():
     is_super = session.get('role') == 'Superusuario'
     eventos = Event.query.filter(
         or_(
-            Event.fecha_unica.like('2027-%'),
-            Event.fecha_inicio.like('2027-%'),
-            Event.fecha_regreso.like('2027-%')
+            Event.fecha_unica.like('2027%'),
+            Event.fecha_inicio.like('2027%'),
+            Event.fecha_regreso.like('2027%')
         )
     ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
     return render_template('caminatas_2027.html',

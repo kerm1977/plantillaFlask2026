@@ -2,19 +2,11 @@
 let eventoEditando = null;
 let modalEvento = null;
 
-const MESES_VAL = ['01','02','03','04','05','06','07','08','09','10','11','12'];
-const PREDEFINED_INCLUDES = ['Transporte','Lancha','Desayuno','Café','Almuerzo','Refrigerio','Cena','Guías','Pasaporte','Entrada','Reconocimiento','Rifas','Estadía','Ducha','Servicios Sanitarios','Impuestos','Tiquetes Aereos','Zona de Camping','Póliza de Viajero','Taxi/Uber/Otro','Acarreo','Guías Certificados'];
-
 document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('yearUnica').value = '2027';
-    document.getElementById('yearInicio').value = '2027';
-    document.getElementById('yearRegreso').value = '2027';
-
     const form = document.getElementById('createEventForm');
     if (form) {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            e.stopImmediatePropagation();
 
             const submitBtn = document.getElementById('submitEventBtn');
             const originalBtnText = submitBtn.innerHTML;
@@ -22,51 +14,9 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
 
             const formData = new FormData(form);
-
-            const isSecureDia = document.getElementById('diaSeguroToggle').checked;
-            formData.set('solo_chat', isSecureDia);
-
-            const isSecureLog = document.getElementById('logisticaSeguraToggle').checked;
-            if (isSecureLog) {
-                const lugar = formData.get('lugarSalida') || '';
-                formData.set('lugarSalida', 'SEGURO_' + lugar);
-            }
-
-            const isAltoRiesgo = document.getElementById('altoRiesgoToggle').checked;
-            formData.set('zona_alto_riesgo', isAltoRiesgo);
-
-            const incluyeArr = [];
-            document.querySelectorAll('input[name="incluye_check"]:checked').forEach(cb => {
-                if (cb.value === 'Otros') {
-                    const desc = document.getElementById('otrosDescripcion').value;
-                    if (desc) incluyeArr.push(desc);
-                } else {
-                    incluyeArr.push(cb.value);
-                }
-            });
-            formData.set('incluye', incluyeArr.join(', '));
-
-            const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0' + v : v)); };
-            if (document.getElementById('actividad').value === 'Internacional') {
-                formData.set('fechaUnica', document.getElementById('fechaIda').value);
-            } else {
-                const dias = parseInt(document.getElementById('dias').value) || 1;
-                if (dias === 1) {
-                    const y = document.getElementById('yearUnica').value;
-                    const m = document.getElementById('monthUnica').value;
-                    const d = isSecureDia ? '01' : pad(document.getElementById('dayUnica').value);
-                    formData.set('fechaUnica', `${y}-${m}-${d}`);
-                } else {
-                    const yI = document.getElementById('yearInicio').value;
-                    const mI = document.getElementById('monthInicio').value;
-                    const dI = isSecureDia ? '01' : pad(document.getElementById('dayInicio').value);
-                    formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
-
-                    const yR = document.getElementById('yearRegreso').value;
-                    const mR = document.getElementById('monthRegreso').value;
-                    const dR = isSecureDia ? '01' : pad(document.getElementById('dayRegreso').value);
-                    formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
-                }
+            if (!eventoEditando) {
+                formData.set('fechaUnica', '2027');
+                formData.set('dias', '1');
             }
 
             const endpoint = eventoEditando ? `/api/update_event/${eventoEditando}` : '/api/create_event';
@@ -93,40 +43,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const upload = document.getElementById('eventImageUpload');
+    if (upload) {
+        upload.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    document.getElementById('eventImagePreview').src = evt.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    }
+
     const elModal = document.getElementById('eventoModal');
     if (elModal) modalEvento = new bootstrap.Modal(elModal);
 });
 
-function pad(n) {
-    let v = parseInt(n, 10);
-    return isNaN(v) ? '01' : (v < 10 ? '0' + v : '' + v);
-}
-
-function setModalTitle(html) {
-    const form = document.getElementById('createEventForm');
-    const h2 = form && form.parentElement ? form.parentElement.querySelector('h2') : null;
-    if (h2) h2.innerHTML = html;
-}
-
 function abrirCrear() {
     eventoEditando = null;
-    setModalTitle('<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027');
+    document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027';
     document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Publicar Evento';
     document.getElementById('createEventForm').reset();
-    document.getElementById('yearUnica').value = '2027';
-    document.getElementById('yearInicio').value = '2027';
-    document.getElementById('yearRegreso').value = '2027';
-    document.getElementById('dias').value = '1';
-    document.getElementById('eventImagePreview').src = '/static/default.png';
     document.getElementById('precio').value = '0';
     document.getElementById('reserva').value = '0';
-    document.querySelectorAll('input[name="incluye_check"]').forEach(cb => cb.checked = false);
-    document.getElementById('otrosDescripcion').value = '';
-    document.getElementById('otrosDescContainer').classList.add('d-none');
-    if (typeof toggleDateInputs === 'function') toggleDateInputs();
-    if (typeof toggleActividad === 'function') toggleActividad();
-    if (typeof toggleDiaSeguro === 'function') toggleDiaSeguro();
-    if (typeof toggleLogisticaSegura === 'function') toggleLogisticaSegura();
+    document.getElementById('eventImagePreview').src = '/static/default.png';
     if (modalEvento) modalEvento.show();
 }
 
@@ -136,97 +77,19 @@ async function editarEvento(id) {
         if (!res.ok) { alert('No autorizado o error al cargar.'); return; }
         const e = await res.json();
         eventoEditando = e.id;
-        setModalTitle('<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata 2027');
+        document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata 2027';
         document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
 
         document.getElementById('nombreLugar').value = e.nombre_lugar || '';
         document.getElementById('dificultad').value = e.dificultad || 'Paseo';
         document.getElementById('actividad').value = e.actividad || 'Caminata';
-        if (typeof toggleActividad === 'function') toggleActividad();
-
         document.getElementById('moneda').value = e.moneda || '¢';
         document.getElementById('precio').value = e.precio || 0;
         document.getElementById('reserva').value = e.reserva || 0;
-
-        let capacidadLimpia = (e.capacidad || '').replace('AGOTADO_', '');
-        document.getElementById('capacidad').value = capacidadLimpia || '14-17';
+        document.getElementById('capacidad').value = (e.capacidad || '').replace('AGOTADO_', '') || '14-17';
         document.getElementById('sinpe').value = e.sinpe || '';
-        document.getElementById('cuenta').value = e.cuenta || 'Ninguna';
-
-        document.getElementById('altoRiesgoToggle').checked = false; // no columna en modelo
-        document.getElementById('diaSeguroToggle').checked = e.solo_chat;
-        if (typeof toggleDiaSeguro === 'function') toggleDiaSeguro();
-
-        document.getElementById('dias').value = e.dias || 1;
-        document.getElementById('yearUnica').value = '2027';
-        document.getElementById('yearInicio').value = '2027';
-        document.getElementById('yearRegreso').value = '2027';
-
-        if (e.dias == 1 && e.fecha_unica) {
-            const [y, m, d] = e.fecha_unica.split('-');
-            document.getElementById('dayUnica').value = parseInt(d, 10) || 1;
-            document.getElementById('monthUnica').value = m || '01';
-            document.getElementById('yearUnica').value = y || '2027';
-        } else if (e.fecha_inicio && e.fecha_regreso) {
-            const [yi, mi, di] = e.fecha_inicio.split('-');
-            const [yr, mr, dr] = e.fecha_regreso.split('-');
-            document.getElementById('dayInicio').value = parseInt(di, 10) || 1;
-            document.getElementById('monthInicio').value = mi || '01';
-            document.getElementById('yearInicio').value = yi || '2027';
-            document.getElementById('dayRegreso').value = parseInt(dr, 10) || 1;
-            document.getElementById('monthRegreso').value = mr || '01';
-            document.getElementById('yearRegreso').value = yr || '2027';
-        }
-        if (typeof toggleDateInputs === 'function') toggleDateInputs();
-
-        let lugar = (e.lugar_salida || '').replace('SEGURO_', '');
-        const sel = document.getElementById('lugarSalida');
-        if (![...sel.options].some(o => o.value === lugar)) {
-            const opt = document.createElement('option');
-            opt.value = lugar;
-            opt.text = lugar;
-            sel.appendChild(opt);
-        }
-        sel.value = lugar;
-
-        document.getElementById('logisticaSeguraToggle').checked = e.logistica_segura;
-        if (typeof toggleLogisticaSegura === 'function') toggleLogisticaSegura();
-
-        document.getElementById('horaSalida').value = e.hora_salida || '';
-        if (typeof updateTimePreview === 'function') updateTimePreview();
-
-        document.getElementById('puntosRecogidaInput').value = e.puntos_recogida || '';
         document.getElementById('itinerario').value = e.itinerario || '';
-
-        const preview = document.getElementById('eventImagePreview');
-        preview.src = e.poster ? `/static/uploads/${e.poster}` : '/static/default.png';
-
-        const checkboxes = document.querySelectorAll('input[name="incluye_check"]');
-        checkboxes.forEach(cb => cb.checked = false);
-        const incluyeList = (e.incluye || '').split(',').map(x => x.trim()).filter(Boolean);
-        const custom = [];
-        incluyeList.forEach(item => {
-            const cb = [...checkboxes].find(c => c.value === item);
-            if (cb) {
-                cb.checked = true;
-            } else if (item !== 'Otros') {
-                custom.push(item);
-            }
-        });
-        if (custom.length > 0) {
-            const otros = [...checkboxes].find(c => c.value === 'Otros');
-            if (otros) otros.checked = true;
-            document.getElementById('otrosDescripcion').value = custom.join(', ');
-            document.getElementById('otrosDescContainer').classList.remove('d-none');
-        } else {
-            document.getElementById('otrosDescripcion').value = '';
-            document.getElementById('otrosDescContainer').classList.add('d-none');
-        }
-        if (typeof toggleOtherDesc === 'function') toggleOtherDesc();
-
-        if (e.actividad === 'Internacional') {
-            document.getElementById('destinoInternacional').value = lugar;
-        }
+        document.getElementById('eventImagePreview').src = e.poster ? `/static/uploads/${e.poster}` : '/static/default.png';
 
         if (modalEvento) modalEvento.show();
     } catch (err) {
