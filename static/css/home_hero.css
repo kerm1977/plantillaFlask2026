@@ -118,13 +118,29 @@
 }
 
 .hero-mobile-bar {
+  position: relative;
   padding: 1.25rem 1rem;
   text-align: center;
+  overflow: hidden;
   background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.hero-mobile-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -120%;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: skewX(-20deg);
+  z-index: -1;
+  pointer-events: none;
+  animation: btn-hero-shine 2.5s ease-in-out infinite;
 }
 
 .hero-mobile-title {
