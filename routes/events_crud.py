@@ -48,7 +48,8 @@ def create_event():
             lugar_salida=destino_db,
             puntos_recogida=request.form.get('puntosRecogida'),
             itinerario=request.form.get('itinerario'),
-            incluye=request.form.get('incluye')
+            incluye=request.form.get('incluye'),
+            provincia=request.form.get('provincia')
         )
         db.session.add(new_event)
         db.session.commit()
@@ -102,6 +103,7 @@ def update_event(event_id):
         evento.puntos_recogida = request.form.get('puntosRecogida', evento.puntos_recogida)
         evento.itinerario = request.form.get('itinerario', evento.itinerario)
         evento.incluye = request.form.get('incluye', evento.incluye)
+        evento.provincia = request.form.get('provincia', evento.provincia)
 
         db.session.commit()
         return jsonify({"success": True})

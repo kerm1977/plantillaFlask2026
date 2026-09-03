@@ -81,6 +81,7 @@ async function editarEvento(id) {
         document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
 
         document.getElementById('nombreLugar').value = e.nombre_lugar || '';
+        document.getElementById('provincia').value = e.provincia || 'San José';
         document.getElementById('dificultad').value = e.dificultad || 'Paseo';
         document.getElementById('actividad').value = e.actividad || 'Caminata';
         document.getElementById('moneda').value = e.moneda || '¢';

@@ -82,6 +82,7 @@ def get_event(event_id):
         'puntos_recogida': e.puntos_recogida,
         'itinerario': e.itinerario,
         'incluye': e.incluye,
+        'provincia': e.provincia,
         'is_sold_out': e.is_sold_out
     })
 
