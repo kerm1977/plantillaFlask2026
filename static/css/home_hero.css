@@ -548,12 +548,11 @@ footer input[type="submit"] {
 
 .hero-welcome-label {
   display: inline-block;
+  font-family: 'Ronda', sans-serif;
   font-size: clamp(1rem, 4.5vw, 1.5rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: 0.04em;
   line-height: 1.05;
   text-transform: uppercase;
   color: #fff;
-  -webkit-text-stroke: 1.2px #000;
-  text-shadow: 0 0 5px rgba(0, 0, 0, 0.5) !important;
 }
