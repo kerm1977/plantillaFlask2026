@@ -102,9 +102,15 @@ function pad(n) {
     return isNaN(v) ? '01' : (v < 10 ? '0' + v : '' + v);
 }
 
+function setModalTitle(html) {
+    const form = document.getElementById('createEventForm');
+    const h2 = form && form.parentElement ? form.parentElement.querySelector('h2') : null;
+    if (h2) h2.innerHTML = html;
+}
+
 function abrirCrear() {
     eventoEditando = null;
-    document.querySelector('#createEventForm h2').innerHTML = '<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027';
+    setModalTitle('<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027');
     document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Publicar Evento';
     document.getElementById('createEventForm').reset();
     document.getElementById('yearUnica').value = '2027';
@@ -130,7 +136,7 @@ async function editarEvento(id) {
         if (!res.ok) { alert('No autorizado o error al cargar.'); return; }
         const e = await res.json();
         eventoEditando = e.id;
-        document.querySelector('#createEventForm h2').innerHTML = '<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata 2027';
+        setModalTitle('<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata 2027');
         document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
 
         document.getElementById('nombreLugar').value = e.nombre_lugar || '';
