@@ -140,8 +140,6 @@ body::before {
     align-items: center;
     z-index: 1030;
     padding-bottom: env(safe-area-inset-bottom);
-    border-top-left-radius: 20px;
-    border-top-right-radius: 20px;
 }
 
 .mobile-nav-item,
