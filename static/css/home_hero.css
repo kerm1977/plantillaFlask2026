@@ -399,6 +399,18 @@ footer input[type="submit"] {
   margin: 0 0.5rem;
 }
 
+.ft-year-2027 {
+  display: inline-block;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #eee;
+}
+
+.ft-year-2027:hover {
+  color: var(--primary-orange, #ff8c00);
+}
+
 .pulse-heart {
   display: inline-block;
   color: #ff0000;
