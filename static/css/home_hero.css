@@ -399,8 +399,23 @@ footer input[type="submit"] {
   margin: 0 0.5rem;
 }
 
+.ft-whatsapp-item {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.ft-year-separator {
+  width: 100%;
+  margin: 0.75rem 0 0.5rem;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  opacity: 1;
+}
+
 .ft-year-2027 {
-  display: inline-block;
+  display: block;
+  text-align: center;
   font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: 0.03em;
