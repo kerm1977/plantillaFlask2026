@@ -82,6 +82,15 @@ class SiteContent(db.Model):
     key = db.Column(db.String(50), unique=True, nullable=False)
     value = db.Column(db.Text, nullable=False)
 
+class CaminataBlock(db.Model):
+    __tablename__ = 'caminata_block'
+    id = db.Column(db.Integer, primary_key=True)
+    page = db.Column(db.String(50), nullable=False, default='caminatas_2027')
+    order = db.Column(db.Float, nullable=False, default=0)
+    content = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 class Hiker(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cedula = db.Column(db.String(50), unique=True, nullable=False)

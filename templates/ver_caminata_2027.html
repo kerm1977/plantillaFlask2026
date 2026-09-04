@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block title %}{{ event.nombre_lugar }} - Caminatas 2027 - La Tribu{% endblock %}
+{% block body_attrs %} class="caminata-detalle-page"{% endblock %}
 
 {% block content %}
 {% set precio_val = event.precio | default(0, true) | int %}
@@ -183,4 +184,26 @@
     }
   }
 </script>
+
+<style>
+  body.caminata-detalle-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  body.caminata-detalle-page main.content-wrapper {
+    flex: 1 0 auto;
+  }
+  body.caminata-detalle-page footer {
+    flex-shrink: 0;
+    margin-top: 0;
+  }
+  @media (max-width: 767.98px) {
+    body.caminata-detalle-page {
+      padding-bottom: var(--nav-mobile-height, 65px);
+    }
+  }
+</style>
 {% endblock %}
+
+{% block footer %}{% include 'partials/footer.html' %}{% endblock %}

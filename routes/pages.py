@@ -1,5 +1,5 @@
 from flask import render_template, session, redirect, url_for, jsonify, request, make_response
-from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia
+from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia, CaminataBlock
 from models_core import EventDateChange
 from datetime import datetime, date
 from sqlalchemy import func, or_
@@ -72,6 +72,7 @@ def nuestra_musica():
 
 @bp.route('/caminatas-2027')
 def caminatas_2027():
+    from itertools import groupby
     is_super = session.get('role') == 'Superusuario'
     eventos = Event.query.filter(
         or_(
@@ -80,10 +81,23 @@ def caminatas_2027():
             Event.fecha_regreso.like('2027%')
         )
     ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
+
+    eventos_sorted = sorted(eventos, key=lambda e: (e.provincia or 'Sin provincia'))
+    timeline = []
+    for idx, (provincia, items) in enumerate(groupby(eventos_sorted, key=lambda e: e.provincia or 'Sin provincia')):
+        timeline.append({'type': 'provincia', 'order': idx * 100.0, 'provincia': provincia, 'walks': list(items)})
+
+    blocks = CaminataBlock.query.filter_by(page='caminatas_2027').order_by(CaminataBlock.order).all()
+    for b in blocks:
+        timeline.append({'type': 'block', 'order': b.order, 'id': b.id, 'content': b.content})
+
+    timeline.sort(key=lambda x: x['order'])
+
     return render_template('caminatas_2027.html',
         caminatas_2027_text=_get_site_text('caminatas_2027'),
         is_super=is_super,
-        eventos=eventos)
+        eventos=eventos,
+        timeline=timeline)
 
 
 @bp.route('/caminatas-2027/<int:event_id>')

@@ -13,65 +13,99 @@
 <div class="container py-5 animate__animated animate__fadeIn">
   <div class="text-center mb-4">
     <h1 class="fw-bold text-dark m-0">Caminatas 2027</h1>
-    {% if caminatas_2027_text %}
-    <p class="text-muted mt-2 mb-0">{{ caminatas_2027_text }}</p>
-    {% endif %}
+    <div class="d-flex align-items-start justify-content-center gap-2 mt-2">
+      <p class="text-muted mb-0" id="caminataIntroText">{{ caminatas_2027_text|safe }}</p>
+      {% if is_super %}
+      <button class="btn btn-sm btn-light rounded-circle flex-shrink-0" onclick="openBlockEditor('intro', null, document.getElementById('caminataIntroText').innerHTML, null)" title="Editar información"><i class="bi bi-pencil"></i></button>
+      {% endif %}
+    </div>
   </div>
 
-  {% if eventos %}
-  <div class="accordion" id="accordionProvincias">
-    {% for provincia, items in eventos|sort(attribute='provincia')|groupby('provincia') %}
-    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
-          <span class="d-flex align-items-center gap-2">
-            <span class="text-uppercase">{{ provincia or 'Sin provincia' }}</span>
-            <span class="badge rounded-pill" style="background:#ff8c00;">{{ items|length }}</span>
-          </span>
-        </button>
-      </h2>
-      <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
-        <div class="accordion-body pt-0">
-          <ul class="list-group list-group-flush">
-            {% for ev in items %}
-            {% set precio_val = ev.precio | default(0, true) | int %}
-            {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
-            {% set fecha_text %}
-              {% if ev.dias == 1 and ev.fecha_unica %}
-                {% set p = ev.fecha_unica.split('-') %}
-                {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
-              {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
-                {% set pi = ev.fecha_inicio.split('-') %}
-                {% set pr = ev.fecha_regreso.split('-') %}
-                {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
-              {% else %}
-                Por definir
-              {% endif %}
-            {% endset %}
+  {% if is_super %}
+  <div class="text-center mb-3">
+    <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openBlockEditor('create', null, '', {{ (timeline[0].order - 10) if timeline else 0 }})">
+      <i class="bi bi-plus-lg me-1"></i>Agregar párrafo aquí
+    </button>
+  </div>
+  {% endif %}
 
-            <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
-              <div class="d-flex align-items-center gap-3">
-                <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
-                <div class="flex-grow-1 min-width-0">
-                  <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}</a>
-                  <small class="text-muted d-block">{{ fecha_text | trim }} · {{ ev.dificultad or 'Paseo' }}</small>
-                  <span class="fw-bold text-dark small">{{ precio_mostrar }}</span>
-                </div>
-                {% if is_super %}
-                <div class="d-flex gap-2" style="z-index:2;">
-                  <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento({{ ev.id }})" title="Editar"><i class="bi bi-pencil"></i></button>
-                  <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})" title="Eliminar"><i class="bi bi-trash"></i></button>
-                </div>
-                {% endif %}
-              </div>
-            </li>
-            {% endfor %}
-          </ul>
+  {% if timeline %}
+  <div id="accordionProvincias">
+    {% for entry in timeline %}
+      {% if entry.type == 'provincia' %}
+      <div class="accordion glass-panel border-0 rounded-4 mb-3 shadow-sm">
+        <div class="accordion-item border-0 bg-transparent">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
+              <span class="d-flex align-items-center gap-2">
+                <span class="text-uppercase">{{ entry.provincia or 'Sin provincia' }}</span>
+                <span class="badge rounded-pill" style="background:#ff8c00;">{{ entry.walks|length }}</span>
+              </span>
+            </button>
+          </h2>
+          <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse">
+            <div class="accordion-body pt-0">
+              <ul class="list-group list-group-flush">
+                {% for ev in entry.walks %}
+                {% set precio_val = ev.precio | default(0, true) | int %}
+                {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+                {% set fecha_text %}
+                  {% if ev.dias == 1 and ev.fecha_unica %}
+                    {% set p = ev.fecha_unica.split('-') %}
+                    {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
+                  {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
+                    {% set pi = ev.fecha_inicio.split('-') %}
+                    {% set pr = ev.fecha_regreso.split('-') %}
+                    {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
+                  {% else %}
+                    Por definir
+                  {% endif %}
+                {% endset %}
+
+                <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
+                  <div class="d-flex align-items-center gap-3">
+                    <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+                    <div class="flex-grow-1 min-width-0">
+                      <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}</a>
+                      <small class="text-muted d-block">{{ fecha_text | trim }} · {{ ev.dificultad or 'Paseo' }}</small>
+                      <span class="fw-bold text-dark small">{{ precio_mostrar }}</span>
+                    </div>
+                    {% if is_super %}
+                    <div class="d-flex gap-2" style="z-index:2;">
+                      <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento({{ ev.id }})" title="Editar"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})" title="Eliminar"><i class="bi bi-trash"></i></button>
+                    </div>
+                    {% endif %}
+                  </div>
+                </li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+      {% else %}
+      <div class="glass-panel border-0 rounded-4 mb-3 shadow-sm p-4 position-relative caminata-content-block">
+        {% if is_super %}
+        <div class="position-absolute top-0 end-0 d-flex gap-1 p-2" style="z-index:2;">
+          <button class="btn btn-sm btn-light rounded-circle" onclick="openBlockEditor('edit', {{ entry.id }}, document.getElementById('block-{{ entry.id }}').innerHTML, null)" title="Editar párrafo"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="eliminarBloque({{ entry.id }})" title="Eliminar párrafo"><i class="bi bi-trash"></i></button>
+        </div>
+        {% endif %}
+        <div id="block-{{ entry.id }}">{{ entry.content|safe }}</div>
+      </div>
+      {% endif %}
+
+      {% if is_super %}
+      <div class="text-center mb-3">
+        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openBlockEditor('create', null, '', {{ ((entry.order + timeline[loop.index].order) / 2) if not loop.last else (entry.order + 10) }})">
+          <i class="bi bi-plus-lg me-1"></i>Agregar párrafo aquí
+        </button>
+      </div>
+      {% endif %}
     {% endfor %}
   </div>
+  {% elif eventos %}
   {% else %}
   <div class="text-center py-5 text-muted">
     <i class="bi bi-calendar-x fs-1"></i>
@@ -79,6 +113,143 @@
   </div>
   {% endif %}
 </div>
+
+<!-- Modal editor de párrafos / información (WYSIWYG) -->
+<div class="modal fade" id="blockEditorModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold" id="blockEditorTitle">Editar contenido</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-3 px-md-4 pb-4 pt-2">
+        <div class="d-flex flex-wrap gap-1 mb-2">
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+          <div class="vr mx-1"></div>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+          <div class="vr mx-1"></div>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+          <div class="vr mx-1"></div>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockInsertLink()" title="Insertar enlace"><i class="bi bi-link-45deg"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('unlink')" title="Quitar enlace"><i class="bi bi-link-45deg"></i><i class="bi bi-x small"></i></button>
+          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('blockImageFile').click()" title="Insertar imagen"><i class="bi bi-image"></i></button>
+          <input type="file" id="blockImageFile" accept="image/*" style="display:none;" onchange="blockUploadImage(this)">
+          <div class="vr mx-1"></div>
+          <select class="form-select form-select-sm w-auto" onchange="blockSetLineHeight(this.value)" title="Interlineado">
+            <option value="">Interlineado</option>
+            <option value="1">1.0</option>
+            <option value="1.5">1.5</option>
+            <option value="2">2.0</option>
+            <option value="2.5">2.5</option>
+          </select>
+        </div>
+        <div id="blockEditorContent" class="p-3 bg-white bg-opacity-75 rounded-3 border" contenteditable="true" style="min-height:200px;"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-orange rounded-pill px-4 fw-bold" onclick="saveBlockEditor()"><i class="bi bi-save me-2"></i>Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let blockEditorModalInstance;
+  let blockEditorState = { mode: null, id: null, order: null };
+
+  function openBlockEditor(mode, id, initialContent, order) {
+    blockEditorState = { mode, id, order };
+    document.getElementById('blockEditorContent').innerHTML = initialContent || '';
+    document.getElementById('blockEditorTitle').textContent = mode === 'intro' ? 'Editar información' : (mode === 'create' ? 'Agregar párrafo' : 'Editar párrafo');
+    if (!blockEditorModalInstance) blockEditorModalInstance = new bootstrap.Modal(document.getElementById('blockEditorModal'));
+    blockEditorModalInstance.show();
+  }
+
+  function blockExecCmd(command) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand(command, false, null);
+    document.getElementById('blockEditorContent').focus();
+  }
+
+  function blockSetLineHeight(value) {
+    if (!value) return;
+    document.getElementById('blockEditorContent').style.lineHeight = value;
+  }
+
+  function blockInsertLink() {
+    const url = window.prompt('Ingrese la URL del enlace:', 'https://');
+    if (!url) return;
+    document.getElementById('blockEditorContent').focus();
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('createLink', false, url);
+  }
+
+  async function blockUploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const r = await fetch('/api/caminatas-2027/blocks/upload-image', {method:'POST', body: formData});
+      const data = await r.json();
+      if (data.ok) {
+        document.getElementById('blockEditorContent').focus();
+        document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`);
+      } else {
+        alert(data.error || 'Error al subir imagen');
+      }
+    } catch(e) {
+      alert('Error de conexión al subir imagen');
+    }
+    input.value = '';
+  }
+
+  async function saveBlockEditor() {
+    const content = document.getElementById('blockEditorContent').innerHTML;
+    const { mode, id, order } = blockEditorState;
+    try {
+      let r;
+      if (mode === 'intro') {
+        r = await fetch('/api/site-content/caminatas_2027', {method:'PUT', headers:{'Content-Type':'text/plain'}, body: content});
+      } else if (mode === 'create') {
+        const newOrder = (order === null || order === undefined) ? 0 : order;
+        r = await fetch('/api/caminatas-2027/blocks', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content, order: newOrder})});
+      } else {
+        r = await fetch(`/api/caminatas-2027/blocks/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content})});
+      }
+      const data = await r.json().catch(() => ({}));
+      if (data.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al guardar');
+      }
+    } catch(e) {
+      alert('Error de conexión al guardar');
+    }
+  }
+
+  async function eliminarBloque(id) {
+    if (!confirm('¿Eliminar este párrafo?')) return;
+    try {
+      const r = await fetch(`/api/caminatas-2027/blocks/${id}`, {method:'DELETE'});
+      const data = await r.json();
+      if (data.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al eliminar');
+      }
+    } catch(e) {
+      alert('Error de conexión al eliminar');
+    }
+  }
+</script>
 
 {% if is_super %}
 <button class="btn btn-orange rounded-circle shadow-lg d-flex align-items-center justify-content-center" onclick="abrirCrear()" title="Agregar Caminata 2027" style="position: fixed; bottom: calc(var(--nav-mobile-height, 70px) + 60px); right: 20px; width: 50px; height: 50px; z-index: 1046;">

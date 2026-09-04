@@ -1,6 +1,6 @@
 import os
 from flask import request, jsonify, session
-from models import Event
+from models import Event, CaminataBlock
 from db import db
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
@@ -160,3 +160,66 @@ def save_caminata_2027_itinerario(event_id):
     evento.itinerario = data.get('itinerario', evento.itinerario)
     db.session.commit()
     return jsonify({"ok": True})
+
+
+@bp.route('/api/caminatas-2027/blocks', methods=['POST'])
+def create_caminata_block():
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "JSON no recibido"}), 400
+
+    block = CaminataBlock(
+        page='caminatas_2027',
+        order=data.get('order', 0),
+        content=data.get('content', '')
+    )
+    db.session.add(block)
+    db.session.commit()
+    return jsonify({"ok": True, "id": block.id})
+
+
+@bp.route('/api/caminatas-2027/blocks/<int:block_id>', methods=['PUT'])
+def update_caminata_block(block_id):
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    block = CaminataBlock.query.get_or_404(block_id)
+    data = request.get_json(silent=True)
+    if data is None:
+        return jsonify({"error": "JSON no recibido"}), 400
+
+    block.content = data.get('content', block.content)
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
+@bp.route('/api/caminatas-2027/blocks/<int:block_id>', methods=['DELETE'])
+def delete_caminata_block(block_id):
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    block = CaminataBlock.query.get_or_404(block_id)
+    db.session.delete(block)
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
+@bp.route('/api/caminatas-2027/blocks/upload-image', methods=['POST'])
+def upload_caminata_block_image():
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+
+    file = request.files.get('image')
+    if not file or file.filename == '':
+        return jsonify({"error": "No se envió imagen"}), 400
+    if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
+        return jsonify({"error": "Formato de imagen no permitido"}), 400
+
+    filename = secure_filename(f"caminata2027_block_{os.urandom(4).hex()}_{file.filename}")
+    upload_dir = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'static', 'uploads', 'caminatas_2027')
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, filename))
+    return jsonify({"ok": True, "url": f"/static/uploads/caminatas_2027/{filename}"})
