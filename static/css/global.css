@@ -82,6 +82,26 @@ a:hover { color: var(--primary-hover); }
     position: absolute; right: 10px; top: 35px; cursor: pointer; user-select: none; color: #aaa; z-index: 10;
 }
 
+/* Layout general: footer siempre pegado al fondo, sin importar cuánto contenido tenga la página */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+main.content-wrapper {
+    flex: 1 0 auto;
+}
+footer {
+    flex-shrink: 0;
+}
+@media (max-width: 767.98px) {
+    /* En móvil el navbar de escritorio está oculto (d-md-flex); su contenedor no debe dejar espacio en blanco */
+    #navbar-top {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+}
+
 /* Barra Móvil Inferior */
 .mobile-bottom-bar {
     position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-mobile-height);
