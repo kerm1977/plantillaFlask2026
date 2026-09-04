@@ -1,12 +1,19 @@
 /* Estilos base para el efecto Glassmorphism */
+html {
+    background: #f5f2eb;
+    overscroll-behavior-y: none;
+}
+
 body {
     background: #f5f2eb;
     color: #333;
     min-height: 100vh;
+    min-height: 100dvh;
     display: flex;
     flex-direction: column;
     position: relative;
     overflow-x: hidden;
+    overscroll-behavior-y: none;
 }
 
 body::before {
