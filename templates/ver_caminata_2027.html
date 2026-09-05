@@ -184,6 +184,12 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     </a>
     {% endif %}
     <!-- FIN BOTÓN WHATSAPP -->
+    <button class="btn btn-outline-danger rounded-pill fw-bold d-inline-flex align-items-center ms-2" onclick="caminataExport('pdf')">
+      <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+    </button>
+    <button class="btn btn-success rounded-pill fw-bold d-inline-flex align-items-center ms-2" onclick="abrirModalCompartirCaminata()">
+      <i class="bi bi-whatsapp me-2"></i>Compartir
+    </button>
   </div>
 </div>
 
@@ -605,21 +611,25 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
         link.click();
       } else if (format === 'pdf') {
         if (typeof jspdf === 'undefined' || !jspdf.jsPDF) {
-          alert('Espere a que cargue jsPDF o recargue la pÃ¡gina.');
+          alert('Espere a que cargue jsPDF o recargue la página.');
           return;
         }
         const { jsPDF } = jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         const imgData = canvas.toDataURL('image/png');
-        const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
         const pageHeight = pdf.internal.pageSize.getHeight();
-        const scale = Math.min(1, pageHeight / pdfHeight);
-        const finalWidth = pdfWidth * scale;
-        const finalHeight = pdfHeight * scale;
-        const x = (pdfWidth - finalWidth) / 2;
-        pdf.addImage(imgData, 'PNG', x, 0, finalWidth, finalHeight);
+        let heightLeft = pdfHeight;
+        let position = 0;
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+        while (heightLeft > 0) {
+          position = heightLeft - pdfHeight;
+          pdf.addPage();
+          pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+          heightLeft -= pageHeight;
+        }
         pdf.save(`caminata_{{ event.id }}_{{ event.nombre_lugar|replace(' ', '_') }}.pdf`);
       }
     } catch(e) {
