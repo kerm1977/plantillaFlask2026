@@ -1,3 +1,13 @@
+/* Fuente Uncial Antiqua instalada localmente */
+@font-face {
+  font-family: 'Uncial Antiqua';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/static/fonts/UncialAntiqua/UncialAntiqua-Regular.ttf') format('truetype'),
+       url('https://fonts.gstatic.com/s/uncialantiqua/v22/N0bM2S5WOex4OUbESzoESK-i-PfR.ttf') format('truetype');
+}
+
 /* Hero full-screen del home con imagen de fondo y overlay */
 .home-hero-wrapper {
   position: relative;
@@ -66,8 +76,9 @@
   border: none;
   border-radius: 2rem;
   padding: 0.9rem 2.25rem;
+  font-family: 'Uncial Antiqua', cursive;
   font-size: 1.15rem;
-  font-weight: 700;
+  font-weight: 400;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   text-decoration: none;
@@ -119,14 +130,28 @@
 
 .hero-mobile-bar {
   position: relative;
-  padding: 1.25rem 1rem;
+  padding: 1.25rem 1rem 3.25rem;
   text-align: center;
   overflow: hidden;
   background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 1;
+}
+
+/* Triángulo del mismo color del footer para cerrar la diagonal hacia abajo sin dejar espacios */
+.hero-mobile-bar::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #555;
+  clip-path: polygon(0 100%, 100% 75%, 100% 100%);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .hero-mobile-bar::after {
@@ -212,6 +237,11 @@
   50% { color: rgba(100, 220, 160, 0.95); }
   75% { color: rgba(255, 220, 120, 0.95); }
   100% { color: rgba(255, 180, 120, 0.95); }
+}
+
+/* Fondo tipo lienzo crema solo para la página de caminatas, sin afectar el footer */
+body.caminatas-page {
+  background-color: #fbf8ee;
 }
 
 /* Logo con halo centrado en la mobile bottom bar (mitad arriba, mitad adentro) */
@@ -309,8 +339,9 @@ footer ul {
 
 .ft-title {
   color: #fff;
-  font-family: 'Merriweather', serif;
+  font-family: 'Uncial Antiqua', cursive;
   font-size: 1.375rem;
+  font-weight: 400;
   padding-bottom: 0.625rem;
 }
 
@@ -319,6 +350,7 @@ footer ul {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
+  align-items: end;
 }
 
 @media (min-width: 768px) {
@@ -329,7 +361,7 @@ footer ul {
 }
 
 .ft-main-item {
-  padding: 1.25rem 1.25rem 0.625rem;
+  padding: 1.25rem 1.25rem 0;
   min-width: 0;
 }
 
@@ -370,7 +402,7 @@ footer input[type="submit"] {
 
 .ft-legal-hr {
   border-color: #777;
-  margin: 0 1.875rem;
+  margin: 10px 1.875rem 0;
   opacity: 1;
 }
 
@@ -407,16 +439,19 @@ footer input[type="submit"] {
 
 .ft-year-separator {
   width: 100%;
-  margin: 0.75rem 0 0.5rem;
+  margin: 1rem 0;
   border: none;
   border-top: 1px solid rgba(255, 255, 255, 0.3);
   opacity: 1;
 }
 
 .ft-year-2027 {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   text-align: center;
-  font-size: 1.15rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: 0.03em;
   color: #eee;
@@ -424,6 +459,29 @@ footer input[type="submit"] {
 
 .ft-year-2027:hover {
   color: var(--primary-orange, #ff8c00);
+}
+
+.ft-year-dot {
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: #2ecc71;
+  box-shadow: 0 0 8px 2px rgba(46, 204, 113, 0.45);
+  animation: dot-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes dot-glow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+    box-shadow: 0 0 6px 1px rgba(46, 204, 113, 0.35);
+  }
+  50% {
+    opacity: 0.55;
+    transform: scale(0.85);
+    box-shadow: 0 0 3px 0 rgba(46, 204, 113, 0.2);
+  }
 }
 
 .pulse-heart {
@@ -586,21 +644,33 @@ footer input[type="submit"] {
   text-align: center;
   z-index: 3;
   pointer-events: none;
-  padding: 0.45rem 0.75rem 0.4rem;
-  background: rgba(255, 255, 255, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 0.55rem 0.75rem 1.35rem;
+  background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 60%);
 }
 
 .hero-welcome-label {
   display: inline-block;
   white-space: nowrap;
-  font-family: 'Ronda', sans-serif;
-  font-size: clamp(0.6rem, 4.2vw, 1.35rem);
-  font-weight: 800;
+  font-family: 'Uncial Antiqua', cursive;
+  font-size: clamp(0.5rem, 3.2vw, 0.85rem);
+  font-weight: 400;
   letter-spacing: 0.02em;
   line-height: 1.05;
   text-transform: uppercase;
   color: #fff;
+}
+
+.welcome-tribu {
+  font-size: 1.15em;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+#tours-section h2 {
+  font-family: 'Uncial Antiqua', cursive !important;
+  font-weight: 400 !important;
 }

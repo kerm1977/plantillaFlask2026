@@ -108,7 +108,8 @@ body::before {
 
 /* Reflejo dinámico naranja claro en navbars */
 .custom-navbar::before,
-.mobile-bottom-bar::before {
+.mobile-bottom-bar::before,
+.hero-welcome-text::before {
     content: "";
     position: absolute;
     top: 0;
@@ -129,24 +130,51 @@ body::before {
 }
 
 /* Ajustes de Mobile Bottom Bar */
+/* NO TOCAR: padding-left/right fijado para alinear Inicio e Ingresar/Perfil */
 .mobile-bottom-bar {
     position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: var(--nav-mobile-height, 70px);
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     align-items: center;
+    padding-left: 60px;
+    padding-right: 60px;
     z-index: 1030;
     padding-bottom: env(safe-area-inset-bottom);
+    background: transparent;
+    border-top: none !important;
+    height: calc(var(--nav-mobile-height, 70px) + 2rem - 40px);
+}
+
+/* Cubre el sobrante superior izquierdo para dejar la izquierda igual y levantar la derecha */
+.mobile-bottom-bar::before {
+    display: none !important;
+}
+
+.mobile-bottom-bar::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: calc(0px - env(safe-area-inset-bottom));
+    background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
+    background-color: #555;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    clip-path: none;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .mobile-nav-item,
 .mobile-nav-item:visited,
 .mobile-nav-item:hover,
 .mobile-nav-item:active {
-    color: #000 !important;
+    color: #fff !important;
     text-decoration: none;
     display: flex;
     flex-direction: column;
@@ -160,19 +188,19 @@ body::before {
 .mobile-nav-item:hover i,
 .mobile-nav-item:active i,
 .mobile-nav-item:visited i {
-    color: #000 !important;
+    color: #fff !important;
 }
 
 .mobile-nav-item:hover,
 .mobile-nav-item:active {
-    color: #333;
+    color: #fff;
     transform: translateY(-2px);
 }
 
 /* Botón Global Volver */
 .btn-global-back {
     position: fixed;
-    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px + 20px);
     left: 20px;
     width: 50px;
     height: 50px;
@@ -197,13 +225,12 @@ body::before {
 /* Botón Global Crear (A la derecha) */
 .btn-global-add {
     position: fixed;
-    bottom: calc(var(--nav-mobile-height, 70px) - 15px);
+    bottom: calc(var(--nav-mobile-height, 70px) - 15px + 20px);
     right: 20px;
     width: 50px;
     height: 50px;
     border-radius: 50%;
-    background: rgba(255, 140, 0, 0.8);
-    backdrop-filter: blur(5px);
+    overflow: hidden;
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.3);
     box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
@@ -215,9 +242,33 @@ body::before {
     transition: all 0.3s ease;
     text-decoration: none;
 }
+
+.btn-global-add::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-color: #555;
+    background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -1;
+    transition: transform 0.6s ease;
+}
+
+.btn-global-add:hover::before {
+    transform: rotate(360deg) scale(1.1);
+}
+
 .btn-global-add:hover {
-    background: rgba(255, 140, 0, 1);
     transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Botón flotante: Crear Caminata 2027 (mismo estilo que admin, distinta posición) */
+.btn-caminata-2027 {
+    bottom: calc(var(--nav-mobile-height, 70px) + 60px);
+    z-index: 1046;
 }
 
 /* Botón flotante: Cotizador (arriba del botón de admin) */

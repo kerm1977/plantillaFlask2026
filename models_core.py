@@ -53,11 +53,13 @@ class Event(db.Model):
     lugar_salida = db.Column(db.String(200))
     puntos_recogida = db.Column(db.Text)
     itinerario = db.Column(db.Text)
+    texto_referencia = db.Column(db.Text)
     incluye = db.Column(db.Text)
     provincia = db.Column(db.String(100)) 
     gpx_filename = db.Column(db.String(255))
     gpx_password = db.Column(db.String(50))
     organicmaps_url = db.Column(db.String(500))
+    enlace_extra = db.Column(db.String(1000))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class EventDateChange(db.Model):

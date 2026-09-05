@@ -1,16 +1,34 @@
 {% extends "base.html" %}
 {% block title %}{{ event.nombre_lugar }} - Caminatas 2027 - La Tribu{% endblock %}
-{% block body_attrs %} class="caminata-detalle-page"{% endblock %}
+{% block extra_head %}
+<meta property="og:title" content="{{ event.nombre_lugar }} - Caminatas 2027 - La Tribu">
+<meta property="og:description" content="Información de la caminata {{ event.nombre_lugar }}">
+<meta property="og:url" content="{{ request.url }}">
+<meta property="og:image" content="{{ url_for('static', filename='uploads/' + event.poster, _external=True) if event.poster else url_for('static', filename='logo.png', _external=True) }}">
+<style>
+  #caminataPreview blockquote {
+    border-left: 4px solid #25d366;
+    padding-left: 1rem;
+    margin: 0.5rem 0;
+    font-style: normal;
+    background-color: transparent;
+    color: inherit;
+  }
+</style>
+{% endblock %}
+{% block body_attrs %} class="caminata-detalle-page{% if is_share %} share-view{% endif %}"{% endblock %}
 
 {% block content %}
-{% set precio_val = event.precio | default(0, true) | int %}
-{% set precio_text = event.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
-
 <div class="container py-5 animate__animated animate__fadeIn">
   <div class="text-center mb-4">
-    <h1 class="fw-bold text-dark m-0">{{ event.nombre_lugar }}</h1>
-    <p class="text-muted mb-0">
-      {{ event.provincia or '' }}{% if event.provincia %} · {% endif %}{{ event.dificultad or 'Paseo' }} · {{ precio_text }}
+    {% if event.actividad %}
+    <span class="badge bg-orange rounded-pill text-white mb-2 fw-bold small" style="background:#ff8c00;">{{ event.actividad }}</span>
+    {% endif %}
+    <h1 id="caminataDetalleTitle" class="fw-bold text-dark m-0" style="user-select:none;-webkit-user-select:none;cursor:pointer;">{{ event.nombre_lugar }}</h1>
+    <p class="text-muted small mt-2 mb-0">
+      {% if event.provincia %}<span class="me-2"><i class="bi bi-geo-alt me-1"></i>{{ event.provincia }}</span>{% endif %}
+      {% if event.dificultad %}<span class="me-2"><i class="bi bi-bar-chart-steps me-1"></i>{{ event.dificultad }}</span>{% endif %}
+      {% if event.actividad %}<span><i class="bi bi-activity me-1"></i>{{ event.actividad }}</span>{% endif %}
     </p>
   </div>
 
@@ -20,12 +38,43 @@
     </div>
   </div>
 
+  {% if event.texto_referencia %}
+  <div class="row justify-content-center mb-4">
+    <div class="col-12 col-lg-8">
+      <div class="glass-panel rounded-4 p-1 shadow-sm">
+        <div class="p-3 bg-white bg-opacity-75 rounded-3">
+          {{ event.texto_referencia|safe }}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if event.texto_referencia and event.itinerario %}
+  <hr class="border-secondary opacity-25 my-4 mx-auto" style="width:80%;">
+  {% endif %}
+
+  {% if is_super %}
+  <div class="d-flex justify-content-center mb-3">
+    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#caminataEditor" aria-expanded="true" aria-controls="caminataEditor">
+      <i class="bi bi-pencil me-1"></i>Editor <i class="bi bi-caret-down-fill ms-1"></i>
+    </button>
+  </div>
+  {% endif %}
+  <div id="caminataEditor" class="collapse show">
   {% if is_super %}
   <div class="d-flex flex-wrap justify-content-center gap-2 mb-3">
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataClearFormat()" title="Limpiar formato"><i class="bi bi-x-lg"></i></button>
+    <select id="caminataColorMarcador" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="document.getElementById('caminataIconoMarcador').style.color = this.value;" title="Color de marcador" style="width:auto;min-width:5.5rem;">
+      <option value="#ffff00">Amarillo fosfor</option>
+      <option value="#00ffff">Celeste fosfor</option>
+      <option value="#ff00ff">Rosado fosfor</option>
+    </select>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataMarcarSeleccion()" title="Marcar texto"><i class="bi bi-circle-fill" id="caminataIconoMarcador" style="color:#ffff00;"></i></button>
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
@@ -35,16 +84,40 @@
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
     <div class="vr mx-1"></div>
+    <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="caminataFormatBlock(this.value); this.value='P'" title="Título" style="width:auto;min-width:6rem;">
+      <option value="P" selected>Normal</option>
+      <option value="H1">Título 1</option>
+      <option value="H2">Título 2</option>
+      <option value="H3">Título 3</option>
+      <option value="H4">Título 4</option>
+      <option value="H5">Título 5</option>
+      <option value="H6">Título 6</option>
+    </select>
+    <select id="caminataFuente" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="caminataCambiarFuente(this.value)" title="Fuente" style="width:auto;min-width:6rem;">
+      <option value="current">Fuente actual</option>
+      <option value="Uncial Antiqua">Bienvenidos a la tribu</option>
+      <option value="Ronda">Ronda</option>
+    </select>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataCita()" title="Cita"><i class="bi bi-chat-quote"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataWrapTag('code')" title="Código"><i class="bi bi-code"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertHorizontalRule')" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
+    <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
     <input type="file" id="caminataImageFile" accept="image/*" style="display:none;" onchange="caminataUploadImage(this)">
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('left')" title="Imagen a la izquierda"><i class="bi bi-image"></i><i class="bi bi-arrow-left ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('center')" title="Imagen centrada"><i class="bi bi-image"></i><i class="bi bi-text-center ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('right')" title="Imagen a la derecha"><i class="bi bi-image"></i><i class="bi bi-arrow-right ms-1 small"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataInsertarVideo()" title="Insertar video"><i class="bi bi-film"></i></button>
+    <div class="vr mx-1"></div>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('undo')" title="Deshacer"><i class="bi bi-arrow-90deg-left"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('redo')" title="Rehacer"><i class="bi bi-arrow-90deg-right"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataEliminarSeleccion()" title="Eliminar video seleccionado"><i class="bi bi-trash"></i></button>
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="caminataSave()"><i class="bi bi-save me-1"></i>Guardar</button>
   </div>
   <div class="text-center mb-2"><span id="caminataSaveStatus" class="small text-muted"></span></div>
   {% endif %}
+  </div>
 
   <div class="row justify-content-center mb-4">
     <div class="col-12 col-lg-8">
@@ -60,10 +133,70 @@
     </div>
   </div>
 
-  <div class="text-center mb-4">
-    <button class="btn btn-outline-orange rounded-pill me-2" onclick="caminataExport('png')"><i class="bi bi-file-earmark-image me-1"></i>PNG</button>
-    <button class="btn btn-outline-orange rounded-pill me-2" onclick="caminataExport('jpg')"><i class="bi bi-file-earmark-image me-1"></i>JPG</button>
-    <button class="btn btn-outline-orange rounded-pill" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</button>
+  <div class="text-center mb-4 mt-3">
+    <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" solicitado y aprobado por el usuario. NO ELIMINAR. -->
+    {% set whatsapp_msg -%}
+Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
+
+*Nota:*
+> La Tribu de los Libres va a guardar este número de teléfono como posible persona participante de este viaje y se guardará en la base de datos de La Tribu de los Libres. Si está de acuerdo, envíe el mensaje; si no está de acuerdo, recházalo. Apenas tengamos el precio y la fecha exacta, se le estará informando a este mismo número de teléfono.
+
+Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) }}
+    {%- endset %}
+    <a href="https://wa.me/50686529837?text={{ whatsapp_msg | trim | urlencode }}"
+       target="_blank" rel="noopener"
+       class="btn btn-outline-success rounded-pill fw-bold d-inline-flex align-items-center">
+      <i class="bi bi-whatsapp me-2"></i>Avisarme
+    </a>
+    {% if event.enlace_extra %}
+    <a href="{{ event.enlace_extra }}" target="_blank" rel="noopener"
+       class="btn btn-outline-primary rounded-pill fw-bold d-inline-flex align-items-center ms-2">
+      <i class="bi bi-geo-alt me-2"></i>Ubicación
+    </a>
+    {% endif %}
+    <!-- FIN BOTÓN WHATSAPP -->
+  </div>
+</div>
+
+<!-- Modal para compartir caminata por WhatsApp -->
+<div class="modal fade" id="shareCaminataModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-whatsapp text-success me-2"></i>Compartir caminata</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p class="small text-muted mb-2">Personaliza el mensaje. Al final se agregará el enlace automáticamente.</p>
+        <textarea id="shareCaminataMensaje" class="form-control glass-input rounded-3" rows="4" placeholder="Escribe tu mensaje..."></textarea>
+        <p class="small text-muted mt-2 mb-0 text-truncate"><strong>Enlace:</strong> <span id="shareCaminataEnlace"></span></p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="compartirCaminataPorWhatsApp()"><i class="bi bi-whatsapp me-2"></i>Enviar por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal para insertar video -->
+<div class="modal fade" id="insertarVideoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-film me-2" style="color:#ff8c00;"></i>Insertar video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p class="small text-muted mb-2">Pega el enlace del video de YouTube o Facebook.</p>
+        <input type="url" id="insertarVideoUrl" class="form-control glass-input rounded-3" placeholder="https://www.youtube.com/watch?v=...">
+        <div id="insertarVideoFeedback" class="small text-danger mt-2" style="display:none;"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="insertarVideoDesdeModal()"><i class="bi bi-plus-circle me-2"></i>Insertar</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -79,6 +212,58 @@
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     document.execCommand(command, false, null);
     document.getElementById('caminataPreview').focus();
+  }
+
+  function caminataHighlight(color) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.getElementById('caminataPreview').focus();
+    document.execCommand('hiliteColor', false, color);
+  }
+
+  function caminataClearFormat() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    preview.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) {
+      const range = document.createRange();
+      range.selectNodeContents(preview);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('removeFormat', false, null);
+  }
+
+  function caminataMarcarSeleccion() {
+    const select = document.getElementById('caminataColorMarcador');
+    if (select) caminataHighlight(select.value);
+  }
+
+  function caminataCambiarFuente(fuente) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    preview.focus();
+    const nombre = (fuente === 'current') ? window.getComputedStyle(preview).fontFamily : fuente;
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('fontName', false, nombre);
+  }
+
+  function caminataWrapTag(tag) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    preview.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return;
+    const range = sel.getRangeAt(0);
+    try {
+      const wrapper = document.createElement(tag);
+      range.surroundContents(wrapper);
+    } catch (e) {
+      const text = range.toString();
+      if (!text) return;
+      document.execCommand('insertHTML', false, '<' + tag + '>' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</' + tag + '>');
+    }
   }
 
   async function caminataUploadImage(input) {
@@ -117,6 +302,93 @@
     }
   }
 
+  function caminataInsertarVideo() {
+    const modalEl = document.getElementById('insertarVideoModal');
+    if (!modalEl) return;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    const urlInput = document.getElementById('insertarVideoUrl');
+    const feedback = document.getElementById('insertarVideoFeedback');
+    if (urlInput) urlInput.value = '';
+    if (feedback) { feedback.textContent = ''; feedback.style.display = 'none'; }
+    modal.show();
+  }
+
+  function caminataEliminarSeleccion() {
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    let node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    let el = node;
+    while (el && el.id !== 'caminataPreview') {
+      const esVideo = (el.classList && el.classList.contains('caminata-embed')) || (el.style && el.style.paddingBottom === '56.25%');
+      if (esVideo) {
+        const r = document.createRange();
+        r.selectNode(el);
+        sel.removeAllRanges();
+        sel.addRange(r);
+        try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+        document.getElementById('caminataPreview').focus();
+        document.execCommand('delete');
+        return;
+      }
+      el = el.parentElement;
+    }
+  }
+
+  function insertarVideoDesdeModal() {
+    const urlInput = document.getElementById('insertarVideoUrl');
+    const feedback = document.getElementById('insertarVideoFeedback');
+    const u = (urlInput && urlInput.value || '').trim();
+    if (!u) {
+      feedback.textContent = 'Por favor pega un enlace.';
+      feedback.style.display = 'block';
+      return;
+    }
+    let html = '';
+    const ytMatch = u.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch && ytMatch[1]) {
+      html = `<div class="caminata-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.5rem;max-width:100%;margin:1rem 0;"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" src="https://www.youtube.com/embed/${ytMatch[1]}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+    } else if (u.includes('facebook.com') || u.includes('fb.watch')) {
+      html = `<div class="caminata-embed" style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:0.5rem;max-width:100%;margin:1rem 0;"><iframe style="position:absolute;top:0;left:0;width:100%;height:100%;border:0;" src="https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(u)}&show_text=0&width=560" allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen loading="lazy" scrolling="no" frameborder="0"></iframe></div>`;
+    } else {
+      feedback.textContent = 'Enlace no soportado. Por ahora solo YouTube y Facebook.';
+      feedback.style.display = 'block';
+      return;
+    }
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.getElementById('caminataPreview').focus();
+    document.execCommand('insertHTML', false, html);
+    const modalEl = document.getElementById('insertarVideoModal');
+    const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.hide();
+  }
+
+  function caminataFormatBlock(tag) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.getElementById('caminataPreview').focus();
+    document.execCommand('formatBlock', false, tag);
+  }
+
+  function caminataCita() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    preview.focus();
+    const sel = window.getSelection();
+    let node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    let block = node;
+    while (block && block.id !== 'caminataPreview') {
+      if (block.tagName === 'BLOCKQUOTE') {
+        try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+        document.execCommand('formatBlock', false, 'P');
+        return;
+      }
+      block = block.parentElement;
+    }
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('formatBlock', false, 'BLOCKQUOTE');
+  }
+
   async function caminataSave() {
     const statusEl = document.getElementById('caminataSaveStatus');
     if (statusEl) statusEl.textContent = 'Guardando...';
@@ -140,6 +412,70 @@
       if (statusEl) statusEl.textContent = '';
     }
   }
+
+  async function copyTextToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('Enlace copiado al portapapeles');
+    } catch(e) {
+      alert('No se pudo copiar el enlace');
+    }
+  }
+
+  let shareCaminataModalInstance = null;
+
+  function abrirModalCompartirCaminata() {
+    const modalEl = document.getElementById('shareCaminataModal');
+    if (!modalEl) return;
+    if (!shareCaminataModalInstance) shareCaminataModalInstance = new bootstrap.Modal(modalEl);
+    const enlace = window.location.origin + window.location.pathname + '?share=1';
+    document.getElementById('shareCaminataEnlace').textContent = enlace;
+    shareCaminataModalInstance.show();
+  }
+
+  async function compartirCaminataPorWhatsApp() {
+    const mensajeInput = document.getElementById('shareCaminataMensaje');
+    const enlace = window.location.origin + window.location.pathname + '?share=1';
+    const texto = (mensajeInput.value || '').trim();
+    const fullText = texto ? (texto + '\n\n' + enlace) : enlace;
+    await copyTextToClipboard(fullText);
+    window.open('https://wa.me/?text=' + encodeURIComponent(fullText), '_blank');
+    if (shareCaminataModalInstance) shareCaminataModalInstance.hide();
+  }
+
+  function setupCaminataDetalleLongPress() {
+    const title = document.getElementById('caminataDetalleTitle');
+    if (!title) return;
+    let timer = null;
+    const start = (e) => {
+      timer = setTimeout(() => {
+        abrirModalCompartirCaminata();
+        title.style.transform = 'scale(0.98)';
+        setTimeout(() => { title.style.transform = ''; }, 150);
+      }, 600);
+    };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    title.addEventListener('mousedown', start);
+    title.addEventListener('touchstart', start, {passive: true});
+    title.addEventListener('mouseup', cancel);
+    title.addEventListener('mouseleave', cancel);
+    title.addEventListener('touchend', cancel);
+    title.addEventListener('touchcancel', cancel);
+    title.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  document.addEventListener('DOMContentLoaded', setupCaminataDetalleLongPress);
 
   async function caminataExport(format) {
     const preview = document.getElementById('caminataPreview');
@@ -186,4 +522,20 @@
 </script>
 {% endblock %}
 
-{% block footer %}{% include 'partials/footer.html' %}{% endblock %}
+{% block footer %}
+{% if is_share | default(false) %}
+<div class="share-ribbon py-4 text-center" style="background:#555; color:#eee;">
+  <div class="d-flex flex-column align-items-center">
+    <a href="https://www.latribu.top" target="_blank" rel="noopener" class="text-decoration-none">
+      <span class="brand-logo-halo mb-3" style="--halo-size: 34px;">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu" style="height:34px; width:auto; border-radius:50%;">
+      </span>
+    </a>
+    <p class="mb-1 fw-bold small">Información recopilada por La Tribu de los Libres</p>
+    <p class="mb-0" style="font-size:0.75rem; opacity:0.9;">{{ share_datetime }}</p>
+  </div>
+</div>
+{% else %}
+{% include 'partials/footer.html' %}
+{% endif %}
+{% endblock %}

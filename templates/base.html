@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <!-- Viewport seguro para evitar solapamientos en dispositivos móviles -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
     
     <title>Caminatas La Tribu</title>
 
@@ -27,11 +27,30 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=4">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=4">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_hero.css') }}?v=17">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_hero.css') }}?v=39">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pastel-theme.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=9">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=28">
 
     {% include 'partials/base_styles.html' %}
+
+    {% block extra_head %}{% endblock %}
+
+    <!-- Espacio extra inferior en móvil para que la bottom bar no tape botones/contenido -->
+    <style>
+        @media (max-width: 767.98px) {
+            main.content-wrapper {
+                padding-bottom: calc(var(--nav-mobile-height) + 100px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+        body.share-view #navbar-top,
+        body.share-view #btnBack,
+        body.share-view .admin-tools-dropdown,
+        body.share-view #logoSuenosDesktop,
+        body.share-view #logoSuenosDesktopNoLink,
+        body.share-view .btn-caminata-2027,
+        body.share-view .mobile-bottom-bar { display: none !important; }
+        body.share-view main.content-wrapper { padding-bottom: 0 !important; padding-top: 0 !important; }
+    </style>
 </head>
 <body{% block body_attrs %}{% endblock %}>
     <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
@@ -40,7 +59,7 @@
             <div class="container-fluid">
                 <!-- Marca de la Navbar SÚPER LIMPIA -->
                 <span class="fw-bold fs-4 text-dark">La Tribu</span>
-                <a class="navbar-brand position-absolute top-50 start-50 translate-middle p-0 m-0" href="/" style="z-index:5;">
+                <a class="navbar-brand position-absolute top-50 start-50 translate-middle p-0 m-0" href="javascript:location.reload(true);" style="z-index:5;" title="Recargar página">
                     <span class="brand-logo-halo">
                         <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="60">
                     </span>
@@ -70,16 +89,23 @@
     {% block hero %}{% endblock %}
 
     <!-- Contenido Principal -->
-    <main class="container mt-2 mt-md-5 mb-5 pb-5 content-wrapper">
+    <main class="container mt-2 mt-md-5 content-wrapper">
         {% block content %}
         {% endblock %}
     </main>
 
     {% block footer %}{% endblock %}
 
-    <!-- Botón Volver Atrás Global (OCULTO EN INICIO) -->
     {% if request.path != '/' %}
-    <button id="btnBack" class="btn-global-back" onclick="window.location.href='{{ url_for('main.caminatas') if request.path == '/terminos' else url_for('main.home') }}';" title="Volver">
+    {% if request.path == '/terminos' %}
+      {% set back_url = url_for('main.caminatas') %}
+    {% elif request.path.startswith('/caminatas-2027/') %}
+      {% set back_url = url_for('main.caminatas_2027') %}
+    {% else %}
+      {% set back_url = url_for('main.home') %}
+    {% endif %}
+    <!-- Botón Volver Atrás Global (OCULTO EN INICIO): intenta un paso atrás en historial, si no hay, usa back_url -->
+    <button id="btnBack" class="btn-global-back" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }" title="Volver">
         <i class="bi bi-arrow-left fs-4" style="color:#000 !important;"></i>
     </button>
     {% endif %}

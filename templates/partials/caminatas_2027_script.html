@@ -1,6 +1,9 @@
 <script>
 let eventoEditando = null;
 let modalEvento = null;
+let eventoAEliminar = null;
+let modalEliminarEvento1 = null;
+let modalEliminarEvento2 = null;
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('createEventForm');
@@ -58,6 +61,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const elModal = document.getElementById('eventoModal');
     if (elModal) modalEvento = new bootstrap.Modal(elModal);
+
+    const modal1 = document.getElementById('confirmDeleteEventModal1');
+    if (modal1) modalEliminarEvento1 = new bootstrap.Modal(modal1);
+    const modal2 = document.getElementById('confirmDeleteEventModal2');
+    if (modal2) modalEliminarEvento2 = new bootstrap.Modal(modal2);
 });
 
 function abrirCrear() {
@@ -77,7 +85,7 @@ async function editarEvento(id) {
         if (!res.ok) { alert('No autorizado o error al cargar.'); return; }
         const e = await res.json();
         eventoEditando = e.id;
-        document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata 2027';
+        document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-pencil-square text-orange me-2"></i>Editar Caminata';
         document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Guardar Cambios';
 
         document.getElementById('nombreLugar').value = e.nombre_lugar || '';
@@ -89,6 +97,8 @@ async function editarEvento(id) {
         document.getElementById('reserva').value = e.reserva || 0;
         document.getElementById('capacidad').value = (e.capacidad || '').replace('AGOTADO_', '') || '14-17';
         document.getElementById('sinpe').value = e.sinpe || '';
+        document.getElementById('enlaceExtra').value = e.enlace_extra || '';
+        document.getElementById('textoReferencia').value = e.texto_referencia || '';
         document.getElementById('itinerario').value = e.itinerario || '';
         document.getElementById('eventImagePreview').src = e.poster ? `/static/uploads/${e.poster}` : '/static/default.png';
 
@@ -99,11 +109,24 @@ async function editarEvento(id) {
     }
 }
 
-async function eliminarEvento(id) {
-    if (!confirm('¿Seguro que deseas eliminar esta caminata?')) return;
+function eliminarEvento(id) {
+    eventoAEliminar = id;
+    if (modalEliminarEvento1) modalEliminarEvento1.show();
+}
+
+function mostrarConfirmarEliminarEvento(paso) {
+    if (paso === 2) {
+        if (modalEliminarEvento1) modalEliminarEvento1.hide();
+        if (modalEliminarEvento2) modalEliminarEvento2.show();
+    }
+}
+
+async function confirmarEliminarEvento() {
+    if (!eventoAEliminar) return;
     try {
-        const res = await fetch(`/api/delete_event/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/delete_event/${eventoAEliminar}`, { method: 'DELETE' });
         const result = await res.json();
+        if (modalEliminarEvento2) modalEliminarEvento2.hide();
         if (res.ok && result.success) {
             window.location.reload();
         } else {
@@ -112,6 +135,8 @@ async function eliminarEvento(id) {
     } catch (err) {
         console.error(err);
         alert('Error de conexión al eliminar.');
+    } finally {
+        eventoAEliminar = null;
     }
 }
 </script>

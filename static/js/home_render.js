@@ -30,12 +30,16 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
     
     const monthCounts = {};
     sortedEvents.forEach(ev => {
-        let monthGroup = "Próximamente / Fechas por Definir";
+        let monthGroup = "Caminatas 2027";
         const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (dateMatch) {
             const year = dateMatch[1];
-            const monthIndex = parseInt(dateMatch[2], 10) - 1;
-            monthGroup = `${mesesNombres[monthIndex]} ${year}`;
+            if (year === "2027") {
+                monthGroup = "Caminatas 2027";
+            } else {
+                const monthIndex = parseInt(dateMatch[2], 10) - 1;
+                monthGroup = `${mesesNombres[monthIndex]} ${year}`;
+            }
         }
         monthCounts[monthGroup] = (monthCounts[monthGroup] || 0) + 1;
     });
@@ -45,12 +49,16 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
     let monthIndexCounter = 0;
 
     sortedEvents.forEach(ev => {
-        let monthGroup = "Próximamente / Fechas por Definir";
+        let monthGroup = "Caminatas 2027";
         const dateMatch = ev.fecha && ev.fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
         if (dateMatch) {
             const year = dateMatch[1];
-            const monthIndex = parseInt(dateMatch[2], 10) - 1;
-            monthGroup = `${mesesNombres[monthIndex]} ${year}`;
+            if (year === "2027") {
+                monthGroup = "Caminatas 2027";
+            } else {
+                const monthIndex = parseInt(dateMatch[2], 10) - 1;
+                monthGroup = `${mesesNombres[monthIndex]} ${year}`;
+            }
         }
 
         if (monthGroup !== currentMonthLabel) {
@@ -67,6 +75,12 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
             const badgeDisplay = isExpanded ? 'd-none' : 'd-inline-flex';
             const chevronRotation = isExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
             const hintClass = isExpanded ? 'd-none' : '';
+            const isCaminatas2027 = (monthGroup === "Caminatas 2027");
+            const countBadgeHtml = isCaminatas2027 ? '' : `
+                <span id="badge-${currentMonthId}" class="badge bg-white text-dark ms-3 shadow-sm border ${badgeDisplay} align-items-center" style="font-size: 0.85rem; border-radius: 12px;">
+                    <i class="bi bi-person-walking me-1" style="color:#0dcaf0 !important;"></i> ${count}
+                </span>
+            `;
 
             container.innerHTML += `
                 <div class="col-12 mt-4 mb-2 animate__animated animate__fadeIn w-100 text-center text-sm-start">
@@ -77,20 +91,31 @@ function renderEvents(eventsToRender, autoExpandAllSearch = false) {
                                     <i class="bi bi-calendar3 me-2"></i>${monthGroup}
                                     <i class="bi bi-chevron-down ms-2 fs-5" id="chevron-${currentMonthId}" style="transform: ${chevronRotation}; transition: transform 0.3s ease;"></i>
                                 </span>
-                                <span id="badge-${currentMonthId}" class="badge bg-white text-dark ms-3 shadow-sm border ${badgeDisplay} align-items-center" style="font-size: 0.85rem; border-radius: 12px;">
-                                    <i class="bi bi-person-walking me-1" style="color:#0dcaf0 !important;"></i> ${count}
-                                </span>
+                                ${countBadgeHtml}
                             </h4>
                         </div>
                         <small id="hint-${currentMonthId}" class="text-muted mt-1 ${hintClass} text-center text-sm-start w-100" style="font-size: 0.75rem;">
-                            <i class="bi bi-hand-index-thumb me-1"></i>Toca para expandir el mes
+                            <i class="bi bi-hand-index-thumb me-1"></i>${isCaminatas2027 ? 'Toca para ver el enlace' : 'Toca para expandir el mes'}
                         </small>
                         <hr class="flex-grow-1 border-secondary opacity-25 ms-3 my-0">
                     </div>
                 </div>
             `;
+
+            if (isCaminatas2027) {
+                container.innerHTML += `
+                    <div class="col-12 animate__animated animate__fadeIn month-item-${currentMonthId} ${isExpanded ? '' : 'd-none'}">
+                        <a href="/caminatas-2027" class="d-block glass-panel rounded-4 p-5 text-center text-decoration-none text-dark fw-bold fs-4">
+                            Pronto caminatas 2027
+                        </a>
+                    </div>
+                `;
+            }
+
             currentMonthLabel = monthGroup;
         }
+
+        if (monthGroup === "Caminatas 2027") return;
 
         const badgeClass = getBadgeClass(ev.dificultad);
         const imgPath = ev.poster || ev.imagen || '/static/img/placeholder.svg';

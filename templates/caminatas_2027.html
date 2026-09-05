@@ -1,27 +1,54 @@
 {% extends "base.html" %}
-{% block title %}Caminatas 2027 - La Tribu{% endblock %}
+{% block title %}{{ page_title | default('Caminatas 2027') }} - La Tribu{% endblock %}
+
+{% block body_attrs %} class="caminatas-page{% if is_share %} share-view{% endif %}"{% endblock %}
 
 {% set meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] %}
+
+{% macro whatsapp_caminata_msg(nombre_lugar='Caminata', url='') -%}
+Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
+
+*Nota:*
+> La Tribu de los Libres va a guardar este número de teléfono como posible persona participante de este viaje y se guardará en la base de datos de La Tribu de los Libres. Si está de acuerdo, envíe el mensaje; si no está de acuerdo, recházalo. Apenas tengamos el precio y la fecha exacta, se le estará informando a este mismo número de teléfono.
+
+{% if url %}Enlace: {{ url }}{% endif %}
+{%- endmacro %}
+
+{% macro dificultad_badge(dificultad) -%}
+  {% set dificultad_map = {
+    'avanzado': {'bg':'#dc3545','text':'#fff'},
+    'dificil': {'bg':'#ff8c00','text':'#fff'},
+    'intermedio': {'bg':'#ffc107','text':'#000'},
+    'facil': {'bg':'#28a745','text':'#fff'},
+    'basico': {'bg':'#28a745','text':'#fff'},
+    'paseo': {'bg':'#0d6efd','text':'#fff'}
+  } %}
+  {% set d = (dificultad or 'Paseo') | lower | replace('í','i') | replace('á','a') | replace('é','e') | replace('ó','o') | replace('ú','u') | replace(' ','') | trim %}
+  {% set info = dificultad_map.get(d, dificultad_map['paseo']) %}
+  <span class="badge rounded-pill align-baseline" style="background:{{ info.bg }}; color:{{ info.text }}; font-size:0.7rem; margin-left:0.35rem;">{{ dificultad or 'Paseo' }}</span>
+{%- endmacro %}
 
 {% block content %}
 
 <style>
   .caminata-thumb { width: 90px; aspect-ratio: 9/16; object-fit: cover; flex-shrink: 0; }
   @media (min-width: 768px) { .caminata-thumb { width: 150px; } }
+  .caminata2027-share-title { user-select: none; -webkit-user-select: none; cursor: pointer; }
 </style>
 
+{% set is_tribu = not (is_caminatas_2027_page | default(true)) %}
 <div class="container py-5 animate__animated animate__fadeIn">
   <div class="text-center mb-4">
-    <h1 class="fw-bold text-dark m-0">Caminatas 2027</h1>
+    <h1 id="caminatas2027Title" class="fw-bold text-dark m-0 caminata2027-share-title">{{ page_title | default('Caminatas 2027') }}</h1>
     <div class="d-flex align-items-start justify-content-center gap-2 mt-2">
       <p class="text-muted mb-0" id="caminataIntroText">{{ caminatas_2027_text|safe }}</p>
-      {% if is_super %}
+      {% if is_super and (is_caminatas_2027_page | default(true)) %}
       <button class="btn btn-sm btn-light rounded-circle flex-shrink-0" onclick="openBlockEditor('intro', null, document.getElementById('caminataIntroText').innerHTML, null)" title="Editar información"><i class="bi bi-pencil"></i></button>
       {% endif %}
     </div>
   </div>
 
-  {% if is_super %}
+  {% if is_super and (is_caminatas_2027_page | default(true)) %}
   <div class="text-center mb-3">
     <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openBlockEditor('create', null, '', {{ (timeline[0].order - 10) if timeline else 0 }})">
       <i class="bi bi-plus-lg me-1"></i>Agregar párrafo aquí
@@ -29,7 +56,29 @@
   </div>
   {% endif %}
 
-  {% if timeline %}
+  {% if is_share | default(false) %}
+  <div class="container py-4">
+    <div class="row justify-content-center">
+      <div class="col-12 col-lg-8">
+        <div class="glass-panel rounded-4 shadow-sm p-3">
+          <ul class="list-group list-group-flush">
+            {% for entry in timeline if entry.type == 'provincia' %}
+              {% for ev in entry.walks %}
+              <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-dark">{{ ev.nombre_lugar }}</span>
+                <span class="small text-muted text-end">
+                  {{ ev.provincia }}<br>
+                  {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+                </span>
+              </li>
+              {% endfor %}
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% elif timeline %}
   <div id="accordionProvincias">
     {% for entry in timeline %}
       {% if entry.type == 'provincia' %}
@@ -37,15 +86,33 @@
         <div class="accordion-item border-0 bg-transparent">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
-              <span class="d-flex align-items-center gap-2">
-                <span class="text-uppercase">{{ entry.provincia or 'Sin provincia' }}</span>
-                <span class="badge rounded-pill" style="background:#ff8c00;">{{ entry.walks|length }}</span>
+              <span class="d-flex align-items-start gap-2 w-100 justify-content-between pe-3">
+                <span class="d-flex flex-column align-items-start">
+                  <span class="{{ group_header_text_class | default('text-uppercase') }}" style="font-size:1.05rem; line-height:1.15;">{{ entry.group_label }}</span>
+                  {% if show_expand_hint | default(false) %}
+                  <small class="text-muted" style="font-size:0.6rem; opacity:0.55; line-height:1; margin-top:0.05rem;">
+                    <i class="bi bi-hand-index-thumb me-1"></i>{{ expand_hint_text | default('Toca para expandir') }}
+                  </small>
+                  {% endif %}
+                </span>
+                <span class="badge {{ group_badge_class | default('rounded-pill') }}" style="{{ group_badge_style | default('background:#ff8c00; color:#fff;') }}">
+                  {% if group_badge_icon %}<i class="bi {{ group_badge_icon }} me-1" style="color:{{ group_badge_icon_color | default('#fff') }};"></i>{% endif %}{{ entry.walks|length }}
+                </span>
               </span>
             </button>
           </h2>
-          <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse">
+          <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
             <div class="accordion-body pt-0">
               <ul class="list-group list-group-flush">
+                {% if entry.walks_2027 %}
+                <!-- NO MODIFICAR: Enlace a Caminatas 2027 dentro de Por definir. NO ELIMINAR. -->
+                <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-center">
+                  <a href="{{ url_for('main.caminatas_2027') }}" class="rounded-3 d-inline-flex align-items-center justify-content-center fw-bold text-white text-decoration-none" style="width:clamp(90px,25vw,150px);aspect-ratio:9/16;background:#ff8c00;font-size:clamp(1.2rem,5vw,2rem);">
+                    2027
+                  </a>
+                </li>
+                <!-- FIN ENLACE 2027 -->
+                {% endif %}
                 {% for ev in entry.walks %}
                 {% set precio_val = ev.precio | default(0, true) | int %}
                 {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
@@ -66,15 +133,32 @@
                   <div class="d-flex align-items-center gap-3">
                     <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
                     <div class="flex-grow-1 min-width-0">
-                      <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}</a>
-                      <small class="text-muted d-block">{{ fecha_text | trim }} · {{ ev.dificultad or 'Paseo' }}</small>
-                      <span class="fw-bold text-dark small">{{ precio_mostrar }}</span>
+                      <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
+                      <small class="text-muted d-block">
+                        {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
+                        {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
+                        {% if ev.actividad %}{{ ev.actividad }}{% endif %}
+                      </small>
+                      {% if is_tribu %}
+                      <small class="text-muted d-block">{{ fecha_text | trim }}</small>
+                      <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
+                      {% endif %}
                     </div>
                     {% if is_super %}
                     <div class="d-flex gap-2" style="z-index:2;">
                       <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento({{ ev.id }})" title="Editar"><i class="bi bi-pencil"></i></button>
                       <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})" title="Eliminar"><i class="bi bi-trash"></i></button>
                     </div>
+                    {% elif not is_share | default(false) %}
+                    <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" junto a cada caminata. NO ELIMINAR. -->
+                    <a href="https://wa.me/50686529837?text={{ whatsapp_caminata_msg(ev.nombre_lugar, url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
+                       target="_blank" rel="noopener"
+                       class="btn btn-sm btn-outline-success rounded-pill position-relative flex-shrink-0"
+                       style="z-index:2;"
+                       title="Avisarme de {{ ev.nombre_lugar }}">
+                      <i class="bi bi-whatsapp"></i>
+                    </a>
+                    <!-- FIN BOTÓN WHATSAPP -->
                     {% endif %}
                   </div>
                 </li>
@@ -85,18 +169,18 @@
         </div>
       </div>
       {% else %}
-      <div class="glass-panel border-0 rounded-4 mb-3 shadow-sm p-4 position-relative caminata-content-block">
+      <div class="caminata-content-block mb-3 position-relative p-4">
         {% if is_super %}
         <div class="position-absolute top-0 end-0 d-flex gap-1 p-2" style="z-index:2;">
           <button class="btn btn-sm btn-light rounded-circle" onclick="openBlockEditor('edit', {{ entry.id }}, document.getElementById('block-{{ entry.id }}').innerHTML, null)" title="Editar párrafo"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="eliminarBloque({{ entry.id }})" title="Eliminar párrafo"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="openDeleteModal({{ entry.id }})" title="Eliminar párrafo"><i class="bi bi-trash"></i></button>
         </div>
         {% endif %}
         <div id="block-{{ entry.id }}">{{ entry.content|safe }}</div>
       </div>
       {% endif %}
 
-      {% if is_super %}
+      {% if is_super and (is_caminatas_2027_page | default(true)) %}
       <div class="text-center mb-3">
         <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openBlockEditor('create', null, '', {{ ((entry.order + timeline[loop.index].order) / 2) if not loop.last else (entry.order + 10) }})">
           <i class="bi bi-plus-lg me-1"></i>Agregar párrafo aquí
@@ -109,7 +193,7 @@
   {% else %}
   <div class="text-center py-5 text-muted">
     <i class="bi bi-calendar-x fs-1"></i>
-    <p class="mt-2">Aún no hay caminatas registradas para 2027.</p>
+    <p class="mt-2">{{ empty_message | default('Aún no hay caminatas registradas para 2027.') }}</p>
   </div>
   {% endif %}
 </div>
@@ -160,7 +244,28 @@
   </div>
 </div>
 
+<!-- Modal de confirmación para eliminar párrafo -->
+<div class="modal fade" id="deleteBlockModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark">Eliminar párrafo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p class="mb-0 text-muted">¿Estás seguro de que deseas eliminar este párrafo? Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmDeleteBlock()">Sí, eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+  let deleteBlockId = null;
+  let deleteBlockModalInstance;
   let blockEditorModalInstance;
   let blockEditorState = { mode: null, id: null, order: null };
 
@@ -235,12 +340,19 @@
     }
   }
 
-  async function eliminarBloque(id) {
-    if (!confirm('¿Eliminar este párrafo?')) return;
+  function openDeleteModal(id) {
+    deleteBlockId = id;
+    if (!deleteBlockModalInstance) deleteBlockModalInstance = new bootstrap.Modal(document.getElementById('deleteBlockModal'));
+    deleteBlockModalInstance.show();
+  }
+
+  async function confirmDeleteBlock() {
+    if (!deleteBlockId) return;
     try {
-      const r = await fetch(`/api/caminatas-2027/blocks/${id}`, {method:'DELETE'});
+      const r = await fetch(`/api/caminatas-2027/blocks/${deleteBlockId}`, {method:'DELETE'});
       const data = await r.json();
       if (data.ok) {
+        deleteBlockModalInstance.hide();
         window.location.reload();
       } else {
         alert(data.error || 'Error al eliminar');
@@ -249,11 +361,55 @@
       alert('Error de conexión al eliminar');
     }
   }
+
+  async function copyTextToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('Enlace copiado al portapapeles');
+    } catch(e) {
+      alert('No se pudo copiar el enlace');
+    }
+  }
+
+  function setupCaminatas2027LongPress() {
+    const title = document.getElementById('caminatas2027Title');
+    if (!title) return;
+    let timer = null;
+    const start = (e) => {
+      timer = setTimeout(() => {
+        const url = window.location.origin + window.location.pathname + '?share=1';
+        copyTextToClipboard(url);
+        title.style.transform = 'scale(0.98)';
+        setTimeout(() => { title.style.transform = ''; }, 150);
+      }, 600);
+    };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    title.addEventListener('mousedown', start);
+    title.addEventListener('touchstart', start, {passive: true});
+    title.addEventListener('mouseup', cancel);
+    title.addEventListener('mouseleave', cancel);
+    title.addEventListener('touchend', cancel);
+    title.addEventListener('touchcancel', cancel);
+    title.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  setupCaminatas2027LongPress();
 </script>
 
-{% if is_super %}
-<button class="btn btn-orange rounded-circle shadow-lg d-flex align-items-center justify-content-center" onclick="abrirCrear()" title="Agregar Caminata 2027" style="position: fixed; bottom: calc(var(--nav-mobile-height, 70px) + 60px); right: 20px; width: 50px; height: 50px; z-index: 1046;">
-  <i class="bi bi-plus-lg fs-4"></i>
+{% if is_super and (is_caminatas_2027_page | default(true)) %}
+<button class="btn btn-global-add btn-caminata-2027" onclick="abrirCrear()" title="Agregar Caminata 2027">
+  <i class="bi bi-plus-lg fs-3 fw-bold"></i>
 </button>
 {% endif %}
 
@@ -297,6 +453,7 @@
                       <option value="Guanacaste">Guanacaste</option>
                       <option value="Puntarenas">Puntarenas</option>
                       <option value="Limón">Limón</option>
+                      <option value="Referencia">Referencia</option>
                     </select>
                   </div>
 
@@ -361,6 +518,14 @@
                   </div>
 
                   <div class="col-12 mt-3">
+                    <label class="form-label fw-bold text-muted small mb-1">Texto de referencia / Historia</label>
+                    <textarea id="textoReferencia" name="textoReferencia" rows="4" class="form-control glass-input rounded-4 shadow-sm" placeholder="Escriba la historia, referencia o contexto del lugar..."></textarea>
+                  </div>
+                  <div class="col-12 col-md-6 mt-3">
+                    <label class="form-label fw-bold text-muted small mb-1">Enlace de ubicación o adicional</label>
+                    <input type="url" id="enlaceExtra" name="enlaceExtra" class="form-control glass-input rounded-3" placeholder="https://maps.app.goo.gl/... o cualquier enlace">
+                  </div>
+                  <div class="col-12 col-md-6 mt-3">
                     <label class="form-label fw-bold text-muted small mb-1">Itinerario / Detalles</label>
                     <textarea id="itinerario" name="itinerario" rows="3" class="form-control glass-input rounded-4 shadow-sm" placeholder="Describa el itinerario o detalles..."></textarea>
                   </div>
@@ -380,7 +545,56 @@
 </div>
 
 {% include 'partials/eventos_modal_alerta.html' %}
+
+<!-- Modal Doble Confirmación Eliminar Caminata - Paso 1 -->
+<div class="modal fade" id="confirmDeleteEventModal1" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-3 pt-4 px-4">
+        <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (1/2)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body pt-2 px-4 pb-4 text-center">
+        <p class="mb-0">¿Estás seguro de eliminar esta caminata?</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold" onclick="mostrarConfirmarEliminarEvento(2)">Continuar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Doble Confirmación Eliminar Caminata - Paso 2 -->
+<div class="modal fade" id="confirmDeleteEventModal2" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-3 pt-4 px-4">
+        <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (2/2)</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body pt-2 px-4 pb-4 text-center">
+        <p class="mb-0">¿Realmente deseas eliminarla? Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmarEliminarEvento()">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include 'partials/caminatas_2027_script.html' %}
 {% endblock %}
 
-{% block footer %}{% include 'partials/footer.html' %}{% endblock %}
+{% block footer %}
+{% if is_share | default(false) %}
+<!-- Cintillo informativo para compartir -->
+<div class="share-ribbon text-center py-4" style="background:#ff8c00; color:#fff;">
+  <p class="mb-1 fw-bold small">Caminatas, próximas Caminatas 2027 para La Tribu de los Libres</p>
+  <p class="mb-0" style="font-size:0.75rem; opacity:0.9;">{{ share_datetime }}</p>
+</div>
+{% else %}
+{% include 'partials/footer.html' %}
+{% endif %}
+{% endblock %}

@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded", () => {
     {% if is_super_user %}
     
-    const FLYER_STORE_KEY = 'flyer_prefs_{{ evento.id }}';
+    const FLYER_STORE_KEY = 'flyer_prefs_v2_{{ evento.id }}';
     const toggleSwitches = document.querySelectorAll('.flyer-toggle');
     
     const img = document.getElementById('flyerBgImg');
@@ -42,8 +42,39 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     function setLabel(id, text) {
         const label = document.getElementById('val_' + id);
-        if(label) label.innerText = text;
+        if(!label) return;
+        const val = label.querySelector('.slider-val');
+        if(val) val.innerText = text;
+        else label.innerText = text;
     }
+
+    function setupSliderControls() {
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            // Guardar valor inicial por defecto
+            if (!input.dataset.default) input.dataset.default = input.value;
+            // Asegurar paso más controlado
+            if (input.step === '1') input.step = '5';
+
+            const label = input.previousElementSibling;
+            if (!label || label.tagName !== 'LABEL') return;
+            const valSpan = label.querySelector('.float-end.text-orange');
+            if (!valSpan || valSpan.querySelector('.slider-val')) return;
+
+            const currentText = valSpan.innerText.trim();
+            valSpan.innerHTML = '<span class="slider-val">' + currentText + '</span> <button type="button" class="btn btn-link text-orange p-0 ms-1 reset-slider-btn" style="font-size:0.75rem; text-decoration:none; line-height:1;" title="Restablecer"><i class="bi bi-arrow-counterclockwise"></i></button>';
+
+            const btn = valSpan.querySelector('.reset-slider-btn');
+            if (btn) btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (input.dataset.default !== undefined) {
+                    input.value = input.dataset.default;
+                    updateFlyer();
+                }
+            });
+        });
+    }
+    setupSliderControls();
 
     function loadFlyerState() {
         try {
@@ -182,6 +213,72 @@ document.addEventListener("DOMContentLoaded", () => {
         if(el) el.addEventListener('input', updateFlyer);
     });
     updateFlyer();
+
+    // PULSACIÓN LARGA PARA RESET DE AJUSTES
+    const resetFlyerValuesModalEl = document.getElementById('resetFlyerValuesModal');
+    const resetFlyerValuesModal = resetFlyerValuesModalEl ? new bootstrap.Modal(resetFlyerValuesModalEl) : null;
+    const resetFlyerMessage = document.getElementById('resetFlyerMessage');
+    const confirmResetFlyer = document.getElementById('confirmResetFlyer');
+    const btnConfirmResetFlyer = document.getElementById('btnConfirmResetFlyer');
+    let currentResetScope = null;
+
+    if (resetFlyerValuesModal && confirmResetFlyer && btnConfirmResetFlyer) {
+        confirmResetFlyer.addEventListener('change', () => {
+            btnConfirmResetFlyer.disabled = !confirmResetFlyer.checked;
+        });
+
+        btnConfirmResetFlyer.addEventListener('click', () => {
+            if (!currentResetScope) return;
+            const ids = currentResetScope === 'fondo'
+                ? ['flyerScale', 'flyerRot', 'flyerPosX', 'flyerPosY', 'flyerBlur', 'flyerOpacity']
+                : ['overlayScale', 'overlayWidth', 'overlayPosX', 'overlayPosY', 'overlayBlur', 'overlayOpacity', 'overlayFontSize'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = 0;
+            });
+            updateFlyer();
+            confirmResetFlyer.checked = false;
+            btnConfirmResetFlyer.disabled = true;
+            resetFlyerValuesModal.hide();
+            currentResetScope = null;
+        });
+
+        document.querySelectorAll('[data-reset-target]').forEach(header => {
+            let pressTimer = null;
+            let isLongPress = false;
+            const scopeName = header.dataset.resetTarget === 'fondo' ? 'Ajustes de Fondo' : 'Ajustes del Texto';
+
+            function startPress(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    currentResetScope = header.dataset.resetTarget;
+                    if (resetFlyerMessage) resetFlyerMessage.textContent = `¿Restablecer todos los valores de ${scopeName} a cero? Esta acción no se puede deshacer.`;
+                    confirmResetFlyer.checked = false;
+                    btnConfirmResetFlyer.disabled = true;
+                    resetFlyerValuesModal.show();
+                }, 800);
+            }
+
+            function cancelPress() {
+                if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+            }
+
+            header.addEventListener('mousedown', startPress);
+            header.addEventListener('touchstart', startPress, {passive: true});
+            header.addEventListener('mouseup', cancelPress);
+            header.addEventListener('mouseleave', cancelPress);
+            header.addEventListener('touchend', cancelPress);
+            header.addEventListener('click', (e) => {
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isLongPress = false;
+                }
+            }, true);
+        });
+    }
     {% endif %}
 });
 </script>

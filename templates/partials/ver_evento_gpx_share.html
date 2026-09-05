@@ -100,19 +100,3 @@
                                 </button>
                             </div>
                         </div>
-
-                        <!-- ZONA DE ADMINISTRACIÓN (SOLO SUPERUSUARIOS) -->
-                        {% if is_super_user %}
-                        <hr class="border-danger opacity-25 mt-4 mb-3 hide-on-export">
-                        <div class="admin-section hide-on-export">
-                            <h6 class="fw-bold text-danger mb-2 text-center text-md-start" style="font-size: 0.85rem;"><i class="bi bi-exclamation-octagon-fill me-2"></i>Zona de Administración:</h6>
-                            <div class="d-flex flex-column flex-sm-row justify-content-between gap-2">
-                                <button class="btn bg-white shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="color: #ff8c00; border: 1px solid #ff8c00; font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#editEventModal">
-                                    <i class="bi bi-pencil-square me-2"></i> Editar Evento
-                                </button>
-                                <button class="btn btn-danger shadow-sm rounded-pill px-3 py-1 fw-bold d-flex align-items-center justify-content-center flex-grow-1 flex-sm-grow-0" style="font-size: 0.85rem;" data-bs-toggle="modal" data-bs-target="#deleteEventModal">
-                                    <i class="bi bi-trash-fill me-2"></i> Eliminar Evento
-                                </button>
-                            </div>
-                        </div>
-                        {% endif %}

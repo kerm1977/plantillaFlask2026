@@ -1,11 +1,11 @@
     <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
-    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-evenly">
+    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-between">
         <a href="/" class="mobile-nav-item">
             <i class="bi bi-house-door-fill fs-3 mb-1"></i>
             <span>Inicio</span>
         </a>
         <div id="mobilePinnedContainer" style="display: contents;"></div>
-        <a href="/" class="mobile-nav-logo">
+        <a href="javascript:location.reload(true);" class="mobile-nav-logo" title="Recargar página">
             <span class="brand-logo-halo">
                 <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="60">
             </span>

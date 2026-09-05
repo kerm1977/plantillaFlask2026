@@ -1,5 +1,6 @@
 <!-- Vista: ver_evento.html -->
 {% extends "base.html" %}
+{% block title %}{{ evento.nombre_lugar }} - La Tribu{% endblock %}
 
 {% block content %}
 <!-- LÓGICA JINJA PARA SEGURIDAD Y FORMATO -->
@@ -62,8 +63,8 @@
     <div class="row justify-content-center">
         <div class="col-lg-12">
             <div class="mb-4 d-flex justify-content-start hide-on-export">
-                <a href="{{ url_for('main.home') }}" class="btn bg-white rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; font-size: 0.9rem;">
-                    <i class="bi bi-arrow-left me-2"></i>Volver al inicio
+                <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; font-size: 0.9rem;">
+                    <i class="bi bi-arrow-left me-2"></i>Volver
                 </a>
             </div>
 
@@ -85,15 +86,7 @@
     </div>
 </div>
 
-{% if is_super_user %}
-{% include 'partials/ver_evento_modals_admin.html' %}
-{% include 'partials/ver_evento_modal_editar_campos.html' %}
-{% include 'partials/ver_evento_modal_editar_fechas.html' %}
-{% include 'partials/ver_evento_modal_editar_incluye.html' %}
-{% endif %}
 {% include 'partials/ver_evento_script_flyer.html' %}
-{% include 'partials/ver_evento_script_edit_init.html' %}
-{% include 'partials/ver_evento_script_super_fns.html' %}
 {% include 'partials/ver_evento_script_public.html' %}
 
 {% endblock %}

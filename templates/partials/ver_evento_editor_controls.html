@@ -14,7 +14,7 @@
                         <div class="col-6">
                             <div class="form-check form-switch">
                                 <input class="form-check-input flyer-toggle" type="checkbox" id="t_inversion" data-target="fl_inversion" checked>
-                                <label class="form-check-label small fw-bold text-secondary" for="t_inversion">Inversión Total</label>
+                                <label class="form-check-label small fw-bold text-secondary" for="t_inversion">Precio Total</label>
                             </div>
                         </div>
                         <div class="col-6">
@@ -41,7 +41,7 @@
                     <div class="row g-2 mb-2">
                         <div class="col-6">
                             <div class="form-check form-switch">
-                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_capacidad" data-target="fl_capacidad">
+                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_capacidad" data-target="fl_capacidad" checked>
                                 <label class="form-check-label small fw-bold text-secondary" for="t_capacidad">Capacidad</label>
                             </div>
                         </div>
@@ -55,14 +55,14 @@
                     <div class="row g-2">
                         <div class="col-6">
                             <div class="form-check form-switch">
-                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_pagos" data-target="fl_pagos">
+                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_pagos" data-target="fl_pagos" checked>
                                 <label class="form-check-label small fw-bold text-secondary" for="t_pagos">Métodos Pago</label>
                             </div>
                         </div>
                         {% if evento.incluye %}
                         <div class="col-6">
                             <div class="form-check form-switch">
-                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_incluye" data-target="fl_incluye">
+                                <input class="form-check-input flyer-toggle" type="checkbox" id="t_incluye" data-target="fl_incluye" checked>
                                 <label class="form-check-label small fw-bold text-secondary" for="t_incluye">Lo que incluye</label>
                             </div>
                         </div>
@@ -74,7 +74,7 @@
 
         <!-- 2. ACORDEÓN: AJUSTES DE FONDO (COLAPSADO) -->
         <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseFondo" role="button" aria-expanded="false" aria-controls="collapseFondo">
+            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseFondo" role="button" aria-expanded="false" aria-controls="collapseFondo" data-reset-target="fondo">
                 <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-image me-2"></i>Ajustes de Fondo</h6>
                 <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
             </div>
@@ -82,32 +82,32 @@
                 <div class="pt-3 border-top border-white mt-2">
                     <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Zoom Fondo <span class="float-end text-orange" id="val_flyerScale">0%</span></label>
-                            <input type="range" class="form-range" id="flyerScale" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Fondo <span class="float-end text-orange" id="val_flyerScale">0%</span></label>
+                            <input type="range" class="form-range" id="flyerScale" min="-100" max="100" step="5" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Rotar (Grados) <span class="float-end text-orange" id="val_flyerRot">0°</span></label>
-                            <input type="range" class="form-range" id="flyerRot" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Rotar Grados <span class="float-end text-orange" id="val_flyerRot">0°</span></label>
+                            <input type="range" class="form-range" id="flyerRot" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Mover X (Horiz) <span class="float-end text-orange" id="val_flyerPosX">0%</span></label>
-                            <input type="range" class="form-range" id="flyerPosX" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Mover X <span class="float-end text-orange" id="val_flyerPosX">0%</span></label>
+                            <input type="range" class="form-range" id="flyerPosX" min="-100" max="100" step="5" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Mover Y (Vert) <span class="float-end text-orange" id="val_flyerPosY">0%</span></label>
-                            <input type="range" class="form-range" id="flyerPosY" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Mover Y <span class="float-end text-orange" id="val_flyerPosY">0%</span></label>
+                            <input type="range" class="form-range" id="flyerPosY" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Desenfoque (Blur) <span class="float-end text-orange" id="val_flyerBlur">0%</span></label>
-                            <input type="range" class="form-range" id="flyerBlur" min="-100" max="100" step="1" value="-100">
+                            <label class="form-label editor-control-label w-100">Desenfoque <span class="float-end text-orange" id="val_flyerBlur">0%</span></label>
+                            <input type="range" class="form-range" id="flyerBlur" min="-100" max="100" step="5" value="-100">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Brillo/Opacidad <span class="float-end text-orange" id="val_flyerOpacity">0%</span></label>
-                            <input type="range" class="form-range" id="flyerOpacity" min="-100" max="100" step="1" value="100">
+                            <label class="form-label editor-control-label w-100">Brillo <span class="float-end text-orange" id="val_flyerOpacity">0%</span></label>
+                            <input type="range" class="form-range" id="flyerOpacity" min="-100" max="100" step="5" value="100">
                         </div>
                     </div>
                 </div>
@@ -116,7 +116,7 @@
 
         <!-- 3. ACORDEÓN: AJUSTES DE TEXTO INFORMATIVO (COLAPSADO) -->
         <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
-            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseTexto" role="button" aria-expanded="false" aria-controls="collapseTexto">
+            <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseTexto" role="button" aria-expanded="false" aria-controls="collapseTexto" data-reset-target="texto">
                 <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-textarea-t me-2"></i>Ajustes del Texto</h6>
                 <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
             </div>
@@ -124,38 +124,38 @@
                 <div class="pt-3 border-top border-white mt-2">
                     <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Tamaño Caja <span class="float-end text-orange" id="val_overlayScale">0%</span></label>
-                            <input type="range" class="form-range" id="overlayScale" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Caja <span class="float-end text-orange" id="val_overlayScale">0%</span></label>
+                            <input type="range" class="form-range" id="overlayScale" min="-100" max="100" step="5" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Ancho (%) <span class="float-end text-orange" id="val_overlayWidth">0%</span></label>
-                            <input type="range" class="form-range" id="overlayWidth" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Ancho <span class="float-end text-orange" id="val_overlayWidth">0%</span></label>
+                            <input type="range" class="form-range" id="overlayWidth" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Mover Caja (X) <span class="float-end text-orange" id="val_overlayPosX">0%</span></label>
-                            <input type="range" class="form-range" id="overlayPosX" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Mover Caja <span class="float-end text-orange" id="val_overlayPosX">0%</span></label>
+                            <input type="range" class="form-range" id="overlayPosX" min="-100" max="100" step="5" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Mover Caja (Y) <span class="float-end text-orange" id="val_overlayPosY">0%</span></label>
-                            <input type="range" class="form-range" id="overlayPosY" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Mover Caja a Y <span class="float-end text-orange" id="val_overlayPosY">0%</span></label>
+                            <input type="range" class="form-range" id="overlayPosY" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-6">
                             <label class="form-label editor-control-label w-100">Fondo Cristal <span class="float-end text-orange" id="val_overlayBlur">0%</span></label>
-                            <input type="range" class="form-range" id="overlayBlur" min="-100" max="100" step="1" value="0">
+                            <input type="range" class="form-range" id="overlayBlur" min="-100" max="100" step="5" value="0">
                         </div>
                         <div class="col-6">
-                            <label class="form-label editor-control-label w-100">Oscuridad Fondo <span class="float-end text-orange" id="val_overlayOpacity">0%</span></label>
-                            <input type="range" class="form-range" id="overlayOpacity" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Oscuridad <span class="float-end text-orange" id="val_overlayOpacity">0%</span></label>
+                            <input type="range" class="form-range" id="overlayOpacity" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                     <div class="row g-2 mb-2">
                         <div class="col-12">
-                            <label class="form-label editor-control-label w-100">Aumentar Letras <span class="float-end text-orange" id="val_overlayFontSize">0%</span></label>
-                            <input type="range" class="form-range" id="overlayFontSize" min="-100" max="100" step="1" value="0">
+                            <label class="form-label editor-control-label w-100">Tamaño <span class="float-end text-orange" id="val_overlayFontSize">0%</span></label>
+                            <input type="range" class="form-range" id="overlayFontSize" min="-100" max="100" step="5" value="0">
                         </div>
                     </div>
                 </div>
@@ -163,11 +163,34 @@
         </div>
 
         <!-- BOTÓN EXPORTAR FLYER (RESPONSIVE) -->
-        <button id="btnExportFlyer" class="btn btn-orange w-100 rounded-pill fw-bold shadow mt-3 py-2 py-md-3 fs-6 fs-md-5 d-flex align-items-center justify-content-center">
+        <button id="btnExportFlyer" class="btn btn-orange w-100 rounded-pill fw-bold shadow mt-3 py-2 py-md-3 fs-6 fs-md-5 d-flex align-items-center justify-content-center" style="margin-bottom:100px;">
             <i class="bi bi-download me-2 fs-5 fs-md-4"></i>
             <span class="d-none d-md-inline">Descargar Flyer HD (9:16)</span>
             <span class="d-inline d-md-none">Flyer HD 9:16</span>
         </button>
+
+        <!-- Modal de reset para ajustes de fondo y texto -->
+        <div class="modal fade" id="resetFlyerValuesModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content glass-modal border-0 shadow-lg">
+                    <div class="modal-header border-0 pb-0">
+                        <h5 class="modal-title fw-bold text-dark w-100 text-center">Restablecer ajustes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body text-center px-4 pb-3">
+                        <p id="resetFlyerMessage" class="text-secondary mb-3 small">¿Restablecer todos los valores a cero?</p>
+                        <div class="form-check d-flex justify-content-center align-items-center gap-2">
+                            <input class="form-check-input" type="checkbox" id="confirmResetFlyer">
+                            <label class="form-check-label small fw-bold text-secondary" for="confirmResetFlyer">Sí, estoy seguro de restablecer todos los valores a cero</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                        <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" id="btnConfirmResetFlyer" class="btn btn-danger rounded-pill px-4" disabled>Restablecer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endif %}

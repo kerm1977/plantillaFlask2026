@@ -7,7 +7,7 @@ from .forms import _migrate_forms_ficha_medica, _migrate_forms_pasaporte_fecha_n
 from .hiker import _migrate_hiker_pasaporte
 from .form_response import _migrate_form_response_reservation_number
 from .cotizador import _migrate_cotizador
-from .event import _migrate_event_date_changes
+from .event import _migrate_event_date_changes, _migrate_event_enlace_extra, _migrate_event_texto_referencia
 from .notes import _migrate_notes
 from .holidays import _migrate_holidays_autoplay
 from .background_music import _migrate_background_music
@@ -24,6 +24,8 @@ def run_migrations():
     _migrate_form_response_reservation_number()
     _migrate_cotizador()
     _migrate_event_date_changes()
+    _migrate_event_enlace_extra()
+    _migrate_event_texto_referencia()
     _migrate_notes()
     _migrate_holidays_autoplay()
     _migrate_background_music()

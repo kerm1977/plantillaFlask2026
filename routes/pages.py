@@ -1,4 +1,4 @@
-from flask import render_template, session, redirect, url_for, jsonify, request, make_response
+from flask import render_template, session, redirect, url_for, jsonify, request, make_response, abort
 from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia, CaminataBlock
 from models_core import EventDateChange
 from datetime import datetime, date
@@ -34,7 +34,58 @@ def home():
 
 @bp.route('/caminatas')
 def caminatas():
-    return render_template('caminatas.html', **_home_context())
+    from itertools import groupby
+    is_super = session.get('role') == 'Superusuario'
+    meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
+    eventos = Event.query.order_by(Event.fecha_unica, Event.fecha_inicio).all()
+
+    def mes_key(ev):
+        fecha = ev.fecha_unica or ev.fecha_inicio or ev.fecha_regreso
+        if fecha and len(fecha.split('-')) >= 2:
+            return fecha[:7]
+        return '9999-99'
+
+    def mes_label(key):
+        if key == '9999-99':
+            return 'Por definir'
+        y, m = key.split('-')
+        return f"{meses[int(m)-1]} {y}"
+
+    def es_caminata_2027(ev):
+        return (
+            (ev.fecha_unica or '').startswith('2027') or
+            (ev.fecha_inicio or '').startswith('2027') or
+            (ev.fecha_regreso or '').startswith('2027')
+        )
+
+    eventos_sorted = sorted(eventos, key=lambda ev: (mes_key(ev), ev.fecha_unica or ev.fecha_inicio or '9999-99-99'))
+    timeline = []
+    for idx, (key, items) in enumerate(groupby(eventos_sorted, key=mes_key)):
+        items = list(items)
+        entry = {'type': 'provincia', 'order': idx, 'group_label': mes_label(key), 'walks': items, 'walks_2027': []}
+        if key == '9999-99':
+            walks_2027 = [ev for ev in items if es_caminata_2027(ev)]
+            walks_other = [ev for ev in items if not es_caminata_2027(ev)]
+            entry['walks'] = walks_other
+            entry['walks_2027'] = walks_2027
+        timeline.append(entry)
+
+    return render_template('caminatas_2027.html',
+        caminatas_2027_text=_get_site_text('caminatas'),
+        is_super=is_super,
+        eventos=eventos,
+        timeline=timeline,
+        page_title='Caminatas de la Tribu',
+        is_caminatas_2027_page=False,
+        empty_message='Aún no hay caminatas registradas.',
+        detail_endpoint='main.detalles_evento',
+        group_header_text_class='',
+        show_expand_hint=True,
+        expand_hint_text='Toca para expandir el mes',
+        group_badge_class='bg-white text-dark border ms-3 shadow-sm',
+        group_badge_style='',
+        group_badge_icon='bi-person-walking',
+        group_badge_icon_color='#0dcaf0')
 
 
 from routes.about import DEFAULT_SITE_CONTENT
@@ -73,7 +124,8 @@ def nuestra_musica():
 @bp.route('/caminatas-2027')
 def caminatas_2027():
     from itertools import groupby
-    is_super = session.get('role') == 'Superusuario'
+    is_share = request.args.get('share') == '1'
+    is_super = session.get('role') == 'Superusuario' and not is_share
     eventos = Event.query.filter(
         or_(
             Event.fecha_unica.like('2027%'),
@@ -82,10 +134,13 @@ def caminatas_2027():
         )
     ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
 
+    if not (is_super or is_share):
+        eventos = [ev for ev in eventos if ev.provincia != 'Referencia']
+
     eventos_sorted = sorted(eventos, key=lambda e: (e.provincia or 'Sin provincia'))
     timeline = []
-    for idx, (provincia, items) in enumerate(groupby(eventos_sorted, key=lambda e: e.provincia or 'Sin provincia')):
-        timeline.append({'type': 'provincia', 'order': idx * 100.0, 'provincia': provincia, 'walks': list(items)})
+    for idx, (provincia, items) in enumerate(groupby(eventos_sorted, key=lambda e: (e.provincia or 'Sin provincia'))):
+        timeline.append({'type': 'provincia', 'order': idx * 100.0, 'group_label': provincia or 'Sin provincia', 'walks': list(items)})
 
     blocks = CaminataBlock.query.filter_by(page='caminatas_2027').order_by(CaminataBlock.order).all()
     for b in blocks:
@@ -93,21 +148,37 @@ def caminatas_2027():
 
     timeline.sort(key=lambda x: x['order'])
 
+    share_url = url_for('main.caminatas_2027', share=1, _external=True)
+    share_datetime = datetime.now().strftime('%d/%m/%Y %H:%M')
+
     return render_template('caminatas_2027.html',
         caminatas_2027_text=_get_site_text('caminatas_2027'),
         is_super=is_super,
+        is_share=is_share,
+        share_url=share_url,
+        share_datetime=share_datetime,
         eventos=eventos,
-        timeline=timeline)
+        timeline=timeline,
+        detail_endpoint='main.ver_caminata_2027',
+        group_badge_icon='bi-person-walking',
+        group_badge_icon_color='#ffffff')
 
 
 @bp.route('/caminatas-2027/<int:event_id>')
 def ver_caminata_2027(event_id):
-    is_super = session.get('role') == 'Superusuario'
-    evento = Event.query.get_or_404(event_id)
+    is_share = request.args.get('share') == '1'
+    is_super = session.get('role') == 'Superusuario' and not is_share
+    event = Event.query.get_or_404(event_id)
+    if event.provincia == 'Referencia' and not is_super and not is_share:
+        abort(404)
+    share_url = url_for('main.ver_caminata_2027', event_id=event_id, share=1, _external=True)
+    share_datetime = datetime.now().strftime('%d/%m/%Y %H:%M')
     return render_template('ver_caminata_2027.html',
-        caminatas_2027_text=_get_site_text('caminatas_2027'),
+        event=event,
         is_super=is_super,
-        event=evento)
+        is_share=is_share,
+        share_url=share_url,
+        share_datetime=share_datetime)
 
 
 @bp.route('/quienes-somos')
