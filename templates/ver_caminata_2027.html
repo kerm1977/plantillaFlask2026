@@ -26,6 +26,16 @@
     padding: 0 0.3rem 0 0;
     font-weight: bold;
   }
+  @media print {
+    * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+    body { background: #fff !important; color: #000 !important; }
+    .caminata-actions, .navbar, .mobile-bottom-bar, footer, .share-ribbon, .modal, #caminataEditor > .d-flex.flex-wrap, #caminataEditor > .text-center, button[data-bs-target="#caminataEditor"] { display: none !important; }
+    #caminataEditor, #caminataEditor.collapse { display: block !important; }
+    #caminataPreview { min-height: auto !important; border: none !important; box-shadow: none !important; background: transparent !important; padding: 1rem !important; }
+    .container { padding-left: 0.5cm !important; padding-right: 0.5cm !important; }
+    h1, h2, h3, h4, h5, h6, p, li, blockquote, .caminata-capital, img, video { page-break-inside: avoid !important; orphans: 3; widows: 3; }
+    img, video { max-width: 100% !important; height: auto !important; }
+  }
 </style>
 {% endblock %}
 {% block body_attrs %} class="caminata-detalle-page{% if is_share %} share-view{% endif %}"{% endblock %}
@@ -67,7 +77,7 @@
   {% endif %}
 
   {% if is_super %}
-  <div class="d-flex justify-content-center mb-3">
+  <div class="d-flex justify-content-center mb-3 d-print-none">
     <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#caminataEditor" aria-expanded="true" aria-controls="caminataEditor">
       <i class="bi bi-pencil me-1"></i>Editor <i class="bi bi-caret-down-fill ms-1"></i>
     </button>
@@ -162,7 +172,7 @@
     </div>
   </div>
 
-  <div class="text-center mb-4 mt-3">
+  <div class="text-center mb-4 mt-3 caminata-actions">
     <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" solicitado y aprobado por el usuario. NO ELIMINAR. -->
     {% set whatsapp_msg -%}
 Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
@@ -184,12 +194,15 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     </a>
     {% endif %}
     <!-- FIN BOTÓN WHATSAPP -->
-    <button class="btn btn-outline-danger rounded-pill fw-bold d-inline-flex align-items-center ms-2" onclick="caminataExport('pdf')">
-      <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
-    </button>
-    <button class="btn btn-success rounded-pill fw-bold d-inline-flex align-items-center ms-2" onclick="abrirModalCompartirCaminata()">
-      <i class="bi bi-whatsapp me-2"></i>Compartir
-    </button>
+    <div class="btn-group d-inline-flex align-items-center ms-2">
+      <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold d-inline-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
+        <i class="bi bi-three-dots"></i>
+      </button>
+      <ul class="dropdown-menu">
+        <li><button class="dropdown-item" type="button" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Exportar PDF</button></li>
+        <li><button class="dropdown-item" type="button" onclick="abrirModalCompartirCaminata()"><i class="bi bi-whatsapp me-2 text-success"></i>Compartir</button></li>
+      </ul>
+    </div>
   </div>
 </div>
 
@@ -592,6 +605,10 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
   document.addEventListener('DOMContentLoaded', setupCaminataDetalleLongPress);
 
   async function caminataExport(format) {
+    if (format === 'pdf') {
+      window.print();
+      return;
+    }
     const preview = document.getElementById('caminataPreview');
     if (typeof html2canvas === 'undefined') {
       alert('Espere a que cargue html2canvas o recargue la pÃ¡gina.');
