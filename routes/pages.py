@@ -169,8 +169,6 @@ def ver_caminata_2027(event_id):
     is_share = request.args.get('share') == '1'
     is_super = session.get('role') == 'Superusuario' and not is_share
     event = Event.query.get_or_404(event_id)
-    if event.provincia == 'Referencia' and not is_super and not is_share:
-        abort(404)
     share_url = url_for('main.ver_caminata_2027', event_id=event_id, share=1, _external=True)
     share_datetime = datetime.now().strftime('%d/%m/%Y %H:%M')
     return render_template('ver_caminata_2027.html',
