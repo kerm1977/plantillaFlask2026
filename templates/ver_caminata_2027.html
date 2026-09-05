@@ -338,38 +338,26 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     document.execCommand('insertText', false, out);
   }
 
-  function caminataInterlineado(valor) {
+  function caminataBloquesSeleccionados() {
     const preview = document.getElementById('caminataPreview');
-    if (!preview || !valor) return;
-    preview.focus();
     const sel = window.getSelection();
-    if (sel.rangeCount === 0) return;
-    let node = sel.getRangeAt(0).commonAncestorContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    while (node && node.id !== 'caminataPreview' && !['P','DIV','LI','BLOCKQUOTE','H1','H2','H3','H4','H5','H6'].includes(node.tagName)) {
-      node = node.parentElement;
-    }
-    if (!node) return;
-    if (node.id === 'caminataPreview') {
-      preview.querySelectorAll('p, li, div, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => { if (el.id !== 'caminataPreview') el.style.lineHeight = valor; });
-    } else {
-      node.style.lineHeight = valor;
-    }
+    if (!preview || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return [];
+    const bloques = Array.from(preview.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li, blockquote'));
+    return bloques.filter(el => sel.containsNode(el, true));
+  }
+
+  function caminataInterlineado(valor) {
+    const bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0 || !valor) return;
+    document.getElementById('caminataPreview').focus();
+    bloques.forEach(el => { el.style.lineHeight = valor; });
   }
 
   function caminataCapitular() {
-    const preview = document.getElementById('caminataPreview');
-    if (!preview) return;
-    preview.focus();
-    const sel = window.getSelection();
-    if (sel.rangeCount === 0) return;
-    let node = sel.getRangeAt(0).commonAncestorContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    while (node && node.id !== 'caminataPreview' && !['P','DIV','LI','BLOCKQUOTE','H1','H2','H3','H4','H5','H6'].includes(node.tagName)) {
-      node = node.parentElement;
-    }
-    if (!node || node.id === 'caminataPreview') return;
-    node.classList.toggle('caminata-capital');
+    const bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0) return;
+    document.getElementById('caminataPreview').focus();
+    bloques.forEach(el => { el.classList.toggle('caminata-capital'); });
   }
 
   async function caminataUploadImage(input) {
@@ -476,23 +464,26 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
   }
 
   function caminataCita() {
+    const bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0) return;
     const preview = document.getElementById('caminataPreview');
     if (!preview) return;
     preview.focus();
-    const sel = window.getSelection();
-    let node = sel.getRangeAt(0).commonAncestorContainer;
-    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
-    let block = node;
-    while (block && block.id !== 'caminataPreview') {
-      if (block.tagName === 'BLOCKQUOTE') {
-        try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
-        document.execCommand('formatBlock', false, 'P');
-        return;
+    bloques.forEach(el => {
+      if (el.tagName === 'BLOCKQUOTE') {
+        const p = document.createElement('p');
+        p.innerHTML = el.innerHTML;
+        p.className = el.className;
+        p.removeAttribute('style');
+        el.replaceWith(p);
+      } else {
+        const bq = document.createElement('blockquote');
+        bq.innerHTML = el.innerHTML;
+        bq.className = el.className;
+        bq.removeAttribute('style');
+        el.replaceWith(bq);
       }
-      block = block.parentElement;
-    }
-    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
-    document.execCommand('formatBlock', false, 'BLOCKQUOTE');
+    });
   }
 
   async function caminataSave(silent=false) {
