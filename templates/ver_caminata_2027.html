@@ -200,7 +200,9 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       </button>
       <ul class="dropdown-menu">
         <li><button class="dropdown-item" type="button" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Exportar PDF</button></li>
+        {% if is_super %}
         <li><button class="dropdown-item" type="button" onclick="abrirModalCompartirCaminata()"><i class="bi bi-whatsapp me-2 text-success"></i>Compartir</button></li>
+        {% endif %}
       </ul>
     </div>
   </div>
