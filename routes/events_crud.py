@@ -5,7 +5,7 @@ from db import db
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
 
-ALLOWED_CAMINATA_MEDIA_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS | {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg'}
+ALLOWED_CAMINATA_MEDIA_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS | {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg','3gp','3g2'}
 
 
 @bp.route('/api/create_event', methods=['POST'])

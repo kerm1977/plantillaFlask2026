@@ -129,8 +129,10 @@
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataWrapTag('code')" title="Código"><i class="bi bi-code"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertHorizontalRule')" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
     <div class="vr mx-1"></div>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen o video"><i class="bi bi-image"></i></button>
-    <input type="file" id="caminataImageFile" accept="image/*,video/mp4,video/x-matroska,video/quicktime,video/x-ms-wmv,video/x-msvideo,video/webm" style="display:none;" onchange="caminataUploadImage(this)">
+    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
+    <input type="file" id="caminataImageFile" accept="image/*" style="display:none;" onchange="caminataUploadImage(this)">
+    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataVideoFile').click()" title="Subir video"><i class="bi bi-camera-video"></i></button>
+    <input type="file" id="caminataVideoFile" accept="video/*" style="display:none;" onchange="caminataUploadImage(this)">
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('left')" title="Imagen a la izquierda"><i class="bi bi-image"></i><i class="bi bi-arrow-left ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('center')" title="Imagen centrada"><i class="bi bi-image"></i><i class="bi bi-text-center ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('right')" title="Imagen a la derecha"><i class="bi bi-image"></i><i class="bi bi-arrow-right ms-1 small"></i></button>
