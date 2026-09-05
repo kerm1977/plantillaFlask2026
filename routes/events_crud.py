@@ -5,6 +5,8 @@ from db import db
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
 
+ALLOWED_CAMINATA_MEDIA_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS | {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg'}
+
 
 @bp.route('/api/create_event', methods=['POST'])
 def create_event():
@@ -138,17 +140,20 @@ def upload_caminata_2027_image(event_id):
         return jsonify({"error": "No autorizado"}), 403
 
     evento = Event.query.get_or_404(event_id)
-    file = request.files.get('image')
+    file = request.files.get('media')
     if not file or file.filename == '':
-        return jsonify({"error": "No se envió imagen"}), 400
-    if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
-        return jsonify({"error": "Formato de imagen no permitido"}), 400
+        return jsonify({"error": "No se envió archivo"}), 400
+    if not allowed_file(file.filename, ALLOWED_CAMINATA_MEDIA_EXTENSIONS):
+        return jsonify({"error": "Formato no permitido"}), 400
+
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    kind = 'video' if ext in {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg'} else 'image'
 
     filename = secure_filename(f"caminata2027_{event_id}_{os.urandom(4).hex()}_{file.filename}")
     upload_dir = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'static', 'uploads', 'caminatas_2027')
     os.makedirs(upload_dir, exist_ok=True)
     file.save(os.path.join(upload_dir, filename))
-    return jsonify({"ok": True, "url": f"/static/uploads/caminatas_2027/{filename}"})
+    return jsonify({"ok": True, "url": f"/static/uploads/caminatas_2027/{filename}", "kind": kind})
 
 
 @bp.route('/api/caminatas-2027/<int:event_id>/save-itinerario', methods=['POST'])

@@ -129,8 +129,8 @@
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataWrapTag('code')" title="Código"><i class="bi bi-code"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertHorizontalRule')" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
     <div class="vr mx-1"></div>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
-    <input type="file" id="caminataImageFile" accept="image/*" style="display:none;" onchange="caminataUploadImage(this)">
+    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen o video"><i class="bi bi-image"></i></button>
+    <input type="file" id="caminataImageFile" accept="image/*,video/mp4,video/x-matroska,video/quicktime,video/x-ms-wmv,video/x-msvideo,video/webm" style="display:none;" onchange="caminataUploadImage(this)">
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('left')" title="Imagen a la izquierda"><i class="bi bi-image"></i><i class="bi bi-arrow-left ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('center')" title="Imagen centrada"><i class="bi bi-image"></i><i class="bi bi-text-center ms-1 small"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataImageAlign('right')" title="Imagen a la derecha"><i class="bi bi-image"></i><i class="bi bi-arrow-right ms-1 small"></i></button>
@@ -230,7 +230,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  const CAMINATA_ID = {{ event.id }};
+  const CAMINATA_ID = parseInt('{{ event.id }}', 10);
   document.addEventListener('DOMContentLoaded', function() {
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     setInterval(() => {
@@ -364,18 +364,25 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     const file = input.files[0];
     if (!file) return;
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('media', file);
     try {
       const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/upload-image`, {method: 'POST', body: formData});
       const data = await r.json();
       if (data.ok) {
         document.getElementById('caminataPreview').focus();
-        document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`);
+        const kind = data.kind === 'video' || file.type.startsWith('video/') ? 'video' : 'image';
+        let html = '';
+        if (kind === 'video') {
+          html = `<video src="${data.url}" controls playsinline style="max-width:100%; border-radius:0.5rem; display:block; margin:1rem auto;" preload="metadata"></video>`;
+        } else {
+          html = `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`;
+        }
+        document.execCommand('insertHTML', false, html);
       } else {
-        alert(data.error || 'Error al subir imagen');
+        alert(data.error || 'Error al subir archivo');
       }
     } catch(e) {
-      alert('Error de conexión al subir imagen');
+      alert('Error de conexión al subir archivo');
     }
     input.value = '';
   }
