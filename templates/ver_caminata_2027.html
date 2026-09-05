@@ -14,6 +14,18 @@
     background-color: transparent;
     color: inherit;
   }
+  #caminataPreview s, #caminataPreview strike, #caminataPreview del,
+  #caminataPreview span[style*="line-through"] {
+    text-decoration-color: rgba(0,0,0,0.4);
+    text-decoration-thickness: 1px;
+  }
+  #caminataPreview .caminata-capital::first-letter {
+    float: left;
+    font-size: 3.5rem;
+    line-height: 0.85;
+    padding: 0 0.3rem 0 0;
+    font-weight: bold;
+  }
 </style>
 {% endblock %}
 {% block body_attrs %} class="caminata-detalle-page{% if is_share %} share-view{% endif %}"{% endblock %}
@@ -69,12 +81,27 @@
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataClearFormat()" title="Limpiar formato"><i class="bi bi-x-lg"></i></button>
-    <select id="caminataColorMarcador" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="document.getElementById('caminataIconoMarcador').style.color = this.value;" title="Color de marcador" style="width:auto;min-width:5.5rem;">
-      <option value="#ffff00">Amarillo fosfor</option>
-      <option value="#00ffff">Celeste fosfor</option>
-      <option value="#ff00ff">Rosado fosfor</option>
+    <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="caminataTransformarTexto(this.value); this.value=''" title="Mayúsculas/minúsculas" style="width:auto;min-width:5rem;">
+      <option value="" selected>ABC</option>
+      <option value="uppercase">MAYÚSCULAS</option>
+      <option value="lowercase">minúsculas</option>
+      <option value="titlecase">Title Case</option>
     </select>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataMarcarSeleccion()" title="Marcar texto"><i class="bi bi-circle-fill" id="caminataIconoMarcador" style="color:#ffff00;"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataCapitular()" title="Letra capitular"><i class="bi bi-type-h1"></i></button>
+    <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="caminataInterlineado(this.value); this.value=''" title="Interlineado" style="width:auto;min-width:6rem;">
+      <option value="" selected>Interlineado</option>
+      <option value="0.8">0.8 (-)</option>
+      <option value="1.0">1.0 Normal</option>
+      <option value="1.5">1.5 (+)</option>
+      <option value="2.0">2.0 (++)</option>
+    </select>
+    <select id="caminataColorMarcador" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="document.getElementById('caminataIconoMarcador').style.color = this.value;" title="Color de marcador" style="width:auto;min-width:5.5rem;">
+      <option value="#ffff99">Amarillo fosfor</option>
+      <option value="#99ffff">Celeste fosfor</option>
+      <option value="#ff99ff">Rosado fosfor</option>
+      <option value="#d0d0d0">Gris fosfor</option>
+    </select>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataMarcarSeleccion()" title="Marcar texto"><i class="bi bi-circle-fill" id="caminataIconoMarcador" style="color:#ffff99;"></i></button>
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
@@ -206,6 +233,10 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
   const CAMINATA_ID = {{ event.id }};
   document.addEventListener('DOMContentLoaded', function() {
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    setInterval(() => {
+      const preview = document.getElementById('caminataPreview');
+      if (preview && preview.isContentEditable) caminataSave(true);
+    }, 60000);
   });
 
   function caminataExecCmd(command) {
@@ -225,14 +256,40 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     if (!preview) return;
     preview.focus();
     const sel = window.getSelection();
+    let range;
     if (sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) {
-      const range = document.createRange();
+      range = document.createRange();
       range.selectNodeContents(preview);
       sel.removeAllRanges();
       sel.addRange(range);
+    } else {
+      range = sel.getRangeAt(0);
     }
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     document.execCommand('removeFormat', false, null);
+    // Quitar clases especiales
+    preview.querySelectorAll('.caminata-capital').forEach(el => el.classList.remove('caminata-capital'));
+    // Convertir viñetas y numeración a párrafos planos
+    preview.querySelectorAll('li').forEach(li => {
+      const p = document.createElement('p');
+      p.innerHTML = li.innerHTML;
+      li.replaceWith(p);
+    });
+    preview.querySelectorAll('ul, ol').forEach(list => {
+      list.replaceWith(...Array.from(list.childNodes));
+    });
+    // Eliminar estilos en línea residuales
+    preview.querySelectorAll('p, span, b, i, u, s, strike, font, mark, strong, em, li, div, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => el.removeAttribute('style'));
+    // Justificar todo
+    const all = document.createRange();
+    all.selectNodeContents(preview);
+    sel.removeAllRanges();
+    sel.addRange(all);
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('justifyFull', false, null);
+    // Interlineado normal
+    preview.querySelectorAll('p, li, div, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => { el.style.lineHeight = 'normal'; });
+    sel.removeAllRanges();
   }
 
   function caminataMarcarSeleccion() {
@@ -264,6 +321,55 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       if (!text) return;
       document.execCommand('insertHTML', false, '<' + tag + '>' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</' + tag + '>');
     }
+  }
+
+  function caminataTransformarTexto(accion) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview || !accion) return;
+    preview.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount === 0) return;
+    const text = sel.toString();
+    if (!text) return;
+    let out = text;
+    if (accion === 'uppercase') out = text.toUpperCase();
+    else if (accion === 'lowercase') out = text.toLowerCase();
+    else if (accion === 'titlecase') out = text.toLowerCase().replace(/(?:^|\s)\S/g, (m) => m.toUpperCase());
+    document.execCommand('insertText', false, out);
+  }
+
+  function caminataInterlineado(valor) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview || !valor) return;
+    preview.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount === 0) return;
+    let node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    while (node && node.id !== 'caminataPreview' && !['P','DIV','LI','BLOCKQUOTE','H1','H2','H3','H4','H5','H6'].includes(node.tagName)) {
+      node = node.parentElement;
+    }
+    if (!node) return;
+    if (node.id === 'caminataPreview') {
+      preview.querySelectorAll('p, li, div, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => { if (el.id !== 'caminataPreview') el.style.lineHeight = valor; });
+    } else {
+      node.style.lineHeight = valor;
+    }
+  }
+
+  function caminataCapitular() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    preview.focus();
+    const sel = window.getSelection();
+    if (sel.rangeCount === 0) return;
+    let node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    while (node && node.id !== 'caminataPreview' && !['P','DIV','LI','BLOCKQUOTE','H1','H2','H3','H4','H5','H6'].includes(node.tagName)) {
+      node = node.parentElement;
+    }
+    if (!node || node.id === 'caminataPreview') return;
+    node.classList.toggle('caminata-capital');
   }
 
   async function caminataUploadImage(input) {
@@ -389,9 +495,9 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     document.execCommand('formatBlock', false, 'BLOCKQUOTE');
   }
 
-  async function caminataSave() {
+  async function caminataSave(silent=false) {
     const statusEl = document.getElementById('caminataSaveStatus');
-    if (statusEl) statusEl.textContent = 'Guardando...';
+    if (statusEl && !silent) statusEl.textContent = 'Guardando...';
     const content = document.getElementById('caminataPreview').innerHTML;
     try {
       const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/save-itinerario`, {
@@ -400,16 +506,18 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
         body: JSON.stringify({itinerario: content})
       });
       const data = await r.json();
-      if (data.ok && statusEl) {
+      if (data.ok && statusEl && !silent) {
         statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
         setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
-      } else {
+      } else if (!data.ok && !silent) {
         alert(data.error || 'Error al guardar');
         if (statusEl) statusEl.textContent = '';
       }
     } catch(e) {
-      alert('Error de conexión al guardar');
-      if (statusEl) statusEl.textContent = '';
+      if (!silent) {
+        alert('Error de conexión al guardar');
+        if (statusEl) statusEl.textContent = '';
+      }
     }
   }
 
