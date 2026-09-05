@@ -134,7 +134,7 @@ def caminatas_2027():
         )
     ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
 
-    if not (is_super or is_share):
+    if not is_super:
         eventos = [ev for ev in eventos if ev.provincia != 'Referencia']
 
     eventos_sorted = sorted(eventos, key=lambda e: (e.provincia or 'Sin provincia'))
