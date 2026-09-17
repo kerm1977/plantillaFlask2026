@@ -36,10 +36,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 function showSoldOutModal() {
-    const modalEl = document.getElementById('soldOutModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
+    if (typeof mostrarAlerta === 'function') {
+        mostrarAlerta('No se puede ver el contenido de las caminatas sin espacios.\n\nSi desea conocer más sobre ellos comunícate al 86227500 o al 86529837.', 'warning');
+    } else {
+        alert('No se puede ver el contenido de las caminatas sin espacios. Si desea conocer más sobre ellos comunícate al 86227500 o al 86529837.');
     }
 }
 

@@ -1,4 +1,6 @@
 <script>
+const CURRENT_USER_ROLE = "{{ session.get('role', '') }}";
+
 document.addEventListener("DOMContentLoaded", () => {
     loadAllUsers();
     document.getElementById('searchUserInput').addEventListener('input', function() {
@@ -39,8 +41,62 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
     }
+
+    // Avatar preview para Crear Usuario
+    const cuAvatarUpload     = document.getElementById('cuAvatarUpload');
+    const cuAvatarPreviewImg = document.getElementById('cuAvatarPreviewImg');
+    const cuScaleSlider      = document.getElementById('cuScaleSlider');
+    const cuPosXSlider       = document.getElementById('cuPosXSlider');
+    const cuPosYSlider       = document.getElementById('cuPosYSlider');
+    if (cuScaleSlider && cuPosXSlider && cuPosYSlider && cuAvatarPreviewImg) {
+        function updateCuImageTransform() {
+            cuAvatarPreviewImg.style.transform =
+                `scale(${cuScaleSlider.value}) translate(${cuPosXSlider.value}px, ${cuPosYSlider.value}px)`;
+        }
+        cuScaleSlider.addEventListener('input', updateCuImageTransform);
+        cuPosXSlider.addEventListener('input', updateCuImageTransform);
+        cuPosYSlider.addEventListener('input', updateCuImageTransform);
+        if (cuAvatarUpload) {
+            cuAvatarUpload.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        cuAvatarPreviewImg.src = e.target.result;
+                        cuScaleSlider.value = 1; cuPosXSlider.value = 0; cuPosYSlider.value = 0;
+                        updateCuImageTransform();
+                    }
+                    reader.readAsDataURL(e.target.files[0]);
+                }
+            });
+        }
+    }
+
+    // Inicialmente bloquear todos los campos de Crear hasta ingresar cédula
+    toggleCedulaLock('crearUsuarioForm', 'cuCedula');
+
+    // Quitar borde rojo de advertencia mientras el usuario completa un campo
+    ['crearUsuarioForm', 'adminEditUserForm'].forEach(function(fid) {
+        const f = document.getElementById(fid);
+        if (!f) return;
+        f.addEventListener('input', function(e) { if (e.target.classList) e.target.classList.remove('is-danger'); });
+        f.addEventListener('change', function(e) { if (e.target.classList) e.target.classList.remove('is-danger'); });
+    });
+
     document.getElementById('adminEditUserForm').addEventListener('submit', async function(e) {
         e.preventDefault();
+        const dia = document.getElementById('editDia').value;
+        const mes = document.getElementById('editMes').value;
+        const anio = document.getElementById('editAnio').value;
+        const fechaHidden = document.getElementById('editFechaNacHidden');
+        const dobHidden = document.getElementById('editDobHidden');
+        if (dia && mes && anio) {
+            const fecha = `${anio}-${mes}-${dia}`;
+            fechaHidden.value = fecha;
+            dobHidden.value = fecha;
+        } else {
+            fechaHidden.value = '';
+            dobHidden.value = '';
+        }
         const formData = new FormData(this);
         try {
             const btnSubmit = this.querySelector('button[type="submit"]');
@@ -51,23 +107,373 @@ document.addEventListener("DOMContentLoaded", () => {
             const result   = await response.json();
             if (response.ok && result.success) {
                 bootstrap.Modal.getInstance(document.getElementById('adminEditUserModal'))?.hide();
-                showGlassAlert('Los datos del usuario han sido actualizados correctamente.', '<i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>');
+                mostrarAlerta('Los datos del usuario han sido actualizados correctamente.', 'success');
                 showUsersList(); loadAllUsers();
-            } else { alert("Error al actualizar: " + (result.error || 'Desconocido')); }
+            } else { mostrarAlerta("Error al actualizar: " + (result.error || 'Desconocido'), 'error'); }
             btnSubmit.innerHTML = originalHTML; btnSubmit.disabled = false;
-        } catch(err) { alert("Error de conexión al guardar los datos."); }
+        } catch(err) { mostrarAlerta("Error de conexión al guardar los datos.", 'error'); }
     });
+
+    // Crear nuevo usuario (Cuenta + Caminante) desde el Dashboard
+    const crearUsuarioForm = document.getElementById('crearUsuarioForm');
+    const cuAvatarPreviewImgGlobal = document.getElementById('cuAvatarPreviewImg');
+    if (crearUsuarioForm) {
+        crearUsuarioForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const dia = document.getElementById('cuDia').value;
+            const mes = document.getElementById('cuMes').value;
+            const anio = document.getElementById('cuAnio').value;
+            const fechaHidden = document.getElementById('cuFechaNacHidden');
+            const dobHidden = document.getElementById('cuDobHidden');
+            if (dia && mes && anio) {
+                const fecha = `${anio}-${mes}-${dia}`;
+                fechaHidden.value = fecha;
+                dobHidden.value = fecha;
+            } else {
+                fechaHidden.value = '';
+                dobHidden.value = '';
+            }
+            const btn = document.getElementById('btnCrearUsuario');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creando...';
+
+            const formData = new FormData(this);
+            try {
+                const r = await fetch('/api/admin/create_user', { method: 'POST', body: formData });
+                const d = await r.json();
+
+                if (r.ok && d.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('crearUsuarioModal')).hide();
+                    crearUsuarioForm.reset();
+                    if (cuAvatarPreviewImgGlobal) cuAvatarPreviewImgGlobal.src = '/static/default.png';
+                    if (d.card) {
+                        mostrarCardUsuario(d);
+                    } else {
+                        mostrarAlerta('Usuario creado correctamente.', 'success');
+                    }
+                    loadAllUsers();
+                } else {
+                    mostrarAlerta(d.error || 'Error al crear usuario', 'error');
+                }
+            } catch (err) {
+                mostrarAlerta('Error de conexión. Intenta nuevamente.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        });
+    }
 });
+
+function handleCreateDynamicSelect() {
+    const select = document.getElementById('cuDynamicSelect').value;
+    const container = document.getElementById('cuDynamicContainer');
+    container.innerHTML = '';
+    if (select === 'Telefono' || select === 'Whatsapp') {
+        container.innerHTML = `<div class="mb-2"><span class="text-orange me-2"><i class="bi bi-phone"></i></span>
+            <input type="tel" name="phone" class="input-bulma" placeholder="Digite el número telefónico" inputmode="numeric" pattern="[0-9]*"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" maxlength="15"></div>
+            <small class="text-muted d-block ps-2">Solo números permitidos.</small>`;
+    } else if (select === 'Facebook' || select === 'Instagram' || select === 'Direccion') {
+        const fieldName = select === 'Direccion' ? 'address' : select.toLowerCase();
+        container.innerHTML = `<div class="mt-2"><span class="text-orange me-2"><i class="bi bi-link-45deg"></i></span>
+            <input type="url" name="${fieldName}" class="input-bulma" placeholder="https://ejemplo.com/perfil"></div>`;
+    } else if (select === 'Fecha') {
+        container.innerHTML = `<label class="label-bulma" style="font-size:0.85rem;">Fecha Especial</label>
+            <input type="date" name="dob" class="input-bulma">`;
+    } else if (select === 'Institucion') {
+        container.innerHTML = `<input type="text" name="institution" class="input-bulma mb-2" placeholder="Nombre de la Institución/Empresa">`;
+    } else if (select === 'Otro') {
+        container.innerHTML = `<input type="text" name="other_info" class="input-bulma mt-2" placeholder="Descripción General" style="text-transform:capitalize;">`;
+    }
+}
+
+function buildCreateEmergencyRow(nombre, telefono) {
+    return `<div class="cu-emergency-row row g-3 mb-3 align-items-end">
+        <div class="col-md-5">
+            <label class="label-bulma" style="font-size:0.85rem;">Contacto de Emergencia</label>
+            <input type="text" name="contacto_emergencia_nombre[]" class="input-bulma" placeholder="Ej: María (Esposa)" value="${nombre ? nombre.replace(/"/g, '&quot;') : ''}">
+        </div>
+        <div class="col-md-5">
+            <label class="label-bulma" style="font-size:0.85rem;">Teléfono del Contacto</label>
+            <input type="tel" name="contacto_emergencia_telefono[]" class="input-bulma" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="88889999" value="${telefono ? telefono.replace(/[^0-9]/g,'') : ''}">
+        </div>
+        <div class="col-md-2 text-end">
+            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="this.closest('.cu-emergency-row').remove()" title="Quitar contacto"><i class="bi bi-x-lg"></i></button>
+        </div>
+    </div>`;
+}
+
+function addCreateEmergencyContact() {
+    const container = document.getElementById('cuEmergencyContainer');
+    container.insertAdjacentHTML('beforeend', buildCreateEmergencyRow('', ''));
+}
+
+function toggleCedulaLock(formId, cedulaId) {
+    if (CURRENT_USER_ROLE === 'Superusuario') return;
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const cedula = document.getElementById(cedulaId);
+    if (!cedula) return;
+    const hasValue = cedula.value.trim().length > 0;
+    const fields = form.querySelectorAll('input:not([type="hidden"]):not([type="file"]):not([type="range"]), select, textarea');
+    fields.forEach(function(el) {
+        if (el.id === cedulaId) return;
+        el.disabled = !hasValue;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+            if (hasValue) {
+                if (el.dataset.placeholderOriginal !== undefined) {
+                    el.placeholder = el.dataset.placeholderOriginal;
+                    delete el.dataset.placeholderOriginal;
+                }
+            } else {
+                if (el.placeholder !== 'Primero ingrese el número de cédula') {
+                    el.dataset.placeholderOriginal = el.placeholder;
+                }
+                el.placeholder = 'Primero ingrese el número de cédula';
+            }
+        }
+    });
+    const submitBtn = form.querySelector('button[type="submit"]');
+    if (submitBtn) submitBtn.disabled = !hasValue;
+}
+
+function mostrarCardUsuario(data) {
+    const card = data.card || {};
+    document.getElementById('ucCardName').textContent = card.name || 'Usuario';
+    document.getElementById('ucCardCedula').textContent = card.cedula ? `Cédula: ${card.cedula}` : '';
+    document.getElementById('ucCardEmail').textContent = card.email || 'No registrado';
+    document.getElementById('ucCardPhone').textContent = card.phone || 'No registrado';
+    document.getElementById('ucCardBlood').textContent = card.blood || 'No registrado';
+    document.getElementById('ucCardPuntos').textContent = (card.puntos !== undefined ? card.puntos : 0) + ' puntos';
+    document.getElementById('ucCardPasaporte').textContent = card.pasaporte || 'No registrado';
+    document.getElementById('ucCardEmergencyName').textContent = card.emergency_name || 'No registrado';
+    document.getElementById('ucCardEmergencyPhone').textContent = card.emergency_phone || 'No registrado';
+    const cardLink = document.getElementById('ucCardLink');
+    if (cardLink && data.card_url) cardLink.href = data.card_url;
+
+    const alergiasWrapper = document.getElementById('ucCardAlergiasWrapper');
+    if (card.alergias && card.alergias !== 'Ninguna') {
+        alergiasWrapper.classList.remove('d-none');
+        document.getElementById('ucCardAlergias').textContent = card.alergias;
+    } else {
+        alergiasWrapper.classList.add('d-none');
+    }
+    const enfWrapper = document.getElementById('ucCardEnfermedadesWrapper');
+    if (card.enfermedades && card.enfermedades !== 'Ninguna') {
+        enfWrapper.classList.remove('d-none');
+        document.getElementById('ucCardEnfermedades').textContent = card.enfermedades;
+    } else {
+        enfWrapper.classList.add('d-none');
+    }
+
+    const qrImg = document.getElementById('ucCardQR');
+    qrImg.src = data.qr_base64 ? `data:image/png;base64,${data.qr_base64}` : '';
+
+    const modalEl = document.getElementById('usuarioCardModal');
+    if (modalEl) new bootstrap.Modal(modalEl).show();
+}
+
+async function mostrarQRUsuario() {
+    if (!currentSelectedUserId) {
+        mostrarAlerta('Este registro no tiene usuario vinculado.', 'warning');
+        return;
+    }
+    try {
+        const r = await fetch(`/api/admin/usuario-card/${currentSelectedUserId}`);
+        const d = await r.json();
+        if (!r.ok) {
+            mostrarAlerta(d.error || 'No se pudo generar el código QR.', 'warning');
+            return;
+        }
+        mostrarCardUsuario(d);
+    } catch (e) {
+        mostrarAlerta('Error de conexión. Intenta nuevamente.', 'error');
+    }
+}
+
+const _formFieldMap = {
+    'crearUsuarioForm': {
+        name: 'cuName', last_name_1: 'cuLastName1', last_name_2: 'cuLastName2',
+        email: 'cuEmail', phone_select: 'cuDynamicSelect', phone_container: 'cuDynamicContainer',
+        pasaporte: 'cuPasaporte', tipo_sangre: 'cuSangre',
+        dia: 'cuDia', mes: 'cuMes', anio: 'cuAnio',
+        alergias: 'cuAlergias', enfermedades: 'cuEnfermedades',
+        emergency_container: 'cuEmergencyContainer'
+    },
+    'adminEditUserForm': {
+        name: 'editName', last_name_1: 'editLastName1', last_name_2: 'editLastName2',
+        email: 'editEmail', phone_select: 'editDynamicSelect', phone_container: 'editDynamicContainer',
+        pasaporte: 'editPasaporte', tipo_sangre: 'editSangre',
+        dia: 'editDia', mes: 'editMes', anio: 'editAnio',
+        alergias: 'editAlergias', enfermedades: 'editEnfermedades',
+        emergency_container: 'editEmergencyContainer'
+    }
+};
+
+function _setPhoneField(phone, map) {
+    const select = document.getElementById(map.phone_select);
+    const container = document.getElementById(map.phone_container);
+    if (!select || !container) return;
+    if (phone) {
+        select.value = 'Telefono';
+        container.innerHTML = `<div class="mb-2"><span class="text-orange me-2"><i class="bi bi-phone"></i></span>
+            <input type="tel" name="phone" class="input-bulma" placeholder="Digite el número telefónico" inputmode="numeric" pattern="[0-9]*"
+            oninput="this.value=this.value.replace(/[^0-9]/g,'')" maxlength="15" value="${phone.replace(/[^0-9]/g,'')}"></div>
+            <small class="text-muted d-block ps-2">Solo números permitidos.</small>`;
+    } else {
+        select.value = '';
+        container.innerHTML = '';
+    }
+}
+
+function _setEmergencyContacts(nombres, telefonos, map) {
+    const container = document.getElementById(map.emergency_container);
+    if (!container) return;
+    container.innerHTML = '';
+    const max = Math.max(nombres.length, telefonos.length, 1);
+    for (let i = 0; i < max; i++) {
+        const nombre = nombres[i] || '';
+        const telefono = telefonos[i] || '';
+        if (map.emergency_container === 'cuEmergencyContainer') {
+            container.insertAdjacentHTML('beforeend', buildCreateEmergencyRow(nombre, telefono));
+        } else {
+            container.insertAdjacentHTML('beforeend', buildEditEmergencyRow(nombre, telefono));
+        }
+    }
+}
+
+function _marcarCamposFaltantes(formId) {
+    const form = document.getElementById(formId);
+    if (!form) return;
+    const campos = form.querySelectorAll('.input-bulma, .select-bulma, .textarea-bulma');
+    campos.forEach(function(el) {
+        if (el.id === 'cuCedula' || el.id === 'editCedula') return;
+        const val = (el.value || '').trim();
+        const isSelect = el.tagName === 'SELECT';
+        const empty = !val || (isSelect && val === '');
+        if (empty) {
+            el.classList.add('is-danger');
+        } else {
+            el.classList.remove('is-danger');
+        }
+    });
+}
+
+const _cedulaCheckTimers = {};
+
+function checkCedulaExistente(cedula, formId) {
+    cedula = (cedula || '').replace(/[^0-9]/g, '');
+    if (_cedulaCheckTimers[formId]) clearTimeout(_cedulaCheckTimers[formId]);
+    if (!cedula || cedula.length < 5) return;
+    _cedulaCheckTimers[formId] = setTimeout(function() {
+        const map = _formFieldMap[formId];
+        if (!map) return;
+
+        fetch(`/api/admin/hiker_by_cedula/${cedula}`)
+            .then(r => r.json().then(d => ({ r, d })))
+            .then(({ r, d }) => {
+                if (!r.ok || !d.found) return;
+
+                document.getElementById(map.name).value = d.name || '';
+                document.getElementById(map.last_name_1).value = d.last_name_1 || '';
+                document.getElementById(map.last_name_2).value = d.last_name_2 || '';
+                if (d.email) document.getElementById(map.email).value = d.email;
+
+                _setPhoneField(d.phone || '', map);
+
+                document.getElementById(map.pasaporte).value = d.pasaporte || '';
+                document.getElementById(map.tipo_sangre).value = d.tipo_sangre || '';
+
+                if (d.fecha_nacimiento && /^\d{4}-\d{2}-\d{2}$/.test(d.fecha_nacimiento)) {
+                    const [anio, mes, dia] = d.fecha_nacimiento.split('-');
+                    document.getElementById(map.dia).value = dia;
+                    document.getElementById(map.mes).value = mes;
+                    document.getElementById(map.anio).value = anio;
+                } else {
+                    document.getElementById(map.dia).value = '';
+                    document.getElementById(map.mes).value = '';
+                    document.getElementById(map.anio).value = '';
+                }
+
+                document.getElementById(map.alergias).value = d.alergias || '';
+                document.getElementById(map.enfermedades).value = d.enfermedades_cronicas || '';
+
+                const nombres = (d.contacto_emergencia_nombre || '').split(' | ').filter(Boolean);
+                const telefonos = (d.contacto_emergencia_telefono || '').split(' | ').filter(Boolean);
+                _setEmergencyContacts(nombres, telefonos, map);
+
+                _marcarCamposFaltantes(formId);
+            })
+            .catch(() => {});
+    }, 600);
+}
+
+function abrirModalCompartir(modo) {
+    document.getElementById('compartirEnlaceInput').value = 'Generando enlace...';
+    const modalEl = document.getElementById('compartirUsuarioModal');
+    if (modalEl) {
+        modalEl.addEventListener('shown.bs.modal', function onShow() {
+            modalEl.removeEventListener('shown.bs.modal', onShow);
+            generarEnlacePublico();
+        });
+        new bootstrap.Modal(modalEl).show();
+    }
+}
+
+async function generarEnlacePublico() {
+    try {
+        const r = await fetch('/api/admin/generar_enlace_publico', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accion: 'crear', user_id: null })
+        });
+        if (!r.ok) {
+            const text = await r.text();
+            mostrarAlerta('Error del servidor (' + r.status + '): ' + text.replace(/<[^>]+>/g, ' ').trim().slice(0, 200), 'error');
+            return;
+        }
+        const d = await r.json();
+        if (d.url) {
+            document.getElementById('compartirEnlaceInput').value = d.url;
+        } else {
+            mostrarAlerta(d.error || 'No se pudo generar el enlace.', 'error');
+        }
+    } catch (e) {
+        console.error('Error al generar enlace:', e);
+        mostrarAlerta('Error de conexión: ' + (e.message || 'No se pudo contactar al servidor.'), 'error');
+    }
+}
+
+function copiarEnlacePublico() {
+    const input = document.getElementById('compartirEnlaceInput');
+    if (!input || !input.value) {
+        mostrarAlerta('Primero generá un enlace.', 'warning');
+        return;
+    }
+    navigator.clipboard.writeText(input.value).then(function() {
+        mostrarAlerta('Enlace copiado al portapapeles.', 'success');
+    }).catch(function() {
+        input.select();
+        document.execCommand('copy');
+        mostrarAlerta('Enlace copiado al portapapeles.', 'success');
+    });
+}
+
+function compartirWhatsApp() {
+    const input = document.getElementById('compartirEnlaceInput');
+    if (!input || !input.value) {
+        mostrarAlerta('Primero generá un enlace.', 'warning');
+        return;
+    }
+    const mensaje = encodeURIComponent('Hola, te comparto este enlace para gestionar usuarios: ' + input.value);
+    window.open('https://wa.me/?text=' + mensaje, '_blank');
+}
 
 let currentSelectedUserId = null, currentSelectedUserName = "", currentSelectedUserObj = null;
 let allContacts = [], filteredContacts = [];
 const DASH_PAGE_SIZE = 25;
-
-function showGlassAlert(message, iconHTML = '<i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i>') {
-    document.getElementById('actionModalIcon').innerHTML    = iconHTML;
-    document.getElementById('actionModalMessage').innerText = message;
-    new bootstrap.Modal(document.getElementById('actionModal')).show();
-}
 
 function _dashMsg(cls, html) {
     const el = document.getElementById('dashDbMsg'); if (!el) return;

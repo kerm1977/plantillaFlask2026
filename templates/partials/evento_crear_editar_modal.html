@@ -1,0 +1,582 @@
+<!-- Modal ÚNICO de Crear/Editar Evento (usado en /caminatas, /caminatas-2027, pendientes, visitados, programados y año) -->
+{% from 'partials/wysiwyg_editor.html' import wysiwyg_toolbar %}
+<style>
+    /* Estilos de los botones tipo checkbox de "Lo que Incluye" */
+    .btn-check-custom {
+        display: none !important;
+    }
+    .lbl-check-custom {
+        background-color: rgba(255, 255, 255, 0.5) !important;
+        border: 1px solid rgba(255, 255, 255, 0.8) !important;
+        color: #495057 !important;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        cursor: pointer;
+        user-select: none;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    .lbl-check-custom:hover {
+        background-color: rgba(255, 255, 255, 0.8) !important;
+    }
+    .btn-check-custom:checked + .lbl-check-custom {
+        background-color: #ff8c00 !important;
+        color: white !important;
+        border-color: #ff8c00 !important;
+        box-shadow: 0 4px 8px rgba(255, 140, 0, 0.3) !important;
+    }
+    .date-split input, .date-split select {
+        padding-left: 0.25rem;
+        padding-right: 0.25rem;
+        text-align: center;
+        font-weight: bold;
+    }
+</style>
+<div class="modal fade" id="eventoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-3 px-md-4 pb-4 pt-0">
+        <div class="row justify-content-center">
+          <div class="col-12">
+            <div class="glass-panel rounded-5 p-4 p-md-5 position-relative border-0 shadow-lg">
+              <h2 class="fw-bold text-dark mb-5 text-center" id="caminata2027Title"><i class="bi bi-calendar-plus text-orange me-2"></i>Crear Nuevo Evento</h2>
+              <form id="createEventForm">
+                <div class="text-center mb-4 no-cotizacion">
+                  <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento</label>
+                  <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
+                    <img id="eventImagePreview" src="{{ url_for('static', filename='default.png') }}" alt="Póster" style="width: 100%; height: 100%; object-fit: cover;">
+                    <label for="eventImageUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                      <i class="bi bi-camera-fill text-white"></i>
+                    </label>
+                    <input type="file" id="eventImageUpload" name="poster" class="d-none" accept=".png, .jpg, .jpeg, .webp, .gif">
+                  </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                  <!-- Estado: SIEMPRE PRIMERO, arriba del acordeón -->
+                  <div class="col-12 col-md-6">
+                    <label class="form-label fw-bold text-muted small mb-1">Estado</label>
+                    <select id="visitado" name="visitado" class="form-select glass-input rounded-3" onchange="toggleAnio(this.value); toggleEstadoCampos(this.value); toggleCotizacionFields(this.value)">
+                      <option value="Pendiente" selected>Pendiente</option>
+                      <option value="Visitados">Visitados</option>
+                      <option value="Año">Año</option>
+                      <option value="Programados">Programados</option>
+                      <option value="Cotización">Cotización</option>
+                    </select>
+                  </div>
+                  <div class="col-12 col-md-6" id="anioCol" style="display:none;">
+                    <label class="form-label fw-bold text-muted small mb-1">Año</label>
+                    <input type="number" id="anio" name="anio" value="2027" min="2000" max="2100" class="form-control glass-input rounded-3">
+                  </div>
+                </div>
+
+                <div class="accordion mb-4" id="infoCaminataAccordion">
+
+                  <!-- Información de Caminata -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accInfoCaminata">
+                        <i class="bi bi-info-circle me-2"></i>Información de Caminata
+                      </button>
+                    </h2>
+                    <div id="accInfoCaminata" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-3">
+                          <div class="col-12">
+                            <label class="form-label fw-bold text-muted small mb-1">Nombre del Lugar</label>
+                            <input type="text" id="nombreLugar" name="nombreLugar" required class="form-control glass-input rounded-3 fw-bold" placeholder="Ej: Cerro Pelado, Parque Nacional Volcán Irazú, etc.">
+                          </div>
+
+                          <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Provincia</label>
+                            <select id="provincia" name="provincia" class="form-select glass-input rounded-3">
+                              <option value="San José">San José</option>
+                              <option value="Cartago">Cartago</option>
+                              <option value="Heredia">Heredia</option>
+                              <option value="Alajuela">Alajuela</option>
+                              <option value="Guanacaste">Guanacaste</option>
+                              <option value="Puntarenas">Puntarenas</option>
+                              <option value="Limón">Limón</option>
+                              <option value="Referencia">Referencia</option>
+                            </select>
+                          </div>
+
+                          <div class="col-12 col-md-6 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Dificultad</label>
+                            <select id="dificultad" name="dificultad" class="form-select glass-input rounded-3">
+                              <option value="Paseo">Paseo</option>
+                              <option value="Básico">Básico</option>
+                              <option value="Intermedio">Intermedio</option>
+                              <option value="Dificil">Dificil</option>
+                              <option value="Avanzado">Avanzado</option>
+                              <option value="Técnico">Técnico</option>
+                            </select>
+                          </div>
+
+                          <div class="col-12 col-md-6 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Tipo de terreno</label>
+                            <select id="tipoTerreno" name="tipoTerreno" class="form-select glass-input rounded-3">
+                              <option value="Lastre">Lastre</option>
+                              <option value="Asfalto">Asfalto</option>
+                              <option value="Montaña">Montaña</option>
+                              <option value="Combinado lastre y montaña">Combinado lastre y montaña</option>
+                              <option value="Combinado asfalto y lastre">Combinado asfalto y lastre</option>
+                              <option value="Combinado asfalto y montaña">Combinado asfalto y montaña</option>
+                              <option value="Solo montaña">Solo montaña</option>
+                            </select>
+                          </div>
+
+                          <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Actividad</label>
+                            <select id="actividad" name="actividad" class="form-select glass-input rounded-3" onchange="toggleActividad()">
+                              <option value="Caminata">Caminata</option>
+                              <option value="Internacional">Internacional</option>
+                              <option value="Parque Nacional">Parque Nacional</option>
+                              <option value="El Camino de Costa Rica">El Camino de Costa Rica</option>
+                              <option value="Fiesta">Fiesta</option>
+                              <option value="Convivio">Convivio</option>
+                              <option value="Reunión">Reunión</option>
+                            </select>
+                          </div>
+
+                          <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Tipo de caminata</label>
+                            <select id="tipoCaminata" name="tipoCaminata" class="form-select glass-input rounded-3">
+                              <option value="Circular">Circular</option>
+                              <option value="Lineal">Lineal</option>
+                            </select>
+                          </div>
+
+                          <div class="col-6 col-md-3 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Moneda</label>
+                            <select id="moneda" name="moneda" class="form-select glass-input rounded-3">
+                              <option value="¢">Colones</option>
+                              <option value="$">Dólares</option>
+                            </select>
+                          </div>
+                          <div class="col-6 col-md-3">
+                            <label id="precioLabel" class="form-label fw-bold text-muted small mb-1">Precio</label>
+                            <input type="number" id="precio" name="precio" required class="form-control glass-input rounded-3" value="0">
+                          </div>
+                          <div class="col-6 col-md-3 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
+                            <select id="capacidad" name="capacidad" required class="form-select glass-input rounded-3">
+                              <option value="14-17">14-17</option>
+                              <option value="17-28">17-28</option>
+                              <option value="17-31">17-31</option>
+                              <option value="MÁS DE 31">MÁS DE 31</option>
+                              <option value="NO APLICA">NO APLICA</option>
+                            </select>
+                          </div>
+                          <div class="col-6 col-md-3 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Reserva con</label>
+                            <input type="number" id="reserva" name="reserva" class="form-control glass-input rounded-3" value="0">
+                          </div>
+                          <div class="col-6 col-md-3 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Kilómetros</label>
+                            <input type="text" inputmode="decimal" id="kilometros" name="kilometros" class="form-control glass-input rounded-3" placeholder="Ej: 12.5" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\../g, '$1');">
+                          </div>
+
+                          <div class="col-12 no-cotizacion">
+                            <label class="form-label fw-bold text-muted small mb-1">Enlace de ubicación o adicional</label>
+                            <input type="url" id="enlaceExtra" name="enlaceExtra" class="form-control glass-input rounded-3" placeholder="https://maps.app.goo.gl/... o cualquier enlace">
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Formas de Pago -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden no-cotizacion">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accFormasPago">
+                        <i class="bi bi-credit-card me-2"></i>Formas de Pago
+                      </button>
+                    </h2>
+                    <div id="accFormasPago" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="d-flex justify-content-end mb-3">
+                          <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="exportarFormasPagoWhatsApp()">
+                            <i class="bi bi-whatsapp me-2"></i>Exportar a WhatsApp
+                          </button>
+                        </div>
+
+                        <div class="glass-panel p-3 rounded-4 border-0 shadow-sm mb-3" style="background: rgba(255,255,255,0.45);">
+                          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-info-circle text-orange me-2"></i>Todas las formas de pago registradas</h6>
+                          <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                              <p class="mb-2 small fw-bold text-muted">SINPE:</p>
+                              <ul id="listaSinpes" class="list-unstyled small mb-0">
+                                {% for m in sinpe_methods %}
+                                <li class="mb-1">{{ m.display() }}</li>
+                                {% endfor %}
+                              </ul>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <p class="mb-2 small fw-bold text-muted">Cuentas:</p>
+                              <ul id="listaCuentas" class="list-unstyled small mb-0">
+                                {% for m in cuenta_methods %}
+                                <li class="mb-1 text-break">{{ m.display() }}</li>
+                                {% endfor %}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                          <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">SINPE a usar</label>
+                            <select id="sinpe" name="sinpe" class="form-select glass-input rounded-3">
+                              {% for m in sinpe_methods %}
+                              <option value="{{ m.display() }}">{{ m.display() }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          <div class="col-12 col-md-6">
+                            <label class="form-label fw-bold text-muted small mb-1">Cuenta a usar</label>
+                            <select id="cuenta" name="cuenta" class="form-select glass-input rounded-3">
+                              <option value="Ninguna">-- Ninguna / Solo usar SINPE --</option>
+                              {% for m in cuenta_methods %}
+                              <option value="{{ m.display() }}">{{ m.display() }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div class="glass-panel p-3 rounded-4 border-0 shadow-sm" style="background: rgba(255,255,255,0.35);">
+                          <h6 class="fw-bold text-dark mb-3"><i class="bi bi-plus-circle text-orange me-2"></i>Agregar nueva forma de pago</h6>
+                          <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-5">
+                              <input type="text" id="nuevoSinpeNumero" class="form-control glass-input rounded-3" placeholder="Número SINPE" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '');">
+                            </div>
+                            <div class="col-12 col-md-5">
+                              <input type="text" id="nuevoSinpeTitular" class="form-control glass-input rounded-3" placeholder="Nombre del titular">
+                            </div>
+                            <div class="col-12 col-md-2 d-grid">
+                              <button type="button" class="btn btn-warning fw-bold text-dark rounded-3" onclick="agregarFormaPago('sinpe')">Agregar SINPE</button>
+                            </div>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-12 col-md-4">
+                              <input type="text" id="nuevaCuentaNumero" class="form-control glass-input rounded-3" placeholder="Número de cuenta / IBAN">
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <input type="text" id="nuevaCuentaTitular" class="form-control glass-input rounded-3" placeholder="Titular">
+                            </div>
+                            <div class="col-12 col-md-3">
+                              <input type="text" id="nuevaCuentaDetalle" class="form-control glass-input rounded-3" placeholder="Banco / Moneda">
+                            </div>
+                            <div class="col-12 col-md-2 d-grid">
+                              <button type="button" class="btn btn-warning fw-bold text-dark rounded-3" onclick="agregarFormaPago('cuenta')">Agregar Cuenta</button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Fecha de Actividad -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accFechaActividad">
+                        <i class="bi bi-calendar-week me-2"></i>Fecha de Actividad
+                      </button>
+                    </h2>
+                    <div id="accFechaActividad" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="d-flex justify-content-end mb-3">
+                          <div class="form-check form-switch m-0">
+                            <input class="form-check-input m-0" type="checkbox" id="diaSeguroToggle" onchange="toggleDiaSeguro()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                            <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="diaSeguroToggle" style="cursor: pointer; padding-top: 1px;">
+                              <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Día Exacto
+                            </label>
+                          </div>
+                        </div>
+                        <div class="row g-3">
+                          <div class="col-12 col-md-4">
+                            <label class="form-label fw-bold text-muted small mb-1">Cantidad de Días</label>
+                            <input type="number" id="dias" name="dias" min="1" max="10" value="1" onchange="toggleDateInputs()" class="form-control glass-input rounded-3">
+                          </div>
+
+                          <div id="singleDateGroup" class="col-12 col-md-8">
+                            <label class="form-label fw-bold text-muted small mb-1">Fecha de Actividad</label>
+                            <div class="row g-1 date-split">
+                              <div class="col-3 normal-day">
+                                <input type="number" id="dayUnica" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                              </div>
+                              <div class="col-3 secure-day d-none">
+                                <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.85rem;">
+                              </div>
+                              <div class="col-5">
+                                <select id="monthUnica" class="form-select glass-input rounded-3">
+                                  <option value="01">Enero</option><option value="02">Febrero</option><option value="03">Marzo</option>
+                                  <option value="04">Abril</option><option value="05">Mayo</option><option value="06">Junio</option>
+                                  <option value="07">Julio</option><option value="08">Agosto</option><option value="09">Septiembre</option>
+                                  <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                                </select>
+                              </div>
+                              <div class="col-4">
+                                <input type="number" id="yearUnica" class="form-control glass-input rounded-3" value="2026" min="2024">
+                              </div>
+                            </div>
+                          </div>
+
+                          <div id="rangeDateGroup" class="col-12 col-md-8 d-none">
+                            <div class="row g-2">
+                              <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold text-muted small mb-1">Fecha Inicio</label>
+                                <div class="row g-1 date-split">
+                                  <div class="col-3 normal-day">
+                                    <input type="number" id="dayInicio" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                                  </div>
+                                  <div class="col-3 secure-day d-none">
+                                    <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
+                                  </div>
+                                  <div class="col-5">
+                                    <select id="monthInicio" class="form-select glass-input rounded-3">
+                                      <option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option>
+                                      <option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+                                      <option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-4">
+                                    <input type="number" id="yearInicio" class="form-control glass-input rounded-3" value="2026" min="2024">
+                                  </div>
+                                </div>
+                              </div>
+                              <div class="col-12 col-sm-6">
+                                <label class="form-label fw-bold text-muted small mb-1">Fecha Regreso</label>
+                                <div class="row g-1 date-split">
+                                  <div class="col-3 normal-day">
+                                    <input type="number" id="dayRegreso" class="form-control glass-input rounded-3" placeholder="Día" min="1" max="31">
+                                  </div>
+                                  <div class="col-3 secure-day d-none">
+                                    <input type="text" class="form-control glass-input rounded-3 text-danger bg-light text-center" value="🔒 Chat" disabled style="font-size:0.8rem;">
+                                  </div>
+                                  <div class="col-5">
+                                    <select id="monthRegreso" class="form-select glass-input rounded-3">
+                                      <option value="01">Ene</option><option value="02">Feb</option><option value="03">Mar</option><option value="04">Abr</option>
+                                      <option value="05">May</option><option value="06">Jun</option><option value="07">Jul</option><option value="08">Ago</option>
+                                      <option value="09">Sep</option><option value="10">Oct</option><option value="11">Nov</option><option value="12">Dic</option>
+                                    </select>
+                                  </div>
+                                  <div class="col-4">
+                                    <input type="number" id="yearRegreso" class="form-control glass-input rounded-3" value="2026" min="2024">
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Logística de Salida -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accLogisticaSalida">
+                        <i class="bi bi-signpost-split me-2"></i>Logística de Salida
+                      </button>
+                    </h2>
+                    <div id="accLogisticaSalida" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div id="nationalFields">
+                          <div class="d-flex justify-content-end mb-3">
+                            <div class="form-check form-switch m-0">
+                              <input class="form-check-input m-0" type="checkbox" id="logisticaSeguraToggle" onchange="toggleLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                              <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="logisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
+                              </label>
+                            </div>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
+                              <div class="d-flex align-items-center gap-2 normal-logistics">
+                                <input type="time" id="horaSalida" name="horaSalida" class="form-control glass-input rounded-3" onchange="updateTimePreview()">
+                                <span id="timePreview" class="small fw-bold text-warning-custom text-nowrap" style="min-width: 70px;"></span>
+                              </div>
+                              <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
+                              <div class="normal-logistics">
+                                <select id="lugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
+                                  <option value="Parque de Tres Ríos - Escuela">Parque de Tres Ríos - Escuela</option>
+                                  <option value="Parque de Tres Ríos - Cruz Roja">Parque de Tres Ríos - Cruz Roja</option>
+                                  <option value="Parque de Tres Ríos - Letras">Parque de Tres Ríos - Letras</option>
+                                  <option value="San José">San José (Sabana)</option>
+                                </select>
+                              </div>
+                              <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                            </div>
+                          </div>
+                          <div class="mt-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Pasamos a recoger en (Separar por comas):</label>
+                            <div class="normal-logistics">
+                              <textarea id="puntosRecogidaInput" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3" placeholder="Ej: Cartago, Plaza del Sol, Outlet Mall, Sabana..."></textarea>
+                              <div class="form-text text-secondary" style="font-size: 0.75rem;">Escriba los lugares donde pasará la buseta, separados por comas.</div>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                          </div>
+                        </div>
+
+                        <!-- Internacional -->
+                        <div id="internationalFields" class="mt-3 d-none">
+                          <h6 class="fw-bold mb-3 text-warning-custom"><i class="bi bi-airplane-fill me-2"></i>Logística Internacional y Vuelos</h6>
+                          <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">País Destino</label>
+                              <select id="pais" name="pais" class="form-select glass-input rounded-3">
+                                <option value="Panamá">Panamá</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="España">España</option>
+                                <option value="Perú">Perú</option>
+                                <option value="Colombia">Colombia</option>
+                              </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
+                              <input type="text" id="destinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" placeholder="Ej: Ciudad de México, Machu Picchu...">
+                            </div>
+                          </div>
+                          <div class="glass-panel p-3 rounded-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                            <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">✈️ Vuelo de IDA</h6>
+                            <div class="row g-2">
+                              <div class="col-6 col-md-6">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha</label>
+                                <input type="date" id="fechaIda" name="fechaIda" class="form-control form-control-sm glass-input rounded-2">
+                              </div>
+                              <div class="col-6 col-md-6">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Salida</label>
+                                <input type="time" id="horaIda" name="horaIda" class="form-control form-control-sm glass-input rounded-2">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Lo que Incluye -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accIncluye">
+                        <i class="bi bi-check2-square me-2"></i>Lo que Incluye
+                      </button>
+                    </h2>
+                    <div id="accIncluye" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-2 mb-3 text-muted small check-btn-wrapper" id="incluyeWrapper">
+                          {% set includes_predef = ['Transporte', 'Lancha', 'Desayuno', 'Café', 'Almuerzo', 'Refrigerio', 'Cena', 'Guías', 'Pasaporte', 'Entrada', 'Reconocimiento', 'Rifas', 'Estadía', 'Ducha', 'Servicios Sanitarios', 'Impuestos', 'Tiquetes Aereos', 'Zona de Camping', 'Póliza de Viajero', 'Taxi/Uber/Otro', 'Acarreo', 'Guías Certificados'] %}
+                          {% for item in includes_predef %}
+                          <div class="col-6 col-md-3">
+                            <input type="checkbox" id="modalInc{{ loop.index }}" name="incluye_check" value="{{ item }}" class="btn-check-custom">
+                            <label for="modalInc{{ loop.index }}" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">{{ item }}</label>
+                          </div>
+                          {% endfor %}
+                          <div class="col-6 col-md-3">
+                            <input type="checkbox" id="modalCheckOtros" name="incluye_check" value="Otros" class="btn-check-custom" onchange="toggleOtherDesc()">
+                            <label for="modalCheckOtros" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Otros</label>
+                          </div>
+                        </div>
+                        <div id="otrosDescContainer" class="mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm d-none">
+                          <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
+                          <input type="text" id="otrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Seguridad -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accSeguridad">
+                        <i class="bi bi-shield-fill me-2"></i>Seguridad
+                      </button>
+                    </h2>
+                    <div id="accSeguridad" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-3">
+                          <div class="col-12">
+                            <div class="form-check form-switch m-0 border border-danger border-opacity-50 rounded-3 p-3 d-flex justify-content-between align-items-center" style="background: rgba(220, 53, 69, 0.05);">
+                              <div>
+                                <label class="form-check-label fw-bold text-danger mb-0 d-block" for="altoRiesgoToggle" style="cursor: pointer; font-size: 1.05rem;">
+                                  <i class="bi bi-exclamation-triangle-fill me-2"></i>Marcar como "Zona de Alto Riesgo"
+                                </label>
+                                <small class="text-danger opacity-75">Agrega una alerta visual obligatoria sobre la dificultad técnica del terreno.</small>
+                              </div>
+                              <input class="form-check-input m-0 shadow-sm" type="checkbox" id="altoRiesgoToggle" style="width: 3rem; height: 1.5rem; cursor: pointer;">
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label fw-bold text-muted small mb-1">Detalle de la zona</label>
+                            <textarea id="textoReferencia" name="textoReferencia" rows="3" class="form-control glass-input rounded-4 shadow-sm" placeholder="Explique por qué se marcó como zona de alto riesgo..."></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Información Especial (WYSIWYG) - SIEMPRE VISIBLE en todos los estados -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accInfoEspecial">
+                        <i class="bi bi-journal-text me-2"></i>Información Especial
+                      </button>
+                    </h2>
+                    <div id="accInfoEspecial" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <p class="text-muted small mb-2">Este contenido es lo que verán los caminantes al presionar el botón "Información Especial" de esta caminata.</p>
+                        {{ wysiwyg_toolbar(
+                          editor_id='itinerarioEditor',
+                          upload_url=url_for('main.api_upload_image'),
+                          modal_prefix='eventoItin'
+                        ) }}
+                        <div id="itinerarioEditor" class="p-3 bg-white bg-opacity-75 rounded-4 shadow-sm border" contenteditable="true" style="min-height:180px;"></div>
+                        <textarea id="itinerario" name="itinerario" class="d-none"></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Puntos a acumular -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accInfoPuntos">
+                        <i class="bi bi-trophy me-2"></i>Puntos a acumular
+                      </button>
+                    </h2>
+                    <div id="accInfoPuntos" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <label class="form-label fw-bold text-muted small mb-1">Cantidad de puntos que ganará un participante</label>
+                        <input type="number" id="puntos" name="puntos" min="0" step="1" value="0" class="form-control glass-input rounded-3" placeholder="Ej: 10">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="no-cotizacion">{% include 'partials/evento_flyer_editor.html' %}</div>
+
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-4 border-top border-white border-opacity-50">
+                  <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color: #6c757d; border: 1px solid #ced4da;">Cancelar</button>
+                  <button type="submit" id="submitEventBtn" class="btn btn-warning shadow-sm rounded-pill px-4 fw-bold text-dark"><i class="bi bi-save me-2"></i>Publicar Evento</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'partials/evento_flyer_script.html' %}

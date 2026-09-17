@@ -37,6 +37,7 @@ function renderGridCard(ev, currentMonthId, isExpanded, imgPath, badgeClass, des
                             </span>
                         </div>
                     </div>
+                    <a href="/caminatas-2027/${ev.id}" class="btn btn-sm btn-outline-orange rounded-pill w-100 fw-bold mt-2" onclick="event.stopPropagation()"><i class="bi bi-card-text me-1"></i>Información Especial</a>
                     ${btnHacerPublico}
                 </div>
             </div>
@@ -77,6 +78,7 @@ function renderListCard(ev, currentMonthId, isExpanded, badgeClass, destinoDispl
                         <span class="text-muted d-block lh-1" style="font-size: 0.6rem; text-transform: uppercase; font-weight: 800;">Precio</span>
                         <span class="fw-bold text-orange fs-5 lh-1">${ev.precio}</span>
                     </div>
+                    <a href="/caminatas-2027/${ev.id}" class="btn btn-sm btn-outline-orange rounded-pill" onclick="event.stopPropagation()"><i class="bi bi-card-text me-1"></i>Información Especial</a>
                 </div>
                 ${btnHacerPublico}
                 <div class="mt-2"></div>

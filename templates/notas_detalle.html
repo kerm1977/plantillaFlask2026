@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    #notePageEditor a {
+        color: #ff8c00;
+        font-weight: bold;
+        text-decoration: underline;
+    }
+    #notePageEditor .form-check-input {
+        cursor: pointer;
+    }
+    #notePageEditor .todo-list .list-group-item {
+        border: 0;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.5);
+    }
+    #notePageEditor .todo-list li,
+    #notePageEditor .todo-list .list-group-item {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+        list-style: none !important;
+    }
+    #notePageEditor .todo-list .form-check-input {
+        margin-top: 0.2em !important;
+        flex-shrink: 0 !important;
+    }
+    #notePageEditor .todo-list .form-check-label {
+        word-break: break-word;
+        flex: 1;
+        margin-bottom: 0;
+    }
+    #notePageEditor .todo-list .form-check-input:checked + .form-check-label {
+        text-decoration: line-through;
+        opacity: 0.6;
+    }
+    #notePageEditor:empty:before {
+        content: 'Escribe aquí...';
+        color: #adb5bd;
+    }
+    #notePageEditor img {
+        max-width: 100%;
+        height: auto;
+    }
+</style>
+
+<div class="container py-4 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="glass-panel rounded-4 p-3 p-md-5 shadow-lg">
+                <input type="text" id="notePageTitle" class="form-control form-control-lg rounded-pill border-0 bg-white bg-opacity-75 text-center fw-bold text-dark mb-3" value="{{ note.title }}" placeholder="Título de la nota" oninput="pageScheduleSave()">
+                <p class="text-muted small text-center mb-3">
+                    <i class="bi bi-clock-history me-1"></i>Actualizado: {{ note.updated_at.strftime('%d/%m/%Y %H:%M') }}
+                    <span id="notePageSaveStatus" class="ms-2"></span>
+                </p>
+
+                <!-- BARRA DE HERRAMIENTAS WYSIWYG -->
+                <div class="d-flex flex-wrap gap-1 mb-2 p-2 bg-white bg-opacity-50 rounded-3">
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+                    <div class="vr mx-1"></div>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+                    <div class="vr mx-1"></div>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+                    <div class="vr mx-1"></div>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageInsertCheckbox()" title="To-do"><i class="bi bi-check-square"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="pageInsertLink()" title="Enlace"><i class="bi bi-link-45deg"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('notePageImageFile').click()" title="Imagen"><i class="bi bi-image"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle" onclick="openEmojiPicker('notePageEditor')" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
+                    <div class="vr mx-1 d-none d-sm-block"></div>
+                    <button class="btn btn-sm btn-success rounded-circle" onclick="savePageNote()" title="Guardar"><i class="bi bi-check-lg"></i></button>
+                    <input type="file" id="notePageImageFile" accept="image/*" style="display:none;" onchange="pageUploadImage(this)">
+                </div>
+
+                <!-- ÁREA DE EDICIÓN -->
+                <div id="notePageEditor" contenteditable="true" class="form-control bg-white bg-opacity-75 border-0 rounded-3 p-3 p-md-4" style="min-height: 200px; max-height: 500px; overflow-y: auto; font-size: 1.05rem; line-height: 1.6;" oninput="pageScheduleSave()">
+                    {{ note.content|safe }}
+                </div>
+
+                <hr class="my-4" style="border-top: 2px solid rgba(255,140,0,0.3);">
+
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <button class="btn btn-info rounded-pill px-4 shadow-sm" onclick="exportPageNotePNG()">
+                        <i class="bi bi-file-earmark-image me-2"></i>PNG
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-4 shadow-sm" onclick="exportPageNotePDF()">
+                        <i class="bi bi-filetype-pdf me-2"></i>PDF
+                    </button>
+                    <button class="btn btn-success rounded-pill px-4 shadow-sm" onclick="sharePageNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-2"></i>WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const NOTE_ID = parseInt('{{ note.id }}', 10);
+let pageSaveTimeout = null;
+
+function pageEscapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function pageExecCmd(command) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    const editor = document.getElementById('notePageEditor');
+    if (editor) editor.focus();
+    document.execCommand(command, false, null);
+    pageScheduleSave();
+}
+
+function pageInsertCheckbox() {
+    const editor = document.getElementById('notePageEditor');
+    if (!editor) return;
+    editor.focus();
+    const selection = window.getSelection();
+    const selectedText = selection ? selection.toString() : '';
+    const id = 'page-check-' + Date.now();
+
+    if (selectedText) {
+        const lines = selectedText.split('\n').filter(l => l.trim());
+        let listItems = '';
+        lines.forEach((line, idx) => {
+            const cid = `${id}-${idx}`;
+            const text = pageEscapeHtml(line.trim());
+            listItems += `<li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="pageToggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1">${text}</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="pageDeleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button></li>`;
+        });
+        document.execCommand('insertHTML', false, `<ul class="list-group list-group-flush todo-list mb-2">${listItems}</ul>`);
+    } else {
+        const html = `<ul class="list-group list-group-flush todo-list mb-2"><li class="list-group-item d-flex align-items-start gap-2 p-2 todo-item" data-checked="false"><input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="pageToggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1 new-todo-focus">Nueva tarea</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="pageDeleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button></li></ul>`;
+        document.execCommand('insertHTML', false, html);
+        const newLabel = editor.querySelector('.new-todo-focus');
+        if (newLabel) {
+            const range = document.createRange();
+            range.selectNodeContents(newLabel);
+            const sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            newLabel.classList.remove('new-todo-focus');
+        }
+    }
+    pageScheduleSave();
+}
+
+function pageInsertLink() {
+    const text = window.getSelection().toString();
+    const displayText = text || prompt('Texto del enlace:', '');
+    if (displayText === null) return;
+    let url = prompt('URL del enlace (https://...):', '');
+    if (!url) return;
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const editor = document.getElementById('notePageEditor');
+    if (editor) editor.focus();
+    document.execCommand('insertHTML', false, `<a href="${pageEscapeHtml(url)}" target="_blank" rel="noopener">${pageEscapeHtml(displayText || url)}</a>`);
+    pageScheduleSave();
+}
+
+async function pageUploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+        const r = await fetch('/api/notes/upload-image', { method: 'POST', body: formData });
+        const data = await r.json();
+        if (data.ok) {
+            pageInsertImage(data.url);
+        } else {
+            mostrarAlerta(data.error || 'Error al subir imagen', 'error');
+        }
+    } catch(e) {
+        mostrarAlerta('Error de conexión al subir imagen', 'error');
+    }
+    input.value = '';
+}
+
+function pageInsertImage(url, width = 100) {
+    const editor = document.getElementById('notePageEditor');
+    if (!editor) return;
+    editor.focus();
+    document.execCommand('insertHTML', false, `<img src="${pageEscapeHtml(url)}" class="img-fluid rounded-3 my-2" style="max-width:${width}%;" alt="Imagen">`);
+    pageScheduleSave();
+}
+
+function pageToggleTodoCheck(checkbox) {
+    const li = checkbox ? checkbox.closest('li') : null;
+    if (!li) return;
+    const checked = checkbox.checked;
+    li.setAttribute('data-checked', checked ? 'true' : 'false');
+    const label = li.querySelector('.form-check-label');
+    if (label) {
+        label.classList.toggle('text-decoration-line-through', checked);
+        label.classList.toggle('text-muted', checked);
+    }
+    pageScheduleSave();
+}
+
+function pageDeleteTodoItem(btn) {
+    const li = btn ? btn.closest('li') : null;
+    if (li) li.remove();
+    pageScheduleSave();
+}
+
+function pageScheduleSave() {
+    clearTimeout(pageSaveTimeout);
+    pageSaveTimeout = setTimeout(pageAutoSave, 900);
+    const status = document.getElementById('notePageSaveStatus');
+    if (status) status.innerHTML = '<i class="bi bi-pencil me-1"></i>Escribiendo...';
+}
+
+async function pageAutoSave() {
+    const titleInput = document.getElementById('notePageTitle');
+    const editor = document.getElementById('notePageEditor');
+    if (!titleInput || !editor) return;
+    const title = titleInput.value.trim() || 'Sin título';
+    const content = editor.innerHTML;
+    const status = document.getElementById('notePageSaveStatus');
+    try {
+        const r = await fetch(`/api/notes/${NOTE_ID}`, {
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({title, content})
+        });
+        const data = await r.json();
+        if (data.ok) {
+            if (status) status.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
+            setTimeout(() => { if (status) status.textContent = ''; }, 2000);
+        } else {
+            if (status) status.innerHTML = '<i class="bi bi-exclamation-circle text-danger me-1"></i>Error';
+        }
+    } catch(e) {
+        if (status) status.innerHTML = '<i class="bi bi-exclamation-circle text-danger me-1"></i>Error';
+    }
+}
+
+async function savePageNote() {
+    await pageAutoSave();
+    mostrarAlerta('Nota guardada', 'success');
+}
+
+function exportPageNotePNG() {
+    const title = document.getElementById('notePageTitle')?.value.trim() || 'nota';
+    const content = document.getElementById('notePageEditor')?.innerHTML || '';
+    if (typeof exportNoteImageFromData === 'function') {
+        exportNoteImageFromData(title, content, 'image/png', 'png');
+    }
+}
+
+function exportPageNotePDF() {
+    const title = document.getElementById('notePageTitle')?.value.trim() || 'nota';
+    const content = document.getElementById('notePageEditor')?.innerHTML || '';
+    if (typeof exportNoteToPDF === 'function') {
+        exportNoteToPDF(title, content);
+    }
+}
+
+function sharePageNoteWhatsApp() {
+    const title = document.getElementById('notePageTitle')?.value.trim() || 'nota';
+    const content = document.getElementById('notePageEditor')?.innerHTML || '';
+    let body = content;
+    if (typeof htmlToWhatsApp === 'function') {
+        body = htmlToWhatsApp(content);
+    }
+    window.open(`https://wa.me/?text=${encodeURIComponent(`*${title}*\n\n${body}`)}`, '_blank');
+}
+
+// Tecla Enter dentro de tareas para dividirlas
+document.addEventListener('DOMContentLoaded', function() {
+    const editor = document.getElementById('notePageEditor');
+    if (!editor) return;
+    editor.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            const sel = window.getSelection();
+            if (!sel.rangeCount) return;
+            const range = sel.getRangeAt(0);
+            let node = range.commonAncestorContainer;
+            if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+            const label = node ? node.closest('.form-check-label') : null;
+            if (!label) return;
+            const li = label.closest('li');
+            const ul = li ? li.closest('ul') : null;
+            if (!ul) return;
+            e.preventDefault();
+            const preCaretRange = range.cloneRange();
+            preCaretRange.selectNodeContents(label);
+            preCaretRange.setEnd(range.endContainer, range.endOffset);
+            const before = preCaretRange.toString();
+            const after = label.textContent.substring(before.length);
+            label.textContent = before;
+            const newLi = document.createElement('li');
+            newLi.className = 'list-group-item d-flex align-items-start gap-2 p-2 todo-item';
+            newLi.setAttribute('data-checked', 'false');
+            const newText = after ? pageEscapeHtml(after) : 'Nueva tarea';
+            newLi.innerHTML = `<input class="form-check-input note-check flex-shrink-0" type="checkbox" onchange="pageToggleTodoCheck(this)" contenteditable="false"><span class="form-check-label flex-grow-1">${newText}</span><button class="btn btn-sm btn-link text-danger p-0 ms-1" type="button" onclick="pageDeleteTodoItem(this)" contenteditable="false" tabindex="-1"><i class="bi bi-trash"></i></button>`;
+            li.after(newLi);
+            const newLabel = newLi.querySelector('.form-check-label');
+            if (newLabel) {
+                const newRange = document.createRange();
+                newRange.selectNodeContents(newLabel);
+                if (after) newRange.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(newRange);
+            }
+            pageScheduleSave();
+        }
+    });
+
+    // Guardar también cuando se cierra el picker de emojis
+    const emojiModal = document.getElementById('emojiPickerModal');
+    if (emojiModal) {
+        emojiModal.addEventListener('hidden.bs.modal', pageScheduleSave);
+    }
+});
+</script>
+{% endblock %}

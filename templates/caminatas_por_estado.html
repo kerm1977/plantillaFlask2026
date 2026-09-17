@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - La Tribu{% endblock %}
+
+{% block body_attrs %} class="caminatas-page"{% endblock %}
+
+{% block content %}
+
+<style>
+  .caminata-thumb { width: 90px; aspect-ratio: 9/16; object-fit: cover; flex-shrink: 0; }
+  @media (min-width: 768px) { .caminata-thumb { width: 150px; } }
+</style>
+
+<div class="container py-5 animate__animated animate__fadeIn">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0" {% if page_title == 'Caminatas Visitadas' %}id="tituloVisitadas" style="cursor:pointer;" title="Tocar para cambiar vista"{% endif %}>{{ page_title }}</h1>
+    {% if page_title == 'Cotizaciones' %}
+    <a href="{{ url_for('main.cotizaciones_buseta') }}" class="btn btn-outline-orange rounded-pill fw-bold mt-2" target="_blank">
+      <i class="bi bi-bus-front me-2"></i>Ver hoja de cotizaciones de buseta
+    </a>
+    {% endif %}
+  </div>
+
+  {% if eventos %}
+  <div class="glass-panel rounded-4 shadow-sm mb-3 p-3">
+    {% for ev in eventos %}
+    {% if page_title == 'Cotizaciones' %}
+    <div class="py-2">
+      <small class="text-muted d-block">
+        {% if ev.provincia %}{{ ev.provincia }}{% if ev.actividad or ev.nombre_lugar %} · {% endif %}{% endif %}
+        {% if ev.actividad %}{{ ev.actividad }}{% if ev.nombre_lugar %} · {% endif %}{% endif %}
+        <a href="{{ url_for('main.detalles_evento', event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none">{{ ev.nombre_lugar }}</a>
+        {% if ev.tipo_caminata %} · {{ ev.tipo_caminata }}{% endif %}
+      </small>
+      <div class="d-flex align-items-center justify-content-between gap-2 mt-1">
+        <span class="fw-bold text-dark fs-6">Buseta: {{ ev.moneda }}{{ ev.precio | int if ev.precio | int > 0 else 'PENDIENTE' }}</span>
+        <div class="d-flex gap-2" style="z-index:2;">
+          <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0" style="z-index:2;" title="Información Especial"><i class="bi bi-card-text"></i></a>
+          <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+        </div>
+      </div>
+    </div>
+    {% if not loop.last %}<hr class="border-white border-opacity-25 my-2">{% endif %}
+    {% elif page_title == 'Caminatas Visitadas' %}
+    <div class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 visitada-item" data-nombre="{{ ev.nombre_lugar }}">
+      <div class="vista-imagen d-flex align-items-center gap-3">
+        <a href="{{ url_for('main.detalles_evento', event_id=ev.id) }}">
+          <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+        </a>
+        <div class="flex-grow-1 min-width-0">
+          <a href="{{ url_for('main.detalles_evento', event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none nombre-texto">{{ ev.nombre_lugar }}</a>
+          <span class="badge bg-success rounded-pill small mb-1">Visitados</span>
+          <small class="text-muted d-block">
+            {% if ev.kilometros %}{{ ev.kilometros }} km{% endif %}
+            {% if ev.kilometros and ev.dificultad %} · {% endif %}
+            {% if ev.dificultad %}{{ ev.dificultad }}{% endif %}
+          </small>
+        </div>
+        <div class="d-flex gap-2" style="z-index:2;">
+          <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0" style="z-index:2;" title="Información Especial"><i class="bi bi-card-text"></i></a>
+          {% if is_super %}
+          <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+          {% endif %}
+        </div>
+      </div>
+      <div class="vista-nombre d-none d-flex justify-content-between align-items-center gap-2">
+        <div class="min-width-0">
+          <a href="{{ url_for('main.detalles_evento', event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none nombre-texto">{{ ev.nombre_lugar }}</a>
+          <span class="badge bg-success rounded-pill small ms-2">Visitados</span>
+        </div>
+        <div class="d-flex gap-2">
+          {% if is_super %}
+          <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex align-items-center gap-3">
+      <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+      <div class="flex-grow-1 min-width-0">
+        <a href="{{ url_for('main.detalles_evento', event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}</a>
+        <small class="text-muted d-block">
+          {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
+          {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
+          {% if ev.actividad %}{{ ev.actividad }}{% endif %}
+          <br>
+          {% if ev.visitado == 'Cotización' %}<span class="badge" style="background-color: #d63384; color: #fff;">Cotización</span>{% elif ev.visitado in ('Visitados','Visitado','Sí') %}<span class="badge bg-success">Visitados</span>{% elif ev.visitado in ('Programados','Por programar') %}<span class="badge" style="background-color: #6f42c1; color: #fff;">Programados</span>{% elif ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 %}<span class="badge" style="background-color: #ff8c00; color: #fff;">{{ ev.visitado }}</span>{% else %}<span class="badge bg-secondary">Pendiente</span>{% endif %}
+          {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
+        </small>
+        <span class="fw-bold text-dark fs-6">{{ ev.moneda ~ (ev.precio | int) if ev.precio | int > 0 else 'PENDIENTE' }}</span>
+      </div>
+      <div class="d-flex gap-2" style="z-index:2;">
+        <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0" style="z-index:2;" title="Información Especial"><i class="bi bi-card-text"></i></a>
+        {% if is_super %}
+        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-calendar-x fs-1"></i>
+    <p class="mt-2">Aún no hay caminatas en esta sección.</p>
+  </div>
+  {% endif %}
+</div>
+
+{% if is_super %}
+<button class="btn btn-global-add btn-caminata-2027" onclick="abrirCrear()" title="Agregar Caminata">
+  <i class="bi bi-plus-lg fs-3 fw-bold"></i>
+</button>
+
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+{% include 'partials/evento_crear_editar_modal.html' %}
+{% include 'partials/evento_delete_modals.html' %}
+{% include 'partials/caminatas_2027_script.html' %}
+{% endif %}
+
+{% if page_title == 'Caminatas Visitadas' %}
+<script>
+(function() {
+  const titulo = document.getElementById('tituloVisitadas');
+  if (!titulo) return;
+  const items = document.querySelectorAll('.visitada-item');
+  let modo = localStorage.getItem('visitadasVista') || 'imagen';
+  function aplicar() {
+    items.forEach(item => {
+      const img = item.querySelector('.vista-imagen');
+      const nom = item.querySelector('.vista-nombre');
+      if (img) img.classList.toggle('d-none', modo === 'nombres');
+      if (nom) nom.classList.toggle('d-none', modo !== 'nombres');
+    });
+    localStorage.setItem('visitadasVista', modo);
+  }
+  aplicar();
+  titulo.addEventListener('click', function() {
+    modo = (modo === 'imagen') ? 'nombres' : 'imagen';
+    aplicar();
+  });
+})();
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,4 +1,4 @@
-from flask import request, jsonify, session, current_app, send_file, render_template
+from flask import request, jsonify, session, current_app, send_file, render_template, redirect, url_for
 from flask_socketio import join_room, leave_room, emit
 from models import Note
 from db import db
@@ -10,7 +10,7 @@ import uuid
 import base64
 import io
 import tempfile
-from html import escape
+
 import re
 import unicodedata
 from reportlab.lib.pagesizes import letter
@@ -101,4 +101,12 @@ def upload_note_image():
     file.save(filepath)
     
     return jsonify({'ok': True, 'url': f'/static/uploads/notes/{filename}'})
+
+def note_detail_page(note_id):
+    if 'user_id' not in session:
+        return redirect(url_for('main.home'))
+    note = Note.query.get(note_id)
+    if not note or note.user_id != session['user_id']:
+        return render_template('notas_publica_404.html'), 404
+    return render_template('notas_detalle.html', note=note)
 

@@ -19,6 +19,10 @@
     text-decoration-color: rgba(0,0,0,0.4);
     text-decoration-thickness: 1px;
   }
+  #caminataPreview [data-caminata-multiselect="true"] {
+    outline: 2px solid #198754;
+    background-color: rgba(25, 135, 84, 0.18);
+  }
   #caminataPreview .caminata-capital::first-letter {
     float: left;
     font-size: 3.5rem;
@@ -47,11 +51,20 @@
     <span class="badge bg-orange rounded-pill text-white mb-2 fw-bold small" style="background:#ff8c00;">{{ event.actividad }}</span>
     {% endif %}
     <h1 id="caminataDetalleTitle" class="fw-bold text-dark m-0" style="user-select:none;-webkit-user-select:none;cursor:pointer;">{{ event.nombre_lugar }}</h1>
+    {% if event.visitado not in ('Visitados','Visitado','Sí') %}
     <p class="text-muted small mt-2 mb-0">
       {% if event.provincia %}<span class="me-2"><i class="bi bi-geo-alt me-1"></i>{{ event.provincia }}</span>{% endif %}
       {% if event.dificultad %}<span class="me-2"><i class="bi bi-bar-chart-steps me-1"></i>{{ event.dificultad }}</span>{% endif %}
-      {% if event.actividad %}<span><i class="bi bi-activity me-1"></i>{{ event.actividad }}</span>{% endif %}
+      {% if event.actividad %}<span class="me-2"><i class="bi bi-activity me-1"></i>{{ event.actividad }}</span>{% endif %}
+      {% set v = event.visitado %}
+      {% if v == 'Cotización' %}<span class="badge" style="background-color: #d63384; color: #fff;">Cotización</span>{% elif v in ('Visitados','Visitado','Sí') %}<span class="badge bg-success">Visitados</span>{% elif v in ('Programados','Por programar') %}<span class="badge" style="background-color: #6f42c1; color: #fff;">Programados</span>{% elif v and v.isdigit() and v|length == 4 %}<span class="badge" style="background-color: #ff8c00; color: #fff;">{{ v }}</span>{% else %}<span class="badge bg-secondary">Pendiente</span>{% endif %}
     </p>
+    {% endif %}
+    <div class="mt-3">
+      <a href="{{ url_for('main.caminatas') }}" class="btn btn-outline-secondary rounded-pill fw-bold d-inline-flex align-items-center">
+        <i class="bi bi-arrow-left me-2"></i>Volver a Caminatas
+      </a>
+    </div>
   </div>
 
   <div class="row justify-content-center mb-4">
@@ -60,21 +73,6 @@
     </div>
   </div>
 
-  {% if event.texto_referencia %}
-  <div class="row justify-content-center mb-4">
-    <div class="col-12 col-lg-8">
-      <div class="glass-panel rounded-4 p-1 shadow-sm">
-        <div class="p-3 bg-white bg-opacity-75 rounded-3">
-          {{ event.texto_referencia|safe }}
-        </div>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-
-  {% if event.texto_referencia and event.itinerario %}
-  <hr class="border-secondary opacity-25 my-4 mx-auto" style="width:80%;">
-  {% endif %}
 
   {% if is_super %}
   <div class="d-flex justify-content-center mb-3 d-print-none">
@@ -113,10 +111,10 @@
     </select>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataMarcarSeleccion()" title="Marcar texto"><i class="bi bi-circle-fill" id="caminataIconoMarcador" style="color:#ffff99;"></i></button>
     <div class="vr mx-1"></div>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle caminata-align-button" onclick="caminataExecCmd('justifyLeft')" title="Izquierda" disabled><i class="bi bi-text-left"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle caminata-align-button" onclick="caminataExecCmd('justifyCenter')" title="Centro" disabled><i class="bi bi-text-center"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle caminata-align-button" onclick="caminataExecCmd('justifyRight')" title="Derecha" disabled><i class="bi bi-text-right"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle caminata-align-button" onclick="caminataExecCmd('justifyFull')" title="Justificado" disabled><i class="bi bi-justify"></i></button>
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
@@ -137,7 +135,7 @@
     </select>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataCita()" title="Cita"><i class="bi bi-chat-quote"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataWrapTag('code')" title="Código"><i class="bi bi-code"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('insertHorizontalRule')" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataInsertarLineaHorizontal()" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('caminataImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
     <input type="file" id="caminataImageFile" accept="image/*" style="display:none;" onchange="caminataUploadImage(this)">
@@ -150,9 +148,10 @@
     <div class="vr mx-1"></div>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('undo')" title="Deshacer"><i class="bi bi-arrow-90deg-left"></i></button>
     <button class="btn btn-sm btn-light rounded-circle" onclick="caminataExecCmd('redo')" title="Rehacer"><i class="bi bi-arrow-90deg-right"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataEliminarSeleccion()" title="Eliminar video seleccionado"><i class="bi bi-trash"></i></button>
+    <button id="caminataMultiSelectButton" class="btn btn-sm btn-light rounded-pill" onclick="caminataAlternarMultiseleccion()" title="Activar multiselección"><i class="bi bi-ui-checks me-1"></i>Multiselección</button>
+    <button class="btn btn-sm btn-light rounded-circle" onclick="caminataEliminarSeleccion()" title="Eliminar selección"><i class="bi bi-trash"></i></button>
     <div class="vr mx-1"></div>
-    <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="caminataSave()"><i class="bi bi-save me-1"></i>Guardar</button>
+    <button id="caminataSaveButton" class="btn btn-sm btn-outline-orange rounded-pill" onclick="caminataSave()" title="Guardar"><i id="caminataSaveIcon" class="bi bi-save me-1"></i><span id="caminataSaveLabel">Guardar</span></button>
   </div>
   <div class="text-center mb-2"><span id="caminataSaveStatus" class="small text-muted"></span></div>
   {% endif %}
@@ -172,8 +171,48 @@
     </div>
   </div>
 
+  <!-- Asignación de puntos -->
+  <div class="row justify-content-center mb-4" id="puntosCaminataRow" style="display:none;">
+    <div class="col-12 col-lg-8">
+      <div class="accordion" id="puntosCaminataAccordion">
+        <div class="accordion-item glass-table-container border-0 rounded-4 overflow-hidden">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accPuntosCaminata">
+              <i class="bi bi-trophy me-2"></i>Asignación de puntos para esta actividad
+            </button>
+          </h2>
+          <div id="accPuntosCaminata" class="accordion-collapse collapse" data-bs-parent="#puntosCaminataAccordion">
+            <div class="accordion-body">
+              <p class="mb-2">Puntos por participar: <strong id="puntosValorCaminata">0</strong></p>
+              <p class="text-muted small" id="puntosTotalCaminata">Total acumulado en esta actividad: 0</p>
+              <div id="puntosAdmin" class="d-none">
+                <div class="d-flex gap-2 mb-3">
+                  <button type="button" class="btn btn-success btn-sm rounded-pill" onclick="asignarPuntosCaminata()">
+                    <i class="bi bi-plus-circle me-1"></i>Asignar puntos a registrados
+                  </button>
+                </div>
+                <div class="input-group input-group-sm mb-3">
+                  <input type="text" id="retirarCedula" class="form-control rounded-start-pill" placeholder="Cédula a retirar">
+                  <button type="button" class="btn btn-outline-danger rounded-end-pill" onclick="retirarPuntosCaminata()">
+                    <i class="bi bi-x-circle me-1"></i>Retirar persona
+                  </button>
+                </div>
+              </div>
+              <div id="puntosAsignadosCaminata" class="small"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="text-center mb-4 mt-3 caminata-actions">
     <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" solicitado y aprobado por el usuario. NO ELIMINAR. -->
+    {% set v_visitado = (event.visitado | default('') | string | trim) %}
+    {% set p_val = (event.precio | default(0) | int) %}
+    {% set r_val = (event.reserva | default(0) | int) %}
+    {% set is_pendiente = (p_val == 0 or r_val == 0 or v_visitado in ('Pendiente','No','') or v_visitado == 'Cotización' or v_visitado in ('Visitados','Visitado','Sí')) %}
+    {% if is_pendiente %}
     {% set whatsapp_msg -%}
 Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
 
@@ -187,6 +226,12 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
        class="btn btn-outline-success rounded-pill fw-bold d-inline-flex align-items-center">
       <i class="bi bi-whatsapp me-2"></i>Avisarme
     </a>
+    {% else %}
+    <button onclick="reservarCaminataWhatsApp()" type="button"
+       class="btn btn-warning-orange rounded-pill fw-bold d-inline-flex align-items-center">
+      <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
+    </button>
+    {% endif %}
     {% if event.enlace_extra %}
     <a href="{{ event.enlace_extra }}" target="_blank" rel="noopener"
        class="btn btn-outline-primary rounded-pill fw-bold d-inline-flex align-items-center ms-2">
@@ -200,9 +245,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       </button>
       <ul class="dropdown-menu">
         <li><button class="dropdown-item" type="button" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Exportar PDF</button></li>
-        {% if is_super %}
         <li><button class="dropdown-item" type="button" onclick="abrirModalCompartirCaminata()"><i class="bi bi-whatsapp me-2 text-success"></i>Compartir</button></li>
-        {% endif %}
       </ul>
     </div>
   </div>
@@ -250,28 +293,203 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
   const CAMINATA_ID = parseInt('{{ event.id }}', 10);
+  let ITINERARIO_HASH = '{{ itinerario_hash }}';
   document.addEventListener('DOMContentLoaded', function() {
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
-    setInterval(() => {
-      const preview = document.getElementById('caminataPreview');
-      if (preview && preview.isContentEditable) caminataSave(true);
-    }, 60000);
   });
 
+  let _caminataMultiseleccionActiva = false;
+  let _caminataMarcandoSeleccion = false;
+
+  function caminataElementosMultiseleccionados() {
+    const preview = document.getElementById('caminataPreview');
+    return preview ? Array.from(preview.querySelectorAll('[data-caminata-multiselect="true"]')) : [];
+  }
+
+  function caminataContenidoLimpio() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return '';
+    const clone = preview.cloneNode(true);
+    clone.querySelectorAll('[data-caminata-multiselect="true"]').forEach(el => {
+      el.removeAttribute('data-caminata-multiselect');
+      if (el.tagName === 'SPAN' && !el.attributes.length) el.replaceWith(...Array.from(el.childNodes));
+    });
+    return clone.innerHTML;
+  }
+
+  function actualizarEstadoMultiseleccion(message) {
+    const button = document.getElementById('caminataMultiSelectButton');
+    const status = document.getElementById('caminataSaveStatus');
+    const count = caminataElementosMultiseleccionados().length;
+    if (button) {
+      button.classList.toggle('btn-success', _caminataMultiseleccionActiva);
+      button.classList.toggle('btn-light', !_caminataMultiseleccionActiva);
+      button.innerHTML = `<i class="bi bi-ui-checks me-1"></i>${_caminataMultiseleccionActiva ? `Multiselección (${count})` : 'Multiselección'}`;
+      button.title = _caminataMultiseleccionActiva ? 'Seleccioná otro fragmento o aplicá un formato' : 'Activar multiselección';
+    }
+    if (status && message) status.textContent = message;
+  }
+
+  function caminataAlternarMultiseleccion() {
+    _caminataMultiseleccionActiva = !_caminataMultiseleccionActiva;
+    actualizarEstadoMultiseleccion(_caminataMultiseleccionActiva
+      ? 'Multiselección activa: seleccioná un fragmento y soltá. Repetí para agregar más.'
+      : 'Multiselección finalizada.');
+  }
+
+  function caminataAgregarRangoMultiseleccion() {
+    if (!_caminataMultiseleccionActiva) return;
+    const preview = document.getElementById('caminataPreview');
+    const sel = window.getSelection();
+    if (!preview || !sel.rangeCount || sel.getRangeAt(0).collapsed) return;
+    const range = sel.getRangeAt(0);
+    if (!preview.contains(range.commonAncestorContainer)) return;
+    const marker = document.createElement('span');
+    marker.dataset.caminataMultiselect = 'true';
+    _caminataMarcandoSeleccion = true;
+    try {
+      range.surroundContents(marker);
+    } catch (e) {
+      const fragment = range.extractContents();
+      marker.appendChild(fragment);
+      range.insertNode(marker);
+    }
+    sel.removeAllRanges();
+    setTimeout(() => { _caminataMarcandoSeleccion = false; }, 0);
+    actualizarEstadoMultiseleccion(`${caminataElementosMultiseleccionados().length} fragmento(s) agregado(s). Seleccioná otro o aplicá un formato.`);
+    actualizarBotonesAlineacion(false);
+  }
+
+  function caminataAplicarMultiseleccion(styles) {
+    const selected = caminataElementosMultiseleccionados();
+    if (!selected.length) return false;
+    selected.forEach(el => {
+      Object.entries(styles).forEach(([name, value]) => { el.style[name] = value; });
+      el.removeAttribute('data-caminata-multiselect');
+    });
+    _caminataMultiseleccionActiva = false;
+    actualizarEstadoMultiseleccion('Formato aplicado a toda la multiselección.');
+    guardarCaminataFormateo();
+    return true;
+  }
+
+  function caminataAlinear(align) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    const css = align === 'full' ? 'justify' : align;
+    const multi = caminataElementosMultiseleccionados();
+    if (multi.length) {
+      const blocks = new Set(multi.map(el => el.closest('p, div, h1, h2, h3, h4, h5, h6, li, blockquote, ul, ol')).filter(Boolean));
+      blocks.forEach(el => { el.style.textAlign = css; });
+      multi.forEach(el => el.removeAttribute('data-caminata-multiselect'));
+      _caminataMultiseleccionActiva = false;
+      actualizarBotonesAlineacion(false);
+      guardarCaminataFormateo();
+      return;
+    }
+    caminataRestaurarSeleccion();
+    const sel = window.getSelection();
+    if (!sel.rangeCount || sel.getRangeAt(0).collapsed) return;
+    const bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0) return;
+    bloques.forEach(el => { el.style.textAlign = css; });
+    guardarCaminataFormateo();
+  }
+
+  function caminataList(tipo) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    caminataRestaurarSeleccion();
+    const sel = window.getSelection();
+    let node = null;
+    if (sel.rangeCount > 0) node = sel.getRangeAt(0).commonAncestorContainer;
+    if (node && node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+    let bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0 && node) {
+      const posibles = Array.from(preview.querySelectorAll('p, div:not(.caminata-embed), h1, h2, h3, h4, h5, h6, li, blockquote'));
+      while (node && node !== preview) {
+        if (posibles.includes(node)) { bloques = [node]; break; }
+        node = node.parentElement;
+      }
+    }
+    if (bloques.length === 0) return;
+    const lists = new Set();
+    bloques.forEach(el => {
+      const list = el.closest && el.closest('ul, ol');
+      if (list) lists.add(list);
+    });
+    if (lists.size === 1) {
+      const list = Array.from(lists)[0];
+      const parent = list.parentElement;
+      Array.from(list.children).forEach(li => {
+        const p = document.createElement('p');
+        p.innerHTML = li.innerHTML;
+        p.className = li.className || '';
+        p.style.cssText = li.style.cssText;
+        parent.insertBefore(p, list);
+      });
+      parent.removeChild(list);
+    } else {
+      const list = document.createElement(tipo);
+      const parent = bloques[0].parentElement;
+      bloques.forEach(el => {
+        const li = document.createElement('li');
+        li.innerHTML = el.innerHTML;
+        li.className = el.className || '';
+        li.style.cssText = el.style.cssText;
+        list.appendChild(li);
+      });
+      parent.insertBefore(list, bloques[0]);
+      bloques.forEach(el => parent.removeChild(el));
+    }
+    preview.focus();
+    guardarCaminataFormateo();
+  }
+
   function caminataExecCmd(command) {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    const multiStyles = {
+      bold: {fontWeight: '700'},
+      italic: {fontStyle: 'italic'},
+      underline: {textDecoration: 'underline'},
+      strikeThrough: {textDecoration: 'line-through'}
+    };
+    if (multiStyles[command] && caminataAplicarMultiseleccion(multiStyles[command])) return;
+    if (command === 'justifyLeft' || command === 'justifyCenter' || command === 'justifyRight' || command === 'justifyFull') {
+      const align = command.replace('justify', '').toLowerCase();
+      caminataAlinear(align);
+      return;
+    }
+    if (command === 'insertUnorderedList' || command === 'insertOrderedList') {
+      caminataList(command === 'insertUnorderedList' ? 'ul' : 'ol');
+      return;
+    }
+    if (command === 'undo' || command === 'redo') {
+      navegarHistorialCaminata(command === 'undo' ? -1 : 1);
+      return;
+    }
+    preview.focus();
+    caminataRestaurarSeleccion();
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     document.execCommand(command, false, null);
-    document.getElementById('caminataPreview').focus();
+    preview.focus();
+    guardarCaminataFormateo();
   }
 
   function caminataHighlight(color) {
+    if (!color) return;
+    if (caminataAplicarMultiseleccion({backgroundColor: color})) return;
+    caminataRestaurarSeleccion();
     try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
     document.getElementById('caminataPreview').focus();
     document.execCommand('hiliteColor', false, color);
+    guardarCaminataFormateo();
   }
 
   function caminataClearFormat() {
@@ -313,25 +531,125 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     // Interlineado normal
     preview.querySelectorAll('p, li, div, h1, h2, h3, h4, h5, h6, blockquote').forEach(el => { el.style.lineHeight = 'normal'; });
     sel.removeAllRanges();
+    guardarCaminataFormateo();
   }
 
   function caminataMarcarSeleccion() {
     const select = document.getElementById('caminataColorMarcador');
-    if (select) caminataHighlight(select.value);
+    if (!select) return;
+    caminataRestaurarSeleccion();
+    caminataHighlight(select.value);
   }
 
   function caminataCambiarFuente(fuente) {
     const preview = document.getElementById('caminataPreview');
-    if (!preview) return;
+    if (!preview || !fuente || fuente === 'current') return;
+    if (caminataAplicarMultiseleccion({fontFamily: fuente})) return;
+    caminataRestaurarSeleccion();
+    const sel = window.getSelection();
+    if (!sel.rangeCount || sel.getRangeAt(0).collapsed) return;
+    const range = sel.getRangeAt(0);
+    const span = document.createElement('span');
+    span.style.setProperty('font-family', JSON.stringify(fuente));
+    try {
+      range.surroundContents(span);
+    } catch (e) {
+      const frag = range.extractContents();
+      span.appendChild(frag);
+      range.insertNode(span);
+    }
+    const r = document.createRange();
+    r.selectNodeContents(span);
+    sel.removeAllRanges();
+    sel.addRange(r);
     preview.focus();
-    const nombre = (fuente === 'current') ? window.getComputedStyle(preview).fontFamily : fuente;
-    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
-    document.execCommand('fontName', false, nombre);
+    guardarCaminataFormateo();
+  }
+
+  function caminataConvertirEnlaces() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return false;
+    const sel = window.getSelection();
+    const activeRange = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+    const activeNode = activeRange && activeRange.collapsed ? activeRange.startContainer : null;
+    let caretTarget = null;
+    let changed = false;
+    const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.parentElement || node.parentElement.closest('a, code, pre, script, style')) return NodeFilter.FILTER_REJECT;
+        return /(?:https?:\/\/|www\.)[^\s<>"']+/i.test(node.data) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    const nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(node => {
+      const text = node.data;
+      const regex = /(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+      const fragment = document.createDocumentFragment();
+      let cursor = 0;
+      let match;
+      let nodeChanged = false;
+      while ((match = regex.exec(text))) {
+        let urlText = match[0];
+        const trailing = urlText.match(/[.,;:!?)]*$/)?.[0] || '';
+        urlText = urlText.slice(0, urlText.length - trailing.length);
+        if (!urlText) continue;
+        fragment.appendChild(document.createTextNode(text.slice(cursor, match.index)));
+        const link = document.createElement('a');
+        link.href = urlText.toLowerCase().startsWith('www.') ? `https://${urlText}` : urlText;
+        link.textContent = urlText;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        fragment.appendChild(link);
+        if (trailing) fragment.appendChild(document.createTextNode(trailing));
+        cursor = match.index + match[0].length;
+        nodeChanged = true;
+      }
+      if (!nodeChanged) return;
+      const tail = document.createTextNode(text.slice(cursor));
+      fragment.appendChild(tail);
+      if (node === activeNode) caretTarget = tail;
+      node.replaceWith(fragment);
+      changed = true;
+    });
+    if (caretTarget && sel) {
+      const caret = document.createRange();
+      caret.setStart(caretTarget, caretTarget.length);
+      caret.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(caret);
+      caminataRange = caret.cloneRange();
+    }
+    if (changed) guardarCaminataFormateo();
+    return changed;
+  }
+
+  function caminataInsertarLineaHorizontal() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview || !caminataRange) return;
+    caminataRestaurarSeleccion();
+    const sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    const range = sel.getRangeAt(0).cloneRange();
+    if (!preview.contains(range.commonAncestorContainer)) return;
+    range.collapse(false);
+    const hr = document.createElement('hr');
+    range.insertNode(hr);
+    const after = document.createRange();
+    after.setStartAfter(hr);
+    after.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(after);
+    caminataRange = after.cloneRange();
+    preview.focus();
+    actualizarBotonesAlineacion(false);
+    guardarCaminataFormateo();
   }
 
   function caminataWrapTag(tag) {
     const preview = document.getElementById('caminataPreview');
     if (!preview) return;
+    caminataRestaurarSeleccion();
     preview.focus();
     const sel = window.getSelection();
     if (sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return;
@@ -340,56 +658,129 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       const wrapper = document.createElement(tag);
       range.surroundContents(wrapper);
     } catch (e) {
-      const text = range.toString();
-      if (!text) return;
-      document.execCommand('insertHTML', false, '<' + tag + '>' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</' + tag + '>');
+      const frag = range.extractContents();
+      if (!frag || !frag.textContent) return;
+      const wrapper = document.createElement(tag);
+      wrapper.appendChild(frag);
+      range.insertNode(wrapper);
     }
+    guardarCaminataFormateo();
   }
 
   function caminataTransformarTexto(accion) {
     const preview = document.getElementById('caminataPreview');
     if (!preview || !accion) return;
-    preview.focus();
+    const multi = caminataElementosMultiseleccionados();
+    if (multi.length) {
+      multi.forEach(el => {
+        const text = el.textContent;
+        if (accion === 'uppercase') el.textContent = text.toUpperCase();
+        else if (accion === 'lowercase') el.textContent = text.toLowerCase();
+        else if (accion === 'titlecase') el.textContent = text.toLowerCase().replace(/(?:^|\s)\S/g, m => m.toUpperCase());
+        el.removeAttribute('data-caminata-multiselect');
+      });
+      _caminataMultiseleccionActiva = false;
+      guardarCaminataFormateo();
+      return;
+    }
+    caminataRestaurarSeleccion();
     const sel = window.getSelection();
-    if (sel.rangeCount === 0) return;
-    const text = sel.toString();
-    if (!text) return;
-    let out = text;
-    if (accion === 'uppercase') out = text.toUpperCase();
-    else if (accion === 'lowercase') out = text.toLowerCase();
-    else if (accion === 'titlecase') out = text.toLowerCase().replace(/(?:^|\s)\S/g, (m) => m.toUpperCase());
-    document.execCommand('insertText', false, out);
+    if (!sel.rangeCount || sel.getRangeAt(0).collapsed) return;
+    const range = sel.getRangeAt(0);
+    const nodes = [];
+    const walker = document.createTreeWalker(preview, NodeFilter.SHOW_TEXT, { acceptNode: (n) => {
+      try { return (range.intersectsNode ? range.intersectsNode(n) : true) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT; } catch(e) { return NodeFilter.FILTER_REJECT; }
+    }});
+    let t;
+    while ((t = walker.nextNode())) nodes.push(t);
+    if (nodes.length === 0) return;
+    let changed = false;
+    nodes.forEach(node => {
+      const full = node.textContent;
+      let start = 0, end = full.length;
+      if (node === range.startContainer) start = range.startOffset;
+      if (node === range.endContainer) end = range.endOffset;
+      if (start >= end) return;
+      const original = full.substring(start, end);
+      let transformed = original;
+      if (accion === 'uppercase') transformed = original.toUpperCase();
+      else if (accion === 'lowercase') transformed = original.toLowerCase();
+      else if (accion === 'titlecase') transformed = original.toLowerCase().replace(/(?:^|\s)\S/g, (m) => m.toUpperCase());
+      if (transformed !== original) {
+        node.textContent = full.substring(0, start) + transformed + full.substring(end);
+        changed = true;
+      }
+    });
+    if (changed) preview.focus();
+    guardarCaminataFormateo();
   }
 
   function caminataBloquesSeleccionados() {
     const preview = document.getElementById('caminataPreview');
     const sel = window.getSelection();
-    if (!preview || sel.rangeCount === 0 || sel.getRangeAt(0).collapsed) return [];
-    const bloques = Array.from(preview.querySelectorAll('p, div, h1, h2, h3, h4, h5, h6, li, blockquote'));
+    if (!preview || sel.rangeCount === 0) return [];
+    const bloques = Array.from(preview.querySelectorAll('p, div:not(.caminata-embed), h1, h2, h3, h4, h5, h6, li, blockquote'));
+    const r = sel.getRangeAt(0);
+    if (r.collapsed) {
+      let node = r.commonAncestorContainer;
+      if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
+      while (node && node !== preview) {
+        if (bloques.includes(node)) return [node];
+        node = node.parentElement;
+      }
+      return [];
+    }
     return bloques.filter(el => sel.containsNode(el, true));
   }
 
   function caminataInterlineado(valor) {
+    const multi = caminataElementosMultiseleccionados();
+    if (multi.length && valor) {
+      const blocks = new Set(multi.map(el => el.closest('p, div, h1, h2, h3, h4, h5, h6, li, blockquote')).filter(Boolean));
+      blocks.forEach(el => { el.style.lineHeight = valor; });
+      multi.forEach(el => el.removeAttribute('data-caminata-multiselect'));
+      _caminataMultiseleccionActiva = false;
+      guardarCaminataFormateo();
+      return;
+    }
+    caminataRestaurarSeleccion();
     const bloques = caminataBloquesSeleccionados();
     if (bloques.length === 0 || !valor) return;
     document.getElementById('caminataPreview').focus();
     bloques.forEach(el => { el.style.lineHeight = valor; });
+    guardarCaminataFormateo();
   }
 
   function caminataCapitular() {
+    caminataRestaurarSeleccion();
     const bloques = caminataBloquesSeleccionados();
     if (bloques.length === 0) return;
     document.getElementById('caminataPreview').focus();
     bloques.forEach(el => { el.classList.toggle('caminata-capital'); });
+    guardarCaminataFormateo();
   }
+
+  const MAX_CAMINATA_UPLOAD_MB = 100;
 
   async function caminataUploadImage(input) {
     const file = input.files[0];
     if (!file) return;
+    if (file.size > MAX_CAMINATA_UPLOAD_MB * 1024 * 1024) {
+      alert('El archivo pesa ' + (file.size / 1024 / 1024).toFixed(1) + 'MB. El límite es ' + MAX_CAMINATA_UPLOAD_MB + 'MB.');
+      input.value = '';
+      return;
+    }
     const formData = new FormData();
     formData.append('media', file);
+    let r;
     try {
-      const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/upload-image`, {method: 'POST', body: formData});
+      r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/upload-image`, {method: 'POST', body: formData});
+      if (!r.ok) {
+        const text = await r.text();
+        alert('Error del servidor al subir: ' + r.status + ' ' + text.slice(0, 100));
+        input.value = '';
+        return;
+      }
       const data = await r.json();
       if (data.ok) {
         document.getElementById('caminataPreview').focus();
@@ -401,16 +792,276 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
           html = `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`;
         }
         document.execCommand('insertHTML', false, html);
+        await caminataSave(true);
       } else {
         alert(data.error || 'Error al subir archivo');
       }
     } catch(e) {
-      alert('Error de conexión al subir archivo');
+      console.error(e);
+      alert('Error de conexión al subir archivo: ' + (e && e.message || ''));
     }
     input.value = '';
   }
 
+  let _videoSeleccionadoContexto = null;
+  let _guardarCaminataTimer = null;
+  let _guardarCaminataFormateoTimer = null;
+  let originalItinerario = '';
+  let caminataRange = null;
+  let _caminataStale = false;
+  let _caminataSaveInProgress = false;
+  let _caminataSavePending = false;
+  let _caminataPendingSilent = false;
+  const CAMINATA_HISTORY_KEY = `caminata-history-${CAMINATA_ID}`;
+  const CAMINATA_HISTORY_LIMIT = 100;
+  let _caminataHistory = [];
+  let _caminataHistoryIndex = -1;
+  let _caminataApplyingHistory = false;
+
+  function guardarHistorialCaminata() {
+    try {
+      sessionStorage.setItem(CAMINATA_HISTORY_KEY, JSON.stringify({
+        hash: ITINERARIO_HASH,
+        states: _caminataHistory,
+        index: _caminataHistoryIndex
+      }));
+    } catch (e) {}
+  }
+
+  function registrarHistorialCaminata() {
+    if (_caminataApplyingHistory) return;
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    const content = caminataContenidoLimpio();
+    if (_caminataHistory[_caminataHistoryIndex] === content) return;
+    _caminataHistory = _caminataHistory.slice(0, _caminataHistoryIndex + 1);
+    _caminataHistory.push(content);
+    if (_caminataHistory.length > CAMINATA_HISTORY_LIMIT) _caminataHistory.shift();
+    _caminataHistoryIndex = _caminataHistory.length - 1;
+    guardarHistorialCaminata();
+  }
+
+  function iniciarHistorialCaminata() {
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(CAMINATA_HISTORY_KEY) || 'null');
+      if (saved && saved.hash === ITINERARIO_HASH && Array.isArray(saved.states) && saved.states.length) {
+        _caminataHistory = saved.states.slice(-CAMINATA_HISTORY_LIMIT);
+        _caminataHistoryIndex = Math.min(Math.max(Number(saved.index) || 0, 0), _caminataHistory.length - 1);
+        _caminataHistory[_caminataHistoryIndex] = preview.innerHTML;
+        guardarHistorialCaminata();
+        return;
+      }
+    } catch (e) {}
+    _caminataHistory = [preview.innerHTML];
+    _caminataHistoryIndex = 0;
+    guardarHistorialCaminata();
+  }
+
+  function reiniciarHistorialCaminata(savedContent) {
+    const preview = document.getElementById('caminataPreview');
+    const currentContent = preview ? preview.innerHTML : savedContent;
+    _caminataHistory = [savedContent];
+    _caminataHistoryIndex = 0;
+    if (currentContent !== savedContent) {
+      _caminataHistory.push(currentContent);
+      _caminataHistoryIndex = 1;
+    }
+    guardarHistorialCaminata();
+  }
+
+  function navegarHistorialCaminata(direction) {
+    const nextIndex = _caminataHistoryIndex + direction;
+    if (nextIndex < 0 || nextIndex >= _caminataHistory.length) return;
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    _caminataApplyingHistory = true;
+    _caminataHistoryIndex = nextIndex;
+    preview.innerHTML = _caminataHistory[_caminataHistoryIndex];
+    _caminataApplyingHistory = false;
+    guardarHistorialCaminata();
+    preview.focus();
+    guardarCaminataFormateo();
+  }
+
+  function actualizarBotonesAlineacion(enabled) {
+    const hasMulti = caminataElementosMultiseleccionados().length > 0;
+    document.querySelectorAll('.caminata-align-button').forEach(button => {
+      button.disabled = !(enabled || hasMulti);
+    });
+  }
+
+  document.addEventListener('selectionchange', function() {
+    const preview = document.getElementById('caminataPreview');
+    const sel = window.getSelection();
+    if (!preview || !sel.rangeCount) return;
+    const r = sel.getRangeAt(0);
+    if (preview.contains(r.commonAncestorContainer)) {
+      caminataRange = r.cloneRange();
+      actualizarBotonesAlineacion(!r.collapsed);
+    }
+  });
+
+  function caminataRestaurarSeleccion() {
+    if (!caminataRange) return;
+    const preview = document.getElementById('caminataPreview');
+    if (!preview) return;
+    const sel = window.getSelection();
+    try {
+      const start = caminataRange.startContainer;
+      const end = caminataRange.endContainer;
+      if (preview.contains(start) && preview.contains(end)) {
+        preview.focus();
+        sel.removeAllRanges();
+        sel.addRange(caminataRange);
+      }
+    } catch(e) {}
+  }
+
+  function mostrarEstadoGuardadoCaminata(state, message) {
+    const button = document.getElementById('caminataSaveButton');
+    const icon = document.getElementById('caminataSaveIcon');
+    const label = document.getElementById('caminataSaveLabel');
+    const status = document.getElementById('caminataSaveStatus');
+    if (!button || !icon || !label) return;
+    button.classList.remove('btn-outline-orange', 'btn-outline-success', 'btn-success', 'btn-outline-danger');
+    if (state === 'listening') {
+      button.classList.add('btn-outline-success');
+      icon.className = 'bi bi-circle-fill text-success me-1 animate__animated animate__pulse animate__infinite';
+      label.textContent = 'Escuchando';
+    } else if (state === 'saving') {
+      button.classList.add('btn-outline-success');
+      icon.className = 'spinner-border spinner-border-sm text-success me-1';
+      label.textContent = 'Guardando';
+    } else if (state === 'saved') {
+      button.classList.add('btn-success');
+      icon.className = 'bi bi-check-lg me-1';
+      label.textContent = 'Guardado';
+    } else if (state === 'error') {
+      button.classList.add('btn-outline-danger');
+      icon.className = 'bi bi-exclamation-triangle me-1';
+      label.textContent = 'Error';
+    } else {
+      button.classList.add('btn-outline-orange');
+      icon.className = 'bi bi-save me-1';
+      label.textContent = 'Guardar';
+    }
+    button.title = message || label.textContent;
+    if (status) status.textContent = message || '';
+  }
+
+  function programarGuardadoCaminata(delay) {
+    registrarHistorialCaminata();
+    mostrarEstadoGuardadoCaminata('listening', 'Cambios detectados. Preparando autoguardado…');
+    if (_guardarCaminataTimer) clearTimeout(_guardarCaminataTimer);
+    if (_guardarCaminataFormateoTimer) clearTimeout(_guardarCaminataFormateoTimer);
+    _guardarCaminataTimer = setTimeout(() => {
+      _guardarCaminataTimer = null;
+      _guardarCaminataFormateoTimer = null;
+      caminataSave(true);
+    }, delay);
+  }
+
+  function guardarCaminata() {
+    programarGuardadoCaminata(700);
+  }
+
+  function guardarCaminataFormateo() {
+    programarGuardadoCaminata(250);
+  }
+
+  function guardarCaminataAhora() {
+    if (_guardarCaminataTimer) clearTimeout(_guardarCaminataTimer);
+    if (_guardarCaminataFormateoTimer) clearTimeout(_guardarCaminataFormateoTimer);
+    _guardarCaminataTimer = null;
+    _guardarCaminataFormateoTimer = null;
+    return caminataSave(true);
+  }
+
+  function crearMenuContextualVideo() {
+    let menu = document.getElementById('caminataVideoContextMenu');
+    if (menu) return menu;
+    menu = document.createElement('div');
+    menu.id = 'caminataVideoContextMenu';
+    menu.style.position = 'fixed';
+    menu.style.display = 'none';
+    menu.style.zIndex = '9999';
+    menu.style.background = '#fff';
+    menu.style.border = '1px solid #ddd';
+    menu.style.borderRadius = '0.5rem';
+    menu.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+    menu.style.minWidth = '220px';
+    menu.style.padding = '0.5rem';
+    menu.innerHTML = `
+      <div class="d-grid gap-1">
+        <button type="button" class="btn btn-sm btn-light text-start" onclick="moverVideoCaminata('inicio')"><i class="bi bi-arrow-bar-up me-2"></i>Debajo del título</button>
+        <button type="button" class="btn btn-sm btn-light text-start" onclick="moverVideoCaminata('finTexto')"><i class="bi bi-text-right me-2"></i>Al final del texto</button>
+        <button type="button" class="btn btn-sm btn-light text-start" onclick="moverVideoCaminata('fin')"><i class="bi bi-arrow-bar-down me-2"></i>Al final de la sección</button>
+        <div class="dropdown-divider"></div>
+        <button type="button" class="btn btn-sm btn-light text-start text-danger" onclick="eliminarVideoCaminata()"><i class="bi bi-trash me-2"></i>Eliminar</button>
+      </div>
+    `;
+    document.body.appendChild(menu);
+    document.addEventListener('click', function(e) {
+      if (menu && !menu.contains(e.target) && menu.style.display === 'block') {
+        menu.style.display = 'none';
+      }
+    });
+    return menu;
+  }
+
+  async function moverVideoCaminata(destino) {
+    const menu = document.getElementById('caminataVideoContextMenu');
+    const video = _videoSeleccionadoContexto;
+    const preview = document.getElementById('caminataPreview');
+    if (!video || !preview) return;
+    if (destino === 'inicio') {
+      const primero = preview.firstElementChild;
+      if (primero && primero.nextElementSibling) {
+        preview.insertBefore(video, primero.nextElementSibling);
+      } else if (primero) {
+        primero.after(video);
+      } else {
+        preview.appendChild(video);
+      }
+    } else if (destino === 'finTexto') {
+      let bloqueTexto = null;
+      for (let i = preview.children.length - 1; i >= 0; i--) {
+        const el = preview.children[i];
+        const esMedia = ['IMG', 'VIDEO', 'AUDIO', 'IFRAME'].includes(el.tagName) || (el.classList && el.classList.contains('caminata-embed'));
+        if (!esMedia && el.innerText && el.innerText.trim().length > 0) {
+          bloqueTexto = el;
+          break;
+        }
+      }
+      if (bloqueTexto) {
+        bloqueTexto.after(video);
+      } else if (preview.lastElementChild) {
+        preview.lastElementChild.after(video);
+      } else {
+        preview.appendChild(video);
+      }
+    } else if (destino === 'fin') {
+      preview.appendChild(video);
+    }
+    if (menu) menu.style.display = 'none';
+    await caminataSave(true);
+  }
+
+  async function eliminarVideoCaminata() {
+    const menu = document.getElementById('caminataVideoContextMenu');
+    const video = _videoSeleccionadoContexto;
+    if (video && video.parentElement) {
+      video.parentElement.removeChild(video);
+    }
+    if (menu) menu.style.display = 'none';
+    _videoSeleccionadoContexto = null;
+    await caminataSave(true);
+  }
+
   function caminataImageAlign(position) {
+    caminataRestaurarSeleccion();
     const sel = window.getSelection();
     if (!sel.rangeCount) return;
     let node = sel.getRangeAt(0).commonAncestorContainer;
@@ -424,6 +1075,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     } else {
       img.style.float = 'none'; img.style.display = 'block'; img.style.margin = '0 auto 1rem auto';
     }
+    guardarCaminataFormateo();
   }
 
   function caminataInsertarVideo() {
@@ -438,8 +1090,22 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
   }
 
   function caminataEliminarSeleccion() {
+    const multi = caminataElementosMultiseleccionados();
+    if (multi.length) {
+      multi.forEach(el => el.remove());
+      _caminataMultiseleccionActiva = false;
+      const button = document.getElementById('caminataMultiSelectButton');
+      if (button) { button.classList.remove('btn-success'); button.classList.add('btn-light'); }
+      guardarCaminataFormateo();
+      return;
+    }
     const sel = window.getSelection();
     if (!sel.rangeCount) return;
+    if (!sel.getRangeAt(0).collapsed) {
+      document.execCommand('delete');
+      guardarCaminataFormateo();
+      return;
+    }
     let node = sel.getRangeAt(0).commonAncestorContainer;
     if (node.nodeType === Node.TEXT_NODE) node = node.parentElement;
     let el = node;
@@ -453,6 +1119,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
         try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
         document.getElementById('caminataPreview').focus();
         document.execCommand('delete');
+        guardarCaminataFormateo();
         return;
       }
       el = el.parentElement;
@@ -479,21 +1146,36 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       feedback.style.display = 'block';
       return;
     }
-    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    caminataRestaurarSeleccion();
     document.getElementById('caminataPreview').focus();
     document.execCommand('insertHTML', false, html);
+    guardarCaminataFormateo();
     const modalEl = document.getElementById('insertarVideoModal');
     const modal = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
     modal.hide();
   }
 
   function caminataFormatBlock(tag) {
-    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
-    document.getElementById('caminataPreview').focus();
-    document.execCommand('formatBlock', false, tag);
+    const preview = document.getElementById('caminataPreview');
+    if (!preview || !tag) return;
+    caminataRestaurarSeleccion();
+    const bloques = caminataBloquesSeleccionados();
+    if (bloques.length === 0) return;
+    preview.focus();
+    const t = tag.toLowerCase();
+    bloques.forEach(el => {
+      if (el.tagName.toLowerCase() === t) return;
+      const nuevo = document.createElement(t);
+      nuevo.innerHTML = el.innerHTML;
+      nuevo.className = el.className;
+      nuevo.style.cssText = el.style.cssText;
+      el.replaceWith(nuevo);
+    });
+    guardarCaminataFormateo();
   }
 
   function caminataCita() {
+    caminataRestaurarSeleccion();
     const bloques = caminataBloquesSeleccionados();
     if (bloques.length === 0) return;
     const preview = document.getElementById('caminataPreview');
@@ -504,40 +1186,71 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
         const p = document.createElement('p');
         p.innerHTML = el.innerHTML;
         p.className = el.className;
-        p.removeAttribute('style');
+        p.style.cssText = el.style.cssText;
         el.replaceWith(p);
       } else {
         const bq = document.createElement('blockquote');
         bq.innerHTML = el.innerHTML;
         bq.className = el.className;
-        bq.removeAttribute('style');
+        bq.style.cssText = el.style.cssText;
         el.replaceWith(bq);
       }
     });
+    guardarCaminataFormateo();
   }
 
   async function caminataSave(silent=false) {
     const statusEl = document.getElementById('caminataSaveStatus');
-    if (statusEl && !silent) statusEl.textContent = 'Guardando...';
-    const content = document.getElementById('caminataPreview').innerHTML;
+    registrarHistorialCaminata();
+    if (_caminataStale && silent) {
+      mostrarEstadoGuardadoCaminata('error', 'Contenido desactualizado. Recargá la página.');
+      return;
+    }
+    if (_caminataSaveInProgress) {
+      _caminataPendingSilent = _caminataSavePending ? (_caminataPendingSilent && silent) : silent;
+      _caminataSavePending = true;
+      return;
+    }
+    _caminataSaveInProgress = true;
+    mostrarEstadoGuardadoCaminata('saving', silent ? 'Autoguardando…' : 'Guardando…');
     try {
-      const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/save-itinerario`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({itinerario: content})
-      });
-      const data = await r.json();
-      if (data.ok && statusEl && !silent) {
-        statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
-        setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
-      } else if (!data.ok && !silent) {
-        alert(data.error || 'Error al guardar');
-        if (statusEl) statusEl.textContent = '';
+      const preview = document.getElementById('caminataPreview');
+      const content = preview ? caminataContenidoLimpio() : '';
+      if (content === originalItinerario) {
+        if (!silent) reiniciarHistorialCaminata(content);
+        mostrarEstadoGuardadoCaminata('saved', 'Todo está guardado');
+      } else {
+        const r = await fetch(`/api/caminatas-2027/${CAMINATA_ID}/save-itinerario`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({itinerario: content, hash: ITINERARIO_HASH})
+        });
+        const data = await r.json();
+        if (data.ok) {
+          originalItinerario = content;
+          if (data.hash) ITINERARIO_HASH = data.hash;
+          if (silent) guardarHistorialCaminata();
+          else reiniciarHistorialCaminata(content);
+          mostrarEstadoGuardadoCaminata('saved', silent ? 'Todos los cambios se autoguardaron' : 'Todos los cambios se guardaron');
+        } else if (data.stale) {
+          _caminataStale = true;
+          mostrarEstadoGuardadoCaminata('error', 'El contenido cambió en otro dispositivo. Recargá la página.');
+          if (!silent) alert(data.error || 'El contenido cambió en otro dispositivo. Recargá la página.');
+        } else {
+          mostrarEstadoGuardadoCaminata('error', data.error || 'Error al guardar');
+          if (!silent) alert(data.error || 'Error al guardar');
+        }
       }
     } catch(e) {
-      if (!silent) {
-        alert('Error de conexión al guardar');
-        if (statusEl) statusEl.textContent = '';
+      mostrarEstadoGuardadoCaminata('error', 'Error de conexión al guardar');
+      if (!silent) alert('Error de conexión al guardar');
+    } finally {
+      _caminataSaveInProgress = false;
+      if (_caminataSavePending) {
+        _caminataSavePending = false;
+        const nextSilent = _caminataPendingSilent;
+        _caminataPendingSilent = false;
+        await caminataSave(nextSilent);
       }
     }
   }
@@ -604,7 +1317,76 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     title.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
-  document.addEventListener('DOMContentLoaded', setupCaminataDetalleLongPress);
+  document.addEventListener('DOMContentLoaded', function() {
+    setupCaminataDetalleLongPress();
+    Wysiwyg.setupUploadListeners('caminataPreview', `/api/caminatas-2027/${CAMINATA_ID}/upload-image`, () => caminataSave(true));
+    const preview = document.getElementById('caminataPreview');
+    if (preview) {
+      originalItinerario = caminataContenidoLimpio();
+      iniciarHistorialCaminata();
+      const observer = new MutationObserver(() => {
+        if (!_caminataMarcandoSeleccion && document.activeElement === preview) guardarCaminata();
+      });
+      observer.observe(preview, { childList: true, subtree: true, characterData: true });
+      preview.addEventListener('input', function(event) {
+        if (event.inputType === 'insertParagraph' || event.inputType === 'insertLineBreak' || (event.inputType === 'insertText' && /\s/.test(event.data || ''))) {
+          caminataConvertirEnlaces();
+        }
+        guardarCaminata();
+      });
+      preview.addEventListener('paste', function() {
+        setTimeout(caminataConvertirEnlaces, 0);
+      });
+      preview.addEventListener('mouseup', caminataAgregarRangoMultiseleccion);
+      preview.addEventListener('touchend', function() {
+        if (_caminataMultiseleccionActiva) setTimeout(caminataAgregarRangoMultiseleccion, 50);
+      });
+      preview.addEventListener('click', function(event) {
+        if (!_caminataMultiseleccionActiva) return;
+        const media = event.target.closest('img, video, .caminata-embed');
+        if (media && preview.contains(media)) {
+          event.preventDefault();
+          media.dataset.caminataMultiselect = media.dataset.caminataMultiselect === 'true' ? 'false' : 'true';
+          if (media.dataset.caminataMultiselect === 'false') media.removeAttribute('data-caminata-multiselect');
+          actualizarEstadoMultiseleccion(`${caminataElementosMultiseleccionados().length} elemento(s) agregado(s). Seleccioná otro o aplicá una acción.`);
+          actualizarBotonesAlineacion(false);
+        }
+      });
+      preview.addEventListener('keydown', function(event) {
+        const modifier = event.ctrlKey || event.metaKey;
+        if (!modifier || event.altKey || event.key.toLowerCase() !== 'z') return;
+        event.preventDefault();
+        navegarHistorialCaminata(event.shiftKey ? 1 : -1);
+      });
+      preview.addEventListener('blur', function() {
+        const sel = window.getSelection();
+        if (sel && sel.rangeCount && !sel.getRangeAt(0).collapsed) {
+          const r = sel.getRangeAt(0);
+          if (preview.contains(r.commonAncestorContainer)) caminataRange = r.cloneRange();
+        }
+        caminataConvertirEnlaces();
+        guardarCaminataAhora();
+      });
+      document.addEventListener('visibilitychange', function() {
+        if (document.visibilityState === 'hidden') guardarCaminataAhora();
+      });
+      preview.addEventListener('contextmenu', function(e) {
+        let node = e.target;
+        while (node && node.id !== 'caminataPreview') {
+          if (node.tagName === 'VIDEO' || (node.classList && node.classList.contains('caminata-embed'))) {
+            e.preventDefault();
+            _videoSeleccionadoContexto = node;
+            const menu = crearMenuContextualVideo();
+            menu.style.display = 'block';
+            menu.style.left = (e.clientX + 8) + 'px';
+            menu.style.top = (e.clientY + 8) + 'px';
+            return;
+          }
+          node = node.parentElement;
+        }
+      });
+    }
+  });
 
   async function caminataExport(format) {
     if (format === 'pdf') {
@@ -656,7 +1438,78 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       alert('Error al exportar');
     }
   }
+
+  function reservarCaminataWhatsApp() {
+    const nombreEvento = "{{ event.nombre_lugar }}";
+    const precio = "{% set p_val = event.precio|int if event.precio else 0 %}{% if p_val > 0 %}{{ event.moneda }}{{ event.precio }}{% else %}PENDIENTE{% endif %}";
+    const sinpeString = "{{ event.sinpe or '' }}";
+
+    let numeroAdmin = "50686529837";
+    if(sinpeString.includes("87984232")) numeroAdmin = "50687984232";
+    if(sinpeString.includes("86227500")) numeroAdmin = "50686227500";
+
+    const mensaje = `¡Hola! Me gustaría reservar un cupo para el evento *${nombreEvento}* (${precio}). ¿Aún hay espacio disponible?`;
+    window.open(`https://api.whatsapp.com/send?phone=${numeroAdmin}&text=${encodeURIComponent(mensaje)}`, '_blank');
+  }
+
+  const CAMINATA_PUNTOS = {{ event.puntos or 0 }};
+  const IS_SUPER = {{ 'true' if is_super else 'false' }};
+
+  document.addEventListener('DOMContentLoaded', function() {
+    if (CAMINATA_PUNTOS > 0) {
+      document.getElementById('puntosCaminataRow').style.display = 'flex';
+      document.getElementById('puntosValorCaminata').textContent = CAMINATA_PUNTOS;
+      cargarPuntosCaminata();
+      if (IS_SUPER) document.getElementById('puntosAdmin').classList.remove('d-none');
+    }
+  });
+
+  async function cargarPuntosCaminata() {
+    try {
+      const r = await fetch(`/api/puntos/evento/${CAMINATA_ID}`);
+      const data = await r.json();
+      if (!data.ok) return;
+      const total = data.asignados.reduce((sum, a) => sum + a.puntos, 0);
+      document.getElementById('puntosTotalCaminata').textContent = `Total acumulado en esta actividad: ${total}`;
+      const cont = document.getElementById('puntosAsignadosCaminata');
+      if (!data.asignados.length) {
+        cont.innerHTML = '<p class="text-muted">Aún no se han asignado puntos.</p>';
+      } else {
+        cont.innerHTML = data.asignados.map(a => `<div class="d-flex justify-content-between border-bottom py-1"><span>${a.cedula}${a.retirado ? ' <span class="text-danger">(retirado)</span>' : ''}</span><span class="fw-bold">${a.puntos}</span></div>`).join('');
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  async function asignarPuntosCaminata() {
+    if (!confirm('¿Asignar ' + CAMINATA_PUNTOS + ' puntos a todos los registrados?')) return;
+    try {
+      const r = await fetch(`/api/puntos/asignar/${CAMINATA_ID}`, { method: 'POST' });
+      const data = await r.json();
+      alert(data.ok ? `Asignados: ${data.added} participantes` : data.error);
+      if (data.ok) cargarPuntosCaminata();
+    } catch (e) { console.error(e); }
+  }
+
+  async function retirarPuntosCaminata() {
+    const cedula = document.getElementById('retirarCedula').value.trim();
+    if (!cedula) return alert('Escribí la cédula.');
+    if (!confirm('¿Retirar los puntos de ' + cedula + '?')) return;
+    const mensaje = prompt('Si el retiro está justificado por lesión, escribí el mensaje. Dejalo vacío si no hay justificación.');
+    if (mensaje === null) return;
+    const justificado = mensaje.trim().length > 0;
+    try {
+      const r = await fetch(`/api/puntos/retirar/${CAMINATA_ID}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cedula, justificado, mensaje: mensaje.trim() })
+      });
+      const data = await r.json();
+      alert(data.ok ? 'Retiro realizado. Deducido: ' + (data.points_deducted || 0) + ' puntos.' : data.error);
+      if (data.ok) { document.getElementById('retirarCedula').value = ''; cargarPuntosCaminata(); }
+    } catch (e) { console.error(e); }
+  }
 </script>
+
 {% endblock %}
 
 {% block footer %}

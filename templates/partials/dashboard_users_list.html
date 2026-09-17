@@ -44,15 +44,19 @@ function _buildRow(u) {
         typeBadge   = '<span class="badge bg-primary bg-opacity-75 rounded-pill px-2 shadow-sm">CRM</span>';
         statusBadge = '<span class="badge bg-light text-secondary border rounded-pill px-2">—</span>';
     }
+    const hasEmergency = u.crm_emergencia_nombre && u.crm_emergencia_tel;
+    const emergencyIcon = hasEmergency
+        ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#dc3545" class="ms-2 flex-shrink-0" viewBox="0 0 16 16" role="img" aria-label="Tiene contacto de emergencia registrado"><title>Tiene contacto de emergencia registrado</title><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>`
+        : '';
     return `<tr style="cursor:pointer;" onclick='viewUserDetails(${safeUser})' class="bg-white bg-opacity-50 user-row">
         <td class="py-3">
-            <div class="fw-bold text-dark d-flex align-items-center">${icon}<span class="text-truncate">${u.display_name}</span></div>
+            <div class="fw-bold text-dark d-flex align-items-center">${icon}<span class="text-truncate">${u.display_name}</span>${emergencyIcon}</div>
             ${subtext}
             <div class="d-sm-none mt-2 ms-4 d-flex flex-wrap gap-2">${typeBadge} ${statusBadge}</div>
         </td>
         <td class="py-3 d-none d-sm-table-cell">${typeBadge}</td>
         <td class="py-3 d-none d-sm-table-cell">${statusBadge}</td>
-        <td class="text-end text-sm-center py-3"><button class="btn btn-sm btn-orange rounded-circle shadow-sm" title="Ver detalle"><i class="bi bi-eye-fill"></i></button></td>
+        <td class="text-end text-sm-center py-3"><button class="btn btn-sm btn-orange rounded-circle shadow-sm" title="Ver detalle" onclick='event.stopPropagation(); viewUserDetails(${safeUser})'><i class="bi bi-eye-fill fs-5" style="color: inherit !important;"></i></button></td>
     </tr>`;
 }
 

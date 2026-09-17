@@ -120,6 +120,47 @@
         } catch(e){_dbMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
         input.value='';
     }
+
+    // Crear usuario desde el modal de Agenda
+    document.getElementById('crearUsuarioForm') && document.getElementById('crearUsuarioForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('btnCrearUsuario');
+        const originalHTML = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Creando...';
+
+        const payload = {
+            cedula: document.getElementById('cuCedula').value.trim(),
+            nombre_completo: document.getElementById('cuNombre').value.trim(),
+            telefono: document.getElementById('cuTelefono').value.trim(),
+            pasaporte: document.getElementById('cuPasaporte').value.trim() || '',
+            fecha_nacimiento: document.getElementById('cuFechaNac').value,
+            tipo_sangre: document.getElementById('cuSangre').value,
+            alergias: document.getElementById('cuAlergias').value.trim() || 'Ninguna',
+            enfermedades_cronicas: document.getElementById('cuEnfermedades').value.trim() || 'Ninguna',
+            contacto_emergencia_nombre: document.getElementById('cuEmergenciaNombre').value.trim(),
+            contacto_emergencia_telefono: document.getElementById('cuEmergenciaTelefono').value.trim()
+        };
+
+        try {
+            const r = await fetch('/api/hiker/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const d = await r.json();
+
+            if (r.ok && d.success) {
+                alert(`Usuario creado correctamente. PIN: ${d.pin}`);
+                bootstrap.Modal.getInstance(document.getElementById('crearUsuarioModal')).hide();
+                document.getElementById('crearUsuarioForm').reset();
+                loadHikers();
+            } else {
+                alert(d.error || 'Error al crear usuario');
+            }
+        } catch (err) {
+            alert('Error de conexión. Intenta nuevamente.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
+    });
 </script>
 
 {% include 'partials/agenda_crm_scripts.html' %}

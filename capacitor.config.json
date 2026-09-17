@@ -1,0 +1,9 @@
+{
+  "appId": "top.latribu.app",
+  "appName": "La Tribu",
+  "webDir": "android-web",
+  "server": {
+    "url": "https://www.latribu.top",
+    "allowNavigation": ["www.latribu.top"]
+  }
+}

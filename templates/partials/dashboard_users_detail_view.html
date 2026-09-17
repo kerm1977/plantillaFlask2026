@@ -9,6 +9,8 @@ function viewUserDetails(userObj) {
     document.getElementById('btnBlockUser').classList.toggle('d-none', !isUser);
     document.getElementById('btnEditUserAdmin').classList.toggle('d-none', !isUser);
     document.getElementById('btnDeleteUser').classList.toggle('d-none', !isUser);
+    const btnQR = document.getElementById('btnVerQR');
+    if (btnQR) btnQR.classList.toggle('d-none', !isUser);
     const btnCrm = document.getElementById('btnEditHikerCrm');
     if (btnCrm) {
         const cedula = userObj.crm_cedula || (userObj.type === 'hiker' ? userObj.crm_cedula : null);

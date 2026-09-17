@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container d-flex align-items-center justify-content-center min-vh-100 py-5">
+    <div class="modal d-block" tabindex="-1" style="position: relative; display: flex !important; align-items: center; justify-content: center; width: 100%;">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content glass-modal border-0 shadow-lg p-4">
+                <div class="modal-body p-0 text-center">
+                    <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="max-height: 55px;" class="mb-3">
+                    <h5 class="fw-bold text-dark mb-3">Gestión de usuarios</h5>
+                    <p class="text-muted small mb-4">Seleccioná una opción para continuar con el enlace compartido.</p>
+
+                    <div class="d-grid gap-3 mb-4">
+                        <button type="button" class="btn btn-orange rounded-pill fw-bold py-3 {{ 'active' if accion == 'crear' else '' }}" onclick="mostrarAlerta('Próximamente: formulario de registro público.', 'info')">
+                            <i class="bi bi-person-plus me-2"></i>Crear nuevo usuario
+                        </button>
+                        <button type="button" class="btn btn-outline-primary rounded-pill fw-bold py-3 {{ 'active' if accion == 'actualizar' else '' }}" onclick="mostrarAlerta('Próximamente: formulario de actualización.', 'info')">
+                            <i class="bi bi-pencil-square me-2"></i>Actualizar usuario
+                        </button>
+                    </div>
+
+                    <p class="text-muted small mb-0">Enlace generado por un administrador.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

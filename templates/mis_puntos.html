@@ -1,0 +1,558 @@
+{% extends 'base.html' %}
+{% block title %}Mis puntos ganados - La Tribu{% endblock %}
+{% block content %}
+<style>
+  @keyframes checkGlowPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.9); border-color: #ffc107; }
+    50% { box-shadow: 0 0 14px 5px rgba(255, 193, 7, 0.95); border-color: #ff9800; }
+  }
+  .checkbox-glow .form-check-input:not(:checked) {
+    animation: checkGlowPulse 1.2s ease-in-out infinite;
+    border-width: 2px;
+  }
+</style>
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12">
+        <h1 class="fw-bold text-dark text-center mb-4"><i class="bi bi-trophy text-orange me-2"></i>Mis puntos ganados</h1>
+        <p class="text-muted text-center mb-4">Ingresá tu número de cédula para ver tu historial de puntos.</p>
+        <div class="row justify-content-center">
+          <div class="col-12 col-md-8 col-lg-6">
+        <form method="get" action="{{ url_for('main.mis_puntos') }}">
+          <div class="input-group mb-1">
+            <input type="text" name="cedula" class="form-control glass-input rounded-start-pill" value="{{ cedula }}" placeholder="Número de cédula" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/\D/g, '')" required>
+            <button type="submit" class="btn btn-warning rounded-end-pill fw-bold text-dark">Buscar</button>
+          </div>
+          <p class="small text-muted text-center mb-4">Formato: solo números, sin guiones ni espacios. En vez de guiones usá ceros (ej: 1-0984-0935 → 109840935).</p>
+        </form>
+        {% if no_registrado %}
+        <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 text-center">
+          <i class="bi bi-person-x fs-1 text-danger"></i>
+          <h5 class="fw-bold mt-2">Este usuario no existe</h5>
+          <p class="text-muted mb-3">Por favor comunícate con los administradores de La Tribu de los Libres para tu respectivo registro.</p>
+          <a href="{{ registro_whatsapp_url }}" target="_blank" class="btn btn-success rounded-pill fw-bold px-4 py-2" style="white-space: normal;">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp<br>
+            <span class="d-block small">Jenny Ceciliano Córdova</span>
+            <span class="d-block">8652-9837</span>
+          </a>
+        </div>
+        {% endif %}
+        {% if pendiente_password %}
+        <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 text-center">
+          <i class="bi bi-person-check fs-1 text-success"></i>
+          <h4 class="fw-bold mt-2">Bienvenido {{ nombre_bienvenida }}</h4>
+          <p class="text-muted">Ahora colocá el PIN de 4 dígitos proporcionado por los superusuarios para poder ver todo tu sistema de puntos.</p>
+          <form method="get" action="{{ url_for('main.mis_puntos') }}">
+            <input type="hidden" name="cedula" value="{{ cedula }}">
+            <div class="input-group">
+              <input type="password" name="clave" class="form-control glass-input rounded-start-pill" placeholder="Ingresar contraseña" maxlength="4" inputmode="numeric" required autofocus>
+              <button type="submit" class="btn btn-warning rounded-end-pill fw-bold text-dark">Ingresar</button>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+        {% if admin_message %}
+        <div class="alert alert-success rounded-pill flash-msg">{{ admin_message }}</div>
+        {% endif %}
+        {% if admin_error %}
+        <div class="alert alert-danger rounded-pill flash-msg">{{ admin_error }}</div>
+        {% endif %}
+          </div>
+        </div>
+        {% if result %}
+        <div class="row g-4">
+          <div class="col-12 col-lg-7">
+        <div class="text-center mb-4">
+          <h2 class="fw-bold text-warning-custom">{{ result.total }} puntos</h2>
+          <p class="text-muted">{{ result.nombre_completo }} ({{ result.cedula }})</p>
+        </div>
+
+        <div class="accordion mb-4" id="resultadoPuntosAccordion">
+          <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accNotificaciones">
+                <i class="bi bi-bell me-2 text-info"></i>Notificaciones
+              </button>
+            </h2>
+            <div id="accNotificaciones" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
+              <div class="accordion-body">
+                {% if result.notificaciones %}
+                <div class="alert alert-info rounded-4 border-0 mb-3">
+                  {% for n in result.notificaciones %}
+                  <p class="mb-1 small">
+                    <strong>{{ n.creado_por }}</strong> te ha regalado <strong>{{ n.puntos }}</strong> puntos.
+                    <span class="text-muted">{{ n.detalle }}</span>
+                  </p>
+                  {% endfor %}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-bs-toggle="collapse" data-bs-target="#limpiarNotifCollapse"><i class="bi bi-bell-slash me-1"></i>Limpiar notificaciones</button>
+                <div class="collapse mt-2" id="limpiarNotifCollapse">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}" class="border rounded-4 p-3 bg-light bg-opacity-50">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="limpiar_notificaciones">
+                    <div class="form-check checkbox-glow mb-2">
+                      <input class="form-check-input" type="checkbox" id="confirmaLimpiarNotif" required>
+                      <label class="form-check-label small" for="confirmaLimpiarNotif">Sí, quiero limpiar todas mis notificaciones.</label>
+                    </div>
+                    <button type="submit" class="btn btn-sm btn-danger rounded-pill fw-bold">Limpiar definitivamente</button>
+                  </form>
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No hay notificaciones registradas.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accExportar">
+                <i class="bi bi-share me-2 text-primary"></i>Descargar y compartir
+              </button>
+            </h2>
+            <div id="accExportar" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
+              <div class="accordion-body">
+                <div class="d-grid gap-2">
+                  <a href="{{ estado_whatsapp_url }}" class="btn btn-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar mi estado de cuenta por WhatsApp</a>
+                  <p class="small text-muted mb-0">Se enviará al teléfono registrado de tu cédula{% if telefono_registrado %} ({{ telefono_registrado }}){% endif %}.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {% set page_arg = request.args.get('page', '') %}
+          <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button {% if not page_arg %}collapsed{% endif %} fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accHistorial" aria-expanded="{{ 'true' if page_arg else 'false' }}">
+                <i class="bi bi-clock-history me-2 text-orange"></i>Historial de movimientos
+              </button>
+            </h2>
+            <div id="accHistorial" class="accordion-collapse collapse {% if page_arg %}show{% endif %}" data-bs-parent="#resultadoPuntosAccordion">
+              <div class="accordion-body">
+                {% set per_page = 5 %}
+                {% set page = request.args.get('page', '1')|int %}
+                {% if page < 1 %}{% set page = 1 %}{% endif %}
+                {% set total = result.history|length %}
+                {% set pages = (total // per_page) + (1 if (total % per_page) > 0 else 0) %}
+                {% if total == 0 %}{% set pages = 1 %}{% endif %}
+                {% if page > pages %}{% set page = pages %}{% endif %}
+                {% set start = (page-1)*per_page %}
+                {% set end = start + per_page %}
+                {% set paged_history = result.history[start:end] %}
+
+                {% if paged_history %}
+                <div class="mb-3">
+                  {% for row in paged_history %}
+                  <div class="card border-0 shadow-sm rounded-4 mb-2 p-3 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                      <div>
+                        <span class="badge bg-light text-dark rounded-pill mb-1">{{ row.creado_at[:10] if row.creado_at else 'Sin fecha' }}</span>
+                        <h6 class="fw-bold mb-0 text-break">{{ row.evento_nombre or 'Actividad general' }}</h6>
+                        <small class="text-muted text-uppercase">{{ row.tipo }}</small>
+                      </div>
+                      <div class="text-end">
+                        <span class="fw-bold fs-5 {{ 'text-danger' if row.puntos < 0 else 'text-success' }}">{{ row.puntos }}</span>
+                        <small class="d-block text-muted">puntos</small>
+                      </div>
+                    </div>
+                    {% if row.detalle %}
+                    <p class="mb-2 small text-break"><span class="fw-semibold">Detalle:</span> {{ row.detalle }}</p>
+                    {% endif %}
+                    {% if session.get('user_id') %}
+                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" data-bs-toggle="collapse" data-bs-target="#eliminarCollapse{{ row.id }}"><i class="bi bi-trash me-1"></i>Eliminar registro</button>
+                    <div class="collapse mt-2" id="eliminarCollapse{{ row.id }}">
+                      <form method="post" action="{{ url_for('main.mis_puntos_eliminar', row_id=row.id) }}" class="border rounded-4 p-3 bg-light bg-opacity-50">
+                        <p class="fw-bold small mb-2">¿Seguro que querés eliminar este movimiento?</p>
+                        <p class="small text-muted mb-2">Fecha: {{ row.creado_at[:10] if row.creado_at else 'Sin fecha' }}<br>Tipo: {{ row.tipo }}<br>Puntos: {{ row.puntos }}</p>
+                        <div class="form-check checkbox-glow mb-2">
+                          <input class="form-check-input" type="checkbox" id="confirmaEliminar1_{{ row.id }}" required>
+                          <label class="form-check-label small" for="confirmaEliminar1_{{ row.id }}">Sí, quiero eliminar este registro.</label>
+                        </div>
+                        <div class="form-check checkbox-glow mb-2">
+                          <input class="form-check-input" type="checkbox" id="confirmaEliminar2_{{ row.id }}" required>
+                          <label class="form-check-label small" for="confirmaEliminar2_{{ row.id }}">Entiendo que esta acción no se puede deshacer.</label>
+                        </div>
+                        <div class="d-flex gap-2">
+                          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" data-bs-toggle="collapse" data-bs-target="#eliminarCollapse{{ row.id }}">Cancelar</button>
+                          <button type="submit" class="btn btn-sm btn-danger rounded-pill fw-bold">Eliminar definitivamente</button>
+                        </div>
+                      </form>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                </div>
+
+                {% if pages > 1 %}
+                <nav class="mt-3" aria-label="Paginación del historial">
+                  <ul class="pagination justify-content-center flex-wrap gap-1">
+                    <li class="page-item {{ 'disabled' if page == 1 else '' }}">
+                      <a class="page-link rounded-pill" href="{{ url_for('main.mis_puntos', cedula=result.cedula, page=page-1) }}#accHistorial">Anterior</a>
+                    </li>
+                    {% for p in range(1, pages+1) %}
+                    <li class="page-item {{ 'active' if p == page else '' }}">
+                      <a class="page-link rounded-pill" href="{{ url_for('main.mis_puntos', cedula=result.cedula, page=p) }}#accHistorial">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+                    <li class="page-item {{ 'disabled' if page == pages else '' }}">
+                      <a class="page-link rounded-pill" href="{{ url_for('main.mis_puntos', cedula=result.cedula, page=page+1) }}#accHistorial">Siguiente</a>
+                    </li>
+                  </ul>
+                </nav>
+                {% endif %}
+                {% else %}
+                <p class="text-muted text-center mb-0">No hay movimientos registrados.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+          </div>
+          <div class="col-12 col-lg-5">
+
+        {% if cumpleaneros %}
+        <div class="border-top pt-4 mt-4">
+          <h4 class="fw-bold text-dark mb-3">Cumpleañeros de hoy</h4>
+          <ul class="list-group list-group-flush mb-3">
+            {% for p in cumpleaneros %}
+            {% if p.cedula != result.cedula %}
+            <li class="list-group-item d-flex justify-content-between align-items-center bg-transparent ps-0 pe-0">
+              <span>{{ p.nombre_completo }} ({{ p.cedula }})</span>
+            </li>
+            {% endif %}
+            {% endfor %}
+          </ul>
+          {% if result and result.total >= 1000 %}
+          {% if donacion_message %}
+          <div class="alert alert-success rounded-pill flash-msg">{{ donacion_message }}</div>
+          {% endif %}
+          {% if donacion_error %}
+          <div class="alert alert-danger rounded-pill flash-msg">{{ donacion_error }}</div>
+          {% endif %}
+          <form method="post" action="{{ url_for('main.mis_puntos') }}" class="row g-2">
+            <input type="hidden" name="cedula" value="{{ result.cedula }}">
+            <input type="hidden" name="accion" value="donar">
+            <div class="col-5">
+              <select name="cedula_destino" class="form-select" data-searchable required>
+                <option value="" disabled selected>Seleccioná un cumpleañero</option>
+                {% for p in cumpleaneros %}
+                {% if p.cedula != result.cedula %}
+                <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-4">
+              <input type="number" name="monto" class="form-control" placeholder="Puntos" min="1" required>
+            </div>
+            <div class="col-3">
+              <button type="submit" class="btn btn-info w-100 text-white fw-bold">Donar</button>
+            </div>
+          </form>
+          <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. No podés donar todos; siempre tenés que quedar con al menos 1 punto.</p>
+          {% else %}
+          <p class="small text-muted">Necesitás al menos 1.000 puntos para donar.</p>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if result %}
+        <div class="border-top pt-4 mt-4">
+          <h4 class="fw-bold text-dark mb-3">Acciones</h4>
+          <div class="accordion" id="accionesPuntosAccordion">
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accObsequiar">
+                  <i class="bi bi-gift me-2 text-success"></i>Obsequiar puntos
+                </button>
+              </h2>
+              <div id="accObsequiar" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="transferir">
+                    <div class="mb-3">
+                      <select name="cedula_destino" class="form-select" data-searchable required>
+                        <option value="" disabled selected>Usuario destino</option>
+                        {% for p in todos_hikers %}
+                        {% if p.cedula != result.cedula %}
+                        <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                        {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a obsequiar</label>
+                      <input type="number" name="monto" class="form-control" placeholder="Ej. 500" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Descripción del obsequio</label>
+                      <textarea name="detalle" class="form-control" rows="3" placeholder="¿Por qué le obsequiás estos puntos?" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaTransferir" required>
+                      <label class="form-check-label" for="confirmaTransferir">Sí, confirmo que quiero obsequiar estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Confirmar obsequio</button>
+                  </form>
+                  <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos y no podés donar el total (deben quedar al menos 1).</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRedimir">
+                  <i class="bi bi-cash-coin me-2 text-warning"></i>Redimir puntos
+                </button>
+              </h2>
+              <div id="accRedimir" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="redimir">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a redimir</label>
+                      <input type="number" id="montoRedimir" name="monto" class="form-control" placeholder="Ej. 5000" min="1" max="{{ result.total }}" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Caminata u otro concepto</label>
+                      <select name="concepto" class="form-select" required onchange="toggleOtroDetalle(this)">
+                        <option value="" disabled selected>Seleccioná una opción</option>
+                        {% for e in eventos_redimir %}
+                        <option value="caminata_{{ e.id }}" data-precio="{{ e.precio or 0 }}">{{ e.nombre_lugar }}</option>
+                        {% endfor %}
+                        <option value="otro">Otros (80%)</option>
+                      </select>
+                      <small class="text-muted">Caminatas: 100% de los puntos. Otros conceptos: 80%.</small>
+                      <div id="precioCaminata" class="small fw-bold text-success mt-1 d-none"></div>
+                    </div>
+                    <div class="mb-3" id="detalleOtro" style="display:none;">
+                      <label class="form-label fw-bold">¿En qué querés redimir los puntos?</label>
+                      <textarea id="detalleOtroText" name="detalle" class="form-control" rows="3" placeholder="Detalle del concepto u otra actividad"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaRedimir" required>
+                      <label class="form-check-label" for="confirmaRedimir">Sí, confirmo que quiero redimir estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold text-dark">Confirmar redención</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+
+        {% if is_super %}
+        <div class="border-top pt-4 mt-4">
+          <h4 class="fw-bold text-dark mb-3">Gestión de superusuario</h4>
+          <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-dark rounded-pill fw-bold w-100 mb-3" target="_blank">Exportar todos los estados de cuenta</a>
+          <div class="accordion" id="gestionAdminPuntosAccordion">
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accExportarAdmin">
+                  <i class="bi bi-download me-2 text-primary"></i>Descargar, exportar e importar
+                </button>
+              </h2>
+              <div id="accExportarAdmin" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.estado_cuenta', cedula=result.cedula) }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank">Descargar estado de cuenta (TXT)</a>
+                    <a href="{{ url_for('main.mis_puntos_exportar_json', cedula=result.cedula) }}" class="btn btn-outline-dark rounded-pill fw-bold" target="_blank">Exportar a JSON</a>
+                    <form method="post" action="{{ url_for('main.mis_puntos_importar_json') }}" enctype="multipart/form-data" class="mt-2">
+                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                      <input type="file" name="archivo" class="form-control mb-2" accept=".json,application/json" required>
+                      <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold">Importar desde JSON</button>
+                    </form>
+                    <a href="{{ whatsapp_url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Compartir resumen por WhatsApp</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRegalar">
+                  <i class="bi bi-gift me-2 text-success"></i>Obsequiar puntos
+                </button>
+              </h2>
+              <div id="accRegalar" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="regalar">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Usuario</label>
+                      <select name="cedula_destino" class="form-select" data-searchable required>
+                        <option value="" disabled selected>Seleccioná un usuario</option>
+                        {% for p in todos_hikers %}
+                        <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a regalar</label>
+                      <input type="number" name="monto" class="form-control" placeholder="Ej. 500" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Motivo o detalle</label>
+                      <textarea name="detalle" class="form-control" rows="3" placeholder="¿Por qué se regalan estos puntos?" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaRegalar" required>
+                      <label class="form-check-label" for="confirmaRegalar">Sí, confirmo que quiero regalar estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Confirmar regalo</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRestar">
+                  <i class="bi bi-dash-circle me-2 text-danger"></i>Restar puntos
+                </button>
+              </h2>
+              <div id="accRestar" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="restar">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Usuario</label>
+                      <select name="cedula_destino" class="form-select" data-searchable required>
+                        <option value="" disabled selected>Seleccioná un usuario</option>
+                        {% for p in todos_hikers %}
+                        <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a restar</label>
+                      <input type="number" name="monto" class="form-control" placeholder="Ej. 250" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Razón del ajuste</label>
+                      <textarea name="detalle" class="form-control" rows="3" placeholder="¿Por qué se restan estos puntos?" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaRestar" required>
+                      <label class="form-check-label" for="confirmaRestar">Sí, confirmo que quiero restar estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Confirmar resta</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRetirarPuntos">
+                  <i class="bi bi-x-circle me-2 text-secondary"></i>Retirar de caminata
+                </button>
+              </h2>
+              <div id="accRetirarPuntos" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  {% if registros %}
+                  <p class="small text-muted">Caminatas en las que {{ result.nombre_completo }} está apuntada. Al retirarla se devuelve el monto redimido menos el 12%.</p>
+                  {% for item in registros %}
+                  <div class="border rounded-4 p-3 mb-2 bg-light bg-opacity-50">
+                    <p class="fw-bold mb-1">{{ item.evento.nombre_lugar }}</p>
+                    <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                      <input type="hidden" name="accion" value="retirar">
+                      <input type="hidden" name="evento_id" value="{{ item.evento.id }}">
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="justifico" value="si" id="justifico_{{ item.evento.id }}">
+                        <label class="form-check-label small" for="justifico_{{ item.evento.id }}">Retiro justificado por lesión</label>
+                      </div>
+                      <div class="mb-2">
+                        <textarea name="mensaje" class="form-control" rows="2" placeholder="Motivo del retiro (opcional)"></textarea>
+                      </div>
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="confirmaRetirar_{{ item.evento.id }}" required>
+                        <label class="form-check-label small" for="confirmaRetirar_{{ item.evento.id }}">Sí, confirmo el retiro de esta caminata.</label>
+                      </div>
+                      <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Retirar de esta caminata</button>
+                    </form>
+                  </div>
+                  {% endfor %}
+                  {% else %}
+                  <p class="small text-muted mb-0">Esta persona no está apuntada en ninguna caminata.</p>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}
+          </div>
+        </div>
+        {% endif %}
+    </div>
+  </div>
+</section>
+<script>
+  function toggleOtroDetalle(select) {
+    var otro = document.getElementById('detalleOtro');
+    var texto = document.getElementById('detalleOtroText');
+    var monto = document.getElementById('montoRedimir');
+    var precioInfo = document.getElementById('precioCaminata');
+    if (select.value === 'otro') {
+      otro.style.display = 'block';
+      if (texto) texto.setAttribute('required', 'required');
+      if (monto) {
+        monto.value = '';
+        monto.readOnly = false;
+      }
+      if (precioInfo) precioInfo.classList.add('d-none');
+    } else if (select.value && select.value.startsWith('caminata_')) {
+      otro.style.display = 'none';
+      if (texto) {
+        texto.removeAttribute('required');
+        texto.value = '';
+      }
+      var opt = select.options[select.selectedIndex];
+      var precio = parseInt(opt.getAttribute('data-precio') || '0', 10);
+      var max = monto ? parseInt(monto.getAttribute('max') || '0', 10) : 0;
+      if (monto) {
+        if (precio > 0) {
+          monto.value = (max && precio > max) ? max : precio;
+        }
+      }
+      if (precioInfo) {
+        if (precio > 0) {
+          if (max >= precio) {
+            var restantes = max - precio;
+            precioInfo.textContent = 'Precio: ' + precio.toLocaleString() + ' puntos. Te quedan ' + restantes.toLocaleString() + ' puntos a favor.';
+            precioInfo.className = 'small fw-bold text-success mt-1';
+          } else {
+            var faltan = precio - max;
+            precioInfo.textContent = 'Precio: ' + precio.toLocaleString() + ' puntos. Te faltan ' + faltan.toLocaleString() + ' puntos (' + faltan.toLocaleString() + ' en efectivo). Usá la cantidad de puntos que tengas.';
+            precioInfo.className = 'small fw-bold text-danger mt-1';
+          }
+          precioInfo.classList.remove('d-none');
+        } else {
+          precioInfo.classList.add('d-none');
+        }
+      }
+    } else {
+      otro.style.display = 'none';
+      if (texto) {
+        texto.removeAttribute('required');
+        texto.value = '';
+      }
+      if (monto) monto.value = '';
+      if (precioInfo) precioInfo.classList.add('d-none');
+    }
+  }
+
+  setTimeout(function() {
+    document.querySelectorAll('.flash-msg').forEach(function(el) {
+      el.style.transition = 'opacity 0.5s ease';
+      el.style.opacity = '0';
+      setTimeout(function() { el.style.display = 'none'; }, 500);
+    });
+  }, 3000);
+</script>
+{% endblock %}

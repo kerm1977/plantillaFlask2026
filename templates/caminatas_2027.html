@@ -1,5 +1,7 @@
 {% extends "base.html" %}
-{% block title %}{{ page_title | default('Caminatas 2027') }} - La Tribu{% endblock %}
+{% block title %}{{ site.caminatas_page_title or 'Caminatas 2027' }} - La Tribu{% endblock %}
+
+{% from 'partials/wysiwyg_editor.html' import wysiwyg_toolbar %}
 
 {% block body_attrs %} class="caminatas-page{% if is_share %} share-view{% endif %}"{% endblock %}
 
@@ -28,20 +30,99 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   <span class="badge rounded-pill align-baseline" style="background:{{ info.bg }}; color:{{ info.text }}; font-size:0.7rem; margin-left:0.35rem;">{{ dificultad or 'Paseo' }}</span>
 {%- endmacro %}
 
+{% macro estado_badge(visitado) -%}
+  {% set v = visitado or 'Pendiente' %}
+  {% if v == 'Cotización' %}<span class="badge" style="background-color: #d63384; color: #fff;">Cotización</span>
+  {% elif v in ('Visitados','Visitado','Sí') %}<span class="badge bg-success">Visitados</span>
+  {% elif v in ('Programados','Por programar') %}<span class="badge" style="background-color: #6f42c1; color: #fff;">Programados</span>
+  {% elif v.isdigit() and v|length == 4 %}<span class="badge" style="background-color: #ff8c00; color: #fff;">{{ v }}</span>
+  {% else %}<span class="badge bg-secondary">Pendiente</span>
+  {% endif %}
+{%- endmacro %}
+
+{% macro caminata_item(ev, is_tribu, is_super, is_share, meses, detail_endpoint) -%}
+  {% set precio_val = ev.precio | default(0, true) | int %}
+  {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
+  {% set fecha_text %}
+    {% if ev.dias == 1 and ev.fecha_unica %}
+      {% set p = ev.fecha_unica.split('-') %}
+      {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
+    {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
+      {% set pi = ev.fecha_inicio.split('-') %}
+      {% set pr = ev.fecha_regreso.split('-') %}
+      {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
+    {% else %}
+      Por definir
+    {% endif %}
+  {% endset %}
+  <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
+    <div class="d-flex align-items-center gap-3">
+      <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+      <div class="flex-grow-1 min-width-0">
+        <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
+        <small class="text-muted d-block">
+          {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
+          {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
+          {% if ev.actividad %}{{ ev.actividad }}{% endif %}
+          <br>{{ estado_badge(ev.visitado) }}
+          {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
+        </small>
+        {% if is_tribu %}
+        <small class="text-muted d-block">{{ fecha_text | trim }}</small>
+        <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
+        {% endif %}
+      </div>
+      <div class="d-flex gap-2" style="z-index:2;">
+        <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}"
+           class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0"
+           style="z-index:2;"
+           title="Información Especial">
+          <i class="bi bi-card-text"></i>
+        </a>
+        {% if is_super %}
+        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+        {% elif not is_share | default(false) %}
+        <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" junto a cada caminata. NO ELIMINAR. -->
+        <a href="https://wa.me/50686529837?text={{ whatsapp_caminata_msg(ev.nombre_lugar, url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
+           target="_blank" rel="noopener"
+           class="btn btn-sm btn-outline-success rounded-pill position-relative flex-shrink-0"
+           style="z-index:2;"
+           title="Avisarme de {{ ev.nombre_lugar }}">
+          <i class="bi bi-whatsapp"></i>
+        </a>
+        <!-- FIN BOTÓN WHATSAPP -->
+        {% endif %}
+      </div>
+    </div>
+  </li>
+{%- endmacro %}
+
 {% block content %}
 
 <style>
   .caminata-thumb { width: 90px; aspect-ratio: 9/16; object-fit: cover; flex-shrink: 0; }
   @media (min-width: 768px) { .caminata-thumb { width: 150px; } }
   .caminata2027-share-title { user-select: none; -webkit-user-select: none; cursor: pointer; }
+  .estado-bar {
+    transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+    border-radius: .75rem !important;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  }
+  .estado-bar:hover {
+    transform: scale(1.03);
+    filter: brightness(1.12);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.25);
+  }
 </style>
 
 {% set is_tribu = not (is_caminatas_2027_page | default(true)) %}
-<div class="container py-5 animate__animated animate__fadeIn">
+<div class="container py-5 animate__animated animate__fadeIn"{% if site.caminatas_section_bg %} style="background: {{ site.caminatas_section_bg }} !important;"{% endif %}>
   <div class="text-center mb-4">
-    <h1 id="caminatas2027Title" class="fw-bold text-dark m-0 caminata2027-share-title">{{ page_title | default('Caminatas 2027') }}</h1>
+    <h1 id="caminatas2027Title" class="fw-bold text-dark m-0 caminata2027-share-title" data-longpress="0" onclick="if (this.dataset.longpress === '1') { this.dataset.longpress = '0'; } else { cambiarVistaCaminatasCiclo(); }">{{ site.caminatas_page_title or 'Caminatas 2027' }}</h1>
     <div class="d-flex align-items-start justify-content-center gap-2 mt-2">
-      <p class="text-muted mb-0" id="caminataIntroText">{{ caminatas_2027_text|safe }}</p>
+      <div class="text-muted mb-0" id="caminataIntroText">{{ caminatas_2027_text|safe }}</div>
       {% if is_super and (is_caminatas_2027_page | default(true)) %}
       <button class="btn btn-sm btn-light rounded-circle flex-shrink-0" onclick="openBlockEditor('intro', null, document.getElementById('caminataIntroText').innerHTML, null)" title="Editar información"><i class="bi bi-pencil"></i></button>
       {% endif %}
@@ -64,12 +145,15 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
           <ul class="list-group list-group-flush">
             {% for entry in timeline if entry.type == 'provincia' and not (entry.group_label == 'Referencia' and not is_super) %}
               {% for ev in entry.walks %}
-              <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center">
+              <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center gap-2">
                 <span class="fw-bold text-dark">{{ ev.nombre_lugar }}</span>
-                <span class="small text-muted text-end">
-                  {{ ev.provincia }}<br>
-                  {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                  <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Información Especial"><i class="bi bi-card-text"></i></a>
+                  <span class="small text-muted text-end">
+                    {{ ev.provincia }}<br>
+                    {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+                  </span>
+                </div>
               </li>
               {% endfor %}
             {% endfor %}
@@ -79,6 +163,7 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
     </div>
   </div>
   {% elif timeline %}
+  <div id="vistaProvincias" class="caminatas-vista" style="display:block;">
   <div id="accordionProvincias">
     {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) %}
       {% if entry.type == 'provincia' %}
@@ -103,67 +188,50 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
           </h2>
           <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
             <div class="accordion-body pt-0">
-              <ul class="list-group list-group-flush">
-                {% if entry.walks_2027 %}
-                <!-- NO MODIFICAR: Enlace a Caminatas 2027 dentro de Por definir. NO ELIMINAR. -->
-                <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-center">
-                  <a href="{{ url_for('main.caminatas_2027') }}" class="rounded-3 d-inline-flex align-items-center justify-content-center fw-bold text-white text-decoration-none" style="width:clamp(90px,25vw,150px);aspect-ratio:9/16;background:#ff8c00;font-size:clamp(1.2rem,5vw,2rem);">
-                    2027
-                  </a>
-                </li>
-                <!-- FIN ENLACE 2027 -->
+              {% if entry.group_label == 'Otras Caminatas' %}
+              {% set year_values = [] %}
+              {% for ev in entry.walks %}
+                {% if ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 and ev.visitado not in year_values %}
+                  {% set year_values = year_values + [ev.visitado] %}
                 {% endif %}
+              {% endfor %}
+              {% set year_label = year_values[0] if year_values else '2027' %}
+              <div class="row row-cols-2 g-3">
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#ff8c00;min-height:100px;">
+                    <span class="fs-5 fw-bold">{{ year_label }}</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_visitados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#198754;min-height:100px;">
+                    <span class="fs-6 fw-bold">Visitados</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_pendientes') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6c757d;min-height:100px;">
+                    <span class="fs-6 fw-bold">Pendiente</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_programados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6f42c1;min-height:100px;">
+                    <span class="fs-6 fw-bold">Programados</span>
+                  </a>
+                </div>
+                {% if is_super %}
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_cotizaciones') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#d63384;min-height:100px;">
+                    <span class="fs-6 fw-bold">Cotizaciones</span>
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+              {% else %}
+              <ul class="list-group list-group-flush">
                 {% for ev in entry.walks %}
-                {% set precio_val = ev.precio | default(0, true) | int %}
-                {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
-                {% set fecha_text %}
-                  {% if ev.dias == 1 and ev.fecha_unica %}
-                    {% set p = ev.fecha_unica.split('-') %}
-                    {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
-                  {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
-                    {% set pi = ev.fecha_inicio.split('-') %}
-                    {% set pr = ev.fecha_regreso.split('-') %}
-                    {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
-                  {% else %}
-                    Por definir
-                  {% endif %}
-                {% endset %}
-
-                <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
-                  <div class="d-flex align-items-center gap-3">
-                    <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
-                    <div class="flex-grow-1 min-width-0">
-                      <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
-                      <small class="text-muted d-block">
-                        {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
-                        {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
-                        {% if ev.actividad %}{{ ev.actividad }}{% endif %}
-                      </small>
-                      {% if is_tribu %}
-                      <small class="text-muted d-block">{{ fecha_text | trim }}</small>
-                      <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
-                      {% endif %}
-                    </div>
-                    {% if is_super %}
-                    <div class="d-flex gap-2" style="z-index:2;">
-                      <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento({{ ev.id }})" title="Editar"><i class="bi bi-pencil"></i></button>
-                      <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento({{ ev.id }})" title="Eliminar"><i class="bi bi-trash"></i></button>
-                    </div>
-                    {% elif not is_share | default(false) %}
-                    <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" junto a cada caminata. NO ELIMINAR. -->
-                    <a href="https://wa.me/50686529837?text={{ whatsapp_caminata_msg(ev.nombre_lugar, url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
-                       target="_blank" rel="noopener"
-                       class="btn btn-sm btn-outline-success rounded-pill position-relative flex-shrink-0"
-                       style="z-index:2;"
-                       title="Avisarme de {{ ev.nombre_lugar }}">
-                      <i class="bi bi-whatsapp"></i>
-                    </a>
-                    <!-- FIN BOTÓN WHATSAPP -->
-                    {% endif %}
-                  </div>
-                </li>
+                {{ caminata_item(ev, is_tribu, is_super, is_share|default(false), meses, detail_endpoint) }}
                 {% endfor %}
               </ul>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -189,6 +257,45 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
       {% endif %}
     {% endfor %}
   </div>
+  </div>
+  <div id="vistaLista" class="caminatas-vista" style="display:none;">
+    <div class="glass-panel rounded-4 shadow-sm mb-3">
+      <ul class="list-group list-group-flush">
+        {% for ev in eventos %}
+        <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center gap-2">
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none">{{ ev.nombre_lugar }}</a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Información Especial"><i class="bi bi-card-text"></i></a>
+            <span class="small text-muted text-end">
+              {{ ev.provincia }}{% if ev.provincia and (ev.dificultad or ev.actividad) %}<br>{% endif %}
+              {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+              <br>{{ estado_badge(ev.visitado) }}
+            </span>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div id="vistaAlfabetica" class="caminatas-vista" style="display:none;">
+    <div class="glass-panel rounded-4 shadow-sm mb-3">
+      <ul class="list-group list-group-flush">
+        {% for ev in eventos | sort(attribute='visitado,nombre_lugar') %}
+        <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center gap-2">
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none">{{ ev.nombre_lugar }}</a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Información Especial"><i class="bi bi-card-text"></i></a>
+            <span class="small text-muted text-end">
+              {{ ev.provincia }}{% if ev.provincia and (ev.dificultad or ev.actividad) %}<br>{% endif %}
+              {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+              <br>{{ estado_badge(ev.visitado) }}
+            </span>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
   {% elif eventos %}
   {% else %}
   <div class="text-center py-5 text-muted">
@@ -207,33 +314,7 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body px-3 px-md-4 pb-4 pt-2">
-        <div class="d-flex flex-wrap gap-1 mb-2">
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
-          <div class="vr mx-1"></div>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
-          <div class="vr mx-1"></div>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
-          <div class="vr mx-1"></div>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockInsertLink()" title="Insertar enlace"><i class="bi bi-link-45deg"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="blockExecCmd('unlink')" title="Quitar enlace"><i class="bi bi-link-45deg"></i><i class="bi bi-x small"></i></button>
-          <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="document.getElementById('blockImageFile').click()" title="Insertar imagen"><i class="bi bi-image"></i></button>
-          <input type="file" id="blockImageFile" accept="image/*" style="display:none;" onchange="blockUploadImage(this)">
-          <div class="vr mx-1"></div>
-          <select class="form-select form-select-sm w-auto" onchange="blockSetLineHeight(this.value)" title="Interlineado">
-            <option value="">Interlineado</option>
-            <option value="1">1.0</option>
-            <option value="1.5">1.5</option>
-            <option value="2">2.0</option>
-            <option value="2.5">2.5</option>
-          </select>
-        </div>
+        {{ wysiwyg_toolbar(editor_id='blockEditorContent', upload_url=url_for('main.api_upload_image'), modal_prefix='blockEditor', on_upload="if(blockEditorState.mode !== 'create') saveBlockEditor();") }}
         <div id="blockEditorContent" class="p-3 bg-white bg-opacity-75 rounded-3 border" contenteditable="true" style="min-height:200px;"></div>
       </div>
       <div class="modal-footer border-0 pt-0 pb-4 px-4">
@@ -263,11 +344,18 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
 <script>
   let deleteBlockId = null;
   let deleteBlockModalInstance;
   let blockEditorModalInstance;
   let blockEditorState = { mode: null, id: null, order: null };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Wysiwyg.setupUploadListeners('blockEditorContent', "{{ url_for('main.api_upload_image') }}", () => {
+      if (blockEditorState.mode !== 'create') saveBlockEditor();
+    });
+  });
 
   function openBlockEditor(mode, id, initialContent, order) {
     blockEditorState = { mode, id, order };
@@ -321,8 +409,10 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
     const { mode, id, order } = blockEditorState;
     try {
       let r;
+      let body;
       if (mode === 'intro') {
-        r = await fetch('/api/site-content/caminatas_2027', {method:'PUT', headers:{'Content-Type':'text/plain'}, body: content});
+        body = content;
+        r = await fetch('/api/site-content/caminatas_2027', {method:'PUT', headers:{'Content-Type':'text/plain'}, body: body});
       } else if (mode === 'create') {
         const newOrder = (order === null || order === undefined) ? 0 : order;
         r = await fetch('/api/caminatas-2027/blocks', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content, order: newOrder})});
@@ -382,12 +472,24 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
     }
   }
 
+  let caminatasVistaIndex = 0;
+  const caminatasVistas = ['vistaProvincias', 'vistaAlfabetica'];
+  function cambiarVistaCaminatasCiclo() {
+    caminatasVistaIndex = (caminatasVistaIndex + 1) % caminatasVistas.length;
+    caminatasVistas.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = (i === caminatasVistaIndex) ? 'block' : 'none';
+    });
+  }
+
   function setupCaminatas2027LongPress() {
     const title = document.getElementById('caminatas2027Title');
     if (!title) return;
     let timer = null;
     const start = (e) => {
+      title.dataset.longpress = '0';
       timer = setTimeout(() => {
+        title.dataset.longpress = '1';
         const url = window.location.origin + window.location.pathname + '?share=1';
         copyTextToClipboard(url);
         title.style.transform = 'scale(0.98)';
@@ -407,182 +509,15 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   setupCaminatas2027LongPress();
 </script>
 
-{% if is_super and (is_caminatas_2027_page | default(true)) %}
-<button class="btn btn-global-add btn-caminata-2027" onclick="abrirCrear()" title="Agregar Caminata 2027">
+{% if is_super %}
+<button class="btn btn-global-add btn-caminata-2027" onclick="abrirCrear()" title="Agregar Caminata">
   <i class="bi bi-plus-lg fs-3 fw-bold"></i>
 </button>
 {% endif %}
 
-<!-- Modal crear/editar -->
-<div class="modal fade" id="eventoModal" tabindex="-1" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content glass-modal border-0 shadow-lg">
-      <div class="modal-header border-0 pb-0">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body px-3 px-md-4 pb-4 pt-0">
-        <div class="row justify-content-center">
-          <div class="col-12">
-            <div class="glass-panel rounded-5 p-4 p-md-5 position-relative border-0 shadow-lg">
-              <h2 class="fw-bold text-dark mb-5 text-center" id="caminata2027Title"><i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027</h2>
-              <form id="createEventForm">
-                <div class="text-center mb-4">
-                  <label class="form-label fw-bold text-secondary d-block mb-3">Póster del Evento</label>
-                  <div class="position-relative d-inline-block overflow-hidden rounded-4 border border-4 border-white shadow-sm" style="width: 135px; height: 240px; background: rgba(255,255,255,0.5);">
-                    <img id="eventImagePreview" src="{{ url_for('static', filename='default.png') }}" alt="Póster" style="width: 100%; height: 100%; object-fit: cover;">
-                    <label for="eventImageUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
-                      <i class="bi bi-camera-fill text-white"></i>
-                    </label>
-                    <input type="file" id="eventImageUpload" name="poster" class="d-none" accept=".png, .jpg, .jpeg, .webp, .gif">
-                  </div>
-                </div>
+{% include 'partials/evento_crear_editar_modal.html' %}
 
-                <div class="row g-3 mb-4">
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-bold text-muted small mb-1">Nombre del Lugar</label>
-                    <input type="text" id="nombreLugar" name="nombreLugar" required class="form-control glass-input rounded-3 fw-bold" placeholder="Ej: Cerro Pelado, Parque Nacional Volcán Irazú, etc.">
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-bold text-muted small mb-1">Provincia</label>
-                    <select id="provincia" name="provincia" class="form-select glass-input rounded-3">
-                      <option value="San José">San José</option>
-                      <option value="Cartago">Cartago</option>
-                      <option value="Heredia">Heredia</option>
-                      <option value="Alajuela">Alajuela</option>
-                      <option value="Guanacaste">Guanacaste</option>
-                      <option value="Puntarenas">Puntarenas</option>
-                      <option value="Limón">Limón</option>
-                      <option value="Referencia">Referencia</option>
-                    </select>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-bold text-muted small mb-1">Dificultad</label>
-                    <select id="dificultad" name="dificultad" class="form-select glass-input rounded-3">
-                      <option value="Paseo">Paseo</option>
-                      <option value="Básico">Básico</option>
-                      <option value="Intermedio">Intermedio</option>
-                      <option value="Dificil">Dificil</option>
-                      <option value="Avanzado">Avanzado</option>
-                      <option value="Técnico">Técnico</option>
-                    </select>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-bold text-muted small mb-1">Actividad</label>
-                    <select id="actividad" name="actividad" class="form-select glass-input rounded-3">
-                      <option value="Caminata">Caminata</option>
-                      <option value="Internacional">Internacional</option>
-                      <option value="Parque Nacional">Parque Nacional</option>
-                      <option value="El Camino de Costa Rica">El Camino de Costa Rica</option>
-                      <option value="Fiesta">Fiesta</option>
-                      <option value="Convivio">Convivio</option>
-                      <option value="Reunión">Reunión</option>
-                    </select>
-                  </div>
-
-                  <div class="col-6 col-md-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Moneda</label>
-                    <select id="moneda" name="moneda" class="form-select glass-input rounded-3">
-                      <option value="¢">Colones (¢)</option>
-                      <option value="$">Dólares ($)</option>
-                    </select>
-                  </div>
-                  <div class="col-6 col-md-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Precio</label>
-                    <input type="number" id="precio" name="precio" required class="form-control glass-input rounded-3" value="0">
-                  </div>
-                  <div class="col-6 col-md-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Reserva con</label>
-                    <input type="number" id="reserva" name="reserva" required class="form-control glass-input rounded-3" value="0">
-                  </div>
-                  <div class="col-6 col-md-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Capacidad</label>
-                    <select id="capacidad" name="capacidad" required class="form-select glass-input rounded-3">
-                      <option value="14-17">14-17</option>
-                      <option value="17-28">17-28</option>
-                      <option value="17-31">17-31</option>
-                      <option value="MÁS DE 31">MÁS DE 31</option>
-                      <option value="NO APLICA">NO APLICA</option>
-                    </select>
-                  </div>
-
-                  <div class="col-12 col-md-6">
-                    <label class="form-label fw-bold text-muted small mb-1">SINPE</label>
-                    <select id="sinpe" name="sinpe" class="form-select glass-input rounded-3">
-                      <option>86529837 - Jenny Ceciliano Cordoba</option>
-                      <option>87984232 - Jenny Ceciliano Cordoba</option>
-                      <option>86227500 - Kenneth Ruiz Matamoros</option>
-                    </select>
-                  </div>
-
-                  <div class="col-12 mt-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Texto de referencia / Historia</label>
-                    <textarea id="textoReferencia" name="textoReferencia" rows="4" class="form-control glass-input rounded-4 shadow-sm" placeholder="Escriba la historia, referencia o contexto del lugar..."></textarea>
-                  </div>
-                  <div class="col-12 col-md-6 mt-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Enlace de ubicación o adicional</label>
-                    <input type="url" id="enlaceExtra" name="enlaceExtra" class="form-control glass-input rounded-3" placeholder="https://maps.app.goo.gl/... o cualquier enlace">
-                  </div>
-                  <div class="col-12 col-md-6 mt-3">
-                    <label class="form-label fw-bold text-muted small mb-1">Itinerario / Detalles</label>
-                    <textarea id="itinerario" name="itinerario" rows="3" class="form-control glass-input rounded-4 shadow-sm" placeholder="Describa el itinerario o detalles..."></textarea>
-                  </div>
-                </div>
-
-                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-4 border-top border-white border-opacity-50">
-                  <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color: #6c757d; border: 1px solid #ced4da;">Cancelar</button>
-                  <button type="submit" id="submitEventBtn" class="btn btn-warning shadow-sm rounded-pill px-4 fw-bold text-dark"><i class="bi bi-save me-2"></i>Publicar Evento</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-{% include 'partials/eventos_modal_alerta.html' %}
-
-<!-- Modal Doble Confirmación Eliminar Caminata - Paso 1 -->
-<div class="modal fade" id="confirmDeleteEventModal1" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-modal border-0 shadow-lg">
-      <div class="modal-header border-0 pb-3 pt-4 px-4">
-        <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (1/2)</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body pt-2 px-4 pb-4 text-center">
-        <p class="mb-0">¿Estás seguro de eliminar esta caminata?</p>
-      </div>
-      <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold" onclick="mostrarConfirmarEliminarEvento(2)">Continuar</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Doble Confirmación Eliminar Caminata - Paso 2 -->
-<div class="modal fade" id="confirmDeleteEventModal2" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content glass-modal border-0 shadow-lg">
-      <div class="modal-header border-0 pb-3 pt-4 px-4">
-        <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (2/2)</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body pt-2 px-4 pb-4 text-center">
-        <p class="mb-0">¿Realmente deseas eliminarla? Esta acción no se puede deshacer.</p>
-      </div>
-      <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
-        <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
-        <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmarEliminarEvento()">Eliminar</button>
-      </div>
-    </div>
-  </div>
-</div>
+{% include 'partials/evento_delete_modals.html' %}
 
 {% include 'partials/caminatas_2027_script.html' %}
 {% endblock %}

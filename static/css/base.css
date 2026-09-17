@@ -104,6 +104,24 @@ body::before {
     padding: 0.8rem 2rem;
     z-index: 1040;
     position: relative;
+    background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg') !important;
+    background-size: auto 400% !important;
+    background-position: center !important;
+    background-repeat: repeat-x !important;
+    background-color: transparent !important;
+    border: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Quitar el reflejo naranja sobre la imagen del navbar PC */
+.custom-navbar::before {
+    display: none !important;
+}
+
+/* Texto del navbar PC en blanco para contrastar con la imagen tribal */
+.custom-navbar .fw-bold.fs-4 {
+    color: #fff !important;
 }
 
 /* Reflejo dinámico naranja claro en navbars */
@@ -162,9 +180,9 @@ body::before {
     bottom: calc(0px - env(safe-area-inset-bottom));
     background-image: url('/static/uploads/cintillo_tribu.jpg.jpeg');
     background-color: #555;
-    background-size: cover;
+    background-size: auto 350px;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat-x;
     clip-path: none;
     z-index: -1;
     pointer-events: none;
@@ -590,4 +608,9 @@ body::before {
 .glass-input:focus,
 .form-check-input:focus {
     box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
+}
+/* Margen lateral en acordeones para que no queden pegados al borde */
+.accordion-item {
+    margin-left: 0.5rem;
+    margin-right: 0.5rem;
 }

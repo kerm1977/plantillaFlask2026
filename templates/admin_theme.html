@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% block title %}Administrar Tema - La Tribu{% endblock %}
+{% from 'partials/wysiwyg_editor.html' import wysiwyg_toolbar %}
+
+{% block content %}
+<div class="container py-5">
+  <h1 class="fw-bold text-center mb-4">Administrar Tema y Contenido</h1>
+
+  <div class="mb-4 pb-4 border-bottom border-white border-opacity-50">
+    <h5 class="fw-bold mb-3"><i class="bi bi-palette me-2"></i>Textos, años y fondos</h5>
+    <div class="row g-3">
+      <div class="col-12 col-md-6"><label class="form-label small fw-bold">Título del sitio</label><input id="site_title" class="form-control glass-input rounded-3" value="{{ site.site_title }}"></div>
+      <div class="col-12 col-md-6"><label class="form-label small fw-bold">Título de bienvenida</label><input id="home_welcome_title" class="form-control glass-input rounded-3" value="{{ site.home_welcome_title }}"></div>
+      <div class="col-12 col-md-6"><label class="form-label small fw-bold">Mensaje de bienvenida</label><input id="home_welcome_message" class="form-control glass-input rounded-3" value="{{ site.home_welcome_message }}"></div>
+      <div class="col-12 col-md-6"><label class="form-label small fw-bold">Texto botón home</label><input id="home_button_text" class="form-control glass-input rounded-3" value="{{ site.home_button_text }}"></div>
+      <div class="col-12 col-md-6"><label class="form-label small fw-bold">Título página caminatas</label><input id="caminatas_page_title" class="form-control glass-input rounded-3" value="{{ site.caminatas_page_title }}"></div>
+      <div class="col-6 col-md-3"><label class="form-label small fw-bold">Año caminatas</label><input id="caminatas_year" class="form-control glass-input rounded-3" value="{{ site.caminatas_year }}"></div>
+      <div class="col-6 col-md-3"><label class="form-label small fw-bold">Etiqueta "por definir"</label><input id="por_definir_label" class="form-control glass-input rounded-3" value="{{ site.por_definir_label }}"></div>
+      <div class="col-6 col-md-3"><label class="form-label small fw-bold">Año footer</label><input id="footer_year" class="form-control glass-input rounded-3" value="{{ site.footer_year }}"></div>
+      <div class="col-6 col-md-3">
+        <label class="form-label small fw-bold">Color botones primarios</label>
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="primary_button_color_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="document.getElementById('primary_button_color').value = this.value">
+          <input type="text" id="primary_button_color" class="form-control glass-input rounded-3" value="{{ site.primary_button_color }}" placeholder="Hex o color">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Fondo botón volver</label>
+        <input type="hidden" id="back_button_bg" value="{{ site.back_button_bg }}">
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="back_button_bg_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="syncBgField('back_button_bg')" title="Color">
+          <input type="text" id="back_button_bg_url" class="form-control glass-input rounded-3" placeholder="URL de imagen (opcional)" oninput="syncBgField('back_button_bg')">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Fondo herramientas admin</label>
+        <input type="hidden" id="admin_tools_bg" value="{{ site.admin_tools_bg }}">
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="admin_tools_bg_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="syncBgField('admin_tools_bg')" title="Color">
+          <input type="text" id="admin_tools_bg_url" class="form-control glass-input rounded-3" placeholder="URL de imagen (opcional)" oninput="syncBgField('admin_tools_bg')">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Fondo navbar</label>
+        <input type="hidden" id="navbar_bg" value="{{ site.navbar_bg }}">
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="navbar_bg_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="syncBgField('navbar_bg')" title="Color">
+          <input type="text" id="navbar_bg_url" class="form-control glass-input rounded-3" placeholder="URL de imagen (opcional)" oninput="syncBgField('navbar_bg')">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Color texto navbar</label>
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="navbar_text_color_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="document.getElementById('navbar_text_color').value = this.value">
+          <input type="text" id="navbar_text_color" class="form-control glass-input rounded-3" value="{{ site.navbar_text_color }}" placeholder="Hex o color">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Fondo sección caminatas</label>
+        <input type="hidden" id="caminatas_section_bg" value="{{ site.caminatas_section_bg }}">
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="caminatas_section_bg_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="syncBgField('caminatas_section_bg')" title="Color">
+          <input type="text" id="caminatas_section_bg_url" class="form-control glass-input rounded-3" placeholder="URL de imagen (opcional)" oninput="syncBgField('caminatas_section_bg')">
+        </div>
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label small fw-bold">Fondo cintillo/hero</label>
+        <input type="hidden" id="home_hero_bg" value="{{ site.home_hero_bg }}">
+        <div class="d-flex align-items-center gap-2">
+          <input type="color" id="home_hero_bg_color" class="form-control form-control-color" style="max-width:50px; height:2.4rem; padding:0.15rem;" oninput="syncBgField('home_hero_bg')" title="Color">
+          <input type="text" id="home_hero_bg_url" class="form-control glass-input rounded-3" placeholder="URL de imagen (opcional)" oninput="syncBgField('home_hero_bg')">
+        </div>
+      </div>
+    </div>
+    <div class="text-end mt-3">
+      <span id="simpleStatus" class="small text-muted me-2"></span>
+      <button class="btn btn-orange rounded-pill fw-bold" onclick="guardarSimple()"><i class="bi bi-save me-2"></i>Guardar textos y colores</button>
+    </div>
+  </div>
+
+  <div>
+    <h5 class="fw-bold mb-3"><i class="bi bi-file-richtext me-2"></i>Contenidos del sitio</h5>
+    <div class="accordion" id="contentAccordion">
+      {% set sections = [
+        ('quienes_somos', 'Historia / Quiénes somos', 'bi-book'),
+        ('mision', 'Misión', 'bi-bullseye'),
+        ('oracion', 'Oración', 'bi-stars'),
+        ('nota', 'Nota', 'bi-journal-text'),
+        ('caminatas_2027', 'Texto introductorio Caminatas', 'bi-person-walking'),
+        ('terminos', 'Términos y condiciones', 'bi-file-earmark-text')
+      ] %}
+      {% for key, label, icon in sections %}
+      <div class="accordion-item bg-transparent border-0">
+        <h2 class="accordion-header" id="heading{{ loop.index }}">
+          <button class="accordion-button collapsed fw-bold glass-input rounded-3 mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" aria-controls="collapse{{ loop.index }}">
+            <i class="bi {{ icon }} text-orange me-2"></i>{{ label }}
+          </button>
+        </h2>
+        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#contentAccordion" aria-labelledby="heading{{ loop.index }}">
+          <div class="accordion-body pt-0 pb-3">
+            {{ wysiwyg_toolbar(editor_id='editor_' + key, upload_url=url_for('main.api_upload_image'), modal_prefix='editor_' + key, on_upload="guardarSeccion('" + key + "')") }}
+            <div id="editor_{{ key }}" class="p-3 bg-white bg-opacity-75 rounded-3 border mb-2" contenteditable="true" style="min-height:220px;" data-upload-url="{{ url_for('main.api_upload_image') }}">{{ (site[key] or '')|safe }}</div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span id="status_{{ key }}" class="small text-muted"></span>
+              <button class="btn btn-success rounded-pill fw-bold" onclick="guardarSeccion('{{ key }}')"><i class="bi bi-save me-2"></i>Guardar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script type="application/json" id="siteDataJson">
+{{ site | tojson | safe }}
+</script>
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+<script>
+  const siteData = JSON.parse(document.getElementById('siteDataJson').textContent);
+  const sectionKeys = ['quienes_somos','mision','oracion','nota','caminatas_2027','terminos'];
+
+  function initThemeFields() {
+    const bgFields = ['back_button_bg','admin_tools_bg','navbar_bg','caminatas_section_bg','home_hero_bg'];
+    bgFields.forEach(key => {
+      const hidden = document.getElementById(key);
+      const colorIn = document.getElementById(key + '_color');
+      const urlIn = document.getElementById(key + '_url');
+      if (!hidden || !colorIn || !urlIn) return;
+      const val = hidden.value.trim();
+      const m = val.match(/^url\((.*)\)$/i);
+      if (m) { urlIn.value = m[1]; colorIn.value = '#ffffff'; }
+      else { colorIn.value = val || '#ffffff'; urlIn.value = ''; }
+    });
+    ['primary_button_color','navbar_text_color'].forEach(key => {
+      const textIn = document.getElementById(key);
+      const colorIn = document.getElementById(key + '_color');
+      if (!textIn || !colorIn) return;
+      const val = textIn.value.trim();
+      colorIn.value = /^#[0-9A-F]{6}$/i.test(val) ? val : '#000000';
+    });
+  }
+
+  function syncBgField(key) {
+    const colorIn = document.getElementById(key + '_color');
+    const urlIn = document.getElementById(key + '_url');
+    const hidden = document.getElementById(key);
+    if (!hidden || !colorIn || !urlIn) return;
+    const url = urlIn.value.trim();
+    hidden.value = url ? `url(${url})` : colorIn.value;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initThemeFields();
+    sectionKeys.forEach(key => {
+      const editor = document.getElementById('editor_' + key);
+      if (editor) {
+        Wysiwyg.setContent('editor_' + key, siteData[key] || '');
+        Wysiwyg.setupUploadListeners('editor_' + key, editor.dataset.uploadUrl, () => guardarSeccion(key));
+      }
+    });
+  });
+
+  async function guardarSeccion(key) {
+    const content = Wysiwyg.getContent('editor_' + key);
+    const statusEl = document.getElementById('status_' + key);
+    if (statusEl) statusEl.textContent = 'Guardando...';
+    try {
+      const r = await fetch(`/api/site-content/${key}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({value: content})});
+      const data = await r.json();
+      if (data.ok) {
+        if (statusEl) statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado';
+        setTimeout(() => { if (statusEl) statusEl.textContent = ''; }, 2000);
+        siteData[key] = content;
+      } else {
+        alert(data.error || 'Error al guardar');
+        if (statusEl) statusEl.textContent = '';
+      }
+    } catch(e) {
+      alert('Error de conexión');
+      if (statusEl) statusEl.textContent = '';
+    }
+  }
+
+  async function guardarSimple() {
+    const payload = {
+      site_title: document.getElementById('site_title').value,
+      home_welcome_title: document.getElementById('home_welcome_title').value,
+      home_welcome_message: document.getElementById('home_welcome_message').value,
+      home_button_text: document.getElementById('home_button_text').value,
+      caminatas_page_title: document.getElementById('caminatas_page_title').value,
+      caminatas_year: document.getElementById('caminatas_year').value,
+      por_definir_label: document.getElementById('por_definir_label').value,
+      footer_year: document.getElementById('footer_year').value,
+      primary_button_color: document.getElementById('primary_button_color').value,
+      back_button_bg: document.getElementById('back_button_bg').value,
+      admin_tools_bg: document.getElementById('admin_tools_bg').value,
+      navbar_bg: document.getElementById('navbar_bg').value,
+      navbar_text_color: document.getElementById('navbar_text_color').value,
+      caminatas_section_bg: document.getElementById('caminatas_section_bg').value,
+      home_hero_bg: document.getElementById('home_hero_bg').value
+    };
+    try {
+      const r = await fetch('/api/about', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+      const data = await r.json();
+      const st = document.getElementById('simpleStatus');
+      if (data.ok) { st.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado'; setTimeout(()=>st.textContent='',2000); }
+      else { alert(data.error || 'Error al guardar'); }
+    } catch(e) { alert('Error de conexión'); }
+  }
+
+  async function guardarRich() {
+    const key = document.getElementById('richKey').value;
+    const content = Wysiwyg.getContent('themeEditor');
+    const statusEl = document.getElementById('richStatus');
+    statusEl.textContent = 'Guardando...';
+    try {
+      const r = await fetch(`/api/site-content/${key}`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({value: content})});
+      const data = await r.json();
+      if (data.ok) { statusEl.innerHTML = '<i class="bi bi-check-circle text-success me-1"></i>Guardado'; setTimeout(()=>statusEl.textContent='',2000); siteData[key] = content; }
+      else { alert(data.error || 'Error al guardar'); statusEl.textContent = ''; }
+    } catch(e) { alert('Error de conexión'); statusEl.textContent = ''; }
+  }
+</script>
+{% endblock %}

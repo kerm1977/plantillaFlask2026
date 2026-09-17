@@ -25,6 +25,7 @@
                         // 1. Llenar los datos invisibles para que se envíen bien
                         document.getElementById('nombre_completo').value = data.nombre_completo || '';
                         document.getElementById('telefono').value = data.telefono || '';
+                        document.getElementById('pasaporte').value = data.pasaporte || '';
                         document.getElementById('fecha_nacimiento').value = data.fecha_nacimiento || '';
                         document.getElementById('tipo_sangre').value = data.tipo_sangre || '';
                         document.getElementById('alergias').value = data.alergias || '';
@@ -79,6 +80,7 @@
             cedula: document.getElementById('cedula').value.trim(),
             nombre_completo: document.getElementById('nombre_completo').value.trim(),
             telefono: document.getElementById('telefono').value.trim(),
+            pasaporte: document.getElementById('pasaporte').value.trim() || '',
             fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
             tipo_sangre: document.getElementById('tipo_sangre').value,
             alergias: document.getElementById('alergias').value.trim() || 'Ninguna',
@@ -140,6 +142,7 @@
                 textoWhatsApp += `Aquí está mi ficha médica actualizada (PIN: ${pin}):\n`;
                 textoWhatsApp += `▫️ *Cédula:* ${payload.cedula}\n`;
                 textoWhatsApp += `▫️ *Teléfono:* ${payload.telefono}\n`;
+                if (payload.pasaporte) textoWhatsApp += `▫️ *Pasaporte:* ${payload.pasaporte}\n`;
                 textoWhatsApp += `▫️ *Sangre:* ${payload.tipo_sangre}\n`;
                 textoWhatsApp += `▫️ *Alergias:* ${payload.alergias}\n`;
                 textoWhatsApp += `▫️ *Enfermedades:* ${payload.enfermedades_cronicas}\n`;

@@ -273,16 +273,7 @@ function cancelEdit() {
 }
 
 function viewNote(id) {
-    const note = notesData.find(n => n.id === id);
-    if (!note) return;
-    currentViewNote = note;
-    const headerTitle = document.getElementById('noteViewTitle');
-    const bodyTitle = document.getElementById('noteViewBodyTitle');
-    if (headerTitle) headerTitle.textContent = note.title;
-    if (bodyTitle) bodyTitle.textContent = note.title;
-    document.getElementById('noteViewContent').innerHTML = note.content;
-    updateNoteViewProgress();
-    if (noteViewModal) noteViewModal.show();
+    window.location.href = `/notas/${id}`;
 }
 
 async function saveNote() {

@@ -13,21 +13,11 @@
     vertical-align: middle;
   }
   .editable-text {
-    white-space: pre-line;
     text-align: justify;
-    outline: none;
-    min-height: 1.5em;
-    cursor: text;
+    font-size: 1.05rem;
+    line-height: 1.7;
   }
-  .editable-text[contenteditable="true"]:focus {
-    outline: 2px dashed #ff8c00;
-    background: rgba(255, 140, 0, 0.05);
-    padding: 0.5rem;
-    border-radius: 0.5rem;
-  }
-  .saving {
-    opacity: 0.6;
-  }
+  .editable-text p { margin-bottom: 1rem; }
 </style>
 
 <div class="container py-5">
@@ -38,28 +28,22 @@
 
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
-          <h2 class="card-title fw-bold text-dark mb-3">Nuestra historia
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
-          </h2>
-          <div class="text-dark lh-lg editable-text" data-key="quienes_somos" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ historia_text }}</div>
+          <h2 class="card-title fw-bold text-dark mb-3">Nuestra historia</h2>
+          <div class="text-dark lh-lg editable-text">{{ historia_text|safe }}</div>
         </div>
       </section>
 
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
-          <h2 class="card-title fw-bold text-dark mb-3">Misión
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
-          </h2>
-          <div class="text-dark lh-lg editable-text" data-key="nota" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ mision_text }}</div>
+          <h2 class="card-title fw-bold text-dark mb-3">Misión</h2>
+          <div class="text-dark lh-lg editable-text">{{ mision_text|safe }}</div>
         </div>
       </section>
 
       <section class="card shadow-sm border-0 mb-4 rounded-4 overflow-hidden">
         <div class="card-body p-4 p-md-5 editable-wrap">
-          <h2 class="card-title fw-bold text-dark mb-3">Nuestra oración
-            {% if is_super %}<i class="bi bi-pencil edit-pencil" title="Puedes escribir directamente"></i>{% endif %}
-          </h2>
-          <div class="text-dark lh-lg editable-text" data-key="oracion" {% if is_super %}contenteditable="true"{% endif %} onblur="saveEdit(this)">{{ oracion_text }}</div>
+          <h2 class="card-title fw-bold text-dark mb-3">Nuestra oración</h2>
+          <div class="text-dark lh-lg editable-text">{{ oracion_text|safe }}</div>
         </div>
       </section>
 
@@ -67,30 +51,6 @@
   </div>
 </div>
 
-{% if is_super %}
-<script>
-async function saveEdit(el) {
-  const key = el.dataset.key;
-  const value = el.innerText;
-  el.classList.add('saving');
-  try {
-    const res = await fetch('/api/site-content/' + encodeURIComponent(key), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'text/plain' },
-      body: value
-    });
-    const data = await res.json();
-    if (!data.ok) {
-      alert('No se pudo guardar el contenido.');
-    }
-  } catch (e) {
-    alert('Error de red al guardar.');
-  } finally {
-    el.classList.remove('saving');
-  }
-}
-</script>
-{% endif %}
 {% endblock %}
 
 {% block footer %}{% include 'partials/footer.html' %}{% endblock %}

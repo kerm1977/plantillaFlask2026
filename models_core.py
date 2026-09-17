@@ -33,10 +33,14 @@ class Event(db.Model):
     poster = db.Column(db.String(255)) 
     nombre_lugar = db.Column(db.String(200), nullable=False)
     dificultad = db.Column(db.String(50))
+    tipo_terreno = db.Column(db.String(100))
     actividad = db.Column(db.String(100))
     moneda = db.Column(db.String(5))
     precio = db.Column(db.Integer)
+    precio_buseta = db.Column(db.Integer)
+    kilometros = db.Column(db.Float)
     reserva = db.Column(db.Integer)
+    tipo_caminata = db.Column(db.String(20))
     capacidad = db.Column(db.String(50))
     sinpe = db.Column(db.String(100))
     cuenta = db.Column(db.String(200))
@@ -44,6 +48,7 @@ class Event(db.Model):
     solo_chat = db.Column(db.Boolean, default=False)
     logistica_segura = db.Column(db.Boolean, default=False)
     is_sold_out = db.Column(db.Boolean, default=False)
+    zona_alto_riesgo = db.Column(db.Boolean, default=False)
 
     dias = db.Column(db.Integer, default=1)
     fecha_unica = db.Column(db.String(50))
@@ -56,10 +61,12 @@ class Event(db.Model):
     texto_referencia = db.Column(db.Text)
     incluye = db.Column(db.Text)
     provincia = db.Column(db.String(100)) 
+    visitado = db.Column(db.String(10), default='Pendiente')
     gpx_filename = db.Column(db.String(255))
     gpx_password = db.Column(db.String(50))
     organicmaps_url = db.Column(db.String(500))
     enlace_extra = db.Column(db.String(1000))
+    puntos = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class EventDateChange(db.Model):
@@ -105,7 +112,8 @@ class Hiker(db.Model):
     enfermedades_cronicas = db.Column(db.Text)
     contacto_emergencia_nombre = db.Column(db.String(200))
     contacto_emergencia_telefono = db.Column(db.String(20))
-    pin_secreto = db.Column(db.String(20), unique=True) 
+    pin_secreto = db.Column(db.String(20), unique=True)
+    card_email = db.Column(db.String(120))
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class EventRegistration(db.Model):
@@ -151,3 +159,41 @@ class BackgroundMusic(db.Model):
     random = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class PaymentMethod(db.Model):
+    __tablename__ = 'payment_method'
+    id = db.Column(db.Integer, primary_key=True)
+    tipo = db.Column(db.String(20), nullable=False)  # 'sinpe' o 'cuenta'
+    titular = db.Column(db.String(200), nullable=False)
+    numero = db.Column(db.String(100), nullable=False)
+    detalle = db.Column(db.String(200))
+    is_active = db.Column(db.Boolean, default=True)
+    orden = db.Column(db.Integer, default=0)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def display(self):
+        if self.tipo == 'sinpe':
+            return f"{self.numero} - {self.titular}"
+        if self.detalle:
+            return f"{self.titular} ({self.detalle}) - {self.numero}"
+        return f"{self.titular} - {self.numero}"
+
+
+class HikerPoints(db.Model):
+    __tablename__ = 'hiker_points'
+    id = db.Column(db.Integer, primary_key=True)
+    cedula = db.Column(db.String(50), nullable=False, index=True)
+    hiker_id = db.Column(db.Integer, db.ForeignKey('hiker.id'), nullable=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
+    points = db.Column(db.Integer, default=0)
+    tipo = db.Column(db.String(20), default='participacion')
+    detalle = db.Column(db.String(255))
+    created_by = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    @property
+    def display_tipo(self):
+        if self.tipo == 'retiro':
+            return 'Retiro'
+        return 'Participación'

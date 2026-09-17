@@ -37,10 +37,25 @@
                                     </div>
                                 </div>
 
+                                {% set v_visitado = (evento.visitado | default('') | string | trim) %}
+                                {% set p_val = (evento.precio | default(0) | int) %}
+                                {% set r_val = (evento.reserva | default(0) | int) %}
                                 {% if is_sold_out and not is_super_user %}
                                 <button class="btn btn-secondary w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export disabled">
                                     <i class="bi bi-x-circle me-2"></i>Sin Espacio
                                 </button>
+                                {% elif p_val == 0 or r_val == 0 or v_visitado in ('Pendiente','No','') or v_visitado == 'Cotización' %}
+                                {% set avisar_msg -%}
+Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
+
+*Nota:*
+> La Tribu de los Libres va a guardar este número de teléfono como posible persona participante de este viaje y se guardará en la base de datos de La Tribu de los Libres. Si está de acuerdo, envíe el mensaje; si no está de acuerdo, recházalo. Apenas tengamos el precio y la fecha exacta, se le estará informando a este mismo número de teléfono.
+
+Enlace: {{ url_for('main.ver_caminata_2027', event_id=evento.id, _external=True) }}
+                                {%- endset %}
+                                <a href="https://wa.me/50686529837?text={{ avisar_msg | urlencode }}" target="_blank" rel="noopener" class="btn btn-outline-success w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export">
+                                    <i class="bi bi-whatsapp me-2"></i>Avisarme
+                                </a>
                                 {% else %}
                                 <button class="btn btn-warning-orange w-100 rounded-pill py-2 fw-bold shadow-sm fs-6 hide-on-export" onclick="reservarPorWhatsApp()">
                                     <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
@@ -126,12 +141,7 @@
                         </div>
                         {% endif %}
 
-                        {% if evento.itinerario %}
                         <hr class="border-secondary opacity-25 my-3">
                         <div class="mb-3">
-                            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-card-text text-orange me-2"></i>Itinerario Especial</h6>
-                            <div class="border-left border-4 border-orange ps-3 mt-2 text-secondary" style="white-space: pre-wrap; font-size: 0.85rem;">
-                                {{ evento.itinerario }}
-                            </div>
+                            <h6 class="fw-bold text-dark mb-2"><a href="{{ url_for('main.ver_caminata_2027', event_id=evento.id) }}" class="text-decoration-none text-dark"><i class="bi bi-card-text text-orange me-2"></i>Información Especial</a></h6>
                         </div>
-                        {% endif %}

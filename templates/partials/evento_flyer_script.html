@@ -1,0 +1,445 @@
+<script src="{{ url_for('static', filename='js/html-to-image.min.js') }}"></script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const captureArea = document.getElementById('flyerCaptureArea');
+    if (!captureArea) return;
+
+    const FLYER_STORE_KEY = () => 'flyer_prefs_v2_' + (captureArea.dataset.eventId || 'new');
+    const toggleSwitches = document.querySelectorAll('.flyer-toggle');
+
+    const img = document.getElementById('flyerBgImg');
+    const imgClone = document.getElementById('flyerBgImgClone');
+    const blurContainer = document.getElementById('flyerBgBlurContainer');
+    const overlay = document.getElementById('flyerOverlay');
+
+    function scalePreview() {
+        const wrapper = document.getElementById('flyerPreviewWrapper');
+        const area = document.getElementById('flyerCaptureArea');
+        if(!wrapper || !area) return;
+        const scale = Math.min((wrapper.clientWidth - 20) / 360, (wrapper.clientHeight - 20) / 640);
+        area.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener('resize', scalePreview);
+    scalePreview();
+
+    const scScale = document.getElementById('flyerScale');
+    const scRot = document.getElementById('flyerRot');
+    const scX = document.getElementById('flyerPosX');
+    const scY = document.getElementById('flyerPosY');
+    const scBlur = document.getElementById('flyerBlur');
+    const scOp = document.getElementById('flyerOpacity');
+
+    const ovScale = document.getElementById('overlayScale');
+    const ovWidth = document.getElementById('overlayWidth');
+    const ovX = document.getElementById('overlayPosX');
+    const ovY = document.getElementById('overlayPosY');
+    const ovBlur = document.getElementById('overlayBlur');
+    const ovOp = document.getElementById('overlayOpacity');
+    const ovFontSize = document.getElementById('overlayFontSize');
+
+    function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) : 0;
+    }
+    function setLabel(id, text) {
+        const label = document.getElementById('val_' + id);
+        if(!label) return;
+        const val = label.querySelector('.slider-val');
+        if(val) val.innerText = text;
+        else label.innerText = text;
+    }
+
+    function setupSliderControls() {
+        document.querySelectorAll('input[type="range"]').forEach(input => {
+            if (!input.dataset.default) input.dataset.default = input.value;
+            if (input.step === '1') input.step = '5';
+            const label = input.previousElementSibling;
+            if (!label || label.tagName !== 'LABEL') return;
+            const valSpan = label.querySelector('.float-end.text-orange');
+            if (!valSpan || valSpan.querySelector('.slider-val')) return;
+            const currentText = valSpan.innerText.trim();
+            valSpan.innerHTML = '<span class="slider-val">' + currentText + '</span> <button type="button" class="btn btn-link text-orange p-0 ms-1 reset-slider-btn" style="font-size:0.75rem; text-decoration:none; line-height:1;" title="Restablecer"><i class="bi bi-arrow-counterclockwise"></i></button>';
+            const btn = valSpan.querySelector('.reset-slider-btn');
+            if (btn) btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (input.dataset.default !== undefined) {
+                    input.value = input.dataset.default;
+                    updateFlyer();
+                }
+            });
+        });
+    }
+    setupSliderControls();
+
+    window.actualizarPreviewFlyer = function() {
+        const nombre = document.getElementById('nombreLugar')?.value || 'Nombre del Lugar';
+        const actividad = document.getElementById('actividad')?.value || 'Caminata';
+        const dificultad = document.getElementById('dificultad')?.value || 'Paseo';
+        const precio = parseInt(document.getElementById('precio')?.value || 0) || 0;
+        const reserva = parseInt(document.getElementById('reserva')?.value || 0) || 0;
+        const moneda = document.getElementById('moneda')?.value || '¢';
+        const capacidad = (document.getElementById('capacidad')?.value || '').replace('AGOTADO_', '');
+        const sinpe = document.getElementById('sinpe')?.value || 'Por definir';
+        const cuenta = document.getElementById('cuenta')?.value || 'Por definir';
+        const incluyeChecks = document.querySelectorAll('#incluyeWrapper input[name="incluye_check"]:checked');
+        const incluyeArr = [];
+        incluyeChecks.forEach(cb => {
+            if (cb.value === 'Otros') {
+                const desc = document.getElementById('otrosDescripcion')?.value.trim();
+                if (desc) incluyeArr.push(desc);
+            } else {
+                incluyeArr.push(cb.value);
+            }
+        });
+        const incluye = incluyeArr.join(', ');
+        const dias = parseInt(document.getElementById('dias')?.value || 1) || 1;
+
+        const diaSeguro = document.getElementById('diaSeguroToggle')?.checked;
+        const horaSalida = document.getElementById('horaSalida')?.value || '';
+        const lugarSalida = document.getElementById('lugarSalida')?.value || '';
+
+        let fechaTexto = 'Por definir';
+        if (dias == 1) {
+            const day = document.getElementById('dayUnica')?.value || '';
+            const month = document.getElementById('monthUnica')?.value || '';
+            const year = document.getElementById('yearUnica')?.value || '';
+            if (day && month && year) {
+                const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+                fechaTexto = `${day} de ${meses[parseInt(month)-1]} del ${year}`;
+                if (diaSeguro) fechaTexto = 'Por confirmar en Chat';
+            }
+        } else {
+            const dayI = document.getElementById('dayInicio')?.value || '';
+            const monthI = document.getElementById('monthInicio')?.value || '';
+            const yearI = document.getElementById('yearInicio')?.value || '';
+            const dayR = document.getElementById('dayRegreso')?.value || '';
+            const monthR = document.getElementById('monthRegreso')?.value || '';
+            const yearR = document.getElementById('yearRegreso')?.value || '';
+            const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+            if (dayI && monthI && yearI) {
+                fechaTexto = `${dayI} de ${meses[parseInt(monthI)-1]} del ${yearI}`;
+                if (dias > 1 && dayR && monthR && yearR) {
+                    fechaTexto += ` al ${dayR} de ${meses[parseInt(monthR)-1]} del ${yearR}`;
+                }
+                if (diaSeguro) fechaTexto = 'Por confirmar en Chat';
+            }
+        }
+
+        const posterPreview = document.getElementById('eventImagePreview');
+        if (posterPreview && img && imgClone) {
+            img.src = posterPreview.src;
+            imgClone.src = posterPreview.src;
+        }
+
+        const tTitulo = document.getElementById('flyerTitulo');
+        if(tTitulo) tTitulo.innerText = nombre;
+        const tActividad = document.getElementById('fl_actividad');
+        if(tActividad) tActividad.innerText = actividad;
+        const tDificultad = document.getElementById('fl_dificultad');
+        if(tDificultad) tDificultad.innerText = dificultad;
+        const tAlto = document.getElementById('fl_altoRiesgo');
+        if(tAlto) tAlto.classList.toggle('d-none', !(document.getElementById('altoRiesgoToggle')?.checked));
+        const tFecha = document.getElementById('flyerFechaText');
+        if(tFecha) tFecha.innerText = fechaTexto;
+        const tSalida = document.getElementById('flyerSalidaText');
+        if(tSalida) tSalida.innerText = (lugarSalida || 'Por definir') + (horaSalida ? ' (' + horaSalida + ')' : '');
+        const tPrecio = document.getElementById('flyerPrecioText');
+        if(tPrecio) tPrecio.innerText = precio > 0 ? moneda + precio : 'PENDIENTE';
+        const tReserva = document.getElementById('flyerReservaText');
+        if(tReserva) tReserva.innerText = reserva > 0 ? moneda + reserva : 'PENDIENTE';
+        const tCap = document.getElementById('flyerCapacidadText');
+        if(tCap) tCap.innerText = capacidad;
+        const tSinpe = document.getElementById('flyerSinpeText');
+        if(tSinpe) tSinpe.innerText = sinpe;
+        const tCuenta = document.getElementById('flyerCuentaText');
+        if(tCuenta) tCuenta.innerText = cuenta === 'Ninguna' ? 'Solo SINPE' : cuenta;
+
+        const flIncluye = document.getElementById('fl_incluye');
+        const tags = document.getElementById('flyerIncluyeTags');
+        if (flIncluye && tags) {
+            if (incluye) {
+                tags.innerHTML = '';
+                incluye.split(',').forEach(item => {
+                    const t = item.trim();
+                    if (t) {
+                        tags.insertAdjacentHTML('beforeend', '<span class="badge border border-white border-opacity-50 text-white shadow-sm" style="font-size: calc(0.55rem * var(--text-scale)); background: rgba(255,255,255,0.15);">' + t + '</span>');
+                    }
+                });
+            } else {
+                flIncluye.classList.add('d-none');
+                document.getElementById('t_incluye').checked = false;
+            }
+        }
+    };
+
+    function loadFlyerState() {
+        try {
+            const saved = localStorage.getItem(FLYER_STORE_KEY());
+            if (!saved) return;
+            const state = JSON.parse(saved);
+            if(state.bgScale !== undefined) scScale.value = state.bgScale;
+            if(state.bgRot !== undefined) scRot.value = state.bgRot;
+            if(state.bgX !== undefined) scX.value = state.bgX;
+            if(state.bgY !== undefined) scY.value = state.bgY;
+            if(state.bgBlur !== undefined) scBlur.value = state.bgBlur;
+            if(state.bgOp !== undefined) scOp.value = state.bgOp;
+            if(state.ovScale !== undefined) ovScale.value = state.ovScale;
+            if(state.ovWidth !== undefined) ovWidth.value = state.ovWidth;
+            if(state.ovX !== undefined) ovX.value = state.ovX;
+            if(state.ovY !== undefined) ovY.value = state.ovY;
+            if(state.ovBlur !== undefined) ovBlur.value = state.ovBlur;
+            if(state.ovOp !== undefined) ovOp.value = state.ovOp;
+            if(state.ovFontSize !== undefined && ovFontSize) ovFontSize.value = state.ovFontSize;
+            if(state.toggles) {
+                toggleSwitches.forEach(t => {
+                    if(state.toggles[t.id] !== undefined) t.checked = state.toggles[t.id];
+                });
+            }
+        } catch(e) { console.error("Error cargando caché", e); }
+    }
+
+    function saveFlyerState() {
+        const state = {
+            bgScale: getVal('flyerScale'), bgRot: getVal('flyerRot'),
+            bgX: getVal('flyerPosX'), bgY: getVal('flyerPosY'),
+            bgBlur: getVal('flyerBlur'), bgOp: getVal('flyerOpacity'),
+            ovScale: getVal('overlayScale'), ovWidth: getVal('overlayWidth'),
+            ovX: getVal('overlayPosX'), ovY: getVal('overlayPosY'),
+            ovBlur: getVal('overlayBlur'), ovOp: getVal('overlayOpacity'),
+            ovFontSize: getVal('overlayFontSize'),
+            toggles: {}
+        };
+        toggleSwitches.forEach(t => { state.toggles[t.id] = t.checked; });
+        localStorage.setItem(FLYER_STORE_KEY(), JSON.stringify(state));
+    }
+
+    function syncBlurMask() {
+        if(!captureArea || !overlay || !blurContainer) return;
+        const currentOvBlur = Math.max(0, 15 + (getVal('overlayBlur') * 0.15));
+        if (currentOvBlur === 0) {
+            blurContainer.style.display = 'none';
+            return;
+        } else {
+            blurContainer.style.display = 'block';
+        }
+        const cBox = captureArea.getBoundingClientRect();
+        const oBox = overlay.getBoundingClientRect();
+        const globalScale = cBox.width / 360;
+        const top = Math.max(0, (oBox.top - cBox.top) / globalScale);
+        const left = Math.max(0, (oBox.left - cBox.left) / globalScale);
+        const right = Math.max(0, (cBox.right - oBox.right) / globalScale);
+        const bottom = Math.max(0, (cBox.bottom - oBox.bottom) / globalScale);
+        const tScale = Math.max(0.1, 1 + (getVal('overlayScale') / 100));
+        const radius = 1.0 * 16 * tScale;
+        const clipPathVal = `inset(${top}px ${right}px ${bottom}px ${left}px round ${radius}px)`;
+        blurContainer.style.clipPath = clipPathVal;
+        blurContainer.style.webkitClipPath = clipPathVal;
+    }
+
+    window.updateFlyer = function() {
+        const vBgScale = getVal('flyerScale');
+        const bgScaleReal = Math.max(0.1, 1 + (vBgScale / 100));
+        setLabel('flyerScale', vBgScale > 0 ? '+' + vBgScale + '%' : vBgScale + '%');
+        const vBgRot = getVal('flyerRot');
+        const bgRotReal = vBgRot * 1.8;
+        setLabel('flyerRot', Math.round(bgRotReal) + '°');
+        const bgXReal = getVal('flyerPosX'); setLabel('flyerPosX', bgXReal > 0 ? '+' + bgXReal + '%' : bgXReal + '%');
+        const bgYReal = getVal('flyerPosY'); setLabel('flyerPosY', bgYReal > 0 ? '+' + bgYReal + '%' : bgYReal + '%');
+        const vBgBlur = getVal('flyerBlur');
+        const bgBlurReal = Math.max(0, 15 + (vBgBlur * 0.15));
+        setLabel('flyerBlur', vBgBlur > 0 ? '+' + vBgBlur + '%' : vBgBlur + '%');
+        const vBgOp = getVal('flyerOpacity');
+        const bgOpReal = Math.max(0, Math.min(1, 0.5 + (vBgOp * 0.005)));
+        setLabel('flyerOpacity', vBgOp > 0 ? '+' + vBgOp + '%' : vBgOp + '%');
+        const vOvScale = getVal('overlayScale');
+        const ovScaleReal = Math.max(0.1, 1 + (vOvScale / 100));
+        setLabel('overlayScale', vOvScale > 0 ? '+' + vOvScale + '%' : vOvScale + '%');
+        const vOvWidth = getVal('overlayWidth');
+        const ovWidthReal = vOvWidth < 0 ? 90 - (Math.abs(vOvWidth)/100 * 40) : Math.min(100, 90 + (vOvWidth/100 * 10));
+        setLabel('overlayWidth', vOvWidth > 0 ? '+' + vOvWidth + '%' : vOvWidth + '%');
+        const vOvX = getVal('overlayPosX');
+        const ovXReal = vOvX * 1.5;
+        setLabel('overlayPosX', vOvX > 0 ? '+' + vOvX + '%' : vOvX + '%');
+        const vOvY = getVal('overlayPosY');
+        const ovYReal = vOvY * 2.5;
+        setLabel('overlayPosY', vOvY > 0 ? '+' + vOvY + '%' : vOvY + '%');
+        const vOvBlur = getVal('overlayBlur');
+        const ovBlurReal = Math.max(0, 15 + (vOvBlur * 0.15));
+        setLabel('overlayBlur', vOvBlur > 0 ? '+' + vOvBlur + '%' : vOvBlur + '%');
+        const vOvOp = getVal('overlayOpacity');
+        const ovOpReal = Math.max(0, Math.min(0.95, 0.4 + (vOvOp * 0.005)));
+        setLabel('overlayOpacity', vOvOp > 0 ? '+' + vOvOp + '%' : vOvOp + '%');
+        const vOvFontSize = getVal('overlayFontSize');
+        const ovFontSizeReal = Math.max(0.5, 1 + (vOvFontSize / 100));
+        setLabel('overlayFontSize', vOvFontSize > 0 ? '+' + vOvFontSize + '%' : vOvFontSize + '%');
+
+        if (img) {
+            const tf = `translate(${bgXReal}%, ${bgYReal}%) scale(${bgScaleReal}) rotate(${bgRotReal}deg)`;
+            img.style.transform = tf;
+            img.style.filter = `blur(${bgBlurReal}px) opacity(${bgOpReal})`;
+            if(imgClone) {
+                imgClone.style.transform = tf;
+                imgClone.style.filter = `blur(${bgBlurReal + ovBlurReal}px) opacity(${bgOpReal})`;
+            }
+        }
+        if (overlay) {
+            overlay.style.width = `${ovWidthReal}%`;
+            overlay.style.transform = `translate(${ovXReal}px, ${ovYReal}px) scale(${ovScaleReal})`;
+            overlay.style.backgroundColor = `rgba(0, 0, 0, ${ovOpReal})`;
+            overlay.style.setProperty('--text-scale', ovFontSizeReal);
+            syncBlurMask();
+        }
+        saveFlyerState();
+    };
+
+    window.loadFlyerStateForId = function(eventId) {
+        captureArea.dataset.eventId = eventId || 'new';
+        loadFlyerState();
+        [scScale, scX, scY, scRot, scBlur, scOp, ovScale, ovWidth, ovX, ovY, ovBlur, ovOp, ovFontSize].forEach(el => { if(el) updateFlyer(); });
+        toggleSwitches.forEach(t => {
+            const targetElement = document.getElementById(t.getAttribute('data-target'));
+            if (targetElement) {
+                if (t.checked) targetElement.classList.remove('d-none');
+                else targetElement.classList.add('d-none');
+            }
+        });
+    };
+
+    // Inicializacion
+    loadFlyerState();
+    toggleSwitches.forEach(toggle => {
+        toggle.addEventListener('change', function() {
+            const targetElement = document.getElementById(this.getAttribute('data-target'));
+            if (targetElement) {
+                if (this.checked) targetElement.classList.remove('d-none');
+                else targetElement.classList.add('d-none');
+            }
+            setTimeout(updateFlyer, 50);
+        });
+        toggle.dispatchEvent(new Event('change'));
+    });
+    [scScale, scX, scY, scRot, scBlur, scOp, ovScale, ovWidth, ovX, ovY, ovBlur, ovOp, ovFontSize].forEach(el => {
+        if(el) el.addEventListener('input', updateFlyer);
+    });
+    updateFlyer();
+    actualizarPreviewFlyer();
+    document.getElementById('accFlyer')?.addEventListener('shown.bs.collapse', () => {
+        actualizarPreviewFlyer();
+        scalePreview();
+    });
+    ['nombreLugar','precio','reserva','horaSalida','lugarSalida'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', actualizarPreviewFlyer);
+    });
+    ['dificultad','actividad','moneda','capacidad','sinpe','cuenta','dias'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', actualizarPreviewFlyer);
+    });
+    document.getElementById('incluyeWrapper')?.addEventListener('change', actualizarPreviewFlyer);
+    document.getElementById('otrosDescripcion')?.addEventListener('input', actualizarPreviewFlyer);
+    ['dayUnica','monthUnica','yearUnica','dayInicio','monthInicio','yearInicio','dayRegreso','monthRegreso','yearRegreso','diaSeguroToggle','altoRiesgoToggle'].forEach(id => {
+        document.getElementById(id)?.addEventListener('change', actualizarPreviewFlyer);
+    });
+
+    // PULSACIÓN LARGA PARA RESET DE AJUSTES
+    const resetFlyerValuesModalEl = document.getElementById('resetFlyerValuesModal');
+    const resetFlyerValuesModal = resetFlyerValuesModalEl ? new bootstrap.Modal(resetFlyerValuesModalEl) : null;
+    const resetFlyerMessage = document.getElementById('resetFlyerMessage');
+    const confirmResetFlyer = document.getElementById('confirmResetFlyer');
+    const btnConfirmResetFlyer = document.getElementById('btnConfirmResetFlyer');
+    let currentResetScope = null;
+
+    if (resetFlyerValuesModal && confirmResetFlyer && btnConfirmResetFlyer) {
+        confirmResetFlyer.addEventListener('change', () => {
+            btnConfirmResetFlyer.disabled = !confirmResetFlyer.checked;
+        });
+
+        btnConfirmResetFlyer.addEventListener('click', () => {
+            if (!currentResetScope) return;
+            const ids = currentResetScope === 'fondo'
+                ? ['flyerScale', 'flyerRot', 'flyerPosX', 'flyerPosY', 'flyerBlur', 'flyerOpacity']
+                : ['overlayScale', 'overlayWidth', 'overlayPosX', 'overlayPosY', 'overlayBlur', 'overlayOpacity', 'overlayFontSize'];
+            ids.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = 0;
+            });
+            updateFlyer();
+            confirmResetFlyer.checked = false;
+            btnConfirmResetFlyer.disabled = true;
+            resetFlyerValuesModal.hide();
+            currentResetScope = null;
+        });
+
+        document.querySelectorAll('[data-reset-target]').forEach(header => {
+            let pressTimer = null;
+            let isLongPress = false;
+            const scopeName = header.dataset.resetTarget === 'fondo' ? 'Ajustes de Fondo' : 'Ajustes del Texto';
+
+            function startPress(e) {
+                if (e.type === 'mousedown' && e.button !== 0) return;
+                isLongPress = false;
+                pressTimer = setTimeout(() => {
+                    isLongPress = true;
+                    currentResetScope = header.dataset.resetTarget;
+                    if (resetFlyerMessage) resetFlyerMessage.textContent = `¿Restablecer todos los valores de ${scopeName} a cero? Esta acción no se puede deshacer.`;
+                    confirmResetFlyer.checked = false;
+                    btnConfirmResetFlyer.disabled = true;
+                    resetFlyerValuesModal.show();
+                }, 800);
+            }
+
+            function cancelPress() {
+                if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+            }
+
+            header.addEventListener('mousedown', startPress);
+            header.addEventListener('touchstart', startPress, {passive: true});
+            header.addEventListener('mouseup', cancelPress);
+            header.addEventListener('mouseleave', cancelPress);
+            header.addEventListener('touchend', cancelPress);
+            header.addEventListener('click', (e) => {
+                if (isLongPress) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    isLongPress = false;
+                }
+            }, true);
+        });
+    }
+
+    // EXPORTAR FLYER
+    const btnExportFlyer = document.getElementById('btnExportFlyer');
+    if (btnExportFlyer) {
+        btnExportFlyer.addEventListener('click', async function() {
+            if (typeof htmlToImage === 'undefined') {
+                alert("La librería de exportación no se ha cargado. Verifica tu conexión a internet.");
+                return;
+            }
+            const originalText = this.innerHTML;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Generando Alta Resolución...';
+            this.disabled = true;
+            actualizarPreviewFlyer();
+            try {
+                const currentTransform = captureArea.style.transform;
+                captureArea.style.transform = 'none';
+                const dataUrl = await htmlToImage.toPng(captureArea, {
+                    pixelRatio: 4,
+                    backgroundColor: 'transparent',
+                    style: { transform: 'none' }
+                });
+                captureArea.style.transform = currentTransform;
+                const link = document.createElement('a');
+                const safeName = (document.getElementById('nombreLugar')?.value || 'Evento').replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_');
+                link.download = `Flyer_${safeName}.png`;
+                link.href = dataUrl;
+                link.click();
+            } catch(e) {
+                console.error(e);
+                alert("Error al generar el flyer. Intenta de nuevo.");
+            } finally {
+                this.innerHTML = originalText;
+                this.disabled = false;
+            }
+        });
+    }
+});
+</script>

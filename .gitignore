@@ -49,6 +49,14 @@ static/uploads/*.mp4
 static/uploads/*.mov
 static/uploads/*.webm
 static/uploads/home_media/
+static/uploads/caminatas_2027/
+
+# Node y Android build
+node_modules/
+android/.gradle/
+android/app/build/
+android/build/
+android/local.properties
 
 # IDEs
 .vscode/

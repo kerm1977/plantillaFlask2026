@@ -16,4 +16,12 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
     }
+    @keyframes checkGlowPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.9); border-color: #ffc107; }
+        50% { box-shadow: 0 0 14px 5px rgba(255, 193, 7, 0.95); border-color: #ff9800; }
+    }
+    .checkbox-glow .form-check-input:not(:checked) {
+        animation: checkGlowPulse 1.2s ease-in-out infinite;
+        border-width: 2px;
+    }
 </style>

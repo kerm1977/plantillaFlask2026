@@ -12,7 +12,7 @@ from routes import bp, _PROJECT_ROOT
 # EXPORTAR / IMPORTAR BASE DE DATOS
 # ==========================================
 
-def _serialize_row(obj, date_fields=(), datetime_fields=()):
+def _serialize_row(obj):
     d = {}
     for col in obj.__table__.columns:
         val = getattr(obj, col.name)

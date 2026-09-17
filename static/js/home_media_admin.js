@@ -197,6 +197,8 @@
 
   if (modalEl) {
     modalEl.addEventListener('shown.bs.modal', loadItems);
+  } else {
+    loadItems();
   }
 
   toggleFields();

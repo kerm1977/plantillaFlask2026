@@ -1,5 +1,8 @@
-from flask import render_template, session, redirect, url_for, jsonify, request, make_response, abort
+from flask import render_template, session, redirect, url_for, jsonify, request, make_response, current_app, abort
+import hashlib
+from itsdangerous import URLSafeSerializer, BadSignature
 from models import Notification, Event, Hiker, Publicacion, LogoConfig, SiteContent, HomeMedia, CaminataBlock
+from modules.points_engine import get_points_engine
 from models_core import EventDateChange
 from datetime import datetime, date
 from sqlalchemy import func, or_
@@ -29,7 +32,21 @@ def _home_context():
 @bp.route('/')
 def home():
     home_media = HomeMedia.query.filter_by(is_active=True).order_by(HomeMedia.sort_order.asc(), HomeMedia.id.asc()).all()
-    return render_template('home.html', home_media=home_media)
+
+    public_accion = None
+    public_user_id = None
+    token = request.args.get('token')
+    if token:
+        secret = current_app.config.get('SECRET_KEY') or 'dev-secret-change-me'
+        serializer = URLSafeSerializer(secret, salt='public-user-link')
+        try:
+            data = serializer.loads(token)
+            public_accion = data.get('accion')
+            public_user_id = data.get('user_id')
+        except BadSignature:
+            pass
+
+    return render_template('home.html', home_media=home_media, public_accion=public_accion, public_user_id=public_user_id)
 
 
 @bp.route('/caminatas')
@@ -38,6 +55,8 @@ def caminatas():
     is_super = session.get('role') == 'Superusuario'
     meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre']
     eventos = Event.query.order_by(Event.fecha_unica, Event.fecha_inicio).all()
+    if not is_super:
+        eventos = [ev for ev in eventos if ev.visitado != 'Cotización']
 
     def mes_key(ev):
         fecha = ev.fecha_unica or ev.fecha_inicio or ev.fecha_regreso
@@ -45,9 +64,11 @@ def caminatas():
             return fecha[:7]
         return '9999-99'
 
+    por_definir = 'Otras Caminatas'
+
     def mes_label(key):
         if key == '9999-99':
-            return 'Por definir'
+            return por_definir
         y, m = key.split('-')
         return f"{meses[int(m)-1]} {y}"
 
@@ -96,6 +117,90 @@ def _get_site_text(key):
     return row.value if row else DEFAULT_SITE_CONTENT.get(key, '')
 
 
+@bp.route('/caminatas/pendientes')
+def caminatas_pendientes():
+    is_super = session.get('role') == 'Superusuario'
+    eventos = Event.query.filter(
+        or_(
+            Event.visitado == 'Pendiente',
+            Event.visitado == 'No',
+            Event.visitado == '',
+            Event.visitado.is_(None)
+        )
+    ).order_by(Event.nombre_lugar).all()
+    return render_template('caminatas_por_estado.html',
+        is_super=is_super,
+        eventos=eventos,
+        page_title='Caminatas Pendientes')
+
+
+@bp.route('/caminatas/anio')
+def caminatas_anio():
+    is_super = session.get('role') == 'Superusuario'
+    eventos = [e for e in Event.query.order_by(Event.nombre_lugar).all()
+               if e.visitado and e.visitado.isdigit() and len(e.visitado) == 4]
+    return render_template('caminatas_por_estado.html',
+        is_super=is_super,
+        eventos=eventos,
+        page_title='Caminatas por Año')
+
+
+@bp.route('/caminatas/visitados')
+def caminatas_visitados():
+    is_super = session.get('role') == 'Superusuario'
+    eventos = Event.query.filter(
+        or_(
+            Event.visitado == 'Visitados',
+            Event.visitado == 'Visitado',
+            Event.visitado == 'Sí'
+        )
+    ).order_by(Event.nombre_lugar).all()
+    return render_template('caminatas_por_estado.html',
+        is_super=is_super,
+        eventos=eventos,
+        page_title='Caminatas Visitadas')
+
+
+@bp.route('/caminatas/programados')
+def caminatas_programados():
+    is_super = session.get('role') == 'Superusuario'
+    eventos = Event.query.filter(
+        or_(Event.visitado == 'Programados', Event.visitado == 'Por programar')
+    ).order_by(Event.nombre_lugar).all()
+    return render_template('caminatas_por_estado.html',
+        is_super=is_super,
+        eventos=eventos,
+        page_title='Caminatas Programadas')
+
+
+@bp.route('/caminatas/cotizaciones')
+def caminatas_cotizaciones():
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    eventos = Event.query.filter(
+        Event.visitado == 'Cotización'
+    ).order_by(Event.nombre_lugar).all()
+    return render_template('caminatas_por_estado.html',
+        is_super=True,
+        eventos=eventos,
+        page_title='Cotizaciones')
+
+
+@bp.route('/cotizaciones/buseta')
+def cotizaciones_buseta():
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    from itertools import groupby
+    eventos = Event.query.filter_by(visitado='Cotización').order_by(Event.provincia, Event.nombre_lugar).all()
+    grupos = []
+    for prov, items in groupby(eventos, key=lambda e: e.provincia or 'Sin provincia'):
+        grupos.append({'provincia': prov, 'eventos': list(items)})
+    return render_template('cotizaciones_buseta.html',
+        is_super=True,
+        grupos=grupos,
+        page_title='Cotizaciones de buseta')
+
+
 @bp.route('/nuestra-historia')
 def nuestra_historia():
     return render_template('nuestra_historia.html', historia_text=_get_site_text('quienes_somos'))
@@ -103,7 +208,7 @@ def nuestra_historia():
 
 @bp.route('/mision')
 def mision():
-    return render_template('mision.html', mision_text=_get_site_text('nota'))
+    return render_template('mision.html', mision_text=_get_site_text('mision'))
 
 
 @bp.route('/nuestra-oracion')
@@ -135,7 +240,7 @@ def caminatas_2027():
     ).order_by(Event.fecha_unica, Event.fecha_inicio).all()
 
     if not is_super:
-        eventos = [ev for ev in eventos if ev.provincia != 'Referencia']
+        eventos = [ev for ev in eventos if ev.provincia != 'Referencia' and ev.visitado != 'Cotización']
 
     eventos_sorted = sorted(eventos, key=lambda e: (e.provincia or 'Sin provincia'))
     timeline = []
@@ -169,21 +274,25 @@ def ver_caminata_2027(event_id):
     is_share = request.args.get('share') == '1'
     is_super = session.get('role') == 'Superusuario' and not is_share
     event = Event.query.get_or_404(event_id)
+    if event.visitado == 'Cotización' and not is_super:
+        return redirect(url_for('main.home'))
     share_url = url_for('main.ver_caminata_2027', event_id=event_id, share=1, _external=True)
     share_datetime = datetime.now().strftime('%d/%m/%Y %H:%M')
+    itinerario_hash = hashlib.md5((event.itinerario or '').encode('utf-8')).hexdigest()
     return render_template('ver_caminata_2027.html',
         event=event,
         is_super=is_super,
         is_share=is_share,
         share_url=share_url,
-        share_datetime=share_datetime)
+        share_datetime=share_datetime,
+        itinerario_hash=itinerario_hash)
 
 
 @bp.route('/quienes-somos')
 def quienes_somos():
     return render_template('quienes_somos.html',
         historia_text=_get_site_text('quienes_somos'),
-        mision_text=_get_site_text('nota'),
+        mision_text=_get_site_text('mision'),
         oracion_text=_get_site_text('oracion'),
         equipo_text=_get_site_text('equipo'),
         musica_text=_get_site_text('musica'),
@@ -258,6 +367,30 @@ def api_save_logo_config():
     return jsonify({'ok': True})
 
 
+@bp.route('/tarjeta/<cedula>/<email>')
+def tarjeta(cedula, email):
+    from models import User
+    hiker = Hiker.query.filter_by(cedula=(cedula or '').strip()).first()
+    bound_email = (hiker.card_email or '').strip().lower() if hiker else ''
+    if not hiker or not bound_email or bound_email != (email or '').strip().lower():
+        abort(404)
+    user = User.query.filter(func.lower(User.email) == bound_email).first()
+    if not user:
+        if hiker.telefono:
+            user = User.query.filter_by(phone=hiker.telefono).first()
+        if not user and hiker.nombre_completo:
+            for u in User.query.all():
+                if f'{u.name} {u.last_name_1} {u.last_name_2}'.strip().lower() == hiker.nombre_completo.strip().lower():
+                    user = u
+                    break
+    engine = get_points_engine()
+    puntos_total = engine.total_by_cedula(hiker.cedula)
+    avatar_file = (user.avatar if user else None) or 'default.png'
+    if avatar_file != 'default.png' and not avatar_file.startswith('uploads/'):
+        avatar_file = 'uploads/' + avatar_file
+    return render_template('tarjeta.html', user=user, hiker=hiker, card_email=bound_email, puntos_total=puntos_total, avatar_file=avatar_file)
+
+
 @bp.route('/profile')
 def profile():
     from models import User
@@ -267,7 +400,21 @@ def profile():
     if not user:
         session.clear()
         return redirect(url_for('main.home'))
-    return render_template('perfil.html', user=user)
+    full_name = f'{user.name} {user.last_name_1} {user.last_name_2}'.strip()
+    hiker = Hiker.query.filter_by(telefono=user.phone).first() if user.phone else None
+    if not hiker:
+        hiker = Hiker.query.filter_by(nombre_completo=full_name).first()
+    puntos_cedula = hiker.cedula if hiker else ''
+    engine = get_points_engine()
+    puntos_total = engine.total_by_cedula(puntos_cedula) if puntos_cedula else 0
+    puntos_history = engine.history_with_names(puntos_cedula) if puntos_cedula else []
+    from modules.points_helpers import get_puntos_password, get_puntos_admin_visible, get_notif_cutoff
+    notif_cutoff = get_notif_cutoff(puntos_cedula)
+    puntos_notificaciones = [r for r in puntos_history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > notif_cutoff]
+    return render_template('perfil.html', user=user, hiker=hiker, puntos_cedula=puntos_cedula,
+                           puntos_total=puntos_total, puntos_history=puntos_history, puntos_notificaciones=puntos_notificaciones,
+                           puntos_password=get_puntos_password(), puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
+                           puntos_pwd_visible=get_puntos_admin_visible())
 
 
 @bp.route('/gestor-fechas')
@@ -372,3 +519,8 @@ def borrar_evento_fecha(event_id):
         import traceback
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
+
+
+@bp.route('/public/usuarios/<token>')
+def public_usuarios(token):
+    return redirect(url_for('main.home', token=token))

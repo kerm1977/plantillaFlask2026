@@ -1,0 +1,266 @@
+{% with is_super_user = true %}{% include 'partials/ver_evento_styles.html' %}{% endwith %}
+
+                  <!-- Generador de Flyers -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accFlyer">
+                        <i class="bi bi-image me-2"></i>Generador de Flyers
+                      </button>
+                    </h2>
+                    <div id="accFlyer" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+
+                        <div class="row g-3 g-lg-4">
+                          <div class="col-12 col-lg-7 order-2 order-lg-1">
+                            <div class="glass-panel p-3 p-md-4 rounded-4 shadow-sm border border-white border-opacity-50">
+                                <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseElementos" role="button" aria-expanded="false" aria-controls="collapseElementos">
+                                    <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-list-check me-2"></i>Elementos a Mostrar</h6>
+                                    <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                                </div>
+                                <div class="collapse" id="collapseElementos">
+                                    <div class="pt-3 border-top border-white mt-2">
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_inversion" data-target="fl_inversion" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_inversion">Precio Total</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_reserva" data-target="fl_reserva" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_reserva">Reserva con</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_fecha" data-target="fl_fecha" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_fecha">Fecha Actividad</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_salida" data-target="fl_salida" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_salida">Salida y Hora</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2 mb-2">
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_capacidad" data-target="fl_capacidad" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_capacidad">Capacidad</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_dificultad" data-target="fl_dificultad" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_dificultad">Dificultad</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_pagos" data-target="fl_pagos" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_pagos">Métodos Pago</label>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="form-check form-switch">
+                                                    <input class="form-check-input flyer-toggle" type="checkbox" id="t_incluye" data-target="fl_incluye" checked>
+                                                    <label class="form-check-label small fw-bold text-secondary" for="t_incluye">Lo que incluye</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseFondo" role="button" aria-expanded="false" aria-controls="collapseFondo" data-reset-target="fondo">
+                                        <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-image me-2"></i>Ajustes de Fondo</h6>
+                                        <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                                    </div>
+                                    <div class="collapse" id="collapseFondo">
+                                        <div class="pt-3 border-top border-white mt-2">
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Fondo <span class="float-end text-orange" id="val_flyerScale">0%</span></label>
+                                                    <input type="range" class="form-range" id="flyerScale" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Rotar Grados <span class="float-end text-orange" id="val_flyerRot">0°</span></label>
+                                                    <input type="range" class="form-range" id="flyerRot" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Mover X <span class="float-end text-orange" id="val_flyerPosX">0%</span></label>
+                                                    <input type="range" class="form-range" id="flyerPosX" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Mover Y <span class="float-end text-orange" id="val_flyerPosY">0%</span></label>
+                                                    <input type="range" class="form-range" id="flyerPosY" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Desenfoque <span class="float-end text-orange" id="val_flyerBlur">0%</span></label>
+                                                    <input type="range" class="form-range" id="flyerBlur" min="-100" max="100" step="5" value="-100">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Brillo <span class="float-end text-orange" id="val_flyerOpacity">0%</span></label>
+                                                    <input type="range" class="form-range" id="flyerOpacity" min="-100" max="100" step="5" value="100">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="bg-white bg-opacity-50 px-3 py-2 rounded-4 mt-2 border border-white shadow-sm">
+                                    <div class="d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapseTexto" role="button" aria-expanded="false" aria-controls="collapseTexto" data-reset-target="texto">
+                                        <h6 class="fw-bold text-dark mb-0 py-1" style="font-size: 0.9rem;"><i class="bi bi-textarea-t me-2"></i>Ajustes del Texto</h6>
+                                        <i class="bi bi-chevron-down text-dark fs-5 transition-chevron"></i>
+                                    </div>
+                                    <div class="collapse" id="collapseTexto">
+                                        <div class="pt-3 border-top border-white mt-2">
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Caja <span class="float-end text-orange" id="val_overlayScale">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayScale" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Ancho <span class="float-end text-orange" id="val_overlayWidth">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayWidth" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Mover Caja <span class="float-end text-orange" id="val_overlayPosX">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayPosX" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Mover Caja a Y <span class="float-end text-orange" id="val_overlayPosY">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayPosY" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Fondo Cristal <span class="float-end text-orange" id="val_overlayBlur">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayBlur" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                                <div class="col-6">
+                                                    <label class="form-label editor-control-label w-100">Oscuridad <span class="float-end text-orange" id="val_overlayOpacity">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayOpacity" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                            <div class="row g-2 mb-2">
+                                                <div class="col-12">
+                                                    <label class="form-label editor-control-label w-100">Tamaño <span class="float-end text-orange" id="val_overlayFontSize">0%</span></label>
+                                                    <input type="range" class="form-range" id="overlayFontSize" min="-100" max="100" step="5" value="0">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button id="btnExportFlyer" class="btn btn-orange w-100 rounded-pill fw-bold shadow mt-3 py-2 py-md-3 fs-6 fs-md-5 d-flex align-items-center justify-content-center" style="margin-bottom:80px;">
+                                    <i class="bi bi-download me-2 fs-5 fs-md-4"></i>
+                                    <span class="d-none d-md-inline">Descargar Flyer HD (9:16)</span>
+                                    <span class="d-inline d-md-none">Flyer HD 9:16</span>
+                                </button>
+
+                                <div class="modal fade" id="resetFlyerValuesModal" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog modal-dialog-centered">
+                                        <div class="modal-content glass-modal border-0 shadow-lg">
+                                            <div class="modal-header border-0 pb-0">
+                                                <h5 class="modal-title fw-bold text-dark w-100 text-center">Restablecer ajustes</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                                            </div>
+                                            <div class="modal-body text-center px-4 pb-3">
+                                                <p id="resetFlyerMessage" class="text-secondary mb-3 small">¿Restablecer todos los valores a cero?</p>
+                                                <div class="form-check d-flex justify-content-center align-items-center gap-2">
+                                                    <input class="form-check-input" type="checkbox" id="confirmResetFlyer">
+                                                    <label class="form-check-label small fw-bold text-secondary" for="confirmResetFlyer">Sí, estoy seguro de restablecer todos los valores a cero</label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                                                <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" id="btnConfirmResetFlyer" class="btn btn-danger rounded-pill px-4" disabled>Restablecer</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+
+                          <div class="col-12 col-lg-5 order-1 order-lg-2">
+                            <div class="glass-panel p-3 p-md-4 rounded-4 shadow-sm border border-white border-opacity-50 sticky-lg-top" style="top: 20px;">
+                                <h4 class="fw-bold text-dark mb-2 d-flex align-items-center h5">
+                                    <i class="bi bi-magic text-orange me-2"></i>Vista Previa
+                                </h4>
+                                <p class="text-secondary small mb-3" style="font-size: 0.8rem;">Así se verá el flyer.</p>
+
+                                <div id="flyerPreviewContainer">
+                                    <div id="flyerPreviewWrapper" class="flyer-preview-wrapper mb-3 shadow">
+                                        <div id="flyerCaptureArea" class="flyer-capture-area" data-event-id="new">
+                                            <div class="flyer-bg-container" style="z-index: 0;">
+                                                <img id="flyerBgImg" class="flyer-bg-img" src="{{ url_for('static', filename='default.png') }}" crossorigin="anonymous">
+                                            </div>
+                                            <div id="flyerBgBlurContainer" class="flyer-bg-container" style="z-index: 1;">
+                                                <img id="flyerBgImgClone" class="flyer-bg-img" src="{{ url_for('static', filename='default.png') }}" crossorigin="anonymous">
+                                            </div>
+                                            <div id="flyerOverlay" class="flyer-glass-overlay" style="z-index: 2;">
+                                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                                    <span id="fl_actividad" class="flyer-badge">Caminata</span>
+                                                    <div>
+                                                        <span id="fl_altoRiesgo" class="flyer-badge bg-dark border-danger text-danger me-1 d-none"><i class="bi bi-exclamation-triangle-fill"></i> ALTO RIESGO</span>
+                                                        <span id="fl_dificultad" class="flyer-badge bg-danger border-0">Paseo</span>
+                                                    </div>
+                                                </div>
+                                                <h2 id="flyerTitulo" class="fw-bold mb-2" style="font-size: calc(1.4rem * var(--text-scale)); line-height: 1.15; letter-spacing: -0.5px;">Nombre del Lugar</h2>
+                                                <div id="fl_fecha" class="mb-1 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                                                    <i class="bi bi-calendar-event me-1"></i><strong>Fecha:</strong> <span id="flyerFechaText">Por definir</span>
+                                                </div>
+                                                <div id="fl_salida" class="mb-2 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
+                                                    <i class="bi bi-geo-alt me-1"></i><strong>Salida:</strong> <span id="flyerSalidaText">Por definir</span>
+                                                </div>
+                                                <div class="row g-2 mt-2 pt-2 border-top border-white border-opacity-25">
+                                                    <div class="col-6" id="fl_inversion">
+                                                        <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Precio Total</small>
+                                                        <span id="flyerPrecioText" class="fw-bold" style="color: #ffc107; font-size: calc(1.2rem * var(--text-scale));">PENDIENTE</span>
+                                                    </div>
+                                                    <div class="col-6" id="fl_reserva">
+                                                        <small class="d-block text-uppercase fw-bold opacity-75" style="font-size: calc(0.55rem * var(--text-scale));">Reserva tu espacio</small>
+                                                        <span id="flyerReservaText" class="fw-bold" style="font-size: calc(1.2rem * var(--text-scale));">PENDIENTE</span>
+                                                    </div>
+                                                </div>
+                                                <div id="fl_capacidad" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                                    <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Capacidad del evento</small>
+                                                    <span class="fw-bold" style="font-size: calc(0.75rem * var(--text-scale));"><i class="bi bi-people-fill me-1"></i> <span id="flyerCapacidadText">--</span> personas max.</span>
+                                                </div>
+                                                <div id="fl_pagos" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                                    <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Métodos de Pago</small>
+                                                    <div style="font-size: calc(0.7rem * var(--text-scale)); line-height: 1.3;">
+                                                        <strong>SINPE:</strong> <span id="flyerSinpeText">Por definir</span><br>
+                                                        <strong>Cuenta:</strong> <span id="flyerCuentaText">Por definir</span>
+                                                    </div>
+                                                </div>
+                                                <div id="fl_incluye" class="mt-2 pt-2 border-top border-white border-opacity-25 d-none">
+                                                    <small class="d-block text-uppercase fw-bold opacity-75 mb-1" style="font-size: calc(0.55rem * var(--text-scale));">Lo que incluye</small>
+                                                    <div id="flyerIncluyeTags" class="d-flex flex-wrap gap-1">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>

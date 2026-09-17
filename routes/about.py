@@ -1,7 +1,9 @@
+import os
 from flask import request, jsonify, session
+from werkzeug.utils import secure_filename
 from models import SiteContent
 from db import db
-from routes import bp
+from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
 
 # ==========================================
 # CONTENIDO EDITABLE DEL SITIO
@@ -52,7 +54,26 @@ DEFAULT_SITE_CONTENT = {
     ),
     'equipo': '',
     'musica': '',
-    'caminatas_2027': 'Información de Prox Caminatas próximamente.'
+    'caminatas_2027': 'Información de Prox Caminatas próximamente.',
+    # Tema y textos administrables
+    'site_title': 'La Tribu de los Libres',
+    'home_welcome_title': 'Bienvenidos a la Tribu de los Libres',
+    'home_welcome_message': 'Caminatas y familia',
+    'home_button_text': 'Nuestras Caminatas',
+    'home_hero_bg': '',
+    'navbar_bg': '',
+    'navbar_text_color': '',
+    'caminatas_page_title': 'Caminatas de la Tribu',
+    'caminatas_year': '2027',
+    'por_definir_label': 'Por definir',
+    'caminatas_section_bg': '',
+    'footer_year': '2026',
+    'footer_copyright_text': '',
+    'back_button_bg': '',
+    'admin_tools_bg': '',
+    'primary_button_color': '',
+    'secondary_button_color': '',
+    'terminos': ''
 }
 
 def inject_site_content():
@@ -97,3 +118,48 @@ def update_site_content(key):
         db.session.add(SiteContent(key=key, value=value))
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/api/site-content/<key>', methods=['POST'])
+def update_site_content_json(key):
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    data = request.get_json(silent=True) or {}
+    value = data.get('value', '')
+    row = SiteContent.query.filter_by(key=key).first()
+    if row:
+        row.value = value
+    else:
+        db.session.add(SiteContent(key=key, value=value))
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
+ALLOWED_UPLOAD_EXTENSIONS = ALLOWED_IMAGE_EXTENSIONS | {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg','3gp','3g2'}
+
+
+@bp.route('/api/upload-image', methods=['POST'])
+def api_upload_image():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'Sin permiso'}), 403
+    file = request.files.get('media') or request.files.get('image')
+    if not file or file.filename == '':
+        return jsonify({'error': 'No se envió archivo'}), 400
+    if not allowed_file(file.filename, ALLOWED_UPLOAD_EXTENSIONS):
+        return jsonify({'error': 'Formato no permitido'}), 400
+    ext = file.filename.rsplit('.', 1)[1].lower() if '.' in file.filename else ''
+    kind = 'video' if ext in {'mp4','m4v','mov','wmv','avi','mkv','webm','mpv','mpg','mpeg'} else 'image'
+    filename = secure_filename(f"site_{os.urandom(4).hex()}_{file.filename}")
+    upload_dir = os.path.join(os.path.abspath(os.path.dirname(os.path.dirname(__file__))), 'static', 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    file.save(os.path.join(upload_dir, filename))
+    return jsonify({'ok': True, 'url': f'/static/uploads/{filename}', 'kind': kind})
+
+
+@bp.context_processor
+def inject_site_context():
+    site = {row.key: row.value for row in SiteContent.query.all()}
+    for key, val in DEFAULT_SITE_CONTENT.items():
+        if key not in site:
+            site[key] = val
+    return {'site': site}

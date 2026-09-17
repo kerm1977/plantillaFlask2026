@@ -1,8 +1,7 @@
 <div class="row justify-content-center animate__animated animate__fadeIn">
-    <div class="col-lg-10 col-xl-8">
-        <div class="glass-panel rounded-5 p-4 p-md-5 mb-4 position-relative overflow-hidden border-0 shadow-lg">
-            <div class="row align-items-center">
-                <div class="col-md-4 text-center mb-4 mb-md-0">
+    <div class="col-12">
+            <div class="row align-items-center mb-4 pb-4 border-bottom border-white border-opacity-50">
+                <div class="col-12 col-md-3 col-lg-2 text-center mb-3 mb-md-0">
                     <div class="position-relative d-inline-block">
                         <div class="rounded-circle shadow-lg border border-4 border-white overflow-hidden" style="width: 200px; height: 200px; background-color: #fff;">
                             <img id="mainProfileAvatar" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" 
@@ -21,8 +20,8 @@
                     </div>
                 </div>
                 
-                <div class="col-md-8">
-                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center align-items-sm-start mb-4 text-center text-sm-start">
+                <div class="col-12 col-md-9 col-lg-10">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center align-items-sm-start text-center text-sm-start">
                         <div class="mb-3 mb-sm-0 w-100">
                             {% if user.role == 'Superusuario' %}
                                 <span class="badge bg-warning text-dark rounded-pill px-3 mb-2 text-uppercase fw-bold shadow-sm" style="font-size: 0.7rem;">{{ user.role }}</span>
@@ -38,9 +37,22 @@
                         </button>
                         {% endif %}
                     </div>
-                    
-                    <div class="glass-panel rounded-4 p-3 bg-white bg-opacity-25 mb-4">
-                        <div class="d-flex flex-column gap-3 text-start w-100">
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-12 col-lg-6">
+                    <div class="accordion mb-4" id="profileInfoAccordion">
+                        <div class="accordion-item glass-panel border-0 rounded-4 overflow-hidden bg-white bg-opacity-25">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#profileInfoCollapse">
+                                    <i class="bi bi-person-vcard me-2 text-orange"></i>Información del usuario
+                                </button>
+                            </h2>
+                            <div id="profileInfoCollapse" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <p class="small text-muted">Muestra los datos principales de la cuenta: correo, teléfono, nacimiento, fecha de registro y última actualización. Si es tu perfil, utilizá el botón de edición junto al nombre para modificarlos.</p>
+                                    <div class="d-flex flex-column gap-3 text-start w-100">
                             <div class="info-item w-100">
                                 <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-envelope-fill text-orange me-1"></i> Correo Electrónico</label>
                                 <div id="mainProfileEmail" class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.email }}</div>
@@ -66,43 +78,252 @@
                                 <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-clock-history text-orange me-1"></i> Última Actualización</label>
                                 <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.updated_at.strftime('%d de %B, %Y - %H:%M') if user.updated_at else 'No disponible' }}</div>
                             </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-whatsapp text-orange me-1"></i> WhatsApp</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.whatsapp or 'No registrado' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-facebook text-orange me-1"></i> Facebook</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.facebook or 'No registrado' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-instagram text-orange me-1"></i> Instagram</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.instagram or 'No registrado' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-geo-alt-fill text-orange me-1"></i> Dirección</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.address or 'No registrada' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-bank text-orange me-1"></i> Institución</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.institution or 'No registrada' }}</div>
+                            </div>
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-info-circle-fill text-orange me-1"></i> Información adicional</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.other_info or 'Sin información adicional' }}</div>
+                            </div>
+                            {% if session.get('role') == 'Superusuario' %}
+                            <div class="info-item w-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size: 0.7rem;"><i class="bi bi-shield-lock-fill text-orange me-1"></i> Rol de seguridad</label>
+                                <div class="fw-semibold text-break fs-6 ps-2 text-dark">{{ user.role or 'Usuario' }}</div>
+                            </div>
+                            {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    </div>
+
+            <div class="accordion mb-4" id="puntosAccordion">
+                <div class="accordion-item glass-panel border-0 rounded-4 overflow-hidden bg-white bg-opacity-25">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#puntosCollapse">
+                            <i class="bi bi-trophy me-2 text-orange"></i>Puntos y expediente
+                        </button>
+                    </h2>
+                    <div id="puntosCollapse" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+                        <div class="accordion-body">
+                            {% if hiker %}
+                            <div class="card border-0 shadow-lg rounded-4 p-3 mb-4 bg-white bg-opacity-50">
+                                <div class="text-center mb-3">
+                                    <i class="bi bi-person-badge fs-1 text-info"></i>
+                                    <h4 class="fw-bold mt-2">{{ hiker.nombre_completo }}</h4>
+                                    <p class="text-muted mb-1">{{ hiker.cedula }}</p>
+                                    <h2 class="fw-bold text-warning-custom mb-0">{{ puntos_total }} puntos</h2>
+                                </div>
+                                <div class="row g-3 text-start">
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Teléfono</label><div class="fw-semibold text-dark">{{ hiker.telefono or 'No registrado' }}</div></div>
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Pasaporte</label><div class="fw-semibold text-dark">{{ hiker.pasaporte or 'No registrado' }}</div></div>
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Fecha de Nacimiento</label><div class="fw-semibold text-dark">{{ hiker.fecha_nacimiento.strftime('%d/%m/%Y') if hiker.fecha_nacimiento else 'No registrada' }}</div></div>
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Tipo de Sangre</label><div class="fw-semibold text-dark">{{ hiker.tipo_sangre or 'No registrado' }}</div></div>
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Alergias</label><div class="fw-semibold text-dark">{{ hiker.alergias or 'Ninguna' }}</div></div>
+                                    <div class="col-12 col-md-6"><label class="text-uppercase text-secondary fw-bold small">Enfermedades Crónicas</label><div class="fw-semibold text-dark">{{ hiker.enfermedades_cronicas or 'Ninguna' }}</div></div>
+                                    <div class="col-12"><label class="text-uppercase text-secondary fw-bold small">Contacto de Emergencia</label><div class="fw-semibold text-dark">{{ hiker.contacto_emergencia_nombre or 'No registrado' }} {{ ' - ' + hiker.contacto_emergencia_telefono if hiker.contacto_emergencia_telefono else '' }}</div></div>
+                                </div>
+                                {% if puntos_notificaciones %}
+                                <div class="mt-3 border-top pt-3">
+                                    <h6 class="fw-bold text-info mb-2"><i class="bi bi-bell me-2"></i>Últimas notificaciones</h6>
+                                    {% for n in puntos_notificaciones %}
+                                    <p class="mb-1 small"><strong>{{ n.creado_por }}</strong> te regaló <strong>{{ n.puntos }}</strong> puntos. <span class="text-muted">{{ n.detalle }}</span></p>
+                                    {% endfor %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill mt-2" data-bs-toggle="collapse" data-bs-target="#limpiarNotifPerfil"><i class="bi bi-bell-slash me-1"></i>Limpiar notificaciones</button>
+                                    <div class="collapse mt-2" id="limpiarNotifPerfil">
+                                        <form method="post" action="{{ url_for('main.puntos_limpiar_notificaciones') }}" class="border rounded-4 p-3 bg-light bg-opacity-50">
+                                            <div class="form-check checkbox-glow mb-2">
+                                                <input class="form-check-input" type="checkbox" id="confirmaLimpiarPerfil1" required>
+                                                <label class="form-check-label small" for="confirmaLimpiarPerfil1">Sí, quiero limpiar todas mis notificaciones.</label>
+                                            </div>
+                                            <div class="form-check checkbox-glow mb-2">
+                                                <input class="form-check-input" type="checkbox" id="confirmaLimpiarPerfil2" required>
+                                                <label class="form-check-label small" for="confirmaLimpiarPerfil2">Entiendo que esta acción no se puede deshacer.</label>
+                                            </div>
+                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill fw-bold">Limpiar definitivamente</button>
+                                        </form>
+                                    </div>
+                                </div>
+                                {% endif %}
+                                {% if session.get('role') == 'Superusuario' %}
+                                <div class="mt-3 text-center">
+                                    <a href="{{ url_for('main.estado_cuenta', cedula=hiker.cedula) }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank">Descargar estado de cuenta</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% if puntos_history %}
+                            <div class="mb-3">
+                                {% for row in puntos_history %}
+                                <div class="card border-0 shadow-sm rounded-4 mb-2 p-3 bg-white bg-opacity-50">
+                                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                                        <div>
+                                            <span class="badge bg-light text-dark rounded-pill mb-1">{{ row.creado_at[:10] if row.creado_at else 'Sin fecha' }}</span>
+                                            <h6 class="fw-bold mb-0 text-uppercase text-break">{{ row.tipo }}</h6>
+                                            <small class="text-muted text-break">{{ row.evento_nombre or 'Actividad general' }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <span class="fw-bold fs-5 {{ 'text-danger' if row.puntos < 0 else 'text-success' }}">{{ row.puntos }}</span>
+                                            <small class="d-block text-muted">puntos</small>
+                                        </div>
+                                    </div>
+                                    {% if row.detalle %}
+                                    <p class="mb-0 small text-break"><span class="fw-semibold">Detalle:</span> {{ row.detalle }}</p>
+                                    {% endif %}
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted">No hay movimientos de puntos registrados.</p>
+                            {% endif %}
+                            {% else %}
+                            <p class="text-muted">No se encontró expediente vinculado. Si sos parte de La Tribu, contactá al superusuario para vincular tu cuenta.</p>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-4 pt-4 border-top border-white border-opacity-50 d-flex flex-column flex-sm-row flex-wrap gap-3 justify-content-center justify-content-sm-start">
+                </div>
+
+                <div class="col-12 col-lg-6">
+            <div class="d-flex flex-column flex-wrap gap-3">
                 {% if session.get('role') == 'Superusuario' %}
-                <a href="/dashboard" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #ff8c00; border: 2px solid #ff8c00;">
-                    <i class="bi bi-speedometer2 me-2"></i>Dashboard
-                </a>
-                <a href="{{ url_for('main.backup_manager') }}" class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #6c757d; border: 2px solid #6c757d;">
-                    <i class="bi bi-database-fill-gear me-2"></i>Respaldos
-                </a>
-                <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #dc3545; border: 2px solid #dc3545;" onclick="clearPWACache()">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar Caché PWA
-                </button>
-                <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #0d6efd; border: 2px solid #0d6efd;" onclick="abrirConfigLogoSuenos()">
-                    <i class="bi bi-gear-fill me-2"></i>Configurar Logo
-                </button>
-                <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" style="color: #6f42c1; border: 2px solid #6f42c1;" data-bs-toggle="modal" data-bs-target="#homeMediaAdminModal">
-                    <i class="bi bi-images me-2"></i>Administrar Carrusel
-                </button>
+                <div class="accordion w-100" id="profileAdminAccordion">
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileDashboard"><i class="bi bi-speedometer2 me-2 text-orange"></i>Dashboard</button></h2>
+                        <div id="profileDashboard" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite consultar y administrar usuarios, roles, registros y funciones generales del sistema. Tocá el botón para entrar al panel administrativo.</p><a href="/dashboard" class="btn btn-outline-warning rounded-pill fw-bold">Abrir Dashboard</a></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profilePuntosControl"><i class="bi bi-trophy me-2 text-warning"></i>Control de puntos</button></h2>
+                        <div id="profilePuntosControl" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body">
+                            <p class="small text-muted">Esta contraseña de 4 dígitos es la misma para todas las personas y les permite ingresar a su sistema de puntos.</p>
+                            {% if puntos_pwd_msg %}<div class="alert alert-info rounded-4 py-2 small">{{ puntos_pwd_msg }}</div>{% endif %}
+                            <form method="post" action="{{ url_for('main.puntos_password_visibilidad') }}" class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="visible" value="1" id="pwdVisibleToggle" {% if puntos_pwd_visible %}checked{% endif %} onchange="this.form.submit()">
+                                    <label class="form-check-label fw-bold" for="pwdVisibleToggle">Mostrar administrador de contraseña a superusuarios</label>
+                                </div>
+                            </form>
+                            {% if puntos_pwd_visible %}
+                            <form method="post" action="{{ url_for('main.puntos_password') }}">
+                                <label class="form-label fw-bold">Administrar contraseña para ingreso de puntos</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" name="password" class="form-control" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="4 dígitos" required>
+                                    <button type="submit" class="btn btn-warning fw-bold text-dark">Guardar</button>
+                                </div>
+                                <small class="text-muted">Contraseña actual: <strong>{{ puntos_password or 'No configurada' }}</strong></small>
+                            </form>
+                            {% else %}
+                            <p class="small text-muted mb-0">El administrador de contraseña está oculto. Activá el interruptor para verlo.</p>
+                            {% endif %}
+                            <hr class="my-3">
+                            <p class="fw-bold mb-1"><i class="bi bi-database-fill-gear me-2 text-primary"></i>Exportar e importar puntos de todos los usuarios</p>
+                            <p class="small text-muted">Respalda o restaura la información de puntos de todas las personas registradas en el sistema.</p>
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('main.admin_puntos_exportar_json') }}" class="btn btn-outline-dark rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-json me-2"></i>Exportar todos los puntos a JSON</a>
+                                <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-txt me-2"></i>Exportar todos los puntos a TXT</a>
+                                <form method="post" action="{{ url_for('main.admin_puntos_importar_json') }}" enctype="multipart/form-data" class="mt-1">
+                                    <input type="file" name="archivo" class="form-control mb-2" accept=".json,application/json" required>
+                                    <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold"><i class="bi bi-upload me-2"></i>Importar puntos desde JSON</button>
+                                </form>
+                            </div>
+                        </div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileTheme"><i class="bi bi-palette me-2 text-success"></i>Administrar Tema</button></h2>
+                        <div id="profileTheme" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite modificar colores, fondos y elementos visuales compartidos de la aplicación. Los cambios afectan la apariencia que ven los usuarios.</p><a href="{{ url_for('main.admin_theme') }}" class="btn btn-outline-success rounded-pill fw-bold">Abrir administración del tema</a></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileBackups"><i class="bi bi-database-fill-gear me-2 text-secondary"></i>Respaldos</button></h2>
+                        <div id="profileBackups" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite crear, consultar y recuperar copias de seguridad de la aplicación. Usalo antes de cambios importantes para disponer de un punto de recuperación.</p><a href="{{ url_for('main.backup_manager') }}" class="btn btn-outline-secondary rounded-pill fw-bold">Administrar respaldos</a></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileOffline"><i class="bi bi-cloud-arrow-down-fill me-2 text-success"></i>Información offline</button></h2>
+                        <div id="profileOffline" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body">
+                            <p class="small text-muted">Descarga páginas, textos, imágenes, audios y videos disponibles para poder consultarlos sin conexión. Si el proceso se interrumpe, volvé a pulsar el botón: conservará los archivos completos y reintentará únicamente los pendientes o modificados.</p>
+                            <button id="btnDownloadAllOffline" class="btn btn-success rounded-pill fw-bold w-100" onclick="downloadAllOffline()"><i class="bi bi-cloud-arrow-down-fill me-2"></i>Cargar toda la información offline</button>
+                            <progress id="offlineDownloadProgress" class="progress w-100 d-none mt-3" max="100" value="0"></progress>
+                            <div id="offlineDownloadStatus" class="small text-muted mt-2" aria-live="polite"></div>
+                            <div class="accordion mt-3"><div class="accordion-item"><h2 class="accordion-header"><button id="offlineConsoleTitle" class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#offlineConsoleCollapse" title="Mantené presionado para abrir y copiar errores"><i class="bi bi-terminal me-2"></i>Consola de descarga</button></h2><div id="offlineConsoleCollapse" class="accordion-collapse collapse"><div class="accordion-body"><button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mb-2" onclick="openOfflineConsoleModal()"><i class="bi bi-arrows-fullscreen me-1"></i>Abrir consola grande</button><div id="offlineDownloadConsole" class="bg-dark text-start font-monospace small p-3 rounded" style="max-height:18rem;overflow:auto;"></div></div></div></div></div>
+                        </div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileUpdate" onclick="checkAppUpdate()"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Actualizar aplicación</button></h2>
+                        <div id="profileUpdate" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body">
+                            <p class="small text-muted">Cuando se publique una mejora, tocá <strong>Buscar actualización</strong>. Si aparece una versión nueva, descargá el APK, abrí la notificación de descarga y confirmá la instalación de Android. No desinstalés la aplicación: instalá la actualización encima para conservar sus datos.</p>
+                            <div id="appUpdateStatus" class="small text-muted mb-3">Comprobá si existe una versión nueva.</div>
+                            <button id="appUpdateCheckButton" class="btn btn-outline-primary rounded-pill fw-bold me-2 mb-2" onclick="checkAppUpdate()">Buscar actualización</button>
+                            <button id="appUpdateDownload" class="btn btn-primary rounded-pill fw-bold d-none mb-2" type="button" onclick="downloadAppUpdate()">Descargar actualización</button>
+                        </div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileClearCache"><i class="bi bi-arrow-counterclockwise me-2 text-danger"></i>Limpiar caché</button></h2>
+                        <div id="profileClearCache" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Elimina páginas y archivos temporales almacenados por la aplicación. También borra la copia offline, por lo que después será necesario descargarla nuevamente.</p><button class="btn btn-outline-danger rounded-pill fw-bold" onclick="clearPWACache()">Limpiar caché ahora</button></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileLogo"><i class="bi bi-gear-fill me-2 text-primary"></i>Configurar logo</button></h2>
+                        <div id="profileLogo" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite elegir el logotipo mostrado, su enlace, visibilidad, tamaño y posición para computadora y teléfono.</p><a href="{{ url_for('main.admin_logo_config') }}" class="btn btn-outline-primary rounded-pill fw-bold">Abrir configuración del logo</a></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileCarousel"><i class="bi bi-images me-2" style="color:#6f42c1;"></i>Administrar carrusel</button></h2>
+                        <div id="profileCarousel" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite agregar, ordenar, activar o retirar imágenes y otros elementos visuales del carrusel de inicio.</p><a href="{{ url_for('main.admin_carrusel') }}" class="btn btn-outline-primary rounded-pill fw-bold">Abrir administración del carrusel</a></div></div>
+                    </div>
+                </div>
                 {% endif %}
-                <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" onclick="window.print()">
-                    <i class="bi bi-file-earmark-image me-2"></i>Exportar PNG
-                </button>
-                <button class="btn btn-warning-orange rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto" onclick="shareToWhatsapp()">
-                    <i class="bi bi-whatsapp me-2"></i>WhatsApp
-                </button>
+                <div class="accordion w-100" id="profileActionsAccordion">
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileExport"><i class="bi bi-file-earmark-image me-2 text-orange"></i>Exportar PNG</button></h2>
+                        <div id="profileExport" class="accordion-collapse collapse" data-bs-parent="#profileActionsAccordion"><div class="accordion-body"><p class="small text-muted">Abre la función de impresión del dispositivo para guardar, imprimir o capturar la información visible del perfil.</p><button class="btn btn-orange rounded-pill fw-bold" onclick="window.print()">Exportar perfil</button></div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileWhatsapp"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp</button></h2>
+                        <div id="profileWhatsapp" class="accordion-collapse collapse" data-bs-parent="#profileActionsAccordion"><div class="accordion-body"><p class="small text-muted">Prepara un mensaje con los datos públicos del perfil para compartirlos mediante WhatsApp. Podrás revisar el mensaje antes de enviarlo.</p><button class="btn btn-success rounded-pill fw-bold" onclick="shareToWhatsapp()">Compartir por WhatsApp</button></div></div>
+                    </div>
+                </div>
                 {% if session.get('user_id') == user.id %}
                 <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger rounded-pill px-4 ms-sm-auto fw-bold w-100 w-sm-auto mt-3 mt-sm-0" style="margin-bottom: 100px;">
                     <i class="bi bi-power me-2"></i>Cerrar Sesión
                 </a>
                 {% endif %}
             </div>
-        </div>
+                </div>
+            </div>
     </div>
 </div>
 
-{% include 'partials/perfil_home_media_admin.html' %}
+{% if session.get('role') == 'Superusuario' %}
+<div class="modal fade" id="offlineConsoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-terminal me-2"></i>Consola de descarga offline</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">La consola no cambia tu posición mientras revisás líneas anteriores. Los mensajes nuevos continúan agregándose al final.</p>
+                <div id="offlineDownloadConsoleModal" class="bg-dark text-start font-monospace small text-light p-3 rounded" style="height:60vh;overflow:auto;white-space:pre-wrap;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger rounded-pill" onclick="copyOfflineErrors()"><i class="bi bi-copy me-1"></i>Copiar errores</button>
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

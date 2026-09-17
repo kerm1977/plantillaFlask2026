@@ -27,7 +27,11 @@
             {% endif %}
         </div>
         <div class="col-md-7 mt-3 mt-md-0 d-flex justify-content-center justify-content-md-end gap-2 flex-wrap">
-            
+
+            <button type="button" class="btn btn-warning fw-bold rounded-pill px-3 py-2 shadow-sm d-flex align-items-center text-dark" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal">
+                <i class="bi bi-plus-lg fs-5 me-1"></i> Crear Usuario
+            </button>
+
             <!-- MENÚ EXPORTAR -->
             <div class="dropdown">
                 <button class="btn btn-info fw-bold rounded-pill px-3 py-2 shadow-sm dropdown-toggle d-flex align-items-center" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -65,4 +69,86 @@
 
     <!-- PAGINACIÓN -->
     <div id="paginationBar" class="d-flex justify-content-center flex-wrap gap-2 mt-4 pb-3"></div>
+
+    <!-- MODAL CREAR USUARIO -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-person-plus text-orange me-2"></i>Crear Nuevo Usuario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="crearUsuarioForm">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">Número de Cédula</label>
+                                <input type="text" class="form-control" id="cuCedula" required placeholder="Ej: 112340567">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Nombre Completo</label>
+                                <input type="text" class="form-control" id="cuNombre" required placeholder="Nombre y Apellidos">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Número de Teléfono (WhatsApp)</label>
+                                <input type="tel" class="form-control" id="cuTelefono" required inputmode="tel" placeholder="88889999">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Número de Pasaporte (Opcional)</label>
+                                <input type="text" class="form-control" id="cuPasaporte" placeholder="Ej: 123456789">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Fecha de Nacimiento</label>
+                                <input type="date" class="form-control" id="cuFechaNac" required>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Tipo de Sangre</label>
+                                <select class="form-select" id="cuSangre" required>
+                                    <option value="" selected disabled>Seleccione...</option>
+                                    <option value="O+">O Positivo (O+)</option>
+                                    <option value="O-">O Negativo (O-)</option>
+                                    <option value="A+">A Positivo (A+)</option>
+                                    <option value="A-">A Negativo (A-)</option>
+                                    <option value="B+">B Positivo (B+)</option>
+                                    <option value="B-">B Negativo (B-)</option>
+                                    <option value="AB+">AB Positivo (AB+)</option>
+                                    <option value="AB-">AB Negativo (AB-)</option>
+                                    <option value="No sabe">No lo sé</option>
+                                    <option value="No transfusiones">NO RECIBO TRANSFUSIONES</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Alergias Conocidas</label>
+                                <textarea class="form-control" id="cuAlergias" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Enfermedades Crónicas</label>
+                                <textarea class="form-control" id="cuEnfermedades" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Contacto de Emergencia</label>
+                                <input type="text" class="form-control" id="cuEmergenciaNombre" required placeholder="Ej: María (Esposa)">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="form-label fw-bold small text-muted">Teléfono del Contacto</label>
+                                <input type="tel" class="form-control" id="cuEmergenciaTelefono" required inputmode="tel" placeholder="88889999">
+                            </div>
+                        </div>
+                        <div class="mt-4 text-center">
+                            <button type="submit" class="btn btn-warning-orange w-100 rounded-pill fw-bold py-2" id="btnCrearUsuario">
+                                <i class="bi bi-person-plus me-2"></i>Crear Usuario
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTÓN FLOTANTE: CREAR USUARIO -->
+    <button type="button" class="btn btn-warning rounded-circle position-fixed shadow d-flex align-items-center justify-content-center p-0" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal" title="Crear Nuevo Usuario" style="bottom: 145px; right: 20px; width: 60px; height: 60px; z-index: 1050; color: #fff;">
+        <i class="bi bi-plus-lg fs-2"></i>
+    </button>
+    {% endif %}
 </div>

@@ -46,6 +46,7 @@ def get_events():
             "solo_chat": e.solo_chat, 
             "capacidad": e.capacidad,
             "is_sold_out": e.is_sold_out,
+            "itinerario": e.itinerario or '',
             "google_calendar_link": google_calendar_link
         })
     response = make_response(jsonify(output))
@@ -64,11 +65,15 @@ def get_event(event_id):
         'poster': e.poster,
         'nombre_lugar': e.nombre_lugar,
         'dificultad': e.dificultad,
+        'tipo_terreno': e.tipo_terreno,
         'actividad': e.actividad,
         'moneda': e.moneda,
         'precio': e.precio,
+        'precio_buseta': e.precio_buseta,
+        'kilometros': e.kilometros,
         'reserva': e.reserva,
         'capacidad': e.capacidad,
+        'tipo_caminata': e.tipo_caminata,
         'sinpe': e.sinpe,
         'cuenta': e.cuenta,
         'solo_chat': e.solo_chat,
@@ -84,8 +89,11 @@ def get_event(event_id):
         'texto_referencia': e.texto_referencia,
         'incluye': e.incluye,
         'provincia': e.provincia,
+        'visitado': e.visitado,
         'enlace_extra': e.enlace_extra,
-        'is_sold_out': e.is_sold_out
+        'puntos': e.puntos or 0,
+        'is_sold_out': e.is_sold_out,
+        'zona_alto_riesgo': e.zona_alto_riesgo
     })
 
 

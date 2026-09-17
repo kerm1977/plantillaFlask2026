@@ -4,6 +4,7 @@ let modalEvento = null;
 let eventoAEliminar = null;
 let modalEliminarEvento1 = null;
 let modalEliminarEvento2 = null;
+const COTIZACIONES_BUSETA_URL = '{{ url_for('main.cotizaciones_buseta') }}';
 
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('createEventForm');
@@ -17,9 +18,61 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Guardando...';
 
             const formData = new FormData(form);
-            if (!eventoEditando) {
-                formData.set('fechaUnica', '2027');
-                formData.set('dias', '1');
+
+            // Estados de seguridad
+            const isSecureDia = document.getElementById('diaSeguroToggle').checked;
+            formData.set('solo_chat', isSecureDia);
+
+            const isSecureLog = document.getElementById('logisticaSeguraToggle').checked;
+            formData.set('logistica_segura', isSecureLog);
+            if (isSecureLog) {
+                const lugar = formData.get('lugarSalida');
+                formData.set('lugarSalida', 'SEGURO_' + lugar);
+            }
+
+            const isAltoRiesgo = document.getElementById('altoRiesgoToggle').checked;
+            formData.set('zona_alto_riesgo', isAltoRiesgo);
+
+            // Checkboxes de "Incluye"
+            const incluyeArr = [];
+            document.querySelectorAll('#incluyeWrapper input[name="incluye_check"]:checked').forEach(cb => {
+                if (cb.value === "Otros") {
+                    const desc = document.getElementById('otrosDescripcion').value;
+                    if (desc) incluyeArr.push(desc);
+                } else {
+                    incluyeArr.push(cb.value);
+                }
+            });
+            formData.set('incluye', incluyeArr.join(', '));
+
+            // Información Especial (WYSIWYG) -> campo itinerario
+            formData.set('itinerario', Wysiwyg.getContent('itinerarioEditor'));
+
+            // Lógica inteligente de fechas (solo aplica si el estado es Programados)
+            if (document.getElementById('visitado').value === 'Programados') {
+                const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0' + v : v)); };
+
+                if (document.getElementById('actividad').value === 'Internacional') {
+                    formData.set('fechaUnica', document.getElementById('fechaIda').value);
+                } else {
+                    const dias = parseInt(document.getElementById('dias').value) || 1;
+                    if (dias === 1) {
+                        const y = document.getElementById('yearUnica').value;
+                        const m = document.getElementById('monthUnica').value;
+                        const d = isSecureDia ? '01' : pad(document.getElementById('dayUnica').value);
+                        formData.set('fechaUnica', `${y}-${m}-${d}`);
+                    } else {
+                        const yI = document.getElementById('yearInicio').value;
+                        const mI = document.getElementById('monthInicio').value;
+                        const dI = isSecureDia ? '01' : pad(document.getElementById('dayInicio').value);
+                        formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
+
+                        const yR = document.getElementById('yearRegreso').value;
+                        const mR = document.getElementById('monthRegreso').value;
+                        const dR = isSecureDia ? '01' : pad(document.getElementById('dayRegreso').value);
+                        formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
+                    }
+                }
             }
 
             const endpoint = eventoEditando ? `/api/update_event/${eventoEditando}` : '/api/create_event';
@@ -28,10 +81,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch(endpoint, { method: 'POST', body: formData });
                 const result = await response.json();
                 if (response.ok && result.success) {
-                    document.getElementById('actionModalIcon').innerHTML = '<i class="bi bi-calendar-check text-success" style="font-size: 3rem;"></i>';
-                    document.getElementById('actionModalMessage').innerText = eventoEditando ? 'Caminata actualizada correctamente.' : 'Caminata creada correctamente.';
-                    new bootstrap.Modal(document.getElementById('actionModal')).show();
-                    setTimeout(() => { window.location.reload(); }, 1200);
+                    mostrarAlerta(eventoEditando ? 'Caminata actualizada correctamente.' : 'Caminata creada correctamente.', 'success');
+                    if (document.getElementById('visitado').value === 'Cotización' && !eventoEditando) {
+                        window.open(COTIZACIONES_BUSETA_URL, '_blank');
+                        setTimeout(() => { window.location.reload(); }, 800);
+                    } else {
+                        setTimeout(() => { window.location.reload(); }, 1200);
+                    }
                 } else {
                     alert('Error al guardar: ' + (result.error || 'Desconocido'));
                     submitBtn.disabled = false;
@@ -59,6 +115,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    if (document.getElementById('itinerarioEditor')) {
+        Wysiwyg.setupUploadListeners('itinerarioEditor', "{{ url_for('main.api_upload_image') }}");
+    }
+
     const elModal = document.getElementById('eventoModal');
     if (elModal) modalEvento = new bootstrap.Modal(elModal);
 
@@ -66,16 +126,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modal1) modalEliminarEvento1 = new bootstrap.Modal(modal1);
     const modal2 = document.getElementById('confirmDeleteEventModal2');
     if (modal2) modalEliminarEvento2 = new bootstrap.Modal(modal2);
+
+    // Abrir automáticamente el formulario de creación si se llega con ?crear=1
+    // (usado por el enlace "Crear Caminata" del menú de Herramientas de Admin)
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('crear') === '1') {
+        abrirCrear();
+        urlParams.delete('crear');
+        const newUrl = window.location.pathname + (urlParams.toString() ? '?' + urlParams.toString() : '');
+        window.history.replaceState({}, '', newUrl);
+    }
 });
 
 function abrirCrear() {
     eventoEditando = null;
-    document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Caminata 2027';
+    document.getElementById('caminata2027Title').innerHTML = '<i class="bi bi-calendar-plus text-orange me-2"></i>Crear Nuevo Evento';
     document.getElementById('submitEventBtn').innerHTML = '<i class="bi bi-save me-2"></i>Publicar Evento';
     document.getElementById('createEventForm').reset();
     document.getElementById('precio').value = '0';
     document.getElementById('reserva').value = '0';
+    document.getElementById('kilometros').value = '';
+    document.getElementById('anio').value = '2027';
+    document.getElementById('anioCol').style.display = 'none';
+    document.getElementById('tipoTerreno').value = 'Lastre';
     document.getElementById('eventImagePreview').src = '/static/default.png';
+    document.querySelectorAll('#incluyeWrapper input[type="checkbox"]').forEach(cb => cb.checked = false);
+    document.getElementById('otrosDescContainer').classList.add('d-none');
+    document.getElementById('otrosDescripcion').value = '';
+    document.getElementById('diaSeguroToggle').checked = false;
+    document.getElementById('logisticaSeguraToggle').checked = false;
+    document.getElementById('altoRiesgoToggle').checked = false;
+    Wysiwyg.setContent('itinerarioEditor', '');
+    toggleDiaSeguro();
+    toggleLogisticaSegura();
+    toggleActividad();
+    toggleDateInputs();
+    toggleEstadoCampos('Pendiente');
+    toggleCotizacionFields('Pendiente');
+    colapsarAcordeonEvento();
+    if (window.loadFlyerStateForId) loadFlyerStateForId('new');
+    if (window.actualizarPreviewFlyer) actualizarPreviewFlyer();
     if (modalEvento) modalEvento.show();
 }
 
@@ -90,18 +180,99 @@ async function editarEvento(id) {
 
         document.getElementById('nombreLugar').value = e.nombre_lugar || '';
         document.getElementById('provincia').value = e.provincia || 'San José';
+        let estadoEdit = e.visitado || 'Pendiente';
+        if (estadoEdit === 'Sí' || estadoEdit === 'Visitado') estadoEdit = 'Visitados';
+        if (estadoEdit === 'No') estadoEdit = 'Pendiente';
+        if (estadoEdit === 'Por programar') estadoEdit = 'Programados';
+        if (/^\d{4}$/.test(estadoEdit)) {
+            document.getElementById('anio').value = estadoEdit;
+            estadoEdit = 'Año';
+        }
+        document.getElementById('visitado').value = ['Pendiente','Visitados','Año','Programados','Cotización'].includes(estadoEdit) ? estadoEdit : 'Pendiente';
+        toggleAnio(document.getElementById('visitado').value);
+        toggleEstadoCampos(document.getElementById('visitado').value);
+        toggleCotizacionFields(document.getElementById('visitado').value);
+
         document.getElementById('dificultad').value = e.dificultad || 'Paseo';
+        document.getElementById('tipoTerreno').value = e.tipo_terreno || 'Lastre';
+        document.getElementById('tipoCaminata').value = e.tipo_caminata || 'Circular';
         document.getElementById('actividad').value = e.actividad || 'Caminata';
+        toggleActividad();
         document.getElementById('moneda').value = e.moneda || '¢';
         document.getElementById('precio').value = e.precio || 0;
         document.getElementById('reserva').value = e.reserva || 0;
+        document.getElementById('kilometros').value = e.kilometros != null ? e.kilometros : '';
         document.getElementById('capacidad').value = (e.capacidad || '').replace('AGOTADO_', '') || '14-17';
-        document.getElementById('sinpe').value = e.sinpe || '';
+        document.getElementById('sinpe').value = e.sinpe || '86529837 - Jenny Ceciliano Cordoba';
+        document.getElementById('cuenta').value = e.cuenta || 'Ninguna';
         document.getElementById('enlaceExtra').value = e.enlace_extra || '';
+        document.getElementById('puntos').value = e.puntos || 0;
         document.getElementById('textoReferencia').value = e.texto_referencia || '';
-        document.getElementById('itinerario').value = e.itinerario || '';
+        document.getElementById('altoRiesgoToggle').checked = !!e.zona_alto_riesgo;
         document.getElementById('eventImagePreview').src = e.poster ? `/static/uploads/${e.poster}` : '/static/default.png';
 
+        // Fechas
+        const setDateFields = (dateStr, dId, mId, yId) => {
+            if (!dateStr || dateStr === "None") return;
+            const pts = dateStr.split('-');
+            if (pts.length === 3) {
+                document.getElementById(yId).value = pts[0];
+                document.getElementById(mId).value = pts[1];
+                document.getElementById(dId).value = parseInt(pts[2], 10);
+            }
+        };
+        document.getElementById('dias').value = e.dias || 1;
+        toggleDateInputs();
+        setDateFields(e.fecha_unica, 'dayUnica', 'monthUnica', 'yearUnica');
+        setDateFields(e.fecha_inicio, 'dayInicio', 'monthInicio', 'yearInicio');
+        setDateFields(e.fecha_regreso, 'dayRegreso', 'monthRegreso', 'yearRegreso');
+        if (e.actividad === 'Internacional' && e.fecha_unica) {
+            document.getElementById('fechaIda').value = e.fecha_unica;
+        }
+
+        // Logística
+        document.getElementById('diaSeguroToggle').checked = !!e.solo_chat;
+        toggleDiaSeguro();
+        const isSecureLog = !!e.logistica_segura;
+        document.getElementById('logisticaSeguraToggle').checked = isSecureLog;
+        toggleLogisticaSegura();
+        let lugarSalidaVal = e.lugar_salida || '';
+        if (lugarSalidaVal.startsWith('SEGURO_')) lugarSalidaVal = lugarSalidaVal.replace('SEGURO_', '');
+        if (e.actividad === 'Internacional') {
+            document.getElementById('destinoInternacional').value = lugarSalidaVal;
+        } else {
+            document.getElementById('lugarSalida').value = lugarSalidaVal || 'Parque de Tres Ríos - Escuela';
+        }
+        document.getElementById('horaSalida').value = e.hora_salida || '';
+        updateTimePreview();
+        document.getElementById('puntosRecogidaInput').value = e.puntos_recogida || '';
+
+        // Incluye
+        const includesGuardados = (e.incluye || '').split(',').map(s => s.trim()).filter(Boolean);
+        document.querySelectorAll('#incluyeWrapper input[name="incluye_check"]').forEach(cb => cb.checked = false);
+        document.querySelectorAll('#incluyeWrapper input[name="incluye_check"]').forEach(cb => {
+            if (cb.value !== "Otros" && includesGuardados.includes(cb.value)) {
+                cb.checked = true;
+                const idx = includesGuardados.indexOf(cb.value);
+                if (idx > -1) includesGuardados.splice(idx, 1);
+            }
+        });
+        const filteredOtros = includesGuardados.filter(item => item !== "Otros" && item !== "");
+        document.getElementById('otrosDescripcion').value = '';
+        document.getElementById('otrosDescContainer').classList.add('d-none');
+        document.getElementById('modalCheckOtros').checked = false;
+        if (filteredOtros.length > 0) {
+            document.getElementById('modalCheckOtros').checked = true;
+            document.getElementById('otrosDescripcion').value = filteredOtros.join(', ');
+            document.getElementById('otrosDescContainer').classList.remove('d-none');
+        }
+
+        // Información Especial
+        Wysiwyg.setContent('itinerarioEditor', e.itinerario || '');
+
+        colapsarAcordeonEvento();
+        if (window.loadFlyerStateForId) loadFlyerStateForId(e.id);
+        if (window.actualizarPreviewFlyer) actualizarPreviewFlyer();
         if (modalEvento) modalEvento.show();
     } catch (err) {
         console.error(err);
@@ -138,5 +309,144 @@ async function confirmarEliminarEvento() {
     } finally {
         eventoAEliminar = null;
     }
+}
+
+function toggleAnio(val) {
+    const col = document.getElementById('anioCol');
+    if (col) col.style.display = (val === 'Año') ? 'block' : 'none';
+}
+
+function colapsarAcordeonEvento() {
+    document.querySelectorAll('#infoCaminataAccordion .accordion-collapse').forEach(el => {
+        const inst = bootstrap.Collapse.getInstance(el) || new bootstrap.Collapse(el, { toggle: false });
+        inst.hide();
+    });
+    document.querySelectorAll('#infoCaminataAccordion .accordion-button').forEach(btn => btn.classList.add('collapsed'));
+}
+
+// Muestra/oculta las secciones del acordeón que solo aplican a eventos Programados
+// (Fecha de Actividad, Logística de Salida, Lo que Incluye, Seguridad).
+function toggleEstadoCampos(val) {
+    const mostrar = (val === 'Programados');
+    document.querySelectorAll('.solo-programados').forEach(el => {
+        el.classList.toggle('d-none', !mostrar);
+        if (!mostrar) {
+            const collapse = el.querySelector('.accordion-collapse');
+            if (collapse) {
+                const inst = bootstrap.Collapse.getInstance(collapse) || new bootstrap.Collapse(collapse, { toggle: false });
+                inst.hide();
+            }
+            const btn = el.querySelector('.accordion-button');
+            if (btn) btn.classList.add('collapsed');
+        }
+    });
+}
+
+function toggleCotizacionFields(val) {
+    const esCotizacion = (val === 'Cotización');
+    document.querySelectorAll('.no-cotizacion').forEach(el => el.classList.toggle('d-none', esCotizacion));
+    const precioLabel = document.getElementById('precioLabel');
+    if (precioLabel) precioLabel.textContent = esCotizacion ? 'Precio de buseta' : 'Precio';
+    const submitBtn = document.getElementById('submitEventBtn');
+    if (submitBtn && esCotizacion) submitBtn.innerHTML = '<i class="bi bi-save me-2"></i>Guardar cotización';
+    const capacidad = document.getElementById('capacidad');
+    if (capacidad) capacidad.required = !esCotizacion;
+    const reserva = document.getElementById('reserva');
+    if (reserva) reserva.required = !esCotizacion;
+}
+
+function toggleActividad() {
+    const act = document.getElementById('actividad').value;
+    document.getElementById('nationalFields').classList.toggle('d-none', act === 'Internacional');
+    document.getElementById('internationalFields').classList.toggle('d-none', act !== 'Internacional');
+}
+
+function toggleDateInputs() {
+    const dias = parseInt(document.getElementById('dias').value) || 1;
+    document.getElementById('singleDateGroup').classList.toggle('d-none', dias > 1);
+    document.getElementById('rangeDateGroup').classList.toggle('d-none', dias <= 1);
+}
+
+function updateTimePreview() {
+    const time = document.getElementById('horaSalida').value;
+    const preview = document.getElementById('timePreview');
+    if (!time || !preview) return;
+    let [h, m] = time.split(':');
+    let ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    preview.innerText = `${h}:${m} ${ampm}`;
+}
+
+function toggleOtherDesc() {
+    document.getElementById('otrosDescContainer').classList.toggle('d-none', !document.getElementById('modalCheckOtros').checked);
+}
+
+function toggleDiaSeguro() {
+    const isSecure = document.getElementById('diaSeguroToggle').checked;
+    document.querySelectorAll('.normal-day').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-day').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+function toggleLogisticaSegura() {
+    const isSecure = document.getElementById('logisticaSeguraToggle').checked;
+    document.querySelectorAll('.normal-logistics').forEach(el => el.classList.toggle('d-none', isSecure));
+    document.querySelectorAll('.secure-logistics').forEach(el => el.classList.toggle('d-none', !isSecure));
+}
+
+async function agregarFormaPago(tipo) {
+    let payload = { tipo: tipo };
+    if (tipo === 'sinpe') {
+        payload.numero = document.getElementById('nuevoSinpeNumero').value.trim();
+        payload.titular = document.getElementById('nuevoSinpeTitular').value.trim();
+        if (!payload.numero || !payload.titular) { alert('Complete el número SINPE y el titular.'); return; }
+    } else {
+        payload.numero = document.getElementById('nuevaCuentaNumero').value.trim();
+        payload.titular = document.getElementById('nuevaCuentaTitular').value.trim();
+        payload.detalle = document.getElementById('nuevaCuentaDetalle').value.trim();
+        if (!payload.numero || !payload.titular) { alert('Complete el número de cuenta y el titular.'); return; }
+    }
+
+    try {
+        const res = await fetch('/api/payment_methods', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+            alert(data.error || 'Error al guardar la forma de pago.');
+            return;
+        }
+
+        if (tipo === 'sinpe') {
+            const select = document.getElementById('sinpe');
+            const opt = document.createElement('option'); opt.value = data.display; opt.textContent = data.display; select.appendChild(opt);
+            document.getElementById('listaSinpes').insertAdjacentHTML('beforeend', `<li class="mb-1">${data.display}</li>`);
+            document.getElementById('nuevoSinpeNumero').value = '';
+            document.getElementById('nuevoSinpeTitular').value = '';
+        } else {
+            const select = document.getElementById('cuenta');
+            const opt = document.createElement('option'); opt.value = data.display; opt.textContent = data.display; select.appendChild(opt);
+            document.getElementById('listaCuentas').insertAdjacentHTML('beforeend', `<li class="mb-1 text-break">${data.display}</li>`);
+            document.getElementById('nuevaCuentaNumero').value = '';
+            document.getElementById('nuevaCuentaTitular').value = '';
+            document.getElementById('nuevaCuentaDetalle').value = '';
+        }
+    } catch (err) {
+        console.error(err);
+        alert('Error de conexión al guardar la forma de pago.');
+    }
+}
+
+function exportarFormasPagoWhatsApp() {
+    const sinpeItems = Array.from(document.querySelectorAll('#sinpe option')).map(o => '- ' + o.value).filter(v => v.length > 2);
+    const cuentaItems = Array.from(document.querySelectorAll('#cuenta option'))
+        .filter(o => o.value !== 'Ninguna')
+        .map(o => '- ' + o.value)
+        .filter(v => v.length > 2);
+    const sinpeText = sinpeItems.length ? sinpeItems.join('\n') : 'No hay SINPE registrado';
+    const cuentaText = cuentaItems.length ? cuentaItems.join('\n') : 'No aplica / Solo usar SINPE';
+    const mensaje = `Estas son las formas de pago del grupo La Tribu de los Libres.\n\nSINPE:\n${sinpeText}\n\nCuentas:\n${cuentaText}`;
+    window.open('https://wa.me/?text=' + encodeURIComponent(mensaje), '_blank');
 }
 </script>

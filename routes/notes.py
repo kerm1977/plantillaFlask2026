@@ -16,6 +16,9 @@ bp.add_url_rule('/api/notes/export-json', view_func=notes_import_export.export_n
 bp.add_url_rule('/api/notes/import-json', view_func=notes_import_export.import_notes_json, methods=['POST'])
 bp.add_url_rule('/api/notes/export-pdf', view_func=notes_import_export.export_note_pdf, methods=['POST'])
 
+# Private full-page note view
+bp.add_url_rule('/notas/<int:note_id>', view_func=notes_admin.note_detail_page, methods=['GET'])
+
 # Public notes
 bp.add_url_rule('/notas/publicas/<token>', view_func=notes_public.note_public_page, methods=['GET'])
 bp.add_url_rule('/notas/publicas/<token>/json', view_func=notes_public.get_public_note, methods=['GET'])

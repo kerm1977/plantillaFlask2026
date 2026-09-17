@@ -27,9 +27,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=4">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}?v=3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}?v=4">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_hero.css') }}?v=39">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home_hero.css') }}?v=52">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pastel-theme.css') }}?v=2">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=28">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=33">
 
     {% include 'partials/base_styles.html' %}
 
@@ -55,10 +55,10 @@
 <body{% block body_attrs %}{% endblock %}>
     <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
     <div id="navbar-top" class="container mt-4">
-        <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill">
+        <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill" style="{% if site.navbar_bg %}background: {{ site.navbar_bg }} !important;{% endif %}{% if site.navbar_text_color %}color: {{ site.navbar_text_color }} !important;{% endif %}">
             <div class="container-fluid">
                 <!-- Marca de la Navbar SÚPER LIMPIA -->
-                <span class="fw-bold fs-4 text-dark">La Tribu</span>
+                <span class="fw-bold fs-4 text-dark">{{ site.site_title or 'La Tribu' }}</span>
                 <a class="navbar-brand position-absolute top-50 start-50 translate-middle p-0 m-0" href="javascript:location.reload(true);" style="z-index:5;" title="Recargar página">
                     <span class="brand-logo-halo">
                         <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" height="60">
@@ -101,11 +101,13 @@
       {% set back_url = url_for('main.caminatas') %}
     {% elif request.path.startswith('/caminatas-2027/') %}
       {% set back_url = url_for('main.caminatas_2027') %}
+    {% elif request.path.startswith('/editar_caminante/') %}
+      {% set back_url = url_for('main.dashboard') %}
     {% else %}
       {% set back_url = url_for('main.home') %}
     {% endif %}
     <!-- Botón Volver Atrás Global (OCULTO EN INICIO): intenta un paso atrás en historial, si no hay, usa back_url -->
-    <button id="btnBack" class="btn-global-back" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }" title="Volver">
+    <button id="btnBack" class="btn-global-back" onclick="{% if request.path == '/dashboard' %}if (document.getElementById('adminUserDetails') && !document.getElementById('adminUserDetails').classList.contains('d-none')) { document.getElementById('adminUsersList').classList.remove('d-none'); document.getElementById('adminUserDetails').classList.add('d-none'); } else if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }{% elif request.path.startswith('/editar_caminante/') %}window.location.href='{{ back_url }}';{% else %}if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }{% endif %}" title="Volver" style="{% if site.back_button_bg %}background: {{ site.back_button_bg }} !important;{% endif %}">
         <i class="bi bi-arrow-left fs-4" style="color:#000 !important;"></i>
     </button>
     {% endif %}
@@ -124,7 +126,7 @@
     {% if session.get('role') == 'Superusuario' %}
     <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
         <!-- El menú abre hacia abajo y se hace scroll si es largo -->
-        <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none;">
+        <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none; {% if site.admin_tools_bg %}background: {{ site.admin_tools_bg }} !important;{% endif %}">
             <i class="bi bi-tools fs-4"></i>
         </a>
 
@@ -132,7 +134,7 @@
         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2" style="background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 1rem; right: 20px; max-height: 70vh; overflow-y: auto; z-index: 9999;">
             <!-- Opción 1: Crear Caminata -->
             <li>
-                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/eventos">
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/caminatas-2027?crear=1">
                     <i class="bi bi-plus-circle text-orange me-2 fs-5"></i> Crear Caminata
                 </a>
             </li>
@@ -175,7 +177,7 @@
 
             <li><hr class="dropdown-divider opacity-25"></li>
             
-            <!-- Opción 5: Agenda / Directorio -->
+            <!-- Opción 5: Agenda / Directorio (Dashboard) -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard">
                     <i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda
@@ -254,80 +256,6 @@
 
 {% include 'partials/base_links_modal.html' %}
 
-<!-- MODAL: CONFIGURACIÓN LOGO SUEÑOS -->
-{% if session.get('role') == 'Superusuario' %}
-<div class="modal fade" id="configLogoSuenosModal" tabindex="-1" style="z-index:1060;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
-            <div class="modal-header border-0 pb-3 pt-4 px-4">
-                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-gear-fill text-orange me-2"></i>Configurar Logo Sueños</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body pt-2 px-4 pb-4">
-                <!-- Mostrar/Ocultar -->
-                <div class="form-check form-switch mb-4">
-                    <input class="form-check-input" type="checkbox" id="logoMostrarToggle" style="cursor: pointer;">
-                    <label class="form-check-label fw-bold" for="logoMostrarToggle" style="cursor: pointer;">Mostrar Logo</label>
-                </div>
-
-                <!-- Enlace -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">Enlace al hacer clic</label>
-                    <input type="url" id="logoEnlace" class="form-control glass-input" placeholder="https://ejemplo.com">
-                </div>
-
-                <!-- Selector de eventos activos -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">O seleccionar un evento activo</label>
-                    <select id="logoEventoSelect" class="form-select glass-input" onchange="seleccionarEvento()">
-                        <option value="">-- Seleccionar evento --</option>
-                    </select>
-                </div>
-
-                <!-- Tamaño PC -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">Tamaño en PC (px)</label>
-                    <input type="number" id="logoTamañoPC" class="form-control glass-input" value="150" min="50" max="500">
-                </div>
-
-                <!-- Tamaño Móvil -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">Tamaño en Móvil (px)</label>
-                    <input type="number" id="logoTamañoMobile" class="form-control glass-input" value="120" min="30" max="300">
-                </div>
-
-                <!-- Posición PC -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">Posición desde borde PC (px)</label>
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <input type="number" id="logoPosicionLeft" class="form-control glass-input" value="20" placeholder="Izquierda">
-                        </div>
-                        <div class="col-6">
-                            <input type="number" id="logoPosicionBottom" class="form-control glass-input" value="100" placeholder="Abajo">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Nombre del archivo -->
-                <div class="mb-3">
-                    <label class="form-label small text-secondary fw-bold">Nombre del archivo de imagen</label>
-                    <input type="text" id="logoNombreArchivo" class="form-control glass-input" value="logosueños.png" placeholder="ejemplo.png">
-                </div>
-
-                <button class="btn btn-orange fw-bold w-100 py-3 shadow rounded-pill" onclick="guardarConfigLogoSuenos()">
-                    <i class="bi bi-check-lg me-2"></i>Guardar Configuración
-                </button>
-
-                <button class="btn btn-outline-secondary fw-bold w-100 py-3 shadow rounded-pill mt-2" onclick="limpiarCachéChrome()">
-                    <i class="bi bi-arrow-counterclockwise me-2"></i>Limpiar Caché y Recargar PWA
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-{% endif %}
-
 {% include 'partials/modal_borrar_unificado.html' %}
 
 {% include 'partials/modal_alerta_unificado.html' %}
@@ -361,40 +289,18 @@
     </div>
 </div>
 
-<!-- MODAL: ERROR DE ACCESO AL COTIZADOR (z-index superior al modal de acceso) -->
-<div class="modal fade" id="cotizadorBusErrorModal" tabindex="-1" style="z-index: 1100;">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content glass-modal border-0 shadow-lg">
-            <div class="modal-header border-0 pb-3 pt-4 px-4">
-                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Error</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body pt-2 px-4 pb-4 text-center">
-                <p class="mb-0" id="cotizadorBusErrorText"></p>
-            </div>
-            <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-center">
-                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Aceptar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script>
 let cotizadorBusModal;
-let cotizadorBusErrorModal;
 let cotizadorBusSlug = null;
 
 function abrirCotizadorBus() {
     if(!cotizadorBusModal) cotizadorBusModal = new bootstrap.Modal(document.getElementById('cotizadorBusModal'));
-    if(!cotizadorBusErrorModal) cotizadorBusErrorModal = new bootstrap.Modal(document.getElementById('cotizadorBusErrorModal'));
     cotizadorBusModal.show();
 }
 
 function showCotizadorBusError(mensaje) {
-    const el = document.getElementById('cotizadorBusErrorText');
-    if(el) el.textContent = mensaje;
-    if(!cotizadorBusErrorModal) cotizadorBusErrorModal = new bootstrap.Modal(document.getElementById('cotizadorBusErrorModal'));
-    cotizadorBusErrorModal.show();
+    if(typeof mostrarAlerta === 'function') mostrarAlerta(mensaje, 'error', 1100);
+    else alert(mensaje);
 }
 
 function toggleClaveCotizadorBusVisibilidad() {
@@ -443,6 +349,95 @@ async function ingresarCotizadorBus() {
         showCotizadorBusError('Error al verificar la clave.');
     }
 }
+</script>
+
+<style>
+.custom-search-dropdown { position: relative; }
+.custom-search-dropdown-menu { display: none; position: absolute; width: 100%; z-index: 1050; max-height: 280px; overflow-y: auto; background: #fff; border: 1px solid #dee2e6; border-radius: 0.5rem; box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); }
+.custom-search-dropdown-menu input { border: 0; border-bottom: 1px solid #dee2e6; border-radius: 0; }
+.custom-search-dropdown-menu .dropdown-list { max-height: 220px; overflow-y: auto; }
+.custom-search-dropdown-menu .dropdown-item { white-space: normal; text-align: left; border: 0; background: transparent; cursor: pointer; }
+.custom-search-dropdown-menu .dropdown-item:hover { background-color: #f8f9fa; }
+.custom-search-dropdown-menu .dropdown-item.d-none { display: none; }
+</style>
+<script>
+(function() {
+    function armarDropdownBusqueda() {
+        document.querySelectorAll('select[data-searchable]').forEach(function(select) {
+            if (select.dataset.dropdownInit === '1') return;
+            select.dataset.dropdownInit = '1';
+            select.style.display = 'none';
+            var wrapper = document.createElement('div');
+            wrapper.className = 'custom-search-dropdown';
+            select.parentNode.insertBefore(wrapper, select);
+            wrapper.appendChild(select);
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'btn btn-outline-secondary w-100 text-start';
+            var menu = document.createElement('div');
+            menu.className = 'custom-search-dropdown-menu';
+            var input = document.createElement('input');
+            input.type = 'search';
+            input.className = 'form-control form-control-sm';
+            input.placeholder = 'Escribí para buscar por nombre, cédula, pasaporte, sangre, contacto...';
+            input.setAttribute('autocomplete', 'off');
+            var list = document.createElement('div');
+            list.className = 'dropdown-list';
+            var allOpts = Array.from(select.options);
+            var placeholder = allOpts.find(function(o) { return o.value === ''; });
+            var defaultText = placeholder ? placeholder.textContent : 'Seleccionar...';
+            btn.textContent = defaultText;
+            var options = allOpts.filter(function(o) { return o.value !== ''; });
+            options.forEach(function(opt) {
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'dropdown-item small';
+                item.textContent = opt.textContent;
+                item.setAttribute('data-value', opt.value);
+                item.setAttribute('data-search', (opt.getAttribute('data-search') || opt.textContent).toLowerCase());
+                item.addEventListener('click', function() {
+                    select.value = opt.value;
+                    options.forEach(function(o) { o.selected = (o.value === opt.value); });
+                    btn.textContent = opt.textContent;
+                    menu.style.display = 'none';
+                });
+                list.appendChild(item);
+            });
+            input.addEventListener('input', function() {
+                var q = input.value.toLowerCase().trim();
+                var terms = q.split(/\s+/).filter(Boolean);
+                list.querySelectorAll('.dropdown-item').forEach(function(item) {
+                    var text = item.getAttribute('data-search');
+                    var match = terms.every(function(t) { return text.indexOf(t) !== -1; });
+                    item.classList.toggle('d-none', !match);
+                });
+            });
+            input.addEventListener('keydown', function(e) { e.stopPropagation(); });
+            menu.addEventListener('click', function(e) { e.stopPropagation(); });
+            menu.appendChild(input);
+            menu.appendChild(list);
+            wrapper.appendChild(btn);
+            wrapper.appendChild(menu);
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var abierto = menu.style.display === 'block';
+                document.querySelectorAll('.custom-search-dropdown-menu').forEach(function(m) { m.style.display = 'none'; });
+                if (!abierto) {
+                    menu.style.display = 'block';
+                    input.value = '';
+                    list.querySelectorAll('.dropdown-item').forEach(function(item) { item.classList.remove('d-none'); });
+                    input.focus();
+                }
+            });
+            document.addEventListener('click', function() { menu.style.display = 'none'; });
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', armarDropdownBusqueda);
+    } else {
+        armarDropdownBusqueda();
+    }
+})();
 </script>
 
 {% include 'partials/base_scripts.html' %}

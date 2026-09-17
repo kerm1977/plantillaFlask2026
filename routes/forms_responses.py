@@ -174,7 +174,7 @@ def api_export_responses(form_id, fmt):
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
             from reportlab.lib import colors
             from reportlab.lib.enums import TA_CENTER, TA_LEFT
             
@@ -406,7 +406,7 @@ def api_export_responses(form_id, fmt):
             from reportlab.lib.pagesizes import letter
             from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
             from reportlab.lib.units import inch
-            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+            from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
             from reportlab.lib import colors
             from reportlab.lib.enums import TA_CENTER, TA_LEFT
             

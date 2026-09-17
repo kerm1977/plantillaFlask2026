@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} - La Tribu{% endblock %}
+
+{% block body_attrs %} class="caminatas-page"{% endblock %}
+
+{% block content %}
+
+<style>
+  .caminata-thumb { width: 90px; aspect-ratio: 9/16; object-fit: cover; flex-shrink: 0; }
+  @media (min-width: 768px) { .caminata-thumb { width: 150px; } }
+  .lista-cotizaciones { list-style: decimal !important; padding-left: 2rem !important; }
+  .lista-cotizaciones li::marker { font-weight: bold; color: #6c757d; }
+  @media print {
+    .navbar, .mobile-bottom-bar, footer, .btn-print, .btn-volver { display: none !important; }
+    .accordion-collapse { display: block !important; }
+    .accordion-button::after { display: none !important; }
+    .lista-cotizaciones { list-style: decimal !important; padding-left: 2rem !important; }
+  }
+</style>
+
+{% set whatsapp_text -%}*{{ page_title }}*
+
+{% for g in grupos %}{{ g.provincia }}
+--------------------
+{% for ev in g.eventos %}{{ loop.index }}. {{ ev.nombre_lugar }} ({{ ev.actividad or '' }}{% if ev.tipo_caminata %} · {{ ev.tipo_caminata }}{% endif %}) → Buseta: {{ ev.moneda }}{{ ev.precio | int if ev.precio | int > 0 else 'PENDIENTE' }}
+{% endfor %}
+
+{% endfor %}{%- endset %}
+
+<div class="container py-5 animate__animated animate__fadeIn">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0">{{ page_title }}</h1>
+    <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+      <a href="{{ url_for('main.caminatas_cotizaciones') }}" class="btn btn-outline-secondary rounded-pill fw-bold btn-volver">
+        <i class="bi bi-arrow-left me-2"></i>Volver a cotizaciones
+      </a>
+      <button class="btn btn-outline-orange rounded-pill fw-bold btn-print" onclick="window.print()">
+        <i class="bi bi-printer me-2"></i>Imprimir
+      </button>
+      <a href="https://wa.me/50686529837?text={{ whatsapp_text | urlencode }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank" rel="noopener">
+        <i class="bi bi-whatsapp me-2"></i>Exportar a WhatsApp
+      </a>
+    </div>
+  </div>
+
+  {% if grupos %}
+  <div class="accordion" id="cotizacionesAccordion">
+    {% for g in grupos %}
+    <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#cot-prov-{{ loop.index }}">
+          <i class="bi bi-geo-alt me-2"></i>{{ g.provincia }}
+          <span class="badge rounded-pill ms-2" style="background:#d63384; color:#fff;">{{ g.eventos | length }}</span>
+        </button>
+      </h2>
+      <div id="cot-prov-{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#cotizacionesAccordion">
+        <div class="accordion-body">
+          <ol class="list-group list-group-flush lista-cotizaciones">
+            {% for ev in g.eventos %}
+            <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-2">
+              <div class="d-flex align-items-center justify-content-between gap-2">
+                <div class="min-width-0">
+                  <small class="fw-bold text-dark d-block mb-1">{{ ev.nombre_lugar }}</small>
+                  <small class="text-muted me-2">
+                    {% if ev.actividad %}{{ ev.actividad }}{% if ev.tipo_caminata %} · {% endif %}{% endif %}
+                    {% if ev.tipo_caminata %}{{ ev.tipo_caminata }}{% endif %}
+                  </small>
+                  <small class="fw-bold text-dark">Buseta: {{ ev.moneda }}{{ ev.precio | int if ev.precio | int > 0 else 'PENDIENTE' }}</small>
+                </div>
+                <div class="d-flex gap-2 flex-shrink-0" style="z-index:2;">
+                  <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill flex-shrink-0" style="z-index:2;" title="Ver detalle"><i class="bi bi-eye"></i></a>
+                  <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            </li>
+            {% endfor %}
+          </ol>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5 text-muted">
+    <i class="bi bi-bus-front fs-1"></i>
+    <p class="mt-2">Aún no hay cotizaciones de buseta registradas.</p>
+  </div>
+  {% endif %}
+</div>
+
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+{% include 'partials/evento_crear_editar_modal.html' %}
+{% include 'partials/evento_delete_modals.html' %}
+{% include 'partials/caminatas_2027_script.html' %}
+
+{% endblock %}

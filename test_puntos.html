@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <!-- Viewport seguro para evitar solapamientos en dispositivos móviles -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, minimum-scale=0.5, maximum-scale=5.0, user-scalable=yes">
+    
+    <title>Caminatas La Tribu</title>
+
+    <!-- PWA: Manifest y metadatos -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#ff8c00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="La Tribu">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, no-transform">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <link rel="apple-touch-icon" href="/static/logo.png">
+    
+    <!-- SIN CDNs: Carga directa de Bootstrap Local -->
+    <link rel="stylesheet" href="/static/css/bootstrap.css?v=3">
+    <link rel="stylesheet" href="/static/css/bootstrap-icons.css?v=3">
+    
+    <!-- Carga de CSS Global, Principal y Base separado -->
+    <link rel="stylesheet" href="/static/css/global.css?v=4">
+    <link rel="stylesheet" href="/static/css/main.css?v=3">
+    <link rel="stylesheet" href="/static/css/global.css?v=4">
+    <link rel="stylesheet" href="/static/css/home_hero.css?v=51">
+    <link rel="stylesheet" href="/static/css/pastel-theme.css?v=2">
+    <link rel="stylesheet" href="/static/css/base.css?v=32">
+
+    <style>
+    /* ===== ELIMINAR ABSOLUTAMENTE TODAS LAS SOMBRAS ===== */
+    *, *::before, *::after { box-shadow: none !important; text-shadow: none !important; }
+    .shadow, .shadow-sm, .shadow-lg, .shadow-none,
+    [class*="shadow"] { box-shadow: none !important; }
+    /* Mantener focus ring para accesibilidad */
+    .form-control:focus, .form-select:focus, .glass-input:focus, .form-check-input:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25) !important;
+    }
+    /* Mantener text-shadow en flyer overlay */
+    .flyer-glass-overlay, .flyer-glass-overlay * {
+        text-shadow: 0 2px 5px rgba(0,0,0,0.6) !important;
+    }
+
+    /* ===== ANIMACIÓN HEARTBEAT PARA LOGO SUEÑOS ===== */
+    @keyframes heartbeat {
+        0% { transform: scale(1); }
+        14% { transform: scale(1.1); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.1); }
+        70% { transform: scale(1); }
+    }
+    .animate-heartbeat {
+        animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
+    /* ===== ANIMACIÓN BLINK PARA PUNTO VERDE ===== */
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+    .animate-blink {
+        animation: blink 1s infinite;
+    }
+
+    /* ===== ANIMACIÓN BOUNCE PARA BOTÓN SELECCIONAR ===== */
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    .animate-bounce {
+        animation: bounce 0.6s ease-in-out infinite;
+    }
+</style>
+
+    
+
+    <!-- Espacio extra inferior en móvil para que la bottom bar no tape botones/contenido -->
+    <style>
+        @media (max-width: 767.98px) {
+            main.content-wrapper {
+                padding-bottom: calc(var(--nav-mobile-height) + 100px + env(safe-area-inset-bottom, 0px));
+            }
+        }
+        body.share-view #navbar-top,
+        body.share-view #btnBack,
+        body.share-view .admin-tools-dropdown,
+        body.share-view #logoSuenosDesktop,
+        body.share-view #logoSuenosDesktopNoLink,
+        body.share-view .btn-caminata-2027,
+        body.share-view .mobile-bottom-bar { display: none !important; }
+        body.share-view main.content-wrapper { padding-bottom: 0 !important; padding-top: 0 !important; }
+    </style>
+</head>
+<body>
+    <!-- Navbar Desktop (Flotante, Glassmorphic, oculta en móvil) -->
+    <div id="navbar-top" class="container mt-4">
+        <nav class="navbar navbar-expand-lg d-none d-md-flex custom-navbar glass-panel rounded-pill" style="">
+            <div class="container-fluid">
+                <!-- Marca de la Navbar SÚPER LIMPIA -->
+                <span class="fw-bold fs-4 text-dark">La Tribu de los Libres</span>
+                <a class="navbar-brand position-absolute top-50 start-50 translate-middle p-0 m-0" href="javascript:location.reload(true);" style="z-index:5;" title="Recargar página">
+                    <span class="brand-logo-halo">
+                        <img src="/static/logo.png" alt="La Tribu de los Libres" height="60">
+                    </span>
+                </a>
+                <div class="ms-auto d-flex align-items-center gap-3">
+                    
+                        <button class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#loginModal">
+                            <i class="bi bi-box-arrow-in-right me-2 fs-5"></i> Ingresar
+                        </button>
+                    
+                </div>
+            </div>
+        </nav>
+    </div>
+
+    
+
+    <!-- Contenido Principal -->
+    <main class="container mt-2 mt-md-5 content-wrapper">
+        
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+      <div class="glass-panel rounded-5 p-4 p-md-5 border-0 shadow-lg">
+        <h1 class="fw-bold text-dark text-center mb-3">ETAPA 11</h1>
+        <p class="text-center text-muted mb-4">Puntos por participar en esta caminata: <strong class="text-warning-custom">0</strong></p>
+
+        <form method="post" action="/caminata/12/puntos">
+          <input type="hidden" name="accion" value="buscar">
+          <div class="input-group mb-4">
+            <input type="text" name="cedula" class="form-control glass-input rounded-start-pill" value="" placeholder="Número de cédula" required>
+            <button type="submit" class="btn btn-warning rounded-end-pill fw-bold text-dark">Consultar</button>
+          </div>
+        </form>
+
+        
+        
+
+        
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+  const cantidadCompra = document.getElementById('cantidadCompra');
+  const costoCompra = document.getElementById('costoCompra');
+  const detalleCompra = document.getElementById('detalleCompra');
+  function calcularCosto() {
+    let n = parseInt(cantidadCompra.value || 0, 10);
+    if (n < 500) { costoCompra.textContent = 'Mínimo 500 puntos'; detalleCompra.textContent = ''; return; }
+    let fee = n <= 1000 ? 150 : 250;
+    let total = n + fee;
+    costoCompra.textContent = `Pagás ${total} colones. Recibís ${n} puntos.`;
+    detalleCompra.textContent = `Excedente: ${fee} colones (50 para actividades La Tribu, ${fee - 50} administrativos).`;
+  }
+  if (cantidadCompra) { cantidadCompra.addEventListener('input', calcularCosto); calcularCosto(); }
+
+  const cantidadRedencion = document.getElementById('cantidadRedencion');
+  const tipoRedencion = document.getElementById('tipoRedencion');
+  const valorRedencion = document.getElementById('valorRedencion');
+  function calcularRedencion() {
+    let n = parseInt(cantidadRedencion.value || 0, 10);
+    let tipo = tipoRedencion ? tipoRedencion.value : 'caminata';
+    let valor = tipo === 'dinero' ? Math.floor(n * 0.8) : n;
+    valorRedencion.textContent = `Valor aplicado: ${valor} puntos.`;
+  }
+  if (cantidadRedencion) { cantidadRedencion.addEventListener('input', calcularRedencion); }
+  if (tipoRedencion) { tipoRedencion.addEventListener('change', calcularRedencion); }
+  calcularRedencion();
+</script>
+
+    </main>
+
+    
+
+    
+    
+      
+    
+    <!-- Botón Volver Atrás Global (OCULTO EN INICIO): intenta un paso atrás en historial, si no hay, usa back_url -->
+    <button id="btnBack" class="btn-global-back" onclick="if (window.history.length > 1) { window.history.back(); } else { window.location.href='/'; }" title="Volver" style="">
+        <i class="bi bi-arrow-left fs-4" style="color:#000 !important;"></i>
+    </button>
+    
+
+    <!-- ========================================== -->
+    <!-- LOGO DE SUEÑOS FLOTANTE EN PC -->
+    <!-- ========================================== -->
+    <a id="logoSuenosDesktopLink" href="#" target="_blank" class="d-none d-md-block" style="display: none !important;">
+        <img id="logoSuenosDesktop" src="/static/uploads/logosue%C3%B1os.png" alt="Logo Sueños" class="logo-suenos-desktop-fixed animate-heartbeat">
+    </a>
+    <img id="logoSuenosDesktopNoLink" src="/static/uploads/logosue%C3%B1os.png" alt="Logo Sueños" class="logo-suenos-desktop-fixed d-none d-md-block animate-heartbeat" style="display: none !important;">
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
+    <!-- ========================================== -->
+    
+
+    <!-- Mobile Bottom Bar (< 768px) Glassmorphic SÚPER LIMPIA -->
+    <div class="mobile-bottom-bar glass-panel d-md-none justify-content-between">
+        <a href="/" class="mobile-nav-item">
+            <i class="bi bi-house-door-fill fs-3 mb-1"></i>
+            <span>Inicio</span>
+        </a>
+        <div id="mobilePinnedContainer" style="display: contents;"></div>
+        <a href="javascript:location.reload(true);" class="mobile-nav-logo" title="Recargar página">
+            <span class="brand-logo-halo">
+                <img src="/static/logo.png" alt="La Tribu de los Libres" height="60">
+            </span>
+        </a>
+        
+        
+            <a href="#" class="mobile-nav-item" data-bs-toggle="modal" data-bs-target="#loginModal">
+                <i class="bi bi-box-arrow-in-right fs-3 mb-1"></i>
+                <span>Ingresar</span>
+            </a>
+        
+    </div>
+
+    <!-- Modal Login (Glassmorphic) -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Iniciar Sesión</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-4">
+                    <div id="loginMessage" class="mb-3"></div>
+                    <form id="loginForm" onsubmit="event.preventDefault(); submitLogin();" autocomplete="off">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 py-2 force-lowercase" id="logEmail" required placeholder="tu@email.com" autocomplete="off">
+                        </div>
+                        <div class="mb-4 position-relative">
+                            <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                            <input type="password" class="form-control glass-input rounded-3 py-2 pe-5" id="logPass" required placeholder="••••••••" autocomplete="off">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('logPass', this)"></i>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-2 fw-bold fs-5 shadow-sm">Ingresar</button>
+                        <p class="mt-3 text-center"><a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#forgotModal" class="text-orange text-decoration-none small">¿Olvidaste tu contraseña?</a></p>
+                        <p class="mt-1 text-center text-secondary">¿No tienes cuenta? <a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#registerModal" class="text-orange fw-bold text-decoration-none">Regístrate</a></p>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Olvidé Contraseña -->
+    <div class="modal fade" id="forgotModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Recuperar Contraseña</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <p class="text-secondary small text-center mb-4">Ingresa tu correo y te enviaremos un enlace para crear una nueva contraseña.</p>
+                    <div id="forgotMsg" class="mb-3"></div>
+                    <div id="forgotForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Correo electrónico</label>
+                            <input type="email" id="forgotEmail" class="form-control glass-input rounded-3 py-2 force-lowercase" placeholder="tu@email.com">
+                        </div>
+                        <button type="button" class="btn btn-orange w-100 rounded-pill py-2 fw-bold shadow-sm" onclick="submitForgotPassword()">Enviar enlace de recuperación</button>
+                    </div>
+                    <div id="forgotResult" class="d-none">
+                        <div class="text-center mb-3">
+                            <div style="font-size:2.5rem;">🔐</div>
+                            <p class="fw-bold mt-2 mb-1">Enlace generado</p>
+                            <p class="text-secondary small">Copia el enlace o envíalo por WhatsApp al usuario.</p>
+                        </div>
+                        <input type="text" id="forgotLink" class="form-control form-control-sm rounded-3 mb-2" readonly onclick="this.select()">
+                        <a id="forgotWA" href="#" target="_blank" class="btn btn-warning-orange w-100 rounded-pill py-2 fw-bold d-none">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar por WhatsApp al usuario
+                        </a>
+                        <button class="btn btn-outline-secondary w-100 rounded-pill py-1 mt-2 small" onclick="copyResetLink()">📋 Copiar enlace</button>
+                    </div>
+                    <p class="mt-3 text-center"><a href="#" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#loginModal" class="text-orange text-decoration-none small">← Volver al login</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Registro (Glassmorphic) -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content glass-modal shadow-lg border-0">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h4 class="modal-title fw-bold text-dark w-100 text-center">Registro de Usuario</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 px-md-5 pb-5 pt-3">
+                    <div id="registerMessage" class="mb-3"></div>
+
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                <img id="avatarPreviewImg" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" class="avatar-preview bg-secondary" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                            </div>
+                            <label for="avatarUpload" class="btn btn-orange rounded-circle p-2 shadow position-absolute bottom-0 end-0 translate-middle-y me-2" style="cursor: pointer; z-index: 10;">
+                                <i class="bi bi-camera-fill text-white"></i>
+                            </label>
+                            <input type="file" id="avatarUpload" class="d-none" accept="image/*">
+                            
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="scaleSlider" min="1" max="3" step="0.1" value="1">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="posXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="posYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                                <small class="text-muted d-block text-center mt-1" style="font-size: 0.65rem;">*Ajuste visual para previsualización.</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form id="registerForm">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Nombre</label>
+                                <input type="text" class="form-control glass-input validate-name" id="regName" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Primer Apellido</label>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary">Segundo Apellido</label>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName2" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email</label>
+                            <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
+                        </div>
+                        
+                        <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
+                            <label class="text-orange fw-bold mb-2"><i class="bi bi-plus-circle me-2"></i>Agregar Información Adicional</label>
+                            <select class="form-select glass-input rounded-3 mb-3" id="dynamicSelect" onchange="handleDynamicSelect()">
+                                <option value="">Seleccione el tipo de dato...</option>
+                                <option value="Telefono">Teléfono</option>
+                                <option value="Whatsapp">Whatsapp</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                            <div id="dynamicContainer"></div>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPass" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPass', this)"></i>
+                            </div>
+                            <div class="col-md-6 position-relative">
+                                <label class="form-label fw-semibold text-secondary">Verificar Contraseña</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPassVerify" required>
+                                <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPassVerify', this)"></i>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-orange w-100 rounded-pill py-3 fw-bold fs-5 shadow-sm mt-2">Crear mi cuenta</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+
+<!-- MODAL GENERADOR DE CALENDARIO -->
+
+
+
+    <!-- ========================================================== -->
+    <!-- MODAL: FÁBRICA DE FORMULARIOS DE INSCRIPCIÓN               -->
+    <!-- ========================================================== -->
+    
+
+
+<!-- MODAL: CONFIGURACIÓN LOGO SUEÑOS -->
+
+
+<!-- MODAL DE BORRAR UNIFICADO -->
+<div class="modal fade" id="modalBorrarUnificado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center" id="modalBorrarUnificadoTitulo"><i class="bi bi-trash text-danger me-2"></i>Borrar</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body px-4 pb-5 pt-2 text-start">
+                <p class="text-secondary mb-3 text-center" id="modalBorrarUnificadoMensaje">¿Estás seguro?</p>
+                <p class="fw-bold text-dark mb-4 text-center" id="modalBorrarUnificadoNombre"></p>
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-danger w-100 rounded-pill fw-bold py-3 shadow" id="btnConfirmarBorrarUnificado" onclick="ejecutarBorrarUnificado()">
+                        <i class="bi bi-trash me-1"></i>Sí, borrar
+                    </button>
+                    <button class="btn btn-outline-secondary w-100 rounded-pill fw-bold py-3" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let _borrarUnificadoCallback = null;
+const modalBorrarUnificadoEl = document.getElementById('modalBorrarUnificado');
+if (modalBorrarUnificadoEl) {
+    modalBorrarUnificadoEl.addEventListener('hidden.bs.modal', () => { _borrarUnificadoCallback = null; });
+}
+
+function abrirModalBorrarUnificado({ titulo = 'Borrar', mensaje = '¿Estás seguro?', nombre = '', onConfirmar }) {
+    const modalEl = document.getElementById('modalBorrarUnificado');
+    if (!modalEl) return;
+    const tituloEl = document.getElementById('modalBorrarUnificadoTitulo');
+    const mensajeEl = document.getElementById('modalBorrarUnificadoMensaje');
+    const nombreEl = document.getElementById('modalBorrarUnificadoNombre');
+    if (tituloEl) tituloEl.innerHTML = '<i class="bi bi-trash text-danger me-2"></i>' + titulo;
+    if (mensajeEl) mensajeEl.textContent = mensaje;
+    if (nombreEl) nombreEl.textContent = nombre;
+    _borrarUnificadoCallback = onConfirmar;
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+}
+
+function ejecutarBorrarUnificado() {
+    if (typeof _borrarUnificadoCallback === 'function') _borrarUnificadoCallback();
+    const modalEl = document.getElementById('modalBorrarUnificado');
+    if (modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+}
+</script>
+
+<!-- MODAL DE ALERTA UNIFICADO (Reemplaza alert() nativo de JS en todo el sitio) -->
+<div class="modal fade" id="modalAlertaUnificado" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-body p-0">
+                <div id="modalAlertaUnificadoIcon" class="mb-3"><i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i></div>
+                <p id="modalAlertaUnificadoMensaje" class="fw-bold text-dark mb-4 fs-6" style="white-space:pre-wrap;"></p>
+                <button type="button" class="btn btn-orange rounded-pill px-4 shadow-sm fw-bold w-100" data-bs-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const _originalAlert = window.alert.bind(window);
+
+    window.mostrarAlerta = function(message, tipo, zIndex) {
+        try {
+            const modalEl = document.getElementById('modalAlertaUnificado');
+            if (!modalEl || typeof bootstrap === 'undefined') {
+                _originalAlert(message);
+                return;
+            }
+
+            const msgStr = String(message);
+            const iconEl = document.getElementById('modalAlertaUnificadoIcon');
+            const msgEl = document.getElementById('modalAlertaUnificadoMensaje');
+
+            let iconHTML = '<i class="bi bi-info-circle text-orange" style="font-size:3rem;"></i>';
+            const lower = msgStr.toLowerCase();
+            if (tipo === 'error' || lower.includes('error') || lower.includes('❌') || lower.includes('incorrect') || lower.includes('no se pudo') || lower.includes('no autorizado')) {
+                iconHTML = '<i class="bi bi-x-circle-fill text-danger" style="font-size:3rem;"></i>';
+            } else if (tipo === 'success' || lower.includes('✅') || lower.includes('correctamente') || lower.includes('éxito') || lower.includes('exito') || lower.includes('guardad') || lower.includes('copiad') || lower.includes('actualizad') || lower.includes('creado') || lower.includes('eliminad') || lower.includes('descargad')) {
+                iconHTML = '<i class="bi bi-check-circle-fill text-success" style="font-size:3rem;"></i>';
+            } else if (tipo === 'warning' || lower.includes('⚠️') || lower.includes('advertencia') || lower.includes('atención') || lower.includes('atencion') || lower.includes('cuidado')) {
+                iconHTML = '<i class="bi bi-exclamation-triangle-fill text-warning" style="font-size:3rem;"></i>';
+            }
+
+            if (iconEl) iconEl.innerHTML = iconHTML;
+            if (msgEl) msgEl.textContent = msgStr;
+
+            if (zIndex) {
+                modalEl.dataset.originalZindex = modalEl.style.zIndex || '';
+                modalEl.style.zIndex = zIndex;
+                modalEl.addEventListener('hidden.bs.modal', function restoreZ(e) {
+                    e.target.style.zIndex = e.target.dataset.originalZindex || '';
+                    delete e.target.dataset.originalZindex;
+                    e.target.removeEventListener('hidden.bs.modal', restoreZ);
+                }, { once: true });
+            }
+
+            bootstrap.Modal.getOrCreateInstance(modalEl).show();
+        } catch (e) {
+            _originalAlert(message);
+        }
+    };
+
+    window.alert = function(message) {
+        window.mostrarAlerta(message);
+    };
+})();
+</script>
+
+<!-- Modal buscador de agenda médica (PIN maestro) -->
+<div class="modal fade" id="agendaSearchModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content shadow-lg border-0" style="background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 1rem;">
+            <div class="modal-header border-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-journal-medical text-orange me-2"></i>Buscador de Agenda</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body px-4 pb-5 pt-3">
+                <p class="text-secondary small text-center mb-3">Buscá por cédula, teléfono, nombre, apellido, tipo de sangre o cualquier dato.</p>
+                <div class="mb-3 position-relative">
+                    <input type="text" id="agendaSearchInput" class="form-control rounded-pill py-2 ps-4" placeholder="Escribí tu búsqueda..." autocomplete="off">
+                    <i class="bi bi-search position-absolute text-muted" style="right: 15px; top: 10px;"></i>
+                </div>
+                <div id="agendaSearchResults" class="list-group" style="max-height: 50vh; overflow-y: auto; scrollbar-width: none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.todo-list .list-group-item {
+    border: 0;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.5);
+    cursor: default;
+}
+.todo-list .form-check-input {
+    width: 1.2em;
+    height: 1.2em;
+    cursor: pointer;
+    margin-top: 0;
+}
+.todo-list .form-check-label {
+    outline: none;
+    cursor: text;
+    margin-bottom: 0;
+}
+.todo-list .form-check-input:checked + .form-check-label {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+#noteContentEditor a {
+    color: #ff8c00;
+    font-weight: bold;
+    text-decoration: underline;
+}
+#noteViewContent a {
+    color: #ff8c00;
+    font-weight: bold;
+    text-decoration: underline;
+}
+#noteViewContent .form-check-input {
+    cursor: pointer;
+}
+.todo-list li, .todo-list .list-group-item {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+.todo-list, .todo-list ul, .todo-list ol, .todo-list li ul, .todo-list li ol {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    list-style: none !important;
+}
+.todo-list .form-check-input {
+    margin-top: 0.2em !important;
+    flex-shrink: 0 !important;
+}
+.todo-list .form-check-label {
+    word-break: break-word;
+    flex: 1;
+    margin-bottom: 0;
+}
+</style>
+
+<!-- MODAL DE NOTAS ADMINISTRATIVAS -->
+<div class="modal fade" id="notesModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-journal-text text-orange me-2"></i>Notas</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- LISTA DE NOTAS -->
+                <div id="notesListContainer" class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark mb-0">Mis Notas</h6>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="exportNotesJSON()">
+                                <i class="bi bi-download me-1"></i>JSON
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="importNotesJSON()">
+                                <i class="bi bi-upload me-1"></i>Importar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- BUSCADOR EN VIVO -->
+                    <div class="search-container mb-3 d-flex align-items-center position-relative">
+                        <i class="bi bi-search text-orange fs-5 ms-3 position-absolute"></i>
+                        <input type="text" id="notesSearchInput" class="form-control bg-white bg-opacity-75 border-0 rounded-pill ps-5 py-2" placeholder="Buscar por título, contenido o fecha..." oninput="filterNotesLive()">
+                    </div>
+                    <div id="notesList" class="row g-2">
+                        <div class="col-12 text-center py-4 text-muted">
+                            <i class="bi bi-journal fs-1 mb-2 d-block"></i>
+                            Cargando notas...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EDITOR DE NOTA -->
+                <div id="noteEditorContainer" class="d-none">
+                    <div class="mb-3">
+                        <input type="text" id="noteTitleInput" class="form-control form-control-lg rounded-pill border-0 bg-white bg-opacity-75" placeholder="Título de la nota">
+                    </div>
+                    
+                    <!-- BARRA DE HERRAMIENTAS WYSIWYG -->
+                    <div class="d-flex flex-wrap gap-1 mb-2 p-2 bg-white bg-opacity-50 rounded-3">
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="execCmd('insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+                        <div class="vr mx-1"></div>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="insertCheckbox()" title="To-do"><i class="bi bi-check-square"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="insertLink()" title="Enlace"><i class="bi bi-link-45deg"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="insertImage()" title="Imagen"><i class="bi bi-image"></i></button>
+                        <button class="btn btn-sm btn-light rounded-circle" onclick="openEmojiPicker('noteContentEditor')" title="Emoji"><i class="bi bi-emoji-smile"></i></button>
+                    </div>
+
+                    <!-- ÁREA DE EDICIÓN -->
+                    <div id="noteContentEditor" contenteditable="true" class="form-control bg-white bg-opacity-75 border-0 rounded-3 p-3" style="min-height: 200px; max-height: 400px; overflow-y: auto;"></div>
+
+                    <!-- BARRA DE PROGRESO DE TAREAS -->
+                    <div id="noteProgressContainer" class="mt-2 d-none">
+                        <div class="d-flex justify-content-between small text-muted mb-1">
+                            <span>Progreso</span>
+                            <span id="noteProgressText">0%</span>
+                        </div>
+                        <div class="progress rounded-pill" style="height: 8px;">
+                            <div id="noteProgressBar" class="progress-bar bg-orange" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                    </div>
+
+                    <!-- BOTONES DE ACCIÓN DE NOTA -->
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="saveNote()">
+                            <i class="bi bi-check-lg me-1"></i>Guardar
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill px-3" onclick="cancelEdit()">
+                            <i class="bi bi-x-lg me-1"></i>Cancelar
+                        </button>
+                        <button class="btn btn-orange rounded-pill px-3 ms-auto" onclick="openNoteOptionsModal()" title="Más opciones">
+                            <i class="bi bi-three-dots-vertical me-1"></i>Opciones
+                        </button>
+                        <input type="file" id="singleJsonImportInput" accept=".json" style="display:none;" onchange="handleSingleJSONImport(this)">
+                    </div>
+                </div>
+
+                <!-- BOTÓN CREAR NUEVA -->
+                <div id="createNoteBtnContainer" class="text-center mt-3">
+                    <button class="btn btn-orange rounded-pill px-5 py-3 fw-bold shadow-sm" onclick="createNewNote()">
+                        <i class="bi bi-plus-lg me-2"></i>Crear Nueva Nota
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- INPUT OCULTO PARA IMPORTAR JSON -->
+<input type="file" id="jsonImportInput" accept=".json" style="display: none;" onchange="handleJSONImport(this)">
+
+<!-- MODAL PARA AGREGAR/EDITAR ENLACE -->
+<div class="modal fade" id="noteLinkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg text-orange me-2"></i>Enlace</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="noteLinkEditId" value="">
+                <div class="mb-3">
+                    <label for="noteLinkText" class="form-label small text-muted fw-bold">Texto del enlace</label>
+                    <input type="text" id="noteLinkText" class="form-control rounded-pill border-0 bg-white bg-opacity-75" placeholder="Texto visible">
+                </div>
+                <div class="mb-3">
+                    <label for="noteLinkUrl" class="form-label small text-muted fw-bold">URL</label>
+                    <input type="url" id="noteLinkUrl" class="form-control rounded-pill border-0 bg-white bg-opacity-75" placeholder="https://...">
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyNoteLink()">
+                        <i class="bi bi-check-lg me-1"></i>Aplicar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE ENLACE PÚBLICO DE NOTA -->
+<div class="modal fade" id="notePublicLinkModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-link-45deg text-orange me-2"></i>Enlace Público</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">Cualquier persona con este enlace podrá ver y editar esta nota libremente, sin necesidad de clave.</p>
+                <div class="input-group mb-3">
+                    <input type="text" id="notePublicLinkInput" class="form-control rounded-start-pill border-0 bg-white bg-opacity-75" readonly>
+                    <button class="btn btn-orange rounded-end-pill" id="copyPublicLinkBtn" onclick="copyPublicLink()">
+                        <i class="bi bi-clipboard me-1"></i>Copiar
+                    </button>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-danger rounded-pill px-4 flex-grow-1" onclick="unshareCurrentNote()">
+                        <i class="bi bi-link-45deg me-1"></i>Desactivar Enlace
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA SUBIR IMAGEN -->
+<div class="modal fade" id="noteImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-image text-orange me-2"></i>Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="noteImageFile" class="form-label small text-muted fw-bold">Seleccionar imagen</label>
+                    <input type="file" id="noteImageFile" class="form-control rounded-pill border-0 bg-white bg-opacity-75" accept="image/*" onchange="previewNoteImage(this)">
+                </div>
+                <div id="noteImagePreviewContainer" class="text-center mb-3 d-none">
+                    <img id="noteImagePreview" class="img-fluid rounded-3" style="max-height: 200px;" alt="Vista previa">
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageSizeSlider" class="form-label small text-muted fw-bold">Tamaño de imagen</label>
+                    <input type="range" id="noteImageSizeSlider" class="form-range" min="20" max="100" value="100" oninput="updateImageSizePreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Pequeña</span>
+                        <span id="noteImageSizeValue">100%</span>
+                        <span>Grande</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyNoteImage()">
+                        <i class="bi bi-check-lg me-1"></i>Insertar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA VER IMAGEN EN TAMAÑO REAL -->
+<div class="modal fade" id="noteImageViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-zoom-in text-orange me-2"></i>Vista de imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="noteImageViewReal" class="img-fluid rounded-3" style="max-height: 80vh;" alt="Imagen completa">
+                <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                    <button class="btn btn-primary rounded-pill px-3" onclick="openImageEditFromView()">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToTop()">
+                        <i class="bi bi-arrow-up me-1"></i>Arriba
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToBottom()">
+                        <i class="bi bi-arrow-down me-1"></i>Abajo
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-3" onclick="deleteImageFromView()">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA EDITAR IMAGEN -->
+<div class="modal fade" id="noteImageEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-image text-orange me-2"></i>Editar Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img id="noteImageEditPreview" class="img-fluid rounded-3" style="max-height: 200px;" alt="Vista previa">
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditSizeSlider" class="form-label small text-muted fw-bold">Tamaño</label>
+                    <input type="range" id="noteImageEditSizeSlider" class="form-range" min="20" max="100" value="100" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Pequeña</span>
+                        <span id="noteImageEditSizeValue">100%</span>
+                        <span>Grande</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditBlurSlider" class="form-label small text-muted fw-bold">Blur</label>
+                    <input type="range" id="noteImageEditBlurSlider" class="form-range" min="0" max="10" value="0" step="0.5" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Sin blur</span>
+                        <span id="noteImageEditBlurValue">0px</span>
+                        <span>Mucho</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditOpacitySlider" class="form-label small text-muted fw-bold">Opacidad</label>
+                    <input type="range" id="noteImageEditOpacitySlider" class="form-range" min="10" max="100" value="100" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Transparente</span>
+                        <span id="noteImageEditOpacityValue">100%</span>
+                        <span>Opaca</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyImageEdit()">
+                        <i class="bi bi-check-lg me-1"></i>Aplicar
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-3" onclick="deleteImageEdit()">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA EMOJIS -->
+<div class="modal fade" id="emojiPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-emoji-smile text-orange me-2"></i>Emojis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between gap-1 mb-2">
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="left" onclick="setEmojiAlign('left')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="center" onclick="setEmojiAlign('center')" title="Centro"><i class="bi bi-text-center"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="right" onclick="setEmojiAlign('right')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="justify" onclick="setEmojiAlign('justify')" title="Justificado"><i class="bi bi-justify"></i></button>
+                </div>
+                <div id="emojiGrid" class="d-flex flex-wrap gap-1 justify-content-center" style="max-height: 260px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE OPCIONES DE NOTA -->
+<div class="modal fade" id="noteOptionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-three-dots-vertical text-orange me-2"></i>Opciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="small fw-bold text-muted mb-1">Exportar</div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportNoteJPG()">
+                        <i class="bi bi-image me-1"></i>JPG
+                    </button>
+                    <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
+                        <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </button>
+                </div>
+                <div class="small fw-bold text-muted mb-1">Compartir y respaldar</div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-warning rounded-pill px-3" onclick="shareCurrentNote()">
+                        <i class="bi bi-link-45deg me-1"></i>Enlace Público
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="exportSingleNoteJSON()">
+                        <i class="bi bi-filetype-json me-1"></i>Exportar JSON
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="importSingleNoteJSON()">
+                        <i class="bi bi-upload me-1"></i>Importar JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE VISTA DE NOTA -->
+<div class="modal fade" id="noteViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="noteViewTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="noteViewContainer" class="bg-white bg-opacity-75 rounded-3 p-4" style="min-height: 200px; max-height: 500px; overflow-y: auto;">
+                    <h4 id="noteViewBodyTitle" class="fw-bold text-center text-dark mb-2"></h4>
+                    <hr class="border-2 opacity-75" style="border-color: #ff8c00;">
+                    <div id="noteViewContent"></div>
+                </div>
+                <div id="noteViewProgressContainer" class="mt-3 d-none">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Progreso</span>
+                        <span id="noteViewProgressText">0%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 8px;">
+                        <div id="noteViewProgressBar" class="progress-bar bg-orange" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportViewNoteJPG()">
+                        <i class="bi bi-image me-1"></i>JPG
+                    </button>
+                    <button class="btn btn-outline-info rounded-pill px-3" onclick="exportViewNotePNG()">
+                        <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportViewNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="exportViewNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar Nota - Paso 1 -->
+<div class="modal fade" id="confirmDeleteNoteModal1" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (1/3)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Estás seguro de eliminar esta nota?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold" onclick="mostrarConfirmarNota(2)">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar Nota - Paso 2 -->
+<div class="modal fade" id="confirmDeleteNoteModal2" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (2/3)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Realmente deseas eliminarla? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning rounded-pill px-4 fw-bold" onclick="mostrarConfirmarNota(3)">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar Nota - Paso 3 -->
+<div class="modal fade" id="confirmDeleteNoteModal3" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación (3/3)</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Confirmas definitivamente la eliminación?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmarEliminarNota()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar TODO -->
+<div class="modal fade" id="confirmDeleteTodoModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Confirmar eliminación</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <p class="mb-0">¿Eliminar este elemento del to-do? Esta acción no se puede deshacer.</p>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2 d-flex justify-content-center">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 fw-bold" data-bs-dismiss="modal" onclick="cancelDeleteTodo()">Cancelar</button>
+                <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" onclick="confirmDeleteTodo()">Eliminar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/js/emoji_picker.js?v=1"></script>
+
+<!-- MODAL: ACCESO AL COTIZADOR -->
+<div class="modal fade" id="cotizadorBusModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-shield-lock-fill text-orange me-2"></i>Acceso al Cotizador</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4 text-center">
+                <img src="/static/uploads/icon-192.png" alt="TRANSAVI" style="width:80px;height:80px;border-radius:50%;object-fit:cover;" class="mb-3 shadow">
+                <div class="mb-3 text-start">
+                    <label class="form-label fw-semibold">Clave de Acceso</label>
+                    <div class="position-relative">
+                        <input type="password" class="form-control glass-input rounded-4 form-control-lg pe-5" id="claveCotizadorBus" placeholder="Ingresa la clave">
+                        <i class="bi bi-eye-slash position-absolute top-50 end-0 translate-middle-y me-3 fs-5" style="cursor:pointer; color:#6c757d;" id="toggleClaveCotizadorBus" onclick="toggleClaveCotizadorBusVisibilidad()"></i>
+                    </div>
+                    <div class="small text-muted mt-2 text-uppercase text-center fw-bold">ESTE ESPACIO ESTÁ RESERVADO ÚNICAMENTE PARA TRANSAVI</div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                <button onclick="ingresarCotizadorBus()" class="btn btn-orange rounded-pill w-100 py-2 fw-bold btn-lg">Acceder</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let cotizadorBusModal;
+let cotizadorBusSlug = null;
+
+function abrirCotizadorBus() {
+    if(!cotizadorBusModal) cotizadorBusModal = new bootstrap.Modal(document.getElementById('cotizadorBusModal'));
+    cotizadorBusModal.show();
+}
+
+function showCotizadorBusError(mensaje) {
+    if(typeof mostrarAlerta === 'function') mostrarAlerta(mensaje, 'error', 1100);
+    else alert(mensaje);
+}
+
+function toggleClaveCotizadorBusVisibilidad() {
+    const input = document.getElementById('claveCotizadorBus');
+    const icon = document.getElementById('toggleClaveCotizadorBus');
+    if(input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('bi-eye-slash', 'bi-eye');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('bi-eye', 'bi-eye-slash');
+    }
+}
+
+async function ingresarCotizadorBus() {
+    const clave = document.getElementById('claveCotizadorBus').value.trim();
+    if(!clave) {
+        showCotizadorBusError('Ingrese la clave de acceso.');
+        return;
+    }
+    if(!cotizadorBusSlug) {
+        try {
+            const res = await fetch('/api/cotizadores/unico');
+            const d = await res.json().catch(() => ({}));
+            if(!d.slug) {
+                showCotizadorBusError('No hay un cotizador activo.');
+                return;
+            }
+            cotizadorBusSlug = d.slug;
+        } catch(e) {
+            showCotizadorBusError('Error al obtener el cotizador.');
+            return;
+        }
+    }
+    try {
+        const res = await fetch('/cotizadores/' + cotizadorBusSlug + '/verificar', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({clave})});
+        const d = await res.json().catch(() => ({error:'Error del servidor'}));
+        if(d.ok) {
+            sessionStorage.setItem('transaviClave', clave);
+            cotizadorBusModal.hide();
+            window.location.href = '/cotizadores/' + cotizadorBusSlug;
+        } else {
+            showCotizadorBusError(d.error || 'Clave incorrecta. Por favor, verifique e intente de nuevo.');
+        }
+    } catch(e) {
+        showCotizadorBusError('Error al verificar la clave.');
+    }
+}
+</script>
+
+    <!-- ========================================== -->
+    <!-- ZONA DE SCRIPTS DEL SISTEMA                -->
+    <!-- ========================================== -->
+
+    <!-- PUENTE DE VARIABLES (JINJA A JS): Debe ir SIEMPRE antes de los .js separados -->
+    <script>
+        window.APP_VARS = {
+            isGlobalSuperUser: false,
+            emptyImageBase64: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+        };
+    </script>
+
+    <!-- LIBRERÍAS EXTERNAS LOCALIZADAS -->
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/js/html2canvas.js"></script>
+
+    <!-- MÓDULOS DE APLICACIÓN (Carga modularizada en el orden correcto) -->
+    <script src="/static/js/validaciones.js"></script>
+    <script src="/static/js/setup_global.js"></script>
+    <script src="/static/js/auth_ui.js?v=2"></script>
+    <script src="/static/js/calendario_motor.js"></script>
+    <script src="/static/js/calendario_export.js"></script>
+
+    <!-- PWA y Configuración del Logo -->
+    <script src="/static/js/pwa_service.js?v=15"></script>
+    <script src="/static/js/logo_config.js?v=10"></script>
+    <script src="/static/js/agenda_search.js?v=2"></script>
+    <script src="/static/js/socket.io.min.js"></script>
+    <script src="/static/js/notes_collab.js?v=1"></script>
+    <script src="/static/js/notes.js?v=20"></script>
+<script>
+(function() {
+    const STORAGE_KEY = 'admin_pines_v1';
+    const generarId = (texto) => {
+        return (texto || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    };
+    const obtenerPines = () => {
+        try { 
+            const arr = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            return Array.isArray(arr) ? arr.slice(0, 2) : [];
+        } catch { return []; }
+    };
+    const guardarPines = (pines) => localStorage.setItem(STORAGE_KEY, JSON.stringify(pines));
+
+    function renderizarPinesMovil() {
+        const contenedor = document.getElementById('mobilePinnedContainer');
+        if(!contenedor) return;
+        contenedor.innerHTML = '';
+        const pines = obtenerPines();
+        if(pines.length === 0) { return; }
+        const fuentes = document.querySelectorAll('.admin-tools-dropdown .dropdown-item[data-pin-id]');
+        pines.forEach(pinId => {
+            const fuente = Array.from(fuentes).find(a => a.dataset.pinId === pinId);
+            if(!fuente) return;
+            const iconoEl = fuente.querySelector('i:first-child');
+            const icono = iconoEl ? iconoEl.className.split(' ').filter(c => c === 'bi' || c.startsWith('bi-')).join(' ') : 'bi bi-question';
+            const texto = (fuente.textContent || '').trim().replace(/\s+/g, ' ');
+            const href = fuente.getAttribute('href') || '#';
+            const onclick = fuente.getAttribute('onclick') || '';
+            const modalToggle = fuente.getAttribute('data-bs-toggle') || '';
+            const modalTarget = fuente.getAttribute('data-bs-target') || '';
+            const a = document.createElement('a');
+            a.className = 'mobile-nav-item';
+            a.href = href;
+            a.innerHTML = `<i class="${icono} fs-3 mb-1"></i><span>${texto}</span>`;
+            if(modalToggle) a.setAttribute('data-bs-toggle', modalToggle);
+            if(modalTarget) a.setAttribute('data-bs-target', modalTarget);
+            if(onclick) a.setAttribute('onclick', onclick);
+            contenedor.appendChild(a);
+        });
+    }
+
+    function togglePinAdmin(pin, e) {
+        if(e) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); }
+        const a = pin.closest('a.dropdown-item');
+        if(!a || !a.dataset.pinId) return;
+        let pines = obtenerPines();
+        const idx = pines.indexOf(a.dataset.pinId);
+        if(idx === -1 && pines.length >= 2) {
+            alert('Solo puedes fijar 2 accesos directos.');
+            return;
+        }
+        if(idx > -1) {
+            pines.splice(idx, 1);
+            pin.classList.remove('bi-pin-fill', 'text-orange');
+            pin.classList.add('bi-pin');
+        } else {
+            pines.push(a.dataset.pinId);
+            pin.classList.remove('bi-pin');
+            pin.classList.add('bi-pin-fill', 'text-orange');
+        }
+        guardarPines(pines);
+        renderizarPinesMovil();
+    }
+
+    function inicializarPinesAdmin() {
+        const items = document.querySelectorAll('.admin-tools-dropdown .dropdown-item');
+        if(!items.length) return;
+        items.forEach((a, i) => {
+            if(a.dataset.pinId) return;
+            const label = (a.textContent || '').trim();
+            a.dataset.pinId = generarId(label) || `admin-tool-${i}`;
+            const pin = document.createElement('i');
+            pin.className = 'bi bi-pin ms-auto pin-herramienta';
+            pin.style.cssText = 'cursor:pointer; font-size:1rem; z-index:1;';
+            pin.setAttribute('role', 'button');
+            pin.setAttribute('tabindex', '0');
+            pin.setAttribute('aria-label', 'Fijar acceso directo');
+            pin.onclick = function(ev) { togglePinAdmin(this, ev); };
+            a.appendChild(pin);
+        });
+        const guardados = obtenerPines();
+        items.forEach(a => {
+            if(guardados.includes(a.dataset.pinId)) {
+                const pin = a.querySelector('.pin-herramienta');
+                if(pin) { pin.classList.remove('bi-pin'); pin.classList.add('bi-pin-fill', 'text-orange'); }
+            }
+        });
+        renderizarPinesMovil();
+    }
+
+    document.addEventListener('DOMContentLoaded', inicializarPinesAdmin);
+})();
+</script>
+
+</body>
+</html>

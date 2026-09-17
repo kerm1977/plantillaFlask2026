@@ -4,6 +4,7 @@ SQLAlchemy
 Werkzeug
 bcrypt
 Pillow
+qrcode[pil]>=7.3,<8.0
 reportlab
 openpyxl
 Flask-SocketIO

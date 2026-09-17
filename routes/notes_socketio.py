@@ -10,7 +10,7 @@ import uuid
 import base64
 import io
 import tempfile
-from html import escape
+
 import re
 import unicodedata
 from reportlab.lib.pagesizes import letter

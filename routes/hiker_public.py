@@ -26,6 +26,7 @@ def check_hiker(cedula):
                 'found': True,
                 'nombre_completo': hiker.nombre_completo,
                 'telefono': hiker.telefono,
+                'pasaporte': hiker.pasaporte or '',
                 'fecha_nacimiento': f_nac_str,
                 'tipo_sangre': hiker.tipo_sangre,
                 'alergias': hiker.alergias,
@@ -60,6 +61,7 @@ def register_hiker():
         # 2. ACTUALIZAMOS SIEMPRE SU INFORMACIÓN
         hiker.nombre_completo = data.get('nombre_completo', hiker.nombre_completo)
         hiker.telefono = data.get('telefono', hiker.telefono)
+        hiker.pasaporte = data.get('pasaporte', hiker.pasaporte)
         hiker.tipo_sangre = data.get('tipo_sangre', hiker.tipo_sangre)
         hiker.alergias = data.get('alergias', hiker.alergias)
         hiker.enfermedades_cronicas = data.get('enfermedades_cronicas', hiker.enfermedades_cronicas)
@@ -111,6 +113,7 @@ def get_hiker_by_pin(pin):
             'nombre_completo': hiker.nombre_completo,
             'cedula': hiker.cedula,
             'telefono': hiker.telefono,
+            'pasaporte': hiker.pasaporte or '',
             'tipo_sangre': hiker.tipo_sangre,
             'fecha_nacimiento': f_nac, 
             'alergias': hiker.alergias,

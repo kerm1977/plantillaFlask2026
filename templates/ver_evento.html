@@ -74,6 +74,50 @@
                     <div id="eventCardToExport" class="glass-panel rounded-5 p-4 p-md-4 mb-4 position-relative border-0 shadow-lg {{ 'sold-out-card' if is_sold_out else '' }}">
 
                         {% include 'partials/ver_evento_card_main.html' %}
+
+                        {% if is_super_user %}
+                        <hr class="border-secondary opacity-25 my-3 hide-on-export">
+                        <div class="hide-on-export mb-3">
+                            <div class="accordion" id="enlacePuntosAccordion">
+                                <div class="accordion-item border-0 rounded-4 overflow-hidden">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accEnlacePuntos">
+                                            <i class="bi bi-link-45deg me-2 text-success"></i>Generar enlace de puntos
+                                        </button>
+                                    </h2>
+                                    <div id="accEnlacePuntos" class="accordion-collapse collapse" data-bs-parent="#enlacePuntosAccordion">
+                                        <div class="accordion-body text-center">
+                                            <button type="button" class="btn btn-outline-success rounded-pill fw-bold w-100" onclick="generarEnlacePuntos()">
+                                                <i class="bi bi-clipboard me-1"></i>Copiar enlace de puntos
+                                            </button>
+                                            <span id="enlacePuntosFeedback" class="d-block small text-success mt-2" style="display:none;"></span>
+                                            <div class="text-start mt-3">
+                                                <label class="form-label fw-bold" for="puntosPasswordField">Contraseña</label>
+                                                <input type="text" id="puntosPasswordField" class="form-control text-center fw-bold" value="{{ puntos_password or 'No configurada' }}" readonly>
+                                                <small class="text-muted d-block mt-1">Compartí el enlace y esta contraseña. Al abrirlo, la persona escribe su cédula y la contraseña para ingresar.</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <script>
+                            async function generarEnlacePuntos() {
+                                const url = '{{ url_for('main.evento_puntos', event_id=evento.id, _external=True) }}';
+                                try {
+                                    await navigator.clipboard.writeText(url);
+                                    const el = document.getElementById('enlacePuntosFeedback');
+                                    el.textContent = 'Enlace copiado: ' + url;
+                                    el.style.display = 'block';
+                                } catch (e) {
+                                    const el = document.getElementById('enlacePuntosFeedback');
+                                    el.textContent = 'No se pudo copiar. URL: ' + url;
+                                    el.style.display = 'block';
+                                }
+                            }
+                        </script>
+                        {% endif %}
+
                         {% include 'partials/ver_evento_gpx_share.html' %}
 
                     </div>

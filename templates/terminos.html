@@ -6,6 +6,13 @@
   .legal-content p, .legal-content li { text-align: justify; }
   .legal-content h1, .legal-content h2, .legal-content .accordion-button { text-align: left !important; }
 </style>
+{% if site.terminos %}
+<div class="container py-5">
+    <div class="card shadow-sm border-0 p-4 p-md-5 legal-content">
+        {{ site.terminos|safe }}
+    </div>
+</div>
+{% else %}
 <div class="container py-5">
     <div class="card shadow-sm border-0 p-4 p-md-5 legal-content">
         <h1 class="mb-4 text-center">Términos y Condiciones de Uso</h1>
@@ -18,12 +25,12 @@
         <div class="accordion" id="terminosAccordion">
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading1">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                <h2 class="accordion-header" id="terminosHeading1">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse1" aria-expanded="false" aria-controls="terminosCollapse1">
                         1. Objeto y Descripción de los Servicios
                     </button>
                 </h2>
-                <div id="collapse1" class="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse1" class="accordion-collapse collapse" aria-labelledby="terminosHeading1" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             Este sitio web tiene como objetivo brindar información, contenidos, recursos, espacios de comunidad y/o servicios relacionados con la iniciativa La Tribu de los Libres. Nos reservamos el derecho de modificar, suspender o discontinuar cualquier aspecto o función del sitio web en cualquier momento sin previo aviso.
@@ -33,12 +40,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading2">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                <h2 class="accordion-header" id="terminosHeading2">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse2" aria-expanded="false" aria-controls="terminosCollapse2">
                         2. Uso Aceptable del Sitio Web
                     </button>
                 </h2>
-                <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse2" class="accordion-collapse collapse" aria-labelledby="terminosHeading2" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             El Usuario se compromete a hacer un uso adecuado y lícito del sitio web y de sus contenidos, de conformidad con la legislación aplicable, la moral y el orden público.
@@ -55,12 +62,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading3">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" aria-expanded="false" aria-controls="collapse3">
+                <h2 class="accordion-header" id="terminosHeading3">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse3" aria-expanded="false" aria-controls="terminosCollapse3">
                         3. Propiedad Intelectual e Industrial
                     </button>
                 </h2>
-                <div id="collapse3" class="accordion-collapse collapse" aria-labelledby="heading3" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse3" class="accordion-collapse collapse" aria-labelledby="terminosHeading3" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             Todos los contenidos mostrados en este sitio web —incluyendo, entre otros, textos, marcas, logotipos, imágenes, ilustraciones, audios, vídeos, diseño gráfico y código fuente— son propiedad exclusiva de La Tribu de los Libres o de sus respectivos licenciantes, y están protegidos por las leyes internacionales de propiedad intelectual y derechos de autor.
@@ -74,12 +81,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading4">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" aria-expanded="false" aria-controls="collapse4">
+                <h2 class="accordion-header" id="terminosHeading4">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse4" aria-expanded="false" aria-controls="terminosCollapse4">
                         4. Cuentas de Usuario y Registro (Si aplica)
                     </button>
                 </h2>
-                <div id="collapse4" class="accordion-collapse collapse" aria-labelledby="heading4" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse4" class="accordion-collapse collapse" aria-labelledby="terminosHeading4" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>En caso de que el sitio web requiera la creación de una cuenta o registro de usuario:</p>
                         <ul>
@@ -92,12 +99,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading5">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse5" aria-expanded="false" aria-controls="collapse5">
+                <h2 class="accordion-header" id="terminosHeading5">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse5" aria-expanded="false" aria-controls="terminosCollapse5">
                         5. Normas de la Comunidad y Contenido Generado por el Usuario
                     </button>
                 </h2>
-                <div id="collapse5" class="accordion-collapse collapse" aria-labelledby="heading5" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse5" class="accordion-collapse collapse" aria-labelledby="terminosHeading5" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>Si el sitio web incluye foros, comentarios, chats o secciones interactivas:</p>
                         <ul>
@@ -109,12 +116,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading6">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse6" aria-expanded="false" aria-controls="collapse6">
+                <h2 class="accordion-header" id="terminosHeading6">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse6" aria-expanded="false" aria-controls="terminosCollapse6">
                         6. Enlaces a Sitios de Terceros
                     </button>
                 </h2>
-                <div id="collapse6" class="accordion-collapse collapse" aria-labelledby="heading6" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse6" class="accordion-collapse collapse" aria-labelledby="terminosHeading6" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             Este sitio web puede contener enlaces o hipervínculos a sitios web operados por terceros. Dichos enlaces se proporcionan únicamente para conveniencia del Usuario. La Tribu de los Libres no ejerce ningún control sobre dichos sitios ni asume responsabilidad alguna por su contenido, políticas de privacidad o prácticas.
@@ -124,12 +131,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading7">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse7" aria-expanded="false" aria-controls="collapse7">
+                <h2 class="accordion-header" id="terminosHeading7">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse7" aria-expanded="false" aria-controls="terminosCollapse7">
                         7. Limitación de Responsabilidad
                     </button>
                 </h2>
-                <div id="collapse7" class="accordion-collapse collapse" aria-labelledby="heading7" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse7" class="accordion-collapse collapse" aria-labelledby="terminosHeading7" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <ul>
                             <li><strong>Disponibilidad:</strong> No garantizamos el acceso ininterrumpido ni la ausencia de errores en el funcionamiento del sitio web.</li>
@@ -141,12 +148,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading8">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse8" aria-expanded="false" aria-controls="collapse8">
+                <h2 class="accordion-header" id="terminosHeading8">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse8" aria-expanded="false" aria-controls="terminosCollapse8">
                         8. Protección de Datos y Privacidad
                     </button>
                 </h2>
-                <div id="collapse8" class="accordion-collapse collapse" aria-labelledby="heading8" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse8" class="accordion-collapse collapse" aria-labelledby="terminosHeading8" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             El tratamiento de los datos personales que el Usuario proporcione a través del sitio web se rige por nuestra <a href="#" class="text-decoration-underline">Política de Privacidad</a>, la cual forma parte integrante de estos Términos y Condiciones.
@@ -156,12 +163,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading9">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse9" aria-expanded="false" aria-controls="collapse9">
+                <h2 class="accordion-header" id="terminosHeading9">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse9" aria-expanded="false" aria-controls="terminosCollapse9">
                         9. Modificaciones a los Términos y Condiciones
                     </button>
                 </h2>
-                <div id="collapse9" class="accordion-collapse collapse" aria-labelledby="heading9" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse9" class="accordion-collapse collapse" aria-labelledby="terminosHeading9" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             Nos reservamos el derecho de actualizar o modificar estos Términos y Condiciones en cualquier momento. Cualquier cambio surtirá efecto inmediatamente después de su publicación en el sitio web. El uso continuado de la página tras la publicación de los cambios implica la aceptación tácita de los mismos.
@@ -171,12 +178,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading10">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse10" aria-expanded="false" aria-controls="collapse10">
+                <h2 class="accordion-header" id="terminosHeading10">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse10" aria-expanded="false" aria-controls="terminosCollapse10">
                         10. Legislación Aplicable y Jurisdicción
                     </button>
                 </h2>
-                <div id="collapse10" class="accordion-collapse collapse" aria-labelledby="heading10" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse10" class="accordion-collapse collapse" aria-labelledby="terminosHeading10" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>
                             Estos Términos y Condiciones se regirán e interpretarán de acuerdo con las leyes vigentes del país o jurisdicción en el que opere La Tribu de los Libres. Cualquier controversia que derive de la interpretación o ejecución de los presentes términos se someterá a los tribunales competentes de dicha jurisdicción.
@@ -186,12 +193,12 @@
             </div>
 
             <div class="accordion-item">
-                <h2 class="accordion-header" id="heading11">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse11" aria-expanded="false" aria-controls="collapse11">
+                <h2 class="accordion-header" id="terminosHeading11">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#terminosCollapse11" aria-expanded="false" aria-controls="terminosCollapse11">
                         11. Contacto
                     </button>
                 </h2>
-                <div id="collapse11" class="accordion-collapse collapse" aria-labelledby="heading11" data-bs-parent="#terminosAccordion">
+                <div id="terminosCollapse11" class="accordion-collapse collapse" aria-labelledby="terminosHeading11" data-bs-parent="#terminosAccordion">
                     <div class="accordion-body">
                         <p>Si tiene alguna duda, consulta o sugerencia con respecto a estos Términos y Condiciones, puede ponerse en contacto con nosotros a través de:</p>
                         <ul>
@@ -205,4 +212,5 @@
         </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}

@@ -3,6 +3,10 @@
 // ==========================================
 
 async function abrirConfigLogoSuenos() {
+    window.location.href = '/admin/logo-config';
+}
+
+async function initLogoConfigPage() {
     try {
         const res = await fetch('/api/logo-config');
         const config = await res.json();
@@ -17,8 +21,6 @@ async function abrirConfigLogoSuenos() {
         console.error('Error al cargar configuración:', err);
     }
     cargarEventosActivos();
-    const modal = new bootstrap.Modal(document.getElementById('configLogoSuenosModal'));
-    modal.show();
 }
 
 async function cargarEventosActivos() {
@@ -65,7 +67,11 @@ async function guardarConfigLogoSuenos() {
         const d = await res.json();
         if (d.ok) {
             aplicarConfigLogoSuenos(config);
-            bootstrap.Modal.getInstance(document.getElementById('configLogoSuenosModal')).hide();
+            const modalEl = document.getElementById('configLogoSuenosModal');
+            if (modalEl) {
+                const inst = bootstrap.Modal.getInstance(modalEl);
+                if (inst) inst.hide();
+            }
             alert('Configuración guardada correctamente');
         } else {
             alert('Error al guardar: ' + (d.error || 'Desconocido'));
