@@ -59,6 +59,49 @@
     </div>
 </div>
 
+<!-- MODAL: SINGLE PAGE OFFLINE — ELEGIR EVENTO -->
+<div class="modal fade" id="singlepageEventModal" tabindex="-1" style="z-index:1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-3 pt-4 px-4">
+                <h5 class="modal-title fw-bold fs-5"><i class="bi bi-file-earmark-code text-orange me-2"></i>Single Page Offline</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2 px-4 pb-4">
+                <p class="text-secondary mb-3">Elegí la caminata cuya información querés incluir en una pestaña aparte de la página offline:</p>
+                <select id="singlepageEventSelect" class="form-select rounded-3 mb-3">
+                    <option value="">Cargando eventos...</option>
+                </select>
+                <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-toggle-on me-1"></i>Secciones "Quiénes Somos" a incluir:</label>
+                <div class="d-flex gap-3 flex-wrap">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="spHistoria">
+                        <label class="form-check-label small" for="spHistoria">Historia</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="spMision">
+                        <label class="form-check-label small" for="spMision">Misión</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="spOracion">
+                        <label class="form-check-label small" for="spOracion">Oración</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="spPuntos" checked>
+                        <label class="form-check-label small" for="spPuntos">Puntos</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0 pb-4 px-4 gap-2">
+                <button class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold" onclick="generateSinglepage('')">Sin evento</button>
+                <button class="btn btn-orange rounded-pill px-5 py-2 fw-bold" onclick="generateSinglepage(document.getElementById('singlepageEventSelect').value)">
+                    <i class="bi bi-download me-1"></i>Generar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL: NÚMEROS DE RESERVA -->
 <div class="modal fade" id="reservationModal" tabindex="-1" style="z-index:1060;">
     <div class="modal-dialog modal-dialog-centered">

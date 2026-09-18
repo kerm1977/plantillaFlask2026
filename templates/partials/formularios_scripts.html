@@ -439,6 +439,34 @@ function shareWhatsAppText(text) {
     }
 }
 
+async function openSinglepageModal() {
+    const sel = document.getElementById('singlepageEventSelect');
+    sel.innerHTML = '<option value="">Cargando eventos...</option>';
+    const modal = new bootstrap.Modal(document.getElementById('singlepageEventModal'));
+    modal.show();
+    try {
+        const eventos = await (await fetch('/api/events/options')).json();
+        sel.innerHTML = '<option value="">— Sin información de caminata —</option>' +
+            eventos.map(e => `<option value="${e.id}">${e.nombre_lugar}${e.fecha ? ' (' + e.fecha + ')' : ''}</option>`).join('');
+    } catch (e) {
+        sel.innerHTML = '<option value="">Error cargando eventos</option>';
+    }
+}
+
+function generateSinglepage(eventId) {
+    if (!currentResponsesFormId) return;
+    const params = new URLSearchParams();
+    if (eventId) params.set('event_id', eventId);
+    if (document.getElementById('spHistoria')?.checked) params.set('include_historia', '1');
+    if (document.getElementById('spMision')?.checked) params.set('include_mision', '1');
+    if (document.getElementById('spOracion')?.checked) params.set('include_oracion', '1');
+    if (document.getElementById('spPuntos')?.checked) params.set('include_puntos', '1');
+    const qs = params.toString();
+    window.open(`/api/forms/${currentResponsesFormId}/export/singlepage${qs ? '?' + qs : ''}`, '_blank');
+    const modal = bootstrap.Modal.getInstance(document.getElementById('singlepageEventModal'));
+    if (modal) modal.hide();
+}
+
 async function shareResponsesBasico() {
     const data = window._responsesData;
     if (!data || !data.responses || !data.responses.length) return;

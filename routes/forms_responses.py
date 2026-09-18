@@ -10,6 +10,18 @@ from routes import bp
 from routes.forms_responses_utils import _build_answers_map, _update_response_answers
 
 
+@bp.route('/api/events/options')
+def api_events_options():
+    """Lista ligera de eventos para el selector de Single Page Offline."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    from models import Event
+    eventos = Event.query.order_by(Event.id.desc()).all()
+    return jsonify([{'id': e.id, 'nombre_lugar': e.nombre_lugar or '',
+                     'fecha': e.fecha_unica or e.fecha_inicio or '',
+                     'actividad': e.actividad or ''} for e in eventos])
+
+
 def _fmt_tel(tel, form):
     """Antepone +506 a teléfonos cuando el formulario solicita pasaporte."""
     if not tel:
@@ -586,13 +598,63 @@ def _export_singlepage_offline(form, fields, responses):
     (logo, foto, puntos, datos y código QR) para cada persona que respondió."""
     import re
     from datetime import datetime
-    from models import Hiker, User
+    from models import Hiker, User, Event
     from routes.admin_actions import _tarjeta_url, _generar_qr_usuario
     from modules.points_engine import get_points_engine
 
     engine = get_points_engine()
     logo_b64 = _static_img_b64('logo.png')
     default_avatar_b64 = _static_img_b64('default.png')
+
+    # Evento/caminata seleccionada para la pestaña de información
+    evento_data = None
+    event_id = request.args.get('event_id', type=int)
+    if event_id:
+        ev = Event.query.get(event_id)
+        if ev:
+            meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                     "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+            def _fecha_linda(s):
+                if not s:
+                    return ''
+                p = s.split('-')
+                if len(p) == 3:
+                    try:
+                        return f"{int(p[2])} de {meses[int(p[1]) - 1]} del {p[0]}"
+                    except (ValueError, IndexError):
+                        return s
+                return s
+            lugar = (ev.lugar_salida or '').replace('SEGURO_', '')
+            fecha_actividad = (_fecha_linda(ev.fecha_unica) if (ev.dias or 1) <= 1
+                               else f"Del {_fecha_linda(ev.fecha_inicio)} al {_fecha_linda(ev.fecha_regreso)}")
+            evento_data = {
+                'nombre': ev.nombre_lugar or '',
+                'actividad': ev.actividad or '',
+                'dificultad': ev.dificultad or '',
+                'tipo_terreno': ev.tipo_terreno or '',
+                'provincia': ev.provincia or '',
+                'moneda': ev.moneda or '₡',
+                'precio': ev.precio or 0,
+                'reserva': ev.reserva or 0,
+                'precio_buseta': ev.precio_buseta or 0,
+                'kilometros': ev.kilometros or 0,
+                'capacidad': (ev.capacidad or '').replace('AGOTADO_', ''),
+                'dias': ev.dias or 1,
+                'fecha_actividad': fecha_actividad,
+                'hora_salida': ev.hora_salida or '',
+                'lugar_salida': lugar,
+                'puntos_recogida': ev.puntos_recogida or '',
+                'sinpe': ev.sinpe or '',
+                'cuenta': ev.cuenta or '',
+                'incluye': [i.strip() for i in (ev.incluye or '').split(',') if i.strip()],
+                'itinerario': ev.itinerario or '',
+                'texto_referencia': ev.texto_referencia or '',
+                'enlace_extra': ev.enlace_extra or '',
+                'organicmaps_url': ev.organicmaps_url or '',
+                'zona_alto_riesgo': bool(ev.zona_alto_riesgo),
+                'is_sold_out': bool(ev.is_sold_out or (ev.capacidad or '').startswith('AGOTADO')),
+                'poster_b64': _static_img_b64(f'uploads/{ev.poster}') if ev.poster else default_avatar_b64,
+            }
 
     def _resolver_user(hiker, bound_email):
         user = None
@@ -680,7 +742,21 @@ def _export_singlepage_offline(form, fields, responses):
                                 telefono, email_display]).lower(),
         })
 
+    # Secciones "Quiénes Somos" seleccionadas por toggles
+    from routes.pages import _get_site_text
+    secciones = {}
+    if request.args.get('include_historia') == '1':
+        secciones['Historia'] = _get_site_text('quienes_somos')
+    if request.args.get('include_mision') == '1':
+        secciones['Misión'] = _get_site_text('mision')
+    if request.args.get('include_oracion') == '1':
+        secciones['Oración'] = _get_site_text('oracion')
+    secciones = {k: v for k, v in secciones.items() if v}
+
+    mostrar_puntos = request.args.get('include_puntos') == '1'
+
     html = render_template('singlepage_offline.html', form=form, personas=personas,
+                           evento=evento_data, secciones=secciones, mostrar_puntos=mostrar_puntos,
                            logo_b64=logo_b64, generado=datetime.now().strftime('%d/%m/%Y %H:%M'))
     return Response(html, mimetype='text/html',
                     headers={'Content-Disposition': f'attachment; filename="{form.name} - offline.html"'})

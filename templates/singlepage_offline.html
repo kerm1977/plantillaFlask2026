@@ -20,6 +20,7 @@
 </style>
 </head>
 <body>
+<!--email_off-->
 <div class="container py-4 px-3">
     <div class="text-center mb-4">
         {% if logo_b64 %}<img src="{{ logo_b64 }}" alt="La Tribu" style="max-height:60px;" class="mb-2">{% endif %}
@@ -28,6 +29,32 @@
         <p class="text-muted small">Generado: {{ generado }} · Página offline — La Tribu de los Libres</p>
     </div>
 
+    {% if evento or secciones %}
+    <ul class="nav nav-pills justify-content-center gap-2 mb-4" id="spTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-bold" id="tab-dir" data-bs-toggle="pill" data-bs-target="#paneDir" type="button">
+                <i class="bi bi-people me-1"></i>Participantes
+            </button>
+        </li>
+        {% if evento %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-cam" data-bs-toggle="pill" data-bs-target="#paneCam" type="button">
+                <i class="bi bi-geo-alt me-1"></i>Información de la Caminata
+            </button>
+        </li>
+        {% endif %}
+        {% if secciones %}
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-qs" data-bs-toggle="pill" data-bs-target="#paneQS" type="button">
+                <i class="bi bi-heart me-1"></i>Quiénes Somos
+            </button>
+        </li>
+        {% endif %}
+    </ul>
+    {% endif %}
+
+    <div class="tab-content">
+    <div class="tab-pane fade show active" id="paneDir">
     <div class="row justify-content-center mb-4">
         <div class="col-12 col-md-8 col-lg-6">
             <div class="input-group shadow-sm rounded-pill overflow-hidden bg-white">
@@ -47,7 +74,7 @@
                         <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#persona{{ loop.index }}">
                             <i class="bi bi-person-vcard me-2 text-orange"></i>{{ loop.index }} — {{ p.nombre }}
                             {% if p.reserva %}<span class="badge bg-warning text-dark rounded-pill ms-2"><i class="bi bi-ticket-perforated me-1"></i>{{ p.reserva }}</span>{% endif %}
-                            <span class="badge rounded-pill ms-2" style="background:rgba(224,142,0,0.12);color:#b57200;"><i class="bi bi-trophy me-1"></i>{{ p.puntos }}</span>
+                            {% if mostrar_puntos %}<span class="badge rounded-pill ms-2" style="background:rgba(224,142,0,0.12);color:#b57200;"><i class="bi bi-trophy me-1"></i>{{ p.puntos }}</span>{% endif %}
                         </button>
                     </h2>
                     <div id="persona{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#directorioAccordion">
@@ -62,7 +89,7 @@
                                     </div>
                                     <h3 class="fw-bold text-dark mt-3 mb-0 fs-4 text-break">{{ p.nombre }}</h3>
                                     {% if p.cedula %}<p class="text-secondary mb-0">Cédula: {{ p.cedula }}</p>{% endif %}
-                                    <h4 class="fw-bold text-warning-custom mt-2 mb-0"><i class="bi bi-trophy me-1"></i>{{ p.puntos }} puntos</h4>
+                                    {% if mostrar_puntos %}<h4 class="fw-bold text-warning-custom mt-2 mb-0"><i class="bi bi-trophy me-1"></i>{{ p.puntos }} puntos</h4>{% endif %}
                                 </div>
 
                                 <div class="p-4 pt-3">
@@ -172,6 +199,151 @@
             <div id="sinResultados" class="text-center text-muted py-4 d-none"><i class="bi bi-search me-1"></i>Sin resultados para esa búsqueda.</div>
         </div>
     </div>
+    </div><!-- /paneDir -->
+
+    {% if evento %}
+    <div class="tab-pane fade" id="paneCam">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                <div class="card border-0 shadow rounded-4 overflow-hidden mb-4">
+
+                    <!-- Encabezado: poster + nombre + precio -->
+                    <div class="row g-4 p-4" style="background: linear-gradient(135deg, rgba(255,140,0,0.12), rgba(255,255,255,0.6));">
+                        <div class="col-12 col-md-5 d-flex flex-column align-items-center">
+                            <div class="position-relative w-100" style="max-width:320px;">
+                                {% if evento.poster_b64 %}
+                                <img src="{{ evento.poster_b64 }}" alt="{{ evento.nombre }}" class="rounded-4 border border-4 border-white shadow w-100">
+                                {% endif %}
+                                {% if evento.is_sold_out %}
+                                <span class="position-absolute top-50 start-50 translate-middle badge bg-danger rounded-pill px-3 py-2 shadow">SIN ESPACIO</span>
+                                {% elif evento.dificultad %}
+                                <span class="position-absolute top-0 end-0 badge rounded-pill {{ 'bg-warning text-dark' if evento.dificultad == 'Intermedio' else ('bg-danger' if evento.dificultad in ['Dificil','Técnico','Avanzado'] else 'bg-success') }} m-2 border border-2 border-white shadow-sm text-uppercase">{{ evento.dificultad }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-7">
+                            {% if evento.actividad %}<span class="badge bg-dark rounded-pill px-3 py-1 mb-2 text-uppercase fw-bold shadow-sm" style="font-size:0.75rem;">{{ evento.actividad }}</span>{% endif %}
+                            <h2 class="fw-bold text-dark h3 mb-3">{{ evento.nombre }}</h2>
+                            <div class="mb-2">
+                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size:0.7rem;letter-spacing:1px;">Precio Total</span>
+                                <span class="fw-bold text-orange" style="font-size:1.6rem;line-height:1;">{{ evento.moneda }}{{ evento.precio if evento.precio > 0 else 'PENDIENTE' }}</span>
+                            </div>
+                            <div class="border-top border-secondary border-opacity-25 pt-2">
+                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size:0.7rem;letter-spacing:1px;">Reserva tu espacio con</span>
+                                <span class="fw-bold text-dark fs-5">{{ evento.moneda }}{{ evento.reserva if evento.reserva > 0 else 'PENDIENTE' }}</span>
+                            </div>
+                            {% if evento.precio_buseta %}
+                            <div class="border-top border-secondary border-opacity-25 pt-2 mt-2">
+                                <span class="text-uppercase text-secondary fw-bold d-block mb-1" style="font-size:0.7rem;letter-spacing:1px;">Precio Buseta</span>
+                                <span class="fw-bold text-dark">{{ evento.moneda }}{{ evento.precio_buseta }}</span>
+                            </div>
+                            {% endif %}
+                            {% if evento.zona_alto_riesgo %}
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-50 rounded-4 p-3 mt-3 mb-0 d-flex align-items-center">
+                                <i class="bi bi-exclamation-triangle-fill text-danger fs-2 me-3"></i>
+                                <div>
+                                    <h6 class="fw-bold text-danger mb-1">ZONA DE ALTO RIESGO</h6>
+                                    <p class="mb-0 text-danger small fw-bold">Alta exigencia técnica o terreno peligroso.</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="p-4 pt-3">
+                        <!-- Logística -->
+                        <h6 class="fw-bold text-warning-custom mb-3"><i class="bi bi-journal-text me-2"></i>Información Logística</h6>
+                        <div class="row g-3">
+                            {% if evento.fecha_actividad %}
+                            <div class="col-12 col-md-6"><div class="info-item h-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;"><i class="bi bi-calendar-event text-orange me-1"></i>Fecha de la Actividad</label>
+                                <div class="fw-bold ps-2 text-dark">{{ evento.fecha_actividad }}</div>
+                            </div></div>
+                            {% endif %}
+                            {% if evento.lugar_salida or evento.hora_salida %}
+                            <div class="col-12 col-md-6"><div class="info-item h-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;"><i class="bi bi-geo-alt text-orange me-1"></i>Punto de Salida y Hora</label>
+                                <div class="fw-semibold ps-2 text-dark"><strong>Lugar:</strong> {{ evento.lugar_salida or 'Por definir' }}</div>
+                                <div class="fw-semibold ps-2 text-dark"><strong>Hora:</strong> {{ evento.hora_salida or 'Por definir' }}</div>
+                                {% if evento.puntos_recogida %}<div class="small text-secondary ps-2 mt-1"><i class="bi bi-bus-front text-orange me-1"></i><strong>Pasamos a recoger en:</strong> {{ evento.puntos_recogida }}</div>{% endif %}
+                            </div></div>
+                            {% endif %}
+                            <div class="col-12 col-md-6"><div class="info-item h-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;"><i class="bi bi-credit-card text-orange me-1"></i>Cupos y Métodos de Pago</label>
+                                {% if evento.capacidad %}<div class="fw-semibold ps-2 text-dark"><strong>Capacidad:</strong> {{ evento.capacidad }} max.</div>{% endif %}
+                                {% if evento.sinpe %}<div class="fw-semibold ps-2 text-dark"><i class="bi bi-phone text-orange me-1"></i><strong>SINPE:</strong> {{ evento.sinpe }}</div>{% endif %}
+                                {% if evento.cuenta and evento.cuenta != 'Ninguna' %}<div class="fw-semibold ps-2 text-dark"><i class="bi bi-bank text-orange me-1"></i><strong>Cuenta:</strong> {{ evento.cuenta }}</div>{% endif %}
+                            </div></div>
+                            <div class="col-12 col-md-6"><div class="info-item h-100">
+                                <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;"><i class="bi bi-signpost text-orange me-1"></i>Detalles</label>
+                                {% if evento.dias > 1 %}<div class="fw-semibold ps-2 text-dark"><strong>Duración:</strong> {{ evento.dias }} días</div>{% endif %}
+                                {% if evento.kilometros %}<div class="fw-semibold ps-2 text-dark"><strong>Distancia:</strong> {{ evento.kilometros }} km</div>{% endif %}
+                                {% if evento.tipo_terreno %}<div class="fw-semibold ps-2 text-dark"><strong>Terreno:</strong> {{ evento.tipo_terreno }}</div>{% endif %}
+                                {% if evento.provincia %}<div class="fw-semibold ps-2 text-dark"><strong>Provincia:</strong> {{ evento.provincia }}</div>{% endif %}
+                            </div></div>
+                        </div>
+
+                        <!-- Incluye -->
+                        {% if evento.incluye %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-bag-check-fill text-orange me-2"></i>El evento incluye:</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for item in evento.incluye %}
+                            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,140,0,0.1);color:#b57200;border:1px solid rgba(255,140,0,0.25);"><i class="bi bi-check2-circle me-1"></i>{{ item }}</span>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Enlaces -->
+                        {% if evento.enlace_extra or evento.organicmaps_url %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-link-45deg text-orange me-2"></i>Enlaces</h6>
+                        {% if evento.enlace_extra %}<div class="mb-1"><a href="{{ evento.enlace_extra }}" class="text-break">{{ evento.enlace_extra }}</a></div>{% endif %}
+                        {% if evento.organicmaps_url %}<div class="mb-1"><a href="{{ evento.organicmaps_url }}" class="text-break"><i class="bi bi-map me-1"></i>Ruta en Organic Maps</a></div>{% endif %}
+                        {% endif %}
+
+                        <!-- Texto de referencia -->
+                        {% if evento.texto_referencia %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <h6 class="fw-bold text-dark mb-2"><i class="bi bi-chat-quote text-orange me-2"></i>Referencia</h6>
+                        <div class="text-secondary">{{ evento.texto_referencia|safe }}</div>
+                        {% endif %}
+
+                        <!-- Itinerario / Flyer (Información Especial) -->
+                        {% if evento.itinerario %}
+                        <hr class="border-secondary opacity-25 my-3">
+                        <h6 class="fw-bold text-warning-custom mb-3"><i class="bi bi-card-text text-orange me-2"></i>Información Especial — Itinerario y Flyer</h6>
+                        <div class="bg-white rounded-4 p-3 border" style="overflow-x:auto;">
+                            {{ evento.itinerario|safe }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- /paneCam -->
+    {% endif %}
+
+    {% if secciones %}
+    <div class="tab-pane fade" id="paneQS">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                {% for titulo, contenido in secciones.items() %}
+                <div class="card border-0 shadow rounded-4 overflow-hidden mb-4">
+                    <div class="p-4 text-center" style="background: linear-gradient(135deg, rgba(255,140,0,0.12), rgba(255,255,255,0.6));">
+                        {% if logo_b64 %}<img src="{{ logo_b64 }}" alt="La Tribu" class="mb-2" style="max-height:45px;">{% endif %}
+                        <h3 class="fw-bold text-warning-custom mb-0"><i class="bi bi-bookmark-heart me-2"></i>{{ titulo }}</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-dark">{{ contenido|safe }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div><!-- /paneQS -->
+    {% endif %}
+    </div><!-- /tab-content -->
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -188,5 +360,6 @@ document.getElementById('buscador').addEventListener('input', function () {
     document.getElementById('sinResultados').classList.toggle('d-none', visibles > 0);
 });
 </script>
+<!--/email_off-->
 </body>
 </html>
