@@ -36,7 +36,7 @@
     }
 
     function status(ok, texto) {
-        dot.className = 'rk-dot ' +
+        dot.className = 'rk-dot rk-blink ' +
             (ok === true ? 'on' : ok === false ? 'off' : '');
         estEl.textContent = texto;
     }

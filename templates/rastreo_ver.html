@@ -16,8 +16,11 @@ body { background: #f4f4f7; }
           vertical-align: -2px; background: #adb5bd; }
 .rk-dot.on  { background: #28a745; box-shadow: 0 0 0 4px rgba(40,167,69,.22); }
 .rk-dot.off { background: #dc3545; box-shadow: 0 0 0 4px rgba(220,53,69,.18); }
-@keyframes rk-blink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
+@keyframes rk-blink { 0%,100% { opacity:1; } 50% { opacity:.35; } }
 .rk-blink { animation: rk-blink 1.6s ease-in-out infinite; }
+@keyframes rk-blink-soft { 0%,100% { opacity:1; } 50% { opacity:.55; } }
+.rk-vivo    { animation: rk-blink-soft 2s ease-in-out infinite; }
+.rk-leyendo { animation: rk-blink-soft 1.2s ease-in-out infinite; }
 .rk-estado-flotante { position: absolute; top: 1.5rem; left: 1rem; right: 1rem; z-index: 5; }
 /* Barra de desplazamiento estilizada */
 html { scrollbar-width: thin; scrollbar-color: #f58c1f #ececf1; }
@@ -68,9 +71,9 @@ html { scrollbar-width: thin; scrollbar-color: #f58c1f #ececf1; }
              role="button" style="cursor:pointer" title="Tocar para actualizar">
             <span class="d-flex align-items-center gap-2">
                 <span id="rkDot" class="rk-dot rk-blink"></span>
-                <span id="rkEstado" class="fw-bold small">—</span>
+                <span id="rkEstado" class="fw-bold small rk-vivo">—</span>
             </span>
-            <span id="rkGps" class="small text-muted fw-bold"></span>
+            <span id="rkGps" class="small text-muted fw-bold rk-leyendo"></span>
         </div>
         <!-- Espaciador invisible: conserva el espacio original del indicador -->
         <div class="d-flex align-items-center gap-2" style="visibility:hidden" aria-hidden="true">
