@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
+import android.location.GnssStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -32,16 +33,22 @@ public class GpsService extends Service implements LocationListener {
     public static volatile boolean corriendo = false;
     public static volatile int puntos = 0;
     public static volatile float ultimaAcc = -1;
+    public static volatile int satUsados = 0;
+    public static volatile int satTotal = 0;
+    public static volatile int totalServidor = -1;
+    public static volatile String evento = "";
     private static final String CHANNEL = "rk_gps_channel";
     private static final int NOTIF_ID = 7712;
 
     private LocationManager lm;
     private String pingUrl;
     private Location ultima;
+    private GnssStatus.Callback gnssCb;
     private final Handler hb = new Handler(Looper.getMainLooper());
     private final Runnable heartbeat = new Runnable() {
         @Override public void run() {
             enviar(ultima);
+            consultarInfo();
             hb.postDelayed(this, 30000);
         }
     };
@@ -83,9 +90,19 @@ public class GpsService extends Service implements LocationListener {
         if (fina && lm != null) {
             lm.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 5, this, Looper.getMainLooper());
             lm.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 5, this, Looper.getMainLooper());
+            gnssCb = new GnssStatus.Callback() {
+                @Override public void onSatelliteStatusChanged(GnssStatus st) {
+                    satTotal = st.getSatelliteCount();
+                    int u = 0;
+                    for (int i = 0; i < satTotal; i++) if (st.usedInFix(i)) u++;
+                    satUsados = u;
+                }
+            };
+            lm.registerGnssStatusCallback(gnssCb);
             ultima = lm.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (ultima == null) ultima = lm.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
         }
+        consultarInfo();
         hb.postDelayed(heartbeat, 30000);
         return START_STICKY;
     }
@@ -132,6 +149,31 @@ public class GpsService extends Service implements LocationListener {
         }).start();
     }
 
+    // Consulta /info para saber el nombre de la sesión y el total en el
+    // servidor; si la sesión ya no está activa el servicio se apaga solo.
+    private void consultarInfo() {
+        if (pingUrl == null) return;
+        new Thread(() -> {
+            try {
+                HttpURLConnection c = (HttpURLConnection) new URL(pingUrl + "/info").openConnection();
+                c.setConnectTimeout(15000);
+                c.setReadTimeout(15000);
+                if (c.getResponseCode() == 200) {
+                    java.io.InputStream in = c.getInputStream();
+                    byte[] buf = new byte[4096];
+                    int n = in.read(buf);
+                    in.close();
+                    JSONObject j = new JSONObject(new String(buf, 0, Math.max(n, 0), StandardCharsets.UTF_8));
+                    if (!j.optBoolean("active", false)) { stopSelf(); return; }
+                    totalServidor = j.optInt("total", -1);
+                    String ev = j.optString("evento", "");
+                    if (!ev.isEmpty() && !ev.equals("null")) evento = ev;
+                }
+                c.disconnect();
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
     private void crearCanal() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationManager m = getSystemService(NotificationManager.class);
@@ -147,7 +189,10 @@ public class GpsService extends Service implements LocationListener {
         corriendo = false;
         getSharedPreferences("rk", MODE_PRIVATE).edit().putBoolean("activo", false).apply();
         hb.removeCallbacksAndMessages(null);
-        if (lm != null) lm.removeUpdates(this);
+        if (lm != null) {
+            lm.removeUpdates(this);
+            if (gnssCb != null) lm.unregisterGnssStatusCallback(gnssCb);
+        }
         super.onDestroy();
     }
 

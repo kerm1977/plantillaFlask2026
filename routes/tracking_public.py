@@ -5,6 +5,7 @@
 from datetime import datetime
 from flask import request, jsonify, render_template, abort
 from models_tracking import LiveSession, LivePoint
+from models import Event
 from db import db
 from routes import bp
 
@@ -113,5 +114,7 @@ def api_rastreo_tx_info(tx_token):
     if not s:
         abort(404)
     total = LivePoint.query.filter_by(session_id=s.id).count()
+    ev = Event.query.get(s.event_id) if s.event_id else None
     return jsonify({'active': bool(s.active), 'total': total,
-                    'event_id': s.event_id})
+                    'event_id': s.event_id,
+                    'evento': ev.nombre_lugar if ev else None})

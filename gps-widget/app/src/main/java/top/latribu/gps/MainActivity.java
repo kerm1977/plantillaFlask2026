@@ -136,7 +136,13 @@ public class MainActivity extends Activity {
         if (GpsService.corriendo) {
             estado.setText("GPS activado — en escucha siempre");
             estado.setTextColor(NARANJA);
-            detalle.setText("Ubicación lista para trabajar · Puntos enviados: " + GpsService.puntos);
+            String d = "";
+            if (!GpsService.evento.isEmpty()) d += "Sesión en vivo: " + GpsService.evento + "\n";
+            d += "Satélites: " + GpsService.satUsados + " en uso de " + GpsService.satTotal;
+            if (GpsService.ultimaAcc >= 0) d += " · precisión ±" + Math.round(GpsService.ultimaAcc) + "m";
+            d += "\nPuntos GPS enviados: " + GpsService.puntos;
+            if (GpsService.totalServidor >= 0) d += " · total en servidor: " + GpsService.totalServidor;
+            detalle.setText(d);
             btn.setText("Detener");
         } else {
             estado.setText("En espera — detenido");
