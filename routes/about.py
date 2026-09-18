@@ -162,12 +162,19 @@ def inject_site_context():
     for key, val in DEFAULT_SITE_CONTENT.items():
         if key not in site:
             site[key] = val
-    # Enlace público del rastreo en vivo para el footer (sesión activa o la última)
+    # Enlace público del rastreo en vivo para el footer:
+    # solo aparece si hay una sesión EN VIVO en este momento
     try:
-        from models_tracking import LiveSession
-        s = (LiveSession.query.filter_by(active=True).first()
-             or LiveSession.query.order_by(LiveSession.id.desc()).first())
-        site['rk_activo'] = '/rastreo/' + s.view_token if s else None
+        from models_tracking import LiveSession, LivePoint
+        from datetime import datetime
+        s = LiveSession.query.filter_by(active=True).first()
+        en_linea = False
+        if s:
+            u = (LivePoint.query.filter_by(session_id=s.id)
+                 .order_by(LivePoint.ts.desc()).first())
+            en_linea = bool(u and u.ts
+                            and (datetime.utcnow() - u.ts).total_seconds() <= 90)
+        site['rk_activo'] = '/rastreo/' + s.view_token if en_linea else None
     except Exception:
         site['rk_activo'] = None
     return {'site': site}
