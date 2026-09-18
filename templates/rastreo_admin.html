@@ -34,6 +34,7 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Caminata / Evento</label>
                         <select id="rkEvento" class="form-select">
+                            <option value="" disabled selected>Seleccione el evento</option>
                             {% for e in eventos %}
                             <option value="{{ e.id }}">{{ e.nombre_lugar }}</option>
                             {% endfor %}

@@ -21,9 +21,8 @@ body { background: #f4f4f7; }
 @keyframes rk-blink-soft { 0%,100% { opacity:1; } 50% { opacity:.55; } }
 .rk-vivo    { animation: rk-blink-soft 2s ease-in-out infinite; }
 .rk-leyendo { animation: rk-blink-soft 1.2s ease-in-out infinite; }
-.rk-hint { position: absolute; top: 6px; left: 50%; transform: translateX(-50%);
-           z-index: 1001; font-size: .62rem; color: #8a8a92; opacity: .8;
-           pointer-events: none; white-space: nowrap; }
+.rk-hint { font-size: .62rem; color: #8a8a92; opacity: .8;
+           text-align: center; margin: 0 0 3px; }
 .rk-estado-flotante { position: absolute; top: 1.5rem; left: 1rem; right: 1rem; z-index: 5; }
 /* Barra de desplazamiento estilizada */
 html { scrollbar-width: thin; scrollbar-color: #f58c1f #ececf1; }
@@ -83,10 +82,8 @@ html { scrollbar-width: thin; scrollbar-color: #f58c1f #ececf1; }
             <span class="rk-dot"></span>
             <span class="fw-bold small">—</span>
         </div>
-        <div style="position:relative;">
-            <div id="map"></div>
-            <div class="rk-hint">Pellizcá el mapa para moverte dentro de él</div>
-        </div>
+        <div class="rk-hint">Pellizcá el mapa para moverte dentro de él</div>
+        <div id="map"></div>
         <div class="small text-muted" style="margin: 8px 0 8px;">Última actualización:
             <span id="rkHora" class="fw-bold text-dark">—</span></div>
         <div class="text-center" style="margin-top:20px;">
