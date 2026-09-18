@@ -71,8 +71,8 @@
           '<div id="rkStub" class="accordion-collapse collapse show" data-bs-parent="#rkAccTodo">' +
             '<div class="accordion-body">' +
               '<p class="small text-muted">Este evento todavía no tiene sesión de rastreo. Al iniciarla se generan sus enlaces fijos.</p>' +
-              '<button class="btn btn-success rounded-pill px-3 me-2" onclick="rkIniciarSesion(' + evId + ')"><i class="bi bi-broadcast me-1"></i>Iniciar esta sesión</button>' +
-              '<button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="rkPedirOcultar(' + evId + ')"><i class="bi bi-trash me-1"></i>Eliminar</button>' +
+              '<button class="btn btn-success rounded-pill px-3" onclick="rkIniciarSesion(' + evId + ')"><i class="bi bi-broadcast me-1"></i>Iniciar esta sesión</button>' +
+              '<div class="mt-3"><button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="rkPedirOcultar(' + evId + ')"><i class="bi bi-trash me-1"></i>Eliminar</button></div>' +
             '</div>' +
           '</div>' +
         '</div>';
