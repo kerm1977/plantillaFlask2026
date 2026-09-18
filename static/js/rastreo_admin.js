@@ -23,6 +23,12 @@
                         : '<span class="badge text-bg-secondary ms-2">Detenida</span>';
     }
 
+    function filaCopiar(label, valor) {
+        return '<label class="form-label fw-bold small mb-1">' + label + '</label>' +
+            '<div class="input-group input-group-sm mb-3"><input class="form-control" readonly value="' + valor + '">' +
+            '<button class="btn btn-outline-secondary" onclick="rkCopiar(\'' + valor + '\', this)">Copiar</button></div>';
+    }
+
     function botonTx(s) {
         return s.active
             ? '<button class="btn btn-success rounded-pill px-3 animate-blink" onclick="rkPedirDetener(' + s.id + ')"><i class="bi bi-broadcast me-1"></i>En vivo — tocar para detener</button>'
@@ -42,11 +48,8 @@
               '<div class="small text-muted mb-3">Creada: ' + s.created_at +
                 ' &middot; Puntos GPS: <span id="rkPuntos_' + s.id + '" class="fw-bold text-dark">' + s.puntos + '</span>' +
                 ' <button class="btn btn-sm btn-outline-secondary rounded-pill ms-1" onclick="rkBuscarPuntos(' + s.id + ')"><i class="bi bi-arrow-repeat me-1"></i>Buscar puntos GPS</button></div>' +
-              '<label class="form-label fw-bold small mb-1">Enlace fijo para familiares</label>' +
-              '<div class="input-group input-group-sm mb-3">' +
-                '<input class="form-control" readonly value="' + urlVer + '">' +
-                '<button class="btn btn-outline-secondary" onclick="rkCopiar(\'' + urlVer + '\', this)">Copiar</button>' +
-              '</div>' +
+              filaCopiar('Enlace fijo para familiares', urlVer) +
+              filaCopiar('Token del widget GPS (app del coordinador)', s.tx_token) +
               '<div class="d-flex align-items-center gap-2 flex-wrap">' +
                 botonTx(s) +
                 '<span id="rkTxSt_' + s.id + '" class="small ' + tx.clase + '">' +
@@ -89,8 +92,7 @@
                 }
                 html += lista.map(cardSesion).join('');
                 cont.innerHTML = html || '<div class="text-muted small">Sin sesiones todavía.</div>';
-                dotH.className = 'rk-dot me-2 ' +
-                    (lista.some(function (s) { return s.active; }) ? 'on animate-blink' : 'off');
+                dotH.className = 'rk-dot me-2 ' + (lista.some(function (s) { return s.active; }) ? 'on animate-blink' : 'off');
                 var el = abrirId && document.getElementById(abrirId);
                 if (el) el.classList.add('show');
             })
@@ -180,8 +182,8 @@
 
     window.rkBuscarPuntos = function (sid) {
         fetch('/api/rastreo/sessions').then(function (r) { return r.json(); }).then(function (lista) {
-            var s = lista.find(function (x) { return x.id === sid; });
-            var el = document.getElementById('rkPuntos_' + sid);
+            var s = lista.find(function (x) { return x.id === sid; }),
+                el = document.getElementById('rkPuntos_' + sid);
             if (s && el) el.textContent = s.puntos;
         });
     };

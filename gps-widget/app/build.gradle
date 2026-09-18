@@ -1,0 +1,18 @@
+// ══ BLINDADO — RASTREO GPS WIDGET ══
+// App mínima e independiente: solo transmite el GPS del coordinador.
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'top.latribu.gps'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "top.latribu.gps"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+}

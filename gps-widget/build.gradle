@@ -1,0 +1,5 @@
+// ══ BLINDADO — RASTREO GPS WIDGET ══
+// App mínima e independiente: solo transmite el GPS del coordinador.
+plugins {
+    id 'com.android.application' version '8.7.2' apply false
+}

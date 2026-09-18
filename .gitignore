@@ -62,3 +62,7 @@ android/local.properties
 .vscode/
 .idea/
 *.code-workspace
+gps-widget/app/build/
+gps-widget/build/
+gps-widget/local.properties
+gps-widget/.gradle/
