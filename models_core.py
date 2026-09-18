@@ -114,6 +114,7 @@ class Hiker(db.Model):
     contacto_emergencia_telefono = db.Column(db.String(20))
     pin_secreto = db.Column(db.String(20), unique=True)
     card_email = db.Column(db.String(120))
+    status = db.Column(db.String(20), default='Activo')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class EventRegistration(db.Model):

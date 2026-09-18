@@ -20,7 +20,7 @@
                         <div class="col-12 col-md-6">
                             <div class="info-item w-100 h-100">
                                 <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;"><i class="bi bi-envelope-fill text-orange me-1"></i>Correo electrónico</label>
-                                <div class="fw-semibold ps-2 text-dark text-break">{{ card_email }}</div>
+                                <div class="fw-semibold ps-2 text-dark text-break">{{ card_email if '@' in card_email else 'No registrado' }}</div>
                             </div>
                         </div>
                         <div class="col-12 col-md-6">

@@ -1,11 +1,26 @@
 import json
+import os
+import base64
 from io import BytesIO
-from flask import request, jsonify, session, send_file, Response
+from flask import request, jsonify, session, send_file, Response, render_template, current_app
 from models import Form, FormField, FormResponse
 from models_forms import ReservationConfig
 from db import db
 from routes import bp
 from routes.forms_responses_utils import _build_answers_map, _update_response_answers
+
+
+def _fmt_tel(tel, form):
+    """Antepone +506 a teléfonos cuando el formulario solicita pasaporte."""
+    if not tel:
+        return ''
+    if not form.show_pasaporte:
+        return tel
+    digits = ''.join(ch for ch in str(tel) if ch.isdigit())
+    if not digits:
+        return tel
+    rest = digits[3:] if digits.startswith('506') else digits
+    return f'+506 {rest}'
 
 
 # ── CONFIGURACIÓN DE NÚMEROS DE RESERVA ─────────────────────────────────────
@@ -83,6 +98,7 @@ def api_get_responses(form_id):
     fields_info = [{'id': f.id, 'label': f.label, 'field_type': f.field_type,
                     'options': json.loads(f.options) if f.options else []} for f in fields]
     return jsonify({'fields': fields_info, 'responses': output,
+                    'form_name': form.name,
                     'show_cedula': form.show_cedula, 'show_ficha_medica': form.show_ficha_medica,
                     'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento})
 
@@ -109,14 +125,14 @@ def api_export_responses(form_id, fmt):
             if form.show_cedula:
                 row['cedula'] = r.cedula or ''
             row['reservation_number'] = r.reservation_number or ''
-            row.update({'email': r.email, 'telefono': r.telefono,
+            row.update({'email': r.email, 'telefono': _fmt_tel(r.telefono, form),
                         'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
                         'score': r.score})
             if form.show_ficha_medica:
                 row.update({'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
                             'enfermedades_cronicas': r.enfermedades_cronicas or '',
                             'contacto_emergencia_nombre': r.contacto_emergencia_nombre or '',
-                            'contacto_emergencia_telefono': r.contacto_emergencia_telefono or ''})
+                            'contacto_emergencia_telefono': _fmt_tel(r.contacto_emergencia_telefono, form)})
             for f in fields:
                 val = _build_answers_map(r, [f]).get(str(f.id), '')
                 row[f.label] = val
@@ -148,13 +164,13 @@ def api_export_responses(form_id, fmt):
                 if form.show_cedula:
                     row.append(r.cedula or '')
                 row.append(r.reservation_number or '')
-                row += [r.email, r.telefono, r.edad,
+                row += [r.email, _fmt_tel(r.telefono, form), r.edad,
                         r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
                 if form.show_ficha_medica:
                     row += [r.tipo_sangre or '', r.alergias or '', r.enfermedades_cronicas or '',
-                           r.contacto_emergencia_nombre or '', r.contacto_emergencia_telefono or '']
+                           r.contacto_emergencia_nombre or '', _fmt_tel(r.contacto_emergencia_telefono, form)]
                 for f in fields:
                     val = _build_answers_map(r, [f]).get(str(f.id), '')
                     if isinstance(val, list):
@@ -278,7 +294,7 @@ def api_export_responses(form_id, fmt):
                 if r.email:
                     story.append(Paragraph(f"<b>Email:</b> {r.email}", field_style))
                 if r.telefono:
-                    story.append(Paragraph(f"<b>Teléfono:</b> {r.telefono}", field_style))
+                    story.append(Paragraph(f"<b>Teléfono:</b> {_fmt_tel(r.telefono, form)}", field_style))
                 if include_fecha and r.edad:
                     story.append(Paragraph(f"<b>Edad:</b> {r.edad}", field_style))
                 if include_fecha and r.submitted_at:
@@ -294,7 +310,7 @@ def api_export_responses(form_id, fmt):
                     if r.enfermedades_cronicas:
                         story.append(Paragraph(f"  <i>Enfermedades Crónicas:</i> {r.enfermedades_cronicas}", field_style))
                     if r.contacto_emergencia_nombre:
-                        story.append(Paragraph(f"  <i>Contacto Emergencia:</i> {r.contacto_emergencia_nombre} {r.contacto_emergencia_telefono or ''}", field_style))
+                        story.append(Paragraph(f"  <i>Contacto Emergencia:</i> {r.contacto_emergencia_nombre} {_fmt_tel(r.contacto_emergencia_telefono, form)}", field_style))
                 for f in fields:
                     val = _build_answers_map(r, [f]).get(str(f.id), '')
                     if isinstance(val, list):
@@ -314,27 +330,29 @@ def api_export_responses(form_id, fmt):
             return jsonify({'error': 'reportlab no instalado. Ejecute: pip install reportlab'}), 500
 
     if fmt == 'whatsapp':
-        lines = [f"📋 *{form.name}*", f"Respuestas: {len(responses)}", ""]
+        lines = [f"*{form.name}*", f"Respuestas: {len(responses)}", ""]
         for i, r in enumerate(responses[:50], 1):
             lines.append(f"*{i}. {r.nombre_completo or 'Anónimo'}*")
             if r.reservation_number:
-                lines.append(f"   🎫 Número de Reserva: {r.reservation_number}")
+                lines.append(f"   - Número de Reserva: {r.reservation_number}")
             if include_fecha and r.submitted_at:
-                lines.append(f"   📅 Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
+                lines.append(f"   - Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
             if form.form_type == 'examen' and r.score is not None:
-                lines.append(f"   📊 Nota: {r.score}%")
+                lines.append(f"   - Nota: {r.score}%")
             if include_ficha_medica and form.show_ficha_medica:
                 if r.tipo_sangre:
-                    lines.append(f"   🩸 Tipo Sangre: {r.tipo_sangre}")
+                    lines.append(f"   - Tipo Sangre: {r.tipo_sangre}")
                 if r.alergias:
-                    lines.append(f"   ⚠️ Alergias: {r.alergias}")
+                    lines.append(f"   - Alergias: {r.alergias}")
                 if r.enfermedades_cronicas:
-                    lines.append(f"   💊 Enf. Crónicas: {r.enfermedades_cronicas}")
+                    lines.append(f"   - Enf. Crónicas: {r.enfermedades_cronicas}")
+                if r.contacto_emergencia_nombre:
+                    lines.append(f"   - Contacto Emergencia: {r.contacto_emergencia_nombre} {_fmt_tel(r.contacto_emergencia_telefono, form)}")
             for f in fields:
                 val = _build_answers_map(r, [f]).get(str(f.id), '')
                 if isinstance(val, list):
                     val = ', '.join(val)
-                lines.append(f"   • {f.label}: {val}")
+                lines.append(f"   - {f.label}: {val}")
             lines.append("")
         return jsonify({'text': '\n'.join(lines)})
 
@@ -371,7 +389,7 @@ def api_export_responses(form_id, fmt):
             if r.email:
                 lines.append(f"Email: {r.email}")
             if r.telefono:
-                lines.append(f"Teléfono: {r.telefono}")
+                lines.append(f"Teléfono: {_fmt_tel(r.telefono, form)}")
             if include_fecha and r.edad:
                 lines.append(f"Edad: {r.edad}")
             if include_fecha and r.submitted_at:
@@ -387,7 +405,7 @@ def api_export_responses(form_id, fmt):
                 if r.enfermedades_cronicas:
                     lines.append(f"  Enfermedades Crónicas: {r.enfermedades_cronicas}")
                 if r.contacto_emergencia_nombre:
-                    lines.append(f"  Contacto Emergencia: {r.contacto_emergencia_nombre} {r.contacto_emergencia_telefono or ''}")
+                    lines.append(f"  Contacto Emergencia: {r.contacto_emergencia_nombre} {_fmt_tel(r.contacto_emergencia_telefono, form)}")
             for f in fields:
                 val = _build_answers_map(r, [f]).get(str(f.id), '')
                 if isinstance(val, list):
@@ -510,7 +528,7 @@ def api_export_responses(form_id, fmt):
                 if r.email:
                     story.append(Paragraph(f"<b>Email:</b> {r.email}", field_style))
                 if r.telefono:
-                    story.append(Paragraph(f"<b>Teléfono:</b> {r.telefono}", field_style))
+                    story.append(Paragraph(f"<b>Teléfono:</b> {_fmt_tel(r.telefono, form)}", field_style))
                 if include_fecha and r.edad:
                     story.append(Paragraph(f"<b>Edad:</b> {r.edad}", field_style))
                 if include_fecha and r.submitted_at:
@@ -526,7 +544,7 @@ def api_export_responses(form_id, fmt):
                     if r.enfermedades_cronicas:
                         story.append(Paragraph(f"  <i>Enfermedades Crónicas:</i> {r.enfermedades_cronicas}", field_style))
                     if r.contacto_emergencia_nombre:
-                        story.append(Paragraph(f"  <i>Contacto Emergencia:</i> {r.contacto_emergencia_nombre} {r.contacto_emergencia_telefono or ''}", field_style))
+                        story.append(Paragraph(f"  <i>Contacto Emergencia:</i> {r.contacto_emergencia_nombre} {_fmt_tel(r.contacto_emergencia_telefono, form)}", field_style))
                 for f in fields:
                     val = _build_answers_map(r, [f]).get(str(f.id), '')
                     if isinstance(val, list):
@@ -545,7 +563,127 @@ def api_export_responses(form_id, fmt):
         except ImportError:
             return jsonify({'error': 'reportlab no instalado. Ejecute: pip install reportlab'}), 500
 
+    if fmt == 'singlepage':
+        return _export_singlepage_offline(form, fields, responses)
+
     return jsonify({'error': 'Formato no soportado'}), 400
+
+
+def _static_img_b64(rel_path):
+    """Devuelve una imagen de static/ como data URI base64, o None si no existe."""
+    if not rel_path:
+        return None
+    path = os.path.join(current_app.static_folder, rel_path)
+    if not os.path.exists(path):
+        return None
+    ext = 'png' if rel_path.lower().endswith('.png') else 'jpeg'
+    with open(path, 'rb') as fh:
+        return f'data:image/{ext};base64,' + base64.b64encode(fh.read()).decode()
+
+
+def _export_singlepage_offline(form, fields, responses):
+    """Genera una página HTML offline con buscador y la tarjeta QR de agenda
+    (logo, foto, puntos, datos y código QR) para cada persona que respondió."""
+    import re
+    from datetime import datetime
+    from models import Hiker, User
+    from routes.admin_actions import _tarjeta_url, _generar_qr_usuario
+    from modules.points_engine import get_points_engine
+
+    engine = get_points_engine()
+    logo_b64 = _static_img_b64('logo.png')
+    default_avatar_b64 = _static_img_b64('default.png')
+
+    def _resolver_user(hiker, bound_email):
+        user = None
+        if bound_email:
+            user = User.query.filter(db.func.lower(User.email) == bound_email).first()
+        if not user and hiker and hiker.telefono:
+            user = User.query.filter_by(phone=hiker.telefono).first()
+        if not user and hiker and hiker.nombre_completo:
+            objetivo = hiker.nombre_completo.strip().lower()
+            for u in User.query.all():
+                if f'{u.name} {u.last_name_1} {u.last_name_2}'.strip().lower() == objetivo:
+                    user = u
+                    break
+        return user
+
+    personas = []
+    for r in responses:
+        cedula_limpia = re.sub(r'\D', '', str(r.cedula or ''))
+        hiker = None
+        if cedula_limpia:
+            for h in Hiker.query.all():
+                if h.cedula and re.sub(r'\D', '', str(h.cedula)) == cedula_limpia:
+                    hiker = h
+                    break
+        bound_email = (hiker.card_email or '').strip().lower() if hiker else ''
+        user = _resolver_user(hiker, bound_email)
+
+        # QR: mismo enlace inmutable que el QR de la agenda (requiere expediente)
+        qr_b64, card_url = None, ''
+        if hiker:
+            card_url = _tarjeta_url(user, hiker)
+            qr_b64 = _generar_qr_usuario(user, hiker)
+            bound_email = (hiker.card_email or '').strip().lower()
+
+        # Foto: avatar del usuario si existe, si no, default
+        avatar_file = (user.avatar if user else None) or 'default.png'
+        if avatar_file != 'default.png' and not avatar_file.startswith('uploads/'):
+            avatar_file = 'uploads/' + avatar_file
+        avatar_b64 = _static_img_b64(avatar_file) or default_avatar_b64
+
+        nacimiento = ''
+        if user and user.dob:
+            nacimiento = user.dob.strftime('%d/%m/%Y')
+        elif hiker and hiker.fecha_nacimiento:
+            nacimiento = hiker.fecha_nacimiento.strftime('%d/%m/%Y')
+        elif r.fecha_nacimiento_dia and r.fecha_nacimiento_mes and r.fecha_nacimiento_anio:
+            nacimiento = f'{r.fecha_nacimiento_dia}/{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}'
+
+        telefono = (hiker.telefono if hiker else '') or r.telefono or (user.phone if user else '') or ''
+        phone_code = (user.phone_code or '') if user else ''
+        if phone_code:
+            telefono = f'{phone_code} {telefono}'.strip()
+        else:
+            telefono = _fmt_tel(telefono, form)
+
+        email_display = bound_email if bound_email and '@' in bound_email else (r.email or '')
+
+        cedula_puntos = (hiker.cedula if hiker else '') or r.cedula or ''
+        puntos_total = engine.total_by_cedula(cedula_puntos) if cedula_puntos else 0
+
+        nombre = (hiker.nombre_completo if hiker else '') or r.nombre_completo or 'Sin nombre'
+        personas.append({
+            'nombre': nombre,
+            'cedula': (hiker.cedula if hiker else '') or r.cedula or '',
+            'email': email_display,
+            'telefono': telefono,
+            'tipo_sangre': (hiker.tipo_sangre if hiker else '') or r.tipo_sangre or '?',
+            'nacimiento': nacimiento,
+            'pasaporte': (hiker.pasaporte if hiker else '') or r.pasaporte or '',
+            'alergias': (hiker.alergias if hiker else '') or r.alergias or 'Ninguna',
+            'cronicas': (hiker.enfermedades_cronicas if hiker else '') or r.enfermedades_cronicas or 'Ninguna',
+            'emerg_nombre': (hiker.contacto_emergencia_nombre if hiker else '') or r.contacto_emergencia_nombre or '',
+            'emerg_tel': _fmt_tel((hiker.contacto_emergencia_telefono if hiker else '') or r.contacto_emergencia_telefono or '', form),
+            'whatsapp': (user.whatsapp if user else '') or '',
+            'direccion': (user.address if user else '') or '',
+            'institucion': (user.institution if user else '') or '',
+            'info_adicional': (user.other_info if user else '') or '',
+            'reserva': r.reservation_number or '',
+            'puntos': puntos_total,
+            'qr_b64': qr_b64,
+            'card_url': card_url,
+            'avatar_b64': avatar_b64,
+            'search': ' '.join([nombre, (hiker.cedula if hiker else '') or r.cedula or '',
+                                (hiker.pasaporte if hiker else '') or r.pasaporte or '',
+                                telefono, email_display]).lower(),
+        })
+
+    html = render_template('singlepage_offline.html', form=form, personas=personas,
+                           logo_b64=logo_b64, generado=datetime.now().strftime('%d/%m/%Y %H:%M'))
+    return Response(html, mimetype='text/html',
+                    headers={'Content-Disposition': f'attachment; filename="{form.name} - offline.html"'})
 
 
 # ── ELIMINAR RESPUESTA ───────────────────────────────────────────────────────

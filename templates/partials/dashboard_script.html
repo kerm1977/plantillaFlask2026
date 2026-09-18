@@ -276,12 +276,13 @@ function mostrarCardUsuario(data) {
 }
 
 async function mostrarQRUsuario() {
-    if (!currentSelectedUserId) {
-        mostrarAlerta('Este registro no tiene usuario vinculado.', 'warning');
+    const contactId = currentSelectedUserObj ? currentSelectedUserObj.id : currentSelectedUserId;
+    if (!contactId) {
+        mostrarAlerta('Este registro no tiene contacto vinculado.', 'warning');
         return;
     }
     try {
-        const r = await fetch(`/api/admin/usuario-card/${currentSelectedUserId}`);
+        const r = await fetch(`/api/admin/usuario-card/${contactId}`);
         const d = await r.json();
         if (!r.ok) {
             mostrarAlerta(d.error || 'No se pudo generar el código QR.', 'warning');

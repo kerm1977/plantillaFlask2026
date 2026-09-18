@@ -117,6 +117,8 @@ def admin_get_all_contacts():
             'id': f'h{h.id}',
             'hiker_id': h.id,
             'display_name': h.nombre_completo or 'Sin nombre',
+            'role': 'Usuario',
+            'status': h.status or 'Activo',
             'phone': h.telefono or 'No registrado',
             'crm_cedula': h.cedula,
             'crm_tipo_sangre': h.tipo_sangre,

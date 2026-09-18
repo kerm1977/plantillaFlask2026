@@ -6,11 +6,19 @@ function viewUserDetails(userObj) {
     document.getElementById('adminUsersList').classList.add('d-none');
     document.getElementById('adminUserDetails').classList.remove('d-none');
     const isUser = userObj.type === 'user';
-    document.getElementById('btnBlockUser').classList.toggle('d-none', !isUser);
-    document.getElementById('btnEditUserAdmin').classList.toggle('d-none', !isUser);
-    document.getElementById('btnDeleteUser').classList.toggle('d-none', !isUser);
+    document.getElementById('btnBlockUser').classList.remove('d-none');
+    document.getElementById('btnEditUserAdmin').classList.remove('d-none');
+    document.getElementById('btnDeleteUser').classList.remove('d-none');
     const btnQR = document.getElementById('btnVerQR');
-    if (btnQR) btnQR.classList.toggle('d-none', !isUser);
+    if (btnQR) btnQR.classList.toggle('d-none', !(isUser || userObj.crm_cedula));
+    const btnBlockTop = document.getElementById('btnBlockUser');
+    if ((userObj.status || 'Activo') === 'Activo') {
+        btnBlockTop.innerHTML = '<i class="bi bi-slash-circle me-1"></i>Bloquear Acceso';
+        btnBlockTop.className = 'btn btn-warning rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-dark btn-action-mobile';
+    } else {
+        btnBlockTop.innerHTML = '<i class="bi bi-check-circle me-1"></i>Desbloquear';
+        btnBlockTop.className = 'btn btn-warning-orange rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-white btn-action-mobile';
+    }
     const btnCrm = document.getElementById('btnEditHikerCrm');
     if (btnCrm) {
         const cedula = userObj.crm_cedula || (userObj.type === 'hiker' ? userObj.crm_cedula : null);
@@ -20,7 +28,7 @@ function viewUserDetails(userObj) {
     if (userObj.type === 'hiker') {
         document.getElementById('userDetailsContent').innerHTML = `
             <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4 fs-4">
-                <i class="bi bi-card-list text-primary me-2"></i>Ficha CRM — ${userObj.display_name}</h3>
+                <i class="bi bi-person-vcard-fill text-orange me-2"></i>Contacto — ${userObj.display_name}</h3>
             <div class="row g-3 text-start">
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
@@ -54,7 +62,7 @@ function viewUserDetails(userObj) {
     const hasCrm = !!userObj.crm_cedula;
     const crmSection = hasCrm ? `
         <div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
-            <h5 class="fw-bold mb-3" style="color:#ff8c00;"><i class="bi bi-shield-plus-fill me-2"></i>Ficha CRM / Médica
+            <h5 class="fw-bold mb-3" style="color:#ff8c00;"><i class="bi bi-shield-plus-fill me-2"></i>Ficha Médica
                 <span class="badge bg-success rounded-pill ms-2 fw-normal" style="font-size:0.65rem;">Vinculada por teléfono</span></h5>
             <div class="row g-3 text-start">
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
@@ -71,7 +79,7 @@ function viewUserDetails(userObj) {
                     <div class="fw-semibold ps-2 text-dark">${userObj.crm_emergencia_nombre || 'No registrado'} ${userObj.crm_emergencia_tel ? '— ' + userObj.crm_emergencia_tel : ''}</div></div></div>
             </div></div>` :
         `<div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
-            <p class="text-muted small fst-italic"><i class="bi bi-database-slash me-1"></i>Sin ficha CRM vinculada.</p></div>`;
+            <p class="text-muted small fst-italic"><i class="bi bi-database-slash me-1"></i>Sin ficha médica vinculada.</p></div>`;
     document.getElementById('userDetailsContent').innerHTML = `
         <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4 fs-4">
             <i class="bi bi-person-vcard-fill text-orange me-2"></i>Expediente #${userObj.id}</h3>

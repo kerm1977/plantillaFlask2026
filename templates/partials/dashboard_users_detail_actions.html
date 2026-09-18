@@ -153,9 +153,10 @@ function addEditEmergencyContact() {
 }
 
 async function toggleUserStatus() {
-    if (!currentSelectedUserId) return;
+    const contactId = currentSelectedUserObj ? currentSelectedUserObj.id : currentSelectedUserId;
+    if (!contactId) return;
     try {
-        const response = await fetch(`/api/admin/toggle_status/${currentSelectedUserId}`, { method: 'POST' });
+        const response = await fetch(`/api/admin/toggle_status/${contactId}`, { method: 'POST' });
         const result   = await response.json();
         if (response.ok && result.success) {
             mostrarAlerta(`El estado del usuario ahora es: ${result.new_status}`, 'warning');
@@ -237,7 +238,8 @@ async function _ejecutarEliminacionUsuario() {
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
     }
     try {
-        const response = await fetch(`/api/admin/delete_user/${currentSelectedUserId}`, { method: 'DELETE' });
+        const delId = currentSelectedUserObj ? currentSelectedUserObj.id : currentSelectedUserId;
+        const response = await fetch(`/api/admin/delete_user/${delId}`, { method: 'DELETE' });
         const result = await response.json();
         if (response.ok && result.success) {
             const modal = _initTripleConfirmModal();
@@ -252,8 +254,9 @@ async function _ejecutarEliminacionUsuario() {
 }
 
 function confirmDeleteUser() {
-    if (!currentSelectedUserId) {
-        mostrarAlerta('Abra la ficha de un usuario registrado para eliminarlo.', 'warning');
+    const delId = currentSelectedUserObj ? currentSelectedUserObj.id : currentSelectedUserId;
+    if (!delId) {
+        mostrarAlerta('Abra la ficha de un contacto para eliminarlo.', 'warning');
         return;
     }
     abrirTripleConfirmEliminar(currentSelectedUserName || 'este contacto', _ejecutarEliminacionUsuario);

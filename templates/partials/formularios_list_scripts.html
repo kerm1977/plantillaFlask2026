@@ -17,10 +17,10 @@ async function loadForms() {
         const typeIcon = f.form_type === 'examen' ? 'bi-pencil-square' : 'bi-clipboard-data';
         const typeLabel = f.form_type === 'examen' ? 'Examen' : 'Registro';
         const reservedNums = (f.reservation_numbers || '').split(/\r?\n|\r|,/).map(n => n.trim()).filter(n => n).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
-        return `<div class="col-12 col-sm-6 col-lg-4">
+        return `<div class="col-12 col-lg-4">
             <div class="card h-100 border-0 shadow-sm" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);backdrop-filter:blur(10px);border-radius:15px;transition: all 0.3s ease;" onmouseenter="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='none';this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
                 <div class="card-body p-4 d-flex flex-column">
-                    <div class="d-flex align-items-start justify-content-between mb-3">
+                    <div class="d-flex align-items-start justify-content-between mb-3" style="cursor:pointer;" onclick="viewResponses(${f.id})" title="Ver respuestas">
                         <div class="d-flex align-items-center gap-3" style="min-width:0;">
                             <div class="rounded-4 d-flex align-items-center justify-content-center flex-shrink-0" style="width:48px;height:48px;background:linear-gradient(135deg, ${accent}15, ${accent}25);box-shadow:0 4px 12px ${accent}20;">
                                 <i class="bi ${typeIcon}" style="color:${accent};font-size:1.4rem;"></i>
@@ -64,7 +64,7 @@ async function loadForms() {
                     <div class="mt-auto pt-3 d-flex gap-2 flex-wrap border-top" style="border-color:rgba(0,0,0,0.08) !important;">
                         <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,110,253,0.1), rgba(13,110,253,0.15));color:#0d6efd;border:1px solid rgba(13,110,253,0.2);" onclick="editForm(${f.id})"><i class="bi bi-pencil me-1"></i>Editar</button>
                         <button class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(25,135,84,0.1), rgba(25,135,84,0.15));color:#198754;border:1px solid rgba(25,135,84,0.2);" onclick="viewResponses(${f.id})"><i class="bi bi-eye me-1"></i>Respuestas</button>
-                        <a href="/form/${f.slug}" target="_blank" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.15));color:#0dcaf0;border:1px solid rgba(13,202,240,0.2);"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir</a>
+                        <a href="/form/${f.slug}" class="btn btn-sm rounded-pill px-3 py-2 fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(13,202,240,0.1), rgba(13,202,240,0.15));color:#0dcaf0;border:1px solid rgba(13,202,240,0.2);"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir</a>
                         <button class="btn btn-sm rounded-pill px-3 py-2 ms-auto fw-semibold" style="font-size:0.8rem;background:linear-gradient(135deg, rgba(220,53,69,0.1), rgba(220,53,69,0.15));color:#dc3545;border:1px solid rgba(220,53,69,0.2);" onclick="deleteForm(${f.id})"><i class="bi bi-trash3 me-1"></i>Eliminar</button>
                     </div>
                 </div>
@@ -98,6 +98,7 @@ function showCreateForm() {
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
+    history.pushState({fv: 'editor'}, '');
 }
 
 async function editForm(id) {
@@ -121,6 +122,7 @@ async function editForm(id) {
     onFormTypeChange();
     document.getElementById('formsList').classList.add('d-none');
     document.getElementById('formEditor').classList.remove('d-none');
+    history.pushState({fv: 'editor'}, '');
 }
 
 async function saveForm() {

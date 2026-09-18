@@ -179,111 +179,87 @@
 
     <!-- VISOR DE RESPUESTAS -->
     <div id="responsesViewer" class="d-none">
-        <div class="card glass-panel border-0 shadow-sm">
-            <div class="card-body">
-                <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+        <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                     <h4 class="fw-bold mb-0" id="responsesTitle">Respuestas</h4>
-                    <div class="d-flex gap-2 flex-wrap align-items-center">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="addMembrete" checked>
-                            <label class="form-check-label small fw-semibold" for="addMembrete">Agregar Membrete</label>
+                    <div class="d-flex gap-2 align-items-center">
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-outline-secondary rounded-pill" type="button" id="respOptionsBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                <i class="bi bi-three-dots-vertical me-1"></i>Opciones
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="respOptionsBtn" style="min-width:250px;">
+                                <li class="px-3 py-1">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="addMembrete" checked>
+                                        <label class="form-check-label small fw-semibold" for="addMembrete">Agregar membrete</label>
+                                    </div>
+                                </li>
+                                <li class="px-3 py-1">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="includeFecha" checked>
+                                        <label class="form-check-label small fw-semibold" for="includeFecha">Incluir fecha</label>
+                                    </div>
+                                </li>
+                                <li class="px-3 py-1">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="includeFichaMedica" checked>
+                                        <label class="form-check-label small fw-semibold" for="includeFichaMedica">Incluir ficha médica</label>
+                                    </div>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item" onclick="openReservationModal()"><i class="bi bi-ticket-perforated me-2 text-orange"></i>Números de Reserva</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('pdf')"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>PDF</button></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('txt')"><i class="bi bi-file-earmark-text me-2 text-secondary"></i>TXT</button></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('xlsx')"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Excel</button></li>
+                                <li><button class="dropdown-item" onclick="copyResponsesTSV()" id="btnCopyTSV"><i class="bi bi-clipboard-data me-2 text-primary"></i>Copiar tabla</button></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('json')"><i class="bi bi-filetype-json me-2 text-dark"></i>JSON</button></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('singlepage')"><i class="bi bi-file-earmark-code me-2 text-orange"></i>Single Page Offline</button></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><button class="dropdown-item" onclick="exportResponses('whatsapp')"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp — Completo</button></li>
+                                <li><button class="dropdown-item" onclick="shareResponsesBasico()"><i class="bi bi-whatsapp me-2" style="color:#128C7E;"></i>WhatsApp — Impresión parcial</button></li>
+                            </ul>
                         </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="includeFecha" checked>
-                            <label class="form-check-label small fw-semibold" for="includeFecha">Incluir Fecha</label>
-                        </div>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="includeFichaMedica" checked>
-                            <label class="form-check-label small fw-semibold" for="includeFichaMedica">Incluir Ficha Médica</label>
-                        </div>
-                        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openReservationModal()">
-                            <i class="bi bi-list-check me-1"></i>Números de Reserva
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="exportResponses('pdf')">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
-                        </button>
-                        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="exportResponses('txt')">
-                            <i class="bi bi-file-earmark-text me-1"></i>TXT
-                        </button>
-                        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="exportResponses('xlsx')">
-                            <i class="bi bi-file-earmark-excel me-1"></i>Excel
-                        </button>
-                        <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="copyResponsesTSV()" id="btnCopyTSV">
-                            <i class="bi bi-clipboard-data me-1"></i>Copiar tabla
-                        </button>
-                        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="exportResponses('json')">
-                            <i class="bi bi-filetype-json me-1"></i>JSON
-                        </button>
-                        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="exportResponses('whatsapp')">
-                            <i class="bi bi-whatsapp me-1"></i>WhatsApp
-                        </button>
                         <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
                             <i class="bi bi-arrow-left me-1"></i>Volver
                         </button>
                     </div>
                 </div>
-                <div id="responsesTable" class="table-responsive"></div>
-            </div>
-        </div>
+        <div id="responsesTable"></div>
     </div>
 </div>
 
 <style>
-/* Responsive table for small screens (250px - 550px) */
-@media (max-width: 550px) and (min-width: 250px) {
-    #responsesTable table,
-    #responsesTable thead,
-    #responsesTable tbody,
-    #responsesTable th,
-    #responsesTable td,
-    #responsesTable tr {
-        display: block;
+#responsesViewer, #responsesTable {
+    overflow: visible;
+    min-width: 0;
+}
+#responsesTable .row {
+    min-width: 0;
+}
+/* Acordeones de respuesta: mismo estilo que el perfil (accordion Bootstrap + glass-panel) */
+.resp-field .resp-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+    margin-bottom: 1px;
+}
+.resp-field .resp-value {
+    font-weight: 600;
+    color: #212529;
+    word-break: break-word;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 4px;
+}
+
+/* Vista móvil: cada dato apilado — etiqueta arriba, valor debajo, uno bajo otro */
+@media (max-width: 550px) {
+    .resp-field {
+        padding: 6px 0;
     }
-    
-    #responsesTable thead {
-        display: none;
-    }
-    
-    #responsesTable tr {
-        margin-bottom: 15px;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        padding: 10px;
-        background: #fff;
-    }
-    
-    #responsesTable td {
-        position: relative;
-        padding-left: 50%;
-        padding-top: 8px;
-        padding-bottom: 8px;
-        border: none;
-        border-bottom: 1px solid #f0f0f0;
-    }
-    
-    #responsesTable td:last-child {
+    .resp-field .resp-value {
         border-bottom: none;
-    }
-    
-    #responsesTable td:before {
-        position: absolute;
-        left: 10px;
-        width: 45%;
-        padding-right: 10px;
-        white-space: nowrap;
-        font-weight: bold;
-        content: attr(data-label);
-        color: #6c757d;
-    }
-    
-    #responsesTable .d-flex {
-        flex-direction: column;
-        gap: 5px !important;
-    }
-    
-    #responsesTable .btn {
-        width: 100%;
-        text-align: center;
     }
 }
 </style>

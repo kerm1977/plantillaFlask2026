@@ -339,9 +339,12 @@ def mis_puntos():
             registro_whatsapp_url = 'https://wa.me/50686529837?text=' + quote(texto_reg)
         else:
             nombre_bienvenida = hiker_found.nombre_completo or ''
+            bloqueado = (hiker_found.status or 'Activo') == 'Bloqueado'
             pwd_global = get_puntos_password()
-            verificado = session.get('mis_puntos_ok') == cedula
-            if not verificado:
+            verificado = session.get('mis_puntos_ok') == cedula and not bloqueado
+            if bloqueado:
+                admin_error = 'Tu acceso está bloqueado. Contactá a los coordinadores de La Tribu.'
+            elif not verificado:
                 if not pwd_global:
                     admin_error = 'El sistema de puntos aún no tiene contraseña configurada. Contactá a los coordinadores.'
                 elif clave == pwd_global:
@@ -529,6 +532,8 @@ def evento_puntos(event_id):
         pwd_global = get_puntos_password()
         if not hiker_check:
             no_registrado = True
+        elif (hiker_check.status or 'Activo') == 'Bloqueado':
+            error = 'Tu acceso está bloqueado. Contactá a los coordinadores de La Tribu.'
         elif session.get(f'puntos_ok_{event_id}') != cedula and (not pwd_global or pin != pwd_global):
             error = 'La contraseña no es correcta. Pedila a los coordinadores.'
         else:

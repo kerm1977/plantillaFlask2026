@@ -372,7 +372,7 @@ def tarjeta(cedula, email):
     from models import User
     hiker = Hiker.query.filter_by(cedula=(cedula or '').strip()).first()
     bound_email = (hiker.card_email or '').strip().lower() if hiker else ''
-    if not hiker or not bound_email or bound_email != (email or '').strip().lower():
+    if not hiker or not bound_email or bound_email != (email or '').strip().lower() or (hiker.status or 'Activo') == 'Bloqueado':
         abort(404)
     user = User.query.filter(func.lower(User.email) == bound_email).first()
     if not user:
