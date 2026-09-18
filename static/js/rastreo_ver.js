@@ -42,7 +42,7 @@
     }
 
     function pintar(data) {
-        gpsEl.textContent = '· ' + (data.total || 0) + ' GPS';
+        gpsEl.textContent = (data.total || 0) + ' GPS';
         if (!data.last) {
             status(data.active ? null : false,
                    data.active ? 'Esperando señal...' : 'Sin transmisión');
