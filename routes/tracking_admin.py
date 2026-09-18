@@ -130,6 +130,8 @@ def api_rastreo_delete(sid):
     if not _require_super():
         return jsonify({'error': 'No autorizado'}), 403
     s = LiveSession.query.get_or_404(sid)
+    if s.active:
+        return jsonify({'error': 'Detené la sesión antes de eliminarla'}), 400
     LivePoint.query.filter_by(session_id=s.id).delete()
     db.session.delete(s)
     db.session.commit()
