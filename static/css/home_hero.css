@@ -495,6 +495,40 @@ footer input[type="submit"] {
   color: var(--primary-orange, #ff8c00);
 }
 
+/* Enlace "gps" del footer: fucsia parpadeante, abre el rastreo público */
+.ft-gps-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 10px;
+  text-align: center;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #ff00ff;
+  animation: gps-text-blink 1.6s ease-in-out infinite;
+}
+
+.ft-gps-link:hover {
+  color: #ff66ff;
+}
+
+.ft-gps-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #ff00ff;
+  box-shadow: 0 0 8px 2px rgba(255, 0, 255, 0.45);
+  animation: dot-glow-purple 1.8s ease-in-out infinite;
+}
+
+@keyframes gps-text-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
 .ft-year-dot {
   display: inline-block;
   width: 0.55rem;
