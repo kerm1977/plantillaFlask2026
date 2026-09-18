@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.net.TrafficStats;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -91,7 +92,12 @@ public class MainActivity extends Activity {
             Toast.makeText(this, "Pegá el token del coordinador primero", Toast.LENGTH_LONG).show();
             return;
         }
-        getSharedPreferences("rk", MODE_PRIVATE).edit().putString("token", t).apply();
+        int uid = getApplicationInfo().uid;
+        getSharedPreferences("rk", MODE_PRIVATE).edit()
+                .putString("token", t)
+                .putLong("tx0", TrafficStats.getUidTxBytes(uid))
+                .putLong("rx0", TrafficStats.getUidRxBytes(uid))
+                .apply();
         pendienteUrl = t.startsWith("http") ? t
                 : "https://www.latribu.top/api/rastreo/ping/" + t;
         pedirPermisosYArrancar();
@@ -142,14 +148,29 @@ public class MainActivity extends Activity {
             if (GpsService.ultimaAcc >= 0) d += " · precisión ±" + Math.round(GpsService.ultimaAcc) + "m";
             d += "\nPuntos GPS enviados: " + GpsService.puntos;
             if (GpsService.totalServidor >= 0) d += " · total en servidor: " + GpsService.totalServidor;
+            d += datosUsados();
             detalle.setText(d);
             btn.setText("Detener");
         } else {
             estado.setText("En espera — detenido");
             estado.setTextColor(Color.GRAY);
-            detalle.setText("");
+            detalle.setText(datosUsados().trim());
             btn.setText("Iniciar");
         }
+    }
+
+    // Bytes reales enviados+recibidos por esta app desde el último Iniciar
+    private String datosUsados() {
+        SharedPreferences p = getSharedPreferences("rk", MODE_PRIVATE);
+        int uid = getApplicationInfo().uid;
+        long tx = TrafficStats.getUidTxBytes(uid);
+        long rx = TrafficStats.getUidRxBytes(uid);
+        if (tx < 0 || rx < 0) return "\nDatos usados: no disponible en este teléfono";
+        long total = (tx - p.getLong("tx0", 0)) + (rx - p.getLong("rx0", 0));
+        if (total <= 0) return "";
+        String s = total < 1048576 ? (total / 1024) + " KB"
+                                   : String.format("%.2f MB", total / 1048576.0);
+        return "\nDatos usados: " + s;
     }
 
     private TextView texto(String t, float sp, boolean bold, int color) {
