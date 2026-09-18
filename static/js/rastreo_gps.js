@@ -6,6 +6,7 @@ window.RK_GPS = (function () {
     'use strict';
     var watchId = null, hbId = null, wakeLock = null, lastPos = null;
     var ultimo = 0, token = null, cb = null;
+    var nativo = false, natId = null;
     var MIN_MS = 8000; // mínimo 8s entre envíos
 
     function pedirWakeLock() {
@@ -48,12 +49,33 @@ window.RK_GPS = (function () {
         if (cb) cb('geoerr', { code: e ? e.code : 0 });
     }
 
+    // Modo nativo: la app Android corre un servicio en primer plano que sigue
+    // transmitiendo aunque la app esté minimizada o la pantalla apagada.
+    function hayNativo() {
+        return window.RkAndroid && typeof window.RkAndroid.startGps === 'function';
+    }
+
+    function startNativo() {
+        nativo = true;
+        watchId = 1; // marca de "corriendo" para isRunning()
+        window.RkAndroid.startGps(token, location.origin);
+        natId = setInterval(function () {
+            try {
+                var st = JSON.parse(window.RkAndroid.getStats() || '{}');
+                if (st.corriendo === false) { stop(); if (cb) cb('stopped'); return; }
+                if (cb) cb('ok', { total: st.puntos || 0, acc: st.acc });
+            } catch (e) {}
+        }, 10000);
+        if (cb) cb('ok', { total: 0, acc: 0 });
+    }
+
     function start(t, callback) {
-        if (!navigator.geolocation) return false;
+        if (!navigator.geolocation && !hayNativo()) return false;
         stop();
         token = t;
         cb = callback || null;
         ultimo = 0;
+        if (hayNativo()) { startNativo(); return true; }
         watchId = navigator.geolocation.watchPosition(onPos, onErr, {
             enableHighAccuracy: true, maximumAge: 5000, timeout: 20000
         });
@@ -66,7 +88,12 @@ window.RK_GPS = (function () {
     }
 
     function stop() {
-        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+        if (nativo) {
+            try { window.RkAndroid.stopGps(); } catch (e) {}
+            nativo = false;
+        }
+        if (natId !== null) { clearInterval(natId); natId = null; }
+        if (watchId !== null && watchId !== 1) navigator.geolocation.clearWatch(watchId);
         watchId = null;
         if (hbId !== null) clearInterval(hbId);
         hbId = null;

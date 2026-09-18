@@ -134,7 +134,9 @@
 
     // Botón "Ubicar al grupo": centra el mapa en la última posición conocida
     window.rkUbicar = function () {
-        if (map && ultimoLl) map.setView(ultimoLl, Math.max(map.getZoom(), 15));
+        if (!map) return;
+        var ll = ultimoLl || (marker ? marker.getLatLng() : null);
+        if (ll) map.flyTo(ll, Math.max(map.getZoom(), 15));
     };
 
     // Tocar el indicador de estado fuerza una actualización inmediata

@@ -30,9 +30,12 @@ import androidx.core.view.WindowCompat;
 import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.BridgeWebChromeClient;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends BridgeActivity {
     private static final int REQ_GEO = 7711;
+    private static final int REQ_BG = 7713;
     private OfflineRepository offlineRepository;
     private OfflineWebViewClient offlineClient;
     private GeolocationPermissions.Callback geoCallback;
@@ -83,6 +86,7 @@ public class MainActivity extends BridgeActivity {
         webView.setWebViewClient(offlineClient);
         webView.setWebChromeClient(new GeoChromeClient(bridge));
         webView.addJavascriptInterface(new AppInfoBridge(this, offlineRepository), "LaTribuAndroid");
+        webView.addJavascriptInterface(new RkGpsBridge(this), "RkAndroid");
         webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> startUpdateDownload(url, userAgent));
         connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && connectivityManager != null) {
@@ -234,6 +238,51 @@ public class MainActivity extends BridgeActivity {
         @JavascriptInterface
         public String getOfflineState() {
             return repository.state();
+        }
+    }
+
+    // Puente JS para el rastreo en vivo: la página web arranca/detiene el
+    // servicio GPS en segundo plano con window.RkAndroid.startGps/stopGps.
+    private static class RkGpsBridge {
+        private final MainActivity activity;
+
+        RkGpsBridge(MainActivity activity) {
+            this.activity = activity;
+        }
+
+        @JavascriptInterface
+        public void startGps(String txToken, String baseUrl) {
+            List<String> permisos = new ArrayList<>();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+                    && ContextCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_BACKGROUND_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                permisos.add(Manifest.permission.ACCESS_BACKGROUND_LOCATION);
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
+                    && ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                permisos.add(Manifest.permission.POST_NOTIFICATIONS);
+            }
+            if (!permisos.isEmpty()) {
+                ActivityCompat.requestPermissions(activity, permisos.toArray(new String[0]), REQ_BG);
+            }
+            Context ctx = activity.getApplicationContext();
+            Intent intent = new Intent(ctx, GpsService.class);
+            intent.putExtra("ping_url", baseUrl + "/api/rastreo/ping/" + txToken);
+            ContextCompat.startForegroundService(ctx, intent);
+        }
+
+        @JavascriptInterface
+        public void stopGps() {
+            Context ctx = activity.getApplicationContext();
+            ctx.stopService(new Intent(ctx, GpsService.class));
+            GpsService.corriendo = false;
+            GpsService.puntos = 0;
+        }
+
+        @JavascriptInterface
+        public String getStats() {
+            return "{\"corriendo\":" + GpsService.corriendo
+                    + ",\"puntos\":" + GpsService.puntos
+                    + ",\"acc\":" + GpsService.ultimaAcc + "}";
         }
     }
 }
