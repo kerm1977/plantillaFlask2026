@@ -44,6 +44,7 @@ def api_rastreo_status(view_token):
     data = {
         'active': bool(s.active),
         'show_track': bool(s.show_track),
+        'total': LivePoint.query.filter_by(session_id=s.id).count(),
         'last': None,
         'points': [],
     }

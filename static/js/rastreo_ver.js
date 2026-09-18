@@ -14,11 +14,19 @@
     var err   = document.getElementById('rkCodeErr');
     var dot   = document.getElementById('rkDot');
     var estEl = document.getElementById('rkEstado');
+    var gpsEl = document.getElementById('rkGps');
     var hora  = document.getElementById('rkHora');
     var aviso = document.getElementById('rkAviso');
+    var filaEst = document.getElementById('rkEstadoFila');
+    var ultimoLl = null;
 
     function initMap() {
-        map = L.map('map').setView([9.93, -84.08], 8); // Costa Rica por defecto
+        // En táctil el dedo desplaza la PÁGINA (no el mapa); en PC la rueda igual.
+        // El mapa se reubica con el botón "Ubicar al grupo".
+        map = L.map('map', {
+            scrollWheelZoom: false,
+            dragging: !L.Browser.touch
+        }).setView([9.93, -84.08], 8); // Costa Rica por defecto
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
             attribution: '&copy; OpenStreetMap'
@@ -34,6 +42,7 @@
     }
 
     function pintar(data) {
+        gpsEl.textContent = '· ' + (data.total || 0) + ' GPS';
         if (!data.last) {
             status(data.active ? null : false,
                    data.active ? 'Esperando señal...' : 'Sin transmisión');
@@ -62,6 +71,7 @@
         hora.textContent = data.last.ts;
 
         var ll = [data.last.lat, data.last.lng];
+        ultimoLl = ll;
         marker.setLatLng(ll).setOpacity(1)
             .bindTooltip('Grupo La Tribu', { permanent: false });
         if (circulo) { circulo.remove(); circulo = null; }
@@ -121,6 +131,14 @@
             })
             .catch(function () { err.classList.remove('d-none'); });
     };
+
+    // Botón "Ubicar al grupo": centra el mapa en la última posición conocida
+    window.rkUbicar = function () {
+        if (map && ultimoLl) map.setView(ultimoLl, Math.max(map.getZoom(), 15));
+    };
+
+    // Tocar el indicador de estado fuerza una actualización inmediata
+    filaEst.addEventListener('click', poll);
 
     codeI.addEventListener('keydown', function (e) {
         if (e.key === 'Enter') rkEntrar();

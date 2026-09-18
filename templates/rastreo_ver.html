@@ -19,6 +19,12 @@ body { background: #f4f4f7; }
 @keyframes rk-blink { 0%,100% { opacity:1; } 50% { opacity:.25; } }
 .rk-blink { animation: rk-blink 1.6s ease-in-out infinite; }
 .rk-estado-flotante { position: absolute; top: 1.5rem; left: 1rem; z-index: 5; }
+/* Barra de desplazamiento estilizada */
+html { scrollbar-width: thin; scrollbar-color: #f58c1f #ececf1; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #ececf1; }
+::-webkit-scrollbar-thumb { background: #f58c1f; border-radius: 8px; border: 2px solid #f4f4f7; }
+::-webkit-scrollbar-thumb:hover { background: #d97a10; }
 @keyframes rk-heartbeat {
     0% { transform: scale(1); }
     14% { transform: scale(1.25); }
@@ -58,9 +64,11 @@ body { background: #f4f4f7; }
 
     <!-- MAPA -->
     <div id="rkMapa" class="d-none">
-        <div class="rk-estado-flotante d-flex align-items-center gap-2">
+        <div id="rkEstadoFila" class="rk-estado-flotante d-flex align-items-center gap-2"
+             role="button" style="cursor:pointer" title="Tocar para actualizar">
             <span id="rkDot" class="rk-dot rk-blink"></span>
             <span id="rkEstado" class="fw-bold small">—</span>
+            <span id="rkGps" class="small text-muted"></span>
         </div>
         <!-- Espaciador invisible: conserva el espacio original del indicador -->
         <div class="d-flex align-items-center gap-2" style="visibility:hidden" aria-hidden="true">
@@ -70,6 +78,13 @@ body { background: #f4f4f7; }
         <div id="map"></div>
         <div class="small text-muted" style="margin: 8px 0 8px;">Última actualización:
             <span id="rkHora" class="fw-bold text-dark">—</span></div>
+        <div class="text-center" style="margin-top:20px;">
+            <button class="btn rounded-pill px-4 text-white" style="background:#f58c1f;"
+                    onclick="rkUbicar()">
+                <i class="bi bi-geo-alt-fill me-1"></i>Ubicar al grupo
+            </button>
+        </div>
+        <hr style="margin-top:50px;">
         <div class="small text-muted mt-2">
             <div><span class="rk-dot on me-1"></span><b>Verde — En línea:</b>
                 el coordinador tiene servicio de internet y está transmitiendo.</div>
