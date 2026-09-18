@@ -96,6 +96,8 @@ from routes import (        # noqa: E402, F401
     admin_holidays,
     home_media,
     points,
+    tracking_admin,
+    tracking_public,
 )
 
 # Re-exportar para app.py

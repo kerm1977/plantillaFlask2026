@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<!-- ══ BLINDADO — RASTREO EN VIVO ══
+     Código probado y estable. NO modificar sin revisar el flujo completo. -->
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ubicación del grupo - La Tribu</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+body { background: #f4f4f7; }
+#map { height: 62vh; min-height: 320px; border-radius: 1rem; }
+.rk-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block;
+          vertical-align: -2px; background: #adb5bd; }
+.rk-dot.on  { background: #28a745; box-shadow: 0 0 0 4px rgba(40,167,69,.22); }
+.rk-dot.off { background: #dc3545; box-shadow: 0 0 0 4px rgba(220,53,69,.18); }
+@keyframes rk-heartbeat {
+    0% { transform: scale(1); }
+    14% { transform: scale(1.25); }
+    28% { transform: scale(1); }
+    42% { transform: scale(1.25); }
+    70% { transform: scale(1); }
+}
+.rk-corazon { color: #dc3545; display: inline-block;
+              animation: rk-heartbeat 1.5s ease-in-out infinite;
+              text-shadow: 0 0 8px rgba(220,53,69,.5); }
+</style>
+</head>
+<body>
+<div class="container py-4" style="max-width: 700px;">
+    <div class="text-center mb-4">
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres"
+             class="mb-3" style="max-height: 80px;">
+        <h4 class="fw-bold mb-1">
+            <i class="bi bi-geo-alt-fill me-2" style="color:#f58c1f;"></i>Ubicación del grupo
+        </h4>
+        <p class="fw-bold mb-1" style="color:#f58c1f;">La Tribu de los Libres</p>
+    </div>
+
+    <!-- PUERTA DEL CÓDIGO -->
+    <div id="rkGate" class="card border-0 rounded-4 shadow-sm">
+        <div class="card-body p-4 text-center">
+            <i class="bi bi-shield-lock" style="font-size:2.2rem;color:#f58c1f;"></i>
+            <p class="fw-bold mt-2 mb-3">Ingresá el código de 4 dígitos</p>
+            <input id="rkCode" type="password" inputmode="numeric" maxlength="8"
+                   class="form-control text-center fw-bold mx-auto"
+                   style="max-width:180px;letter-spacing:.4em;font-size:1.3rem;" placeholder="••••">
+            <div id="rkCodeErr" class="text-danger small mt-2 d-none">Código incorrecto</div>
+            <button class="btn rounded-pill px-4 mt-3 text-white" style="background:#f58c1f;"
+                    onclick="rkEntrar()">Ver mapa</button>
+        </div>
+    </div>
+
+    <!-- MAPA -->
+    <div id="rkMapa" class="d-none">
+        <div class="d-flex align-items-center gap-2">
+            <span id="rkDot" class="rk-dot"></span>
+            <span id="rkEstado" class="fw-bold small">—</span>
+        </div>
+        <div class="small text-muted" style="margin: 20px 0 8px;">Última actualización:
+            <span id="rkHora" class="fw-bold text-dark">—</span></div>
+        <div id="map"></div>
+        <div class="small text-muted mt-2">
+            <div><span class="rk-dot on me-1"></span><b>Verde — En línea:</b>
+                el coordinador tiene servicio de internet y está transmitiendo.</div>
+            <div><span class="rk-dot off me-1"></span><b>Rojo — Sin conexión:</b>
+                está en una zona sin cobertura o el dispositivo está apagado.</div>
+        </div>
+        <div id="rkAviso" class="alert alert-warning rounded-4 mt-3 d-none"></div>
+        <p class="text-muted text-center mt-3 mb-0" style="font-size:.8rem;">
+            <i class="bi bi-info-circle me-1"></i>
+            Nota: la posición y la ruta pueden permanecer congeladas por un tiempo
+            si el grupo está en una zona sin señal de internet. Se actualizan
+            automáticamente cuando el coordinador recupera cobertura.
+        </p>
+    </div>
+
+    <!-- FOOTER -->
+    <p class="text-muted small text-center mt-4 mb-0">
+        Sistema de ubicación creado y diseñado con
+        <i class="bi bi-heart-fill rk-corazon"></i> por el equipo de
+        La Tribu de los Libres
+    </p>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+window.RK_VIEW_TOKEN = {{ view_token|tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/rastreo_ver.js') }}"></script>
+</body>
+</html>

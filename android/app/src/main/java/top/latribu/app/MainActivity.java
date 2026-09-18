@@ -1,10 +1,12 @@
 package top.latribu.app;
 
+import android.Manifest;
 import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.Network;
 import android.net.NetworkCapabilities;
@@ -17,15 +19,24 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.webkit.CookieManager;
+import android.webkit.GeolocationPermissions;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.WindowCompat;
+import com.getcapacitor.Bridge;
 import com.getcapacitor.BridgeActivity;
+import com.getcapacitor.BridgeWebChromeClient;
 
 public class MainActivity extends BridgeActivity {
+    private static final int REQ_GEO = 7711;
     private OfflineRepository offlineRepository;
     private OfflineWebViewClient offlineClient;
+    private GeolocationPermissions.Callback geoCallback;
+    private String geoOrigin;
     private long updateDownloadId = -1;
     private Uri pendingUpdateUri;
     private ConnectivityManager connectivityManager;
@@ -70,6 +81,7 @@ public class MainActivity extends BridgeActivity {
         offlineClient = new OfflineWebViewClient(bridge, this, offlineRepository);
         bridge.setWebViewClient(offlineClient);
         webView.setWebViewClient(offlineClient);
+        webView.setWebChromeClient(new GeoChromeClient(bridge));
         webView.addJavascriptInterface(new AppInfoBridge(this, offlineRepository), "LaTribuAndroid");
         webView.setDownloadListener((url, userAgent, contentDisposition, mimeType, contentLength) -> startUpdateDownload(url, userAgent));
         connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
@@ -88,6 +100,40 @@ public class MainActivity extends BridgeActivity {
             bridge.getWebView().setWebViewClient(offlineClient);
         }
         syncOfflineIfNeeded();
+    }
+
+    // Permite navigator.geolocation dentro del WebView (rastreo en vivo).
+    // Hereda de BridgeWebChromeClient para no romper el file chooser de Capacitor.
+    private class GeoChromeClient extends BridgeWebChromeClient {
+        GeoChromeClient(Bridge bridge) {
+            super(bridge);
+        }
+
+        @Override
+        public void onGeolocationPermissionsShowPrompt(String origin, GeolocationPermissions.Callback callback) {
+            boolean granted = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    || ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED;
+            if (granted) {
+                callback.invoke(origin, true, false);
+            } else {
+                geoCallback = callback;
+                geoOrigin = origin;
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION},
+                        REQ_GEO);
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_GEO && geoCallback != null) {
+            boolean ok = grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED;
+            geoCallback.invoke(geoOrigin, ok, false);
+            geoCallback = null;
+            geoOrigin = null;
+        }
     }
 
     private void syncOfflineIfNeeded() {

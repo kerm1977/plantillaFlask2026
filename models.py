@@ -5,6 +5,7 @@ from models_rifas import Raffle, RaffleSelection
 from models_publicaciones import Publicacion, LogoConfig
 from models_notes import Note
 from models_home_media import HomeMedia
+from models_tracking import LiveSession, LivePoint
 
 __all__ = [
     'User', 'Event', 'Notification', 'SiteContent', 'CaminataBlock', 'Hiker', 'EventRegistration', 'PaymentMethod', 'HikerPoints',
@@ -12,5 +13,6 @@ __all__ = [
     'Raffle', 'RaffleSelection',
     'Publicacion', 'LogoConfig',
     'Note',
-    'HomeMedia'
+    'HomeMedia',
+    'LiveSession', 'LivePoint'
 ]
