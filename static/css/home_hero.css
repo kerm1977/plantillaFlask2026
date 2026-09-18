@@ -515,12 +515,8 @@ footer input[type="submit"] {
 }
 
 .ft-gps-dot {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: #ff00ff;
-  box-shadow: 0 0 8px 2px rgba(255, 0, 255, 0.45);
+  color: #38bdf8;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
   animation: dot-glow-purple 1.8s ease-in-out infinite;
 }
 
