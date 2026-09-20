@@ -1,23 +1,75 @@
 /* ══ BLINDADO — BITÁCORA — menú contextual del editor ══
    Pulsación larga (o clic derecho) sobre texto → formato;
-   sobre imagen/video/iframe → alinear, tamaño, eliminar. */
+   sobre imagen/video/iframe → alinear, tamaño, eliminar.
+   Al mantener presionado se selecciona la palabra sola;
+   el menú permite ampliar a palabra o párrafo completo. */
 /* global Wysiwyg, btResizeMedia, btMediaSel */
 
 let _btCtxEl = null;
 let _btCtxTimer = null;
 let _btCtxSel = null;
+let _btCtxPoint = null;   // {x, y} del último toque/clic
 
 function _btCtxCerrar() {
   if (_btCtxEl) { _btCtxEl.remove(); _btCtxEl = null; }
 }
 
-function _btCtxBtn(icono, texto, fn) {
+function _btCtxBtn(icono, texto, fn, keep) {
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'bt-ctx-btn';
   b.innerHTML = '<i class="bi ' + icono + ' me-2"></i>' + texto;
-  b.onclick = (e) => { e.stopPropagation(); fn(); _btCtxCerrar(); };
+  b.onclick = (e) => {
+    e.stopPropagation();
+    fn();
+    if (!keep) _btCtxCerrar();
+  };
   return b;
+}
+
+/* ── Selección por punto de contacto ── */
+function _btRangoEnPunto(x, y) {
+  if (document.caretRangeFromPoint) {
+    return document.caretRangeFromPoint(x, y);
+  }
+  if (document.caretPositionFromPoint) {
+    const p = document.caretPositionFromPoint(x, y);
+    if (!p) return null;
+    const r = document.createRange();
+    r.setStart(p.offsetNode, p.offset);
+    r.collapse(true);
+    return r;
+  }
+  return null;
+}
+
+/* Selecciona la palabra bajo el dedo/cursor */
+function _btSelPalabra() {
+  if (!_btCtxPoint) return;
+  const r = _btRangoEnPunto(_btCtxPoint.x, _btCtxPoint.y);
+  if (!r) return;
+  const s = window.getSelection();
+  s.setBaseAndExtent(r.startContainer, r.startOffset,
+                     r.startContainer, r.startOffset);
+  try { s.modify('expand', 'word'); } catch (e) {}
+  Wysiwyg.guardarSeleccion('btEditor');
+}
+
+/* Selecciona el párrafo completo donde está la selección */
+function _btSelParrafo() {
+  const s = window.getSelection();
+  if (!s.rangeCount) { _btSelPalabra(); }
+  if (!s.rangeCount) return;
+  let n = s.anchorNode;
+  if (n && n.nodeType === 3) n = n.parentNode;
+  const bloque = n && n.closest
+    ? n.closest('p, div, li, blockquote, h1, h2, h3, h4, h5, h6') : null;
+  if (!bloque || bloque.id === 'btEditor') return;
+  const r = document.createRange();
+  r.selectNodeContents(bloque);
+  s.removeAllRanges();
+  s.addRange(r);
+  Wysiwyg.guardarSeleccion('btEditor');
 }
 
 function _btCtxPos(el, x, y) {
@@ -39,11 +91,15 @@ function _btCtxMenu(items, x, y) {
 function _btCtxTexto(x, y) {
   const ed = 'btEditor';
   const items = [
+    _btCtxBtn('bi-cursor-text', 'Seleccionar palabra',
+      () => _btSelPalabra(), true),
+    _btCtxBtn('bi-paragraph', 'Seleccionar párrafo',
+      () => _btSelParrafo(), true),
     _btCtxBtn('bi-type-bold', 'Negrita', () => Wysiwyg.execCmd(ed, 'bold')),
     _btCtxBtn('bi-type-italic', 'Itálica', () => Wysiwyg.execCmd(ed, 'italic')),
     _btCtxBtn('bi-type-underline', 'Subrayado', () => Wysiwyg.execCmd(ed, 'underline')),
     _btCtxBtn('bi-highlighter', 'Resaltar amarillo',
-      () => document.execCommand('hiliteColor', false, '#ffff99')),
+      () => Wysiwyg.execCmd(ed, 'hiliteColor', '#ffff99')),
     _btCtxBtn('bi-text-left', 'Alinear a la izquierda',
       () => Wysiwyg.execCmd(ed, 'justifyLeft')),
     _btCtxBtn('bi-text-center', 'Centrado',
@@ -52,21 +108,20 @@ function _btCtxTexto(x, y) {
       () => Wysiwyg.execCmd(ed, 'justifyRight')),
     _btCtxBtn('bi-fonts', 'Cambiar fuente', () => _btCtxFuentes(x, y)),
     _btCtxBtn('bi-trash', 'Eliminar',
-      () => document.execCommand('delete')),
+      () => Wysiwyg.execCmd(ed, 'delete')),
   ];
   _btCtxMenu(items, x, y);
 }
 
 function _btCtxFuentes(x, y) {
-  const ed = 'btEditor';
   _btCtxMenu([
     _btCtxBtn('bi-arrow-left', 'Volver', () => _btCtxTexto(x, y)),
     _btCtxBtn('bi-fonts', 'Fuente actual',
-      () => document.execCommand('fontName', false, '')),
+      () => Wysiwyg.execCmd('btEditor', 'fontName', '')),
     _btCtxBtn('bi-fonts', 'Bienvenidos a la tribu',
-      () => document.execCommand('fontName', false, 'Uncial Antiqua')),
+      () => Wysiwyg.execCmd('btEditor', 'fontName', 'Uncial Antiqua')),
     _btCtxBtn('bi-fonts', 'Ronda',
-      () => document.execCommand('fontName', false, 'Ronda')),
+      () => Wysiwyg.execCmd('btEditor', 'fontName', 'Ronda')),
   ], x, y);
 }
 
@@ -94,12 +149,13 @@ function _btCtxMedia(el, x, y) {
 }
 
 function _btCtxAbrir(x, y, target) {
-  if (typeof Wysiwyg !== 'undefined' && Wysiwyg.guardarSeleccion) {
-    Wysiwyg.guardarSeleccion('btEditor');
-  }
+  _btCtxPoint = {x: x, y: y};
   const media = target.closest('img, video, iframe');
-  if (media) _btCtxMedia(media, x, y);
-  else _btCtxTexto(x, y);
+  if (media) { _btCtxMedia(media, x, y); return; }
+  // Si no hay texto seleccionado, selecciona la palabra tocada
+  const s = window.getSelection();
+  if (!s.rangeCount || s.isCollapsed) _btSelPalabra();
+  _btCtxTexto(x, y);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -112,8 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
   ed.addEventListener('touchstart', (e) => {
     const t = e.touches[0];
     const tgt = e.target;
-    _btCtxTimer = setTimeout(() => _btCtxAbrir(t.clientX, t.clientY, tgt), 550);
-  }, {passive: true});
+    _btCtxTimer = setTimeout(() => {
+      e.preventDefault();
+      _btCtxAbrir(t.clientX, t.clientY, tgt);
+    }, 550);
+  });
   ['touchend', 'touchmove', 'touchcancel'].forEach(ev =>
     ed.addEventListener(ev, () => clearTimeout(_btCtxTimer), {passive: true}));
   document.addEventListener('click', (e) => {
