@@ -3,12 +3,13 @@
    sobre imagen/video/iframe → alinear, tamaño, eliminar.
    Al mantener presionado se selecciona la palabra sola;
    el menú permite ampliar a palabra o párrafo completo. */
-/* global Wysiwyg, btResizeMedia, btMediaSel, _btAutoSave */
+/* global Wysiwyg, btResizeMedia, btMediaSel, _btAutoSave,
+          _btCtxPoint, _btSelPalabra, _btSelParrafo */
 
 let _btCtxEl = null;
 let _btCtxTimer = null;
 let _btCtxSel = null;
-let _btCtxPoint = null;   // {x, y} del último toque/clic
+let _btCtxNoClick = false; // suprime el clic que sigue a la pulsación larga
 
 function _btCtxCerrar() {
   if (_btCtxEl) { _btCtxEl.remove(); _btCtxEl = null; }
@@ -30,50 +31,7 @@ function _btCtxBtn(icono, texto, fn, opts) {
   return b;
 }
 
-/* ── Selección por punto de contacto ── */
-function _btRangoEnPunto(x, y) {
-  if (document.caretRangeFromPoint) {
-    return document.caretRangeFromPoint(x, y);
-  }
-  if (document.caretPositionFromPoint) {
-    const p = document.caretPositionFromPoint(x, y);
-    if (!p) return null;
-    const r = document.createRange();
-    r.setStart(p.offsetNode, p.offset);
-    r.collapse(true);
-    return r;
-  }
-  return null;
-}
-
-/* Selecciona la palabra bajo el dedo/cursor */
-function _btSelPalabra() {
-  if (!_btCtxPoint) return;
-  const r = _btRangoEnPunto(_btCtxPoint.x, _btCtxPoint.y);
-  if (!r) return;
-  const s = window.getSelection();
-  s.setBaseAndExtent(r.startContainer, r.startOffset,
-                     r.startContainer, r.startOffset);
-  try { s.modify('expand', 'word'); } catch (e) {}
-  Wysiwyg.guardarSeleccion('btEditor');
-}
-
-/* Selecciona el párrafo completo donde está la selección */
-function _btSelParrafo() {
-  const s = window.getSelection();
-  if (!s.rangeCount) { _btSelPalabra(); }
-  if (!s.rangeCount) return;
-  let n = s.anchorNode;
-  if (n && n.nodeType === 3) n = n.parentNode;
-  const bloque = n && n.closest
-    ? n.closest('p, div, li, blockquote, h1, h2, h3, h4, h5, h6') : null;
-  if (!bloque || bloque.id === 'btEditor') return;
-  const r = document.createRange();
-  r.selectNodeContents(bloque);
-  s.removeAllRanges();
-  s.addRange(r);
-  Wysiwyg.guardarSeleccion('btEditor');
-}
+/* La selección por punto de contacto vive en bitacora_sel.js */
 
 /* El menú se fija al borde derecho de la pantalla, a la altura del toque,
    para no superponerse al texto seleccionado. */
@@ -178,10 +136,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = e.touches[0];
     const tgt = e.target;
     _btCtxTimer = setTimeout(() => {
-      e.preventDefault();
+      _btCtxNoClick = true;  // el clic del levantar-dedo no borra la selección
       _btCtxAbrir(t.clientX, t.clientY, tgt);
     }, 550);
   });
+  ed.addEventListener('click', (e) => {
+    if (_btCtxNoClick) {
+      _btCtxNoClick = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, true);
   ['touchend', 'touchmove', 'touchcancel'].forEach(ev =>
     ed.addEventListener(ev, () => clearTimeout(_btCtxTimer), {passive: true}));
   document.addEventListener('click', (e) => {
