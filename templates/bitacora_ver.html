@@ -27,8 +27,13 @@
   </div>
   {% endif %}
 
+  {% for p in paginas %}
+  <div class="bt-contenido bt-pagina" data-pag="{{ loop.index0 }}"
+       {% if not loop.first %}style="display:none;"{% endif %}>{{ p.contenido|safe }}</div>
+  {% endfor %}
+
   {% if paginas | length > 1 %}
-  <nav class="d-flex justify-content-center mb-3" aria-label="Páginas">
+  <nav class="d-flex justify-content-center mt-4" aria-label="Páginas">
     <ul class="pagination bt-pagination mb-0 flex-wrap">
       <li class="page-item">
         <button class="page-link" onclick="btVerPaginaRel(-1)" aria-label="Anterior"><i class="bi bi-chevron-left"></i></button>
@@ -45,11 +50,6 @@
     </ul>
   </nav>
   {% endif %}
-
-  {% for p in paginas %}
-  <div class="bt-contenido bt-pagina" data-pag="{{ loop.index0 }}"
-       {% if not loop.first %}style="display:none;"{% endif %}>{{ p.contenido|safe }}</div>
-  {% endfor %}
 
   <div class="text-center mt-4">
     <a href="{{ url_for('main.bitacora_lista') }}" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold"

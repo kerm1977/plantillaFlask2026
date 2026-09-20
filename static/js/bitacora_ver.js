@@ -14,6 +14,8 @@ function btVerPagina(i) {
     b.closest('.page-item').classList.toggle('active',
       b.dataset.pg === String(i));
   });
+  const primero = document.querySelector('.bt-pagina');
+  if (primero) primero.scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
 /* Anterior / Siguiente */
