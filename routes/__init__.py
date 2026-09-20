@@ -98,6 +98,7 @@ from routes import (        # noqa: E402, F401
     points,
     tracking_admin,
     tracking_public,
+    bitacora,
 )
 
 # Re-exportar para app.py

@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% from "partials/wysiwyg_editor.html" import wysiwyg_toolbar %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bitacora.css') }}">
+<div class="container py-4 animate__animated animate__fadeIn">
+  <h1 class="fw-bold text-dark text-center mb-4">
+    {{ 'Editar entrada' if entry else 'Nueva entrada' }}
+  </h1>
+
+  <input id="btTitulo" type="text" class="form-control glass-input rounded-3 fw-bold mb-3"
+         placeholder="Título de la entrada" value="{{ entry.titulo if entry else '' }}">
+
+  <textarea id="btDescripcion" class="form-control glass-input rounded-3 mb-3" rows="2"
+            placeholder="Descripción / nota">{{ entry.descripcion if entry else '' }}</textarea>
+
+  <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
+    <div class="form-check form-switch m-0">
+      <input class="form-check-input" type="checkbox" id="btPrivada"
+             {{ 'checked' if (entry is none or entry.privada) else '' }}
+             onchange="btToggleCompartir()">
+      <label class="form-check-label fw-bold text-dark" for="btPrivada">
+        <i class="bi bi-lock-fill me-1"></i>Privada (solo superusuarios)
+      </label>
+    </div>
+  </div>
+
+  <div id="btCompartirBox" class="mb-4" style="display:none;">
+    <p class="fw-bold text-dark mb-2 text-center">
+      <i class="bi bi-people-fill me-1"></i>Compartir con:
+    </p>
+    <div class="bt-share-list">
+      {% for u in usuarios %}
+      <label class="bt-share-item">
+        <input type="checkbox" class="form-check-input me-2 bt-share-check"
+               value="{{ u.id }}" {{ 'checked' if u.id in compartidos else '' }}>
+        {{ u.name }} {{ u.last_name_1 }} {{ u.last_name_2 }}
+      </label>
+      {% endfor %}
+    </div>
+  </div>
+
+  {{ wysiwyg_toolbar(editor_id='btEditor', upload_url=url_for('main.api_upload_image'), modal_prefix='bitacora') }}
+  <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
+    <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" type="button"
+            onclick="btInsertarWhatsApp()" title="Enlace de WhatsApp">
+      <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i>WhatsApp
+    </button>
+  </div>
+  <div id="btEditor" class="bt-editor" contenteditable="true">{{ entry.contenido|safe if entry else '' }}</div>
+  <div id="btMediaTools" class="bt-media-tools" style="display:none;">
+    <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="btResizeMedia(-1)" title="Achicar"><i class="bi bi-dash-lg"></i></button>
+    <span id="btMediaPct" class="small fw-bold text-dark">100%</span>
+    <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="btResizeMedia(1)" title="Agrandar"><i class="bi bi-plus-lg"></i></button>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('main.bitacora_lista') }}" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold me-2"
+       style="color:#6c757d;border:1px solid #ced4da;">Cancelar</a>
+    <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="btGuardar()">
+      <i class="bi bi-save me-2"></i>Guardar
+    </button>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=1"></script>
+<script>
+  btInitForm({{ entry.id if entry else 'null' }});
+</script>
+{% endblock %}

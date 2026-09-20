@@ -20,7 +20,7 @@ from users import inject_superusers
 from socketio_instance import socketio
 from migrations import run_migrations
 
-import models_core, models_forms, models_rifas, models_publicaciones, models_cotizador, models_home_media, models_tracking  # Cargar todos los modelos
+import models_core, models_forms, models_rifas, models_publicaciones, models_cotizador, models_home_media, models_tracking, models_bitacora  # Cargar todos los modelos
 
 
 def inject_payment_methods():

@@ -1,0 +1,107 @@
+/* ══ BITÁCORA — estilos independientes ══
+   Sin cards: el contenido va directo sobre el fondo. */
+
+/* ── Lista de entradas ── */
+.bt-item {
+  border-bottom: 1px solid rgba(0,0,0,0.12);
+  padding: 0.9rem 0.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.bt-item:first-of-type { border-top: 1px solid rgba(0,0,0,0.12); }
+.bt-item-link { flex: 1; text-decoration: none; }
+.bt-item-titulo {
+  display: block;
+  color: #212529;
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.bt-item-meta { display: block; color: #6c757d; font-size: 0.78rem; }
+.bt-item-desc {
+  display: block;
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-top: 0.15rem;
+}
+.bt-item:hover .bt-item-titulo { color: #f58c1f; }
+.bt-item-actions { display: flex; gap: 0.3rem; flex-shrink: 0; }
+
+/* ── Vista de entrada: texto justificado, directo al fondo ── */
+.bt-descripcion {
+  text-align: center;
+  color: #495057;
+  font-style: italic;
+  margin-bottom: 1.25rem;
+}
+.bt-contenido, .bt-editor {
+  text-align: justify;
+  line-height: 1.7;
+  color: #212529;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+.bt-contenido img, .bt-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+.bt-contenido video, .bt-editor video,
+.bt-contenido iframe, .bt-editor iframe {
+  max-width: 100%;
+  border-radius: 0.5rem;
+}
+.bt-contenido iframe, .bt-editor iframe { aspect-ratio: 16/9; height: auto; }
+
+/* Enlace WhatsApp dentro del contenido */
+.bt-wa-link {
+  color: #25d366 !important;
+  font-weight: 700;
+  text-decoration: none;
+}
+.bt-wa-link::before {
+  content: "\F4EF"; /* bi-whatsapp */
+  font-family: "bootstrap-icons";
+  margin-right: 0.3rem;
+}
+
+/* ── Editor ── */
+.bt-editor {
+  min-height: 240px;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  padding: 1rem;
+}
+.bt-media-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Selector de usuarios para compartir ── */
+.bt-share-list {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-radius: 0.75rem;
+  background: rgba(255,255,255,0.75);
+  padding: 0.5rem 0.75rem;
+}
+.bt-share-item {
+  display: flex;
+  align-items: center;
+  padding: 0.3rem 0;
+  cursor: pointer;
+  color: #212529;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+.bt-share-item:last-child { border-bottom: none; }
+
+/* ── Responsivo ── */
+@media (max-width: 576px) {
+  .bt-item-titulo { font-size: 0.95rem; }
+  .bt-contenido, .bt-editor { font-size: 0.95rem; }
+}

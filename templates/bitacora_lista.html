@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bitacora.css') }}">
+<div class="container py-4 animate__animated animate__fadeIn">
+  <h1 class="fw-bold text-dark text-center mb-1">Bitácora</h1>
+  <p class="text-center text-muted small mb-4">La Tribu de los Libres</p>
+
+  {% if is_super %}
+  <div class="text-center mb-4">
+    <a href="{{ url_for('main.bitacora_nueva') }}" class="btn btn-orange rounded-pill px-4 fw-bold">
+      <i class="bi bi-plus-lg me-1"></i>Nueva entrada
+    </a>
+  </div>
+  {% endif %}
+
+  {% if entradas %}
+    {% for e in entradas %}
+    <div class="bt-item">
+      <a href="{{ url_for('main.bitacora_ver', entry_id=e.id) }}" class="bt-item-link">
+        <span class="bt-item-titulo">{{ e.titulo }}</span>
+        <span class="bt-item-meta">
+          {{ e.creado.strftime('%d/%m/%Y') if e.creado }}
+          {% if is_super %}
+            {% if e.privada %}· <i class="bi bi-lock-fill"></i> Privada
+            {% else %}· <i class="bi bi-people-fill"></i> Compartida{% endif %}
+          {% endif %}
+        </span>
+        {% if e.descripcion %}<span class="bt-item-desc">{{ e.descripcion }}</span>{% endif %}
+      </a>
+      {% if is_super %}
+      <div class="bt-item-actions">
+        <a href="{{ url_for('main.bitacora_editar', entry_id=e.id) }}"
+           class="btn btn-sm btn-light rounded-circle" title="Editar"><i class="bi bi-pencil"></i></a>
+        <button class="btn btn-sm btn-light rounded-circle text-danger" title="Eliminar"
+                onclick="btEliminar({{ e.id }}, this)"><i class="bi bi-trash"></i></button>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+    <p class="text-center text-muted py-5">
+      <i class="bi bi-journal-text fs-1 d-block mb-2"></i>
+      Aún no hay entradas en la bitácora.
+    </p>
+  {% endif %}
+</div>
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=1"></script>
+{% endblock %}
