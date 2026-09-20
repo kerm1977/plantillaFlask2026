@@ -15,7 +15,8 @@ function _btCtxCerrar() {
   if (_btCtxEl) { _btCtxEl.remove(); _btCtxEl = null; }
 }
 
-/* opts: keep = no cerrar el menú; save = false omite el autoguardado */
+/* opts: save = false omite el autoguardado.
+   El menú NUNCA se cierra al elegir una opción — solo al tocar fuera. */
 function _btCtxBtn(icono, texto, fn, opts) {
   opts = opts || {};
   const b = document.createElement('button');
@@ -26,7 +27,6 @@ function _btCtxBtn(icono, texto, fn, opts) {
     e.stopPropagation();
     fn();
     if (opts.save !== false) _btAutoSave();
-    if (!opts.keep) _btCtxCerrar();
   };
   return b;
 }
