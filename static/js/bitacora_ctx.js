@@ -1,4 +1,4 @@
-/* ══ BITÁCORA — menú contextual del editor ══
+/* ══ BLINDADO — BITÁCORA — menú contextual del editor ══
    Pulsación larga (o clic derecho) sobre texto → formato;
    sobre imagen/video/iframe → alinear, tamaño, eliminar. */
 /* global Wysiwyg, btResizeMedia, btMediaSel */

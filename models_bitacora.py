@@ -1,7 +1,7 @@
-# ══ BITÁCORA — mini blog interno ══
-# Módulo independiente. Solo el superusuario escribe/edita/elimina.
-# Visibilidad: 'privada' = solo superusuarios; 'publica' = todos;
-# 'seleccion' = superusuarios + usuarios elegidos en BitacoraShare.
+# ══ BLINDADO — BITÁCORA ══
+# Módulo independiente y estable. NO modificar sin revisar el flujo:
+# lista -> entrada (páginas) -> visibilidad (privada/publica/seleccion).
+# Solo el superusuario escribe/edita/elimina.
 from datetime import datetime
 from db import db
 
@@ -15,6 +15,7 @@ class BitacoraEntry(db.Model):
     contenido   = db.Column(db.Text, default='')   # legado: migrado a página 1
     privada     = db.Column(db.Boolean, default=True)  # legado -> visibilidad
     visibilidad = db.Column(db.String(20), default='privada')
+    editado_por = db.Column(db.String(160), default='')
     creado      = db.Column(db.DateTime, default=datetime.utcnow)
     actualizado = db.Column(db.DateTime, default=datetime.utcnow,
                             onupdate=datetime.utcnow)

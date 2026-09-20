@@ -1,4 +1,4 @@
-/* ══ BITÁCORA — exportar / compartir / pulsación larga ══
+/* ══ BLINDADO — BITÁCORA — exportar / compartir / pulsación larga ══
    Independiente. Depende de bitacora.js (btEntryId, _btPayload). */
 /* global btEntryId, _btPayload, _btAutoSave, btPages, btToggleCompartir,
           _btRenderPagesUI, btSelPagina */

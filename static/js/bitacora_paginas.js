@@ -1,4 +1,4 @@
-/* ══ BITÁCORA — gestión de páginas del editor ══
+/* ══ BLINDADO — BITÁCORA — gestión de páginas del editor ══
    Dropdown con ↑↓ y drag&drop; numeración automática;
    eliminar con modal de doble confirmación. */
 /* global _btAutoSave */

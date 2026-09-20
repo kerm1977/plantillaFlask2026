@@ -1,7 +1,9 @@
-# ══ BITÁCORA — mini blog interno (módulo independiente) ══
+# ══ BLINDADO — BITÁCORA (mini blog independiente) ══
+# Código probado y estable. NO modificar sin revisar el flujo completo.
 # Solo el superusuario crea/edita/elimina.
 # Visibilidad: 'privada' = solo super; 'publica' = todos (incluso sin login);
 # 'seleccion' = super + usuarios registrados elegidos.
+from datetime import datetime, timedelta
 from flask import render_template, session, request, redirect, url_for, jsonify
 from routes import bp
 from db import db
@@ -9,6 +11,14 @@ from models_core import User
 from models_bitacora import BitacoraEntry, BitacoraPage, BitacoraShare
 
 _VISIBILIDADES = ('privada', 'publica', 'seleccion')
+_CR_OFFSET = timedelta(hours=6)  # Costa Rica = UTC-6 (sin horario de verano)
+
+
+def _cr(dt):
+    """Fecha/hora UTC -> Costa Rica, formato dd/mm/yyyy hh:mm."""
+    if not dt:
+        return ''
+    return (dt - _CR_OFFSET).strftime('%d/%m/%Y %H:%M')
 
 
 def _is_super():
@@ -51,6 +61,10 @@ def _guardar(entry, data):
     vis = data.get('visibilidad')
     entry.visibilidad = vis if vis in _VISIBILIDADES else 'privada'
     entry.privada = entry.visibilidad == 'privada'
+    u = User.query.get(session.get('user_id') or 0)
+    if u:
+        entry.editado_por = (f'{u.name} {u.last_name_1} '
+                             f'{u.last_name_2}').strip()
     if entry.visibilidad == 'seleccion':
         ids = {int(x) for x in (data.get('compartir') or [])
                if str(x).isdigit()}
@@ -77,9 +91,14 @@ def bitacora_ver(entry_id):
     entry = BitacoraEntry.query.get_or_404(entry_id)
     if not _puede_ver(entry):
         return redirect(url_for('main.bitacora_lista'))
-    return render_template('bitacora_ver.html', entry=entry,
-                           paginas=_paginas(entry), is_super=_is_super(),
-                           page_title=entry.titulo)
+    editado = entry.actualizado and entry.actualizado != entry.creado
+    return render_template(
+        'bitacora_ver.html', entry=entry, paginas=_paginas(entry),
+        is_super=_is_super(),
+        vista_usuario=(request.args.get('vista') == 'usuario'),
+        creado_cr=_cr(entry.creado),
+        editado_cr=_cr(entry.actualizado) if editado else '',
+        page_title=entry.titulo)
 
 
 @bp.route('/bitacora/nueva')

@@ -1,4 +1,4 @@
-/* ══ BITÁCORA — vista de entrada: paginación + lightbox ══ */
+/* ══ BLINDADO — BITÁCORA — vista de entrada: paginación + lightbox ══ */
 
 let btPagActual = 0;
 

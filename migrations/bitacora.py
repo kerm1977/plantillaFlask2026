@@ -14,6 +14,9 @@ def _migrate_bitacora():
             cur.execute("UPDATE bitacora_entry SET visibilidad="
                         "CASE WHEN privada=0 THEN 'seleccion' "
                         "ELSE 'privada' END WHERE visibilidad IS NULL")
+        if 'editado_por' not in cols:
+            cur.execute("ALTER TABLE bitacora_entry "
+                        "ADD COLUMN editado_por VARCHAR(160) DEFAULT ''")
         # Tabla de páginas (por si create_all no la creó aún)
         cur.execute("""CREATE TABLE IF NOT EXISTS bitacora_page (
                         id INTEGER PRIMARY KEY,

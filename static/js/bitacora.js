@@ -1,4 +1,4 @@
-/* ══ BITÁCORA — núcleo del mini blog (independiente) ══
+/* ══ BLINDADO — BITÁCORA — núcleo del mini blog (independiente) ══
    Autoguardado: cada cambio se guarda solo tras ~1.2s. */
 /* global Wysiwyg, btPages, btPageIdx, _btSyncPagina, _btRenderPagesUI */
 
@@ -136,17 +136,48 @@ async function _btGuardarInterno(redirigir) {
 /* Botón Guardar: guarda y abre la entrada */
 function btGuardar() { _btGuardarInterno(true); }
 
-/* Eliminar entrada (doble confirmación) */
-function btEliminar(id) {
-  if (!confirm('¿Eliminar esta entrada de la bitácora?')) return;
-  if (!confirm('Esta acción no se puede deshacer. ¿Confirmás?')) return;
-  fetch('/api/bitacora/' + id + '/eliminar', {method: 'POST'})
+/* Eliminar entrada — modal del tema con triple confirmación */
+let _btDelId = null;
+let _btDelPaso = 1;
+
+function _btDelRender() {
+  document.querySelectorAll('#btDelEntryModal .bt-del-txt').forEach(p => {
+    p.style.display = parseInt(p.dataset.paso, 10) === _btDelPaso
+      ? 'block' : 'none';
+  });
+  document.getElementById('btDelEntryNext').style.display =
+    _btDelPaso < 3 ? 'inline-block' : 'none';
+  document.getElementById('btDelEntryGo').style.display =
+    _btDelPaso === 3 ? 'inline-block' : 'none';
+}
+
+function btDelEntryPaso() {
+  _btDelPaso = Math.min(3, _btDelPaso + 1);
+  _btDelRender();
+}
+
+function btConfirmarDelEntry() {
+  fetch('/api/bitacora/' + _btDelId + '/eliminar', {method: 'POST'})
     .then(r => r.json())
     .then(d => {
       if (d.ok) {
-        if (location.pathname.includes('/bitacora/' + id)) {
+        if (location.pathname.includes('/bitacora/' + _btDelId)) {
           window.location.href = '/bitacora';
         } else location.reload();
       } else alert(d.error || 'Error al eliminar');
     });
+}
+
+function btEliminar(id) {
+  const modal = document.getElementById('btDelEntryModal');
+  if (!modal) {  // respaldo si el modal no está en la página
+    if (!confirm('¿Eliminar esta entrada?')) return;
+    if (!confirm('Se borrarán todas sus páginas. ¿Confirmás?')) return;
+    if (!confirm('Última confirmación: es irreversible.')) return;
+    _btDelId = id; btConfirmarDelEntry(); return;
+  }
+  _btDelId = id;
+  _btDelPaso = 1;
+  _btDelRender();
+  bootstrap.Modal.getOrCreateInstance(modal).show();
 }
