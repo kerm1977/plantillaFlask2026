@@ -119,6 +119,34 @@
 }
 .bt-pagination .page-link:focus { box-shadow: none; }
 
+/* ── Menú contextual del editor (pulsación larga / clic derecho) ── */
+.bt-ctx {
+  position: fixed;
+  z-index: 10000;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  padding: 0.35rem;
+  min-width: 190px;
+  max-width: 240px;
+}
+.bt-ctx-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #212529;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  text-align: left;
+}
+.bt-ctx-btn:hover { background: rgba(245,140,31,0.15); }
+.bt-ctx-btn .bi { color: #f58c1f; }
+
 /* ── Responsivo ── */
 @media (max-width: 576px) {
   .bt-item-titulo { font-size: 0.95rem; }

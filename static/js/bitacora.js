@@ -1,12 +1,25 @@
-/* ══ BITÁCORA — lógica independiente del mini blog ══ */
-/* global Wysiwyg */
+/* ══ BITÁCORA — núcleo del mini blog (independiente) ══
+   Autoguardado: cada cambio se guarda solo tras ~1.2s. */
+/* global Wysiwyg, btPages, btPageIdx, _btSyncPagina, _btRenderPagesUI */
 
 let btEntryId = null;
 let btMediaSel = null;
+let _btSaveTimer = null;
 
 function _btEditor() { return document.getElementById('btEditor'); }
 
-/* Init del formulario (nueva/editar) */
+function _btStatus(txt, color) {
+  const st = document.getElementById('btSaveStatus');
+  if (st) { st.textContent = txt; st.style.color = color || '#6c757d'; }
+}
+
+/* Cada cambio agenda un guardado silencioso */
+function _btAutoSave() {
+  _btStatus('Cambios sin guardar…', '#856404');
+  clearTimeout(_btSaveTimer);
+  _btSaveTimer = setTimeout(() => _btGuardarInterno(false), 1200);
+}
+
 function btInitForm(entryId, paginas) {
   btEntryId = entryId;
   btPages = (paginas && paginas.length) ? paginas : [''];
@@ -17,8 +30,9 @@ function btInitForm(entryId, paginas) {
   ed.innerHTML = btPages[0];
   ed.style.textAlign = 'justify';
   if (typeof Wysiwyg !== 'undefined' && Wysiwyg.setupUploadListeners) {
-    Wysiwyg.setupUploadListeners('btEditor', '/api/upload-image');
+    Wysiwyg.setupUploadListeners('btEditor', '/api/upload-image', _btAutoSave);
   }
+  ed.addEventListener('input', _btAutoSave);
   ed.addEventListener('click', (e) => {
     const t = e.target.closest('img, video, iframe');
     btMediaSel = t;
@@ -27,6 +41,17 @@ function btInitForm(entryId, paginas) {
     tools.style.display = t ? 'flex' : 'none';
     if (t) _btMediaPct(t);
   });
+  // Los botones de la barra de formato no disparan 'input' en todos
+  // los navegadores: cualquier clic dentro de los acordeones agenda guardado.
+  const ac = document.getElementById('btAcordeon');
+  if (ac) ac.addEventListener('click', () => setTimeout(_btAutoSave, 300));
+  ['btTitulo', 'btDescripcion', 'btVisibilidad'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.addEventListener('input', _btAutoSave);
+              el.addEventListener('change', _btAutoSave); }
+  });
+  document.querySelectorAll('.bt-share-check').forEach(c =>
+    c.addEventListener('change', _btAutoSave));
   _btRenderPagesUI();
 }
 
@@ -69,12 +94,12 @@ function btResizeMedia(dir) {
   el.style.maxWidth = '100%';
   el.style.height = 'auto';
   _btMediaPct(el);
+  _btAutoSave();
 }
 
-/* Guardar (todas las páginas) */
-async function btGuardar() {
+function _btPayload() {
   _btSyncPagina();
-  const payload = {
+  return {
     titulo: document.getElementById('btTitulo').value,
     descripcion: document.getElementById('btDescripcion').value,
     visibilidad: document.getElementById('btVisibilidad').value,
@@ -82,17 +107,34 @@ async function btGuardar() {
       .map(c => parseInt(c.value, 10)),
     paginas: btPages
   };
+}
+
+async function _btGuardarInterno(redirigir) {
+  _btStatus('Guardando…', '#0d6efd');
   const url = btEntryId ? '/api/bitacora/' + btEntryId + '/guardar'
                         : '/api/bitacora/guardar';
-  const r = await fetch(url, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify(payload)
-  });
-  const data = await r.json();
-  if (data.ok) window.location.href = data.url;
-  else alert(data.error || 'Error al guardar');
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(_btPayload())
+    });
+    const data = await r.json();
+    if (data.ok) {
+      if (!btEntryId) btEntryId = data.id;
+      _btStatus('Guardado ' + new Date().toLocaleTimeString(), '#198754');
+      if (redirigir) window.location.href = data.url;
+    } else {
+      _btStatus('Error al guardar', '#dc3545');
+      if (redirigir) alert(data.error || 'Error al guardar');
+    }
+  } catch (e) {
+    _btStatus('Sin conexión — pendiente de guardar', '#dc3545');
+  }
 }
+
+/* Botón Guardar: guarda y abre la entrada */
+function btGuardar() { _btGuardarInterno(true); }
 
 /* Eliminar entrada (doble confirmación) */
 function btEliminar(id) {
@@ -107,11 +149,4 @@ function btEliminar(id) {
         } else location.reload();
       } else alert(d.error || 'Error al eliminar');
     });
-}
-
-/* Exportar y compartir */
-function btCopiarEnlace(url) {
-  navigator.clipboard.writeText(url).then(
-    () => alert('Enlace copiado'),
-    () => prompt('Copiá el enlace:', url));
 }

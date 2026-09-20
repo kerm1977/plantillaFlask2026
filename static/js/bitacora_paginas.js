@@ -1,6 +1,7 @@
 /* ══ BITÁCORA — gestión de páginas del editor ══
    Dropdown con ↑↓ y drag&drop; numeración automática;
    eliminar con modal de doble confirmación. */
+/* global _btAutoSave */
 
 let btPages = [];       // HTML de cada página, en orden
 let btPageIdx = 0;      // página que se está editando
@@ -58,6 +59,7 @@ function btAgregarPagina() {
   btPageIdx = btPages.length - 1;
   document.getElementById('btEditor').innerHTML = '';
   _btRenderPagesUI();
+  _btAutoSave();
 }
 
 function btMoverPagina(i, dir) {
@@ -67,6 +69,7 @@ function btMoverPagina(i, dir) {
   const tmp = btPages[i]; btPages[i] = btPages[j]; btPages[j] = tmp;
   if (btPageIdx === i) btPageIdx = j; else if (btPageIdx === j) btPageIdx = i;
   _btRenderPagesUI();
+  _btAutoSave();
 }
 
 function btSoltarPagina(destino) {
@@ -78,6 +81,7 @@ function btSoltarPagina(destino) {
   btPageIdx = Math.max(0, btPages.indexOf(actual));
   btDragIdx = null;
   _btRenderPagesUI();
+  _btAutoSave();
 }
 
 /* ── Eliminar página: modal del tema con doble confirmación ── */
@@ -112,4 +116,5 @@ function btConfirmarDelPage() {
   bootstrap.Modal.getOrCreateInstance(
     document.getElementById('btDelPageModal')).hide();
   _btRenderPagesUI();
+  _btAutoSave();
 }
