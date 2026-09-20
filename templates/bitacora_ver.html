@@ -28,14 +28,22 @@
   {% endif %}
 
   {% if paginas | length > 1 %}
-  <div class="d-flex justify-content-center mb-3">
-    <select class="form-select glass-input rounded-3 fw-bold text-dark"
-            style="width:auto;min-width:10rem;" onchange="btVerPagina(this.value)">
+  <nav class="d-flex justify-content-center mb-3" aria-label="Páginas">
+    <ul class="pagination bt-pagination mb-0 flex-wrap">
+      <li class="page-item">
+        <button class="page-link" onclick="btVerPaginaRel(-1)" aria-label="Anterior"><i class="bi bi-chevron-left"></i></button>
+      </li>
       {% for p in paginas %}
-      <option value="{{ loop.index0 }}">Página {{ loop.index }}</option>
+      <li class="page-item">
+        <button class="page-link bt-pg" data-pg="{{ loop.index0 }}"
+                onclick="btVerPagina({{ loop.index0 }})">{{ loop.index }}</button>
+      </li>
       {% endfor %}
-    </select>
-  </div>
+      <li class="page-item">
+        <button class="page-link" onclick="btVerPaginaRel(1)" aria-label="Siguiente"><i class="bi bi-chevron-right"></i></button>
+      </li>
+    </ul>
+  </nav>
   {% endif %}
 
   {% for p in paginas %}

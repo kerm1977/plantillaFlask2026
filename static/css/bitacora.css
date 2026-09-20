@@ -105,6 +105,20 @@
 .bt-page-item:active { cursor: grabbing; }
 .bt-page-item.active { background: rgba(245,140,31,0.12); color: #212529; }
 
+/* ── Paginación de la vista (números de página) ── */
+.bt-pagination .page-link {
+  color: #f58c1f;
+  background: rgba(255,255,255,0.85);
+  border-color: rgba(0,0,0,0.12);
+  font-weight: 700;
+}
+.bt-pagination .page-item.active .page-link {
+  background: #f58c1f;
+  border-color: #f58c1f;
+  color: #fff;
+}
+.bt-pagination .page-link:focus { box-shadow: none; }
+
 /* ── Responsivo ── */
 @media (max-width: 576px) {
   .bt-item-titulo { font-size: 0.95rem; }
