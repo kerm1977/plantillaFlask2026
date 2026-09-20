@@ -22,7 +22,8 @@
         <span class="bt-item-meta">
           {{ e.creado.strftime('%d/%m/%Y') if e.creado }}
           {% if is_super %}
-            {% if e.privada %}· <i class="bi bi-lock-fill"></i> Privada
+            {% if vis(e) == 'privada' %}· <i class="bi bi-lock-fill"></i> Privada
+            {% elif vis(e) == 'publica' %}· <i class="bi bi-globe"></i> Pública
             {% else %}· <i class="bi bi-people-fill"></i> Compartida{% endif %}
           {% endif %}
         </span>

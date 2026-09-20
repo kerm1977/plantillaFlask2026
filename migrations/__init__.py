@@ -13,6 +13,7 @@ from .notes import _migrate_notes
 from .holidays import _migrate_holidays_autoplay
 from .background_music import _migrate_background_music
 from .points import _migrate_event_puntos, _migrate_hiker_points
+from .bitacora import _migrate_bitacora
 
 
 def run_migrations():
@@ -43,4 +44,5 @@ def run_migrations():
     _migrate_background_music()
     _migrate_event_puntos()
     _migrate_hiker_points()
+    _migrate_bitacora()
 

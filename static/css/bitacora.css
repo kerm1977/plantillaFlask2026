@@ -100,6 +100,11 @@
 }
 .bt-share-item:last-child { border-bottom: none; }
 
+/* ── Items del dropdown de páginas (arrastrables) ── */
+.bt-page-item { cursor: grab; user-select: none; }
+.bt-page-item:active { cursor: grabbing; }
+.bt-page-item.active { background: rgba(245,140,31,0.12); color: #212529; }
+
 /* ── Responsivo ── */
 @media (max-width: 576px) {
   .bt-item-titulo { font-size: 0.95rem; }

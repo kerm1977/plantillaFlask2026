@@ -14,15 +14,13 @@
   <textarea id="btDescripcion" class="form-control glass-input rounded-3 mb-3" rows="2"
             placeholder="Descripción / nota">{{ entry.descripcion if entry else '' }}</textarea>
 
-  <div class="d-flex align-items-center justify-content-center gap-2 mb-3">
-    <div class="form-check form-switch m-0">
-      <input class="form-check-input" type="checkbox" id="btPrivada"
-             {{ 'checked' if (entry is none or entry.privada) else '' }}
-             onchange="btToggleCompartir()">
-      <label class="form-check-label fw-bold text-dark" for="btPrivada">
-        <i class="bi bi-lock-fill me-1"></i>Privada (solo superusuarios)
-      </label>
-    </div>
+  <div class="d-flex justify-content-center mb-3">
+    <select id="btVisibilidad" class="form-select glass-input rounded-3 fw-bold text-dark"
+            style="width:auto;min-width:16rem;" onchange="btToggleCompartir()">
+      <option value="privada" {{ 'selected' if entry is none or entry.visibilidad == 'privada' or (entry and not entry.visibilidad and entry.privada) else '' }}>🔒 Privada — solo superusuarios</option>
+      <option value="publica" {{ 'selected' if entry and entry.visibilidad == 'publica' else '' }}>🌐 Pública — todo el mundo</option>
+      <option value="seleccion" {{ 'selected' if entry and (entry.visibilidad == 'seleccion' or (not entry.visibilidad and not entry.privada)) else '' }}>👥 Usuarios seleccionados</option>
+    </select>
   </div>
 
   <div id="btCompartirBox" class="mb-4" style="display:none;">
@@ -40,6 +38,24 @@
     </div>
   </div>
 
+  <div class="d-flex align-items-center justify-content-center gap-2 mb-2 flex-wrap">
+    <div class="dropdown">
+      <button class="btn btn-sm btn-outline-orange rounded-pill dropdown-toggle fw-bold"
+              type="button" data-bs-toggle="dropdown" id="btPageBtn" aria-expanded="false">
+        <i class="bi bi-files me-1"></i><span id="btPageLbl">Página 1</span>
+      </button>
+      <ul class="dropdown-menu" id="btPagesMenu"></ul>
+    </div>
+    <button class="btn btn-sm btn-light rounded-circle" type="button"
+            onclick="btAgregarPagina()" title="Agregar página"><i class="bi bi-plus-lg"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" type="button"
+            onclick="btMoverPagina(btPageIdx,-1)" title="Subir página"><i class="bi bi-arrow-up"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle" type="button"
+            onclick="btMoverPagina(btPageIdx,1)" title="Bajar página"><i class="bi bi-arrow-down"></i></button>
+    <button class="btn btn-sm btn-light rounded-circle text-danger" type="button"
+            onclick="btEliminarPagina(btPageIdx)" title="Eliminar página"><i class="bi bi-trash"></i></button>
+  </div>
+
   {{ wysiwyg_toolbar(editor_id='btEditor', upload_url=url_for('main.api_upload_image'), modal_prefix='bitacora') }}
   <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
     <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" type="button"
@@ -47,7 +63,7 @@
       <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i>WhatsApp
     </button>
   </div>
-  <div id="btEditor" class="bt-editor" contenteditable="true">{{ entry.contenido|safe if entry else '' }}</div>
+  <div id="btEditor" class="bt-editor" contenteditable="true"></div>
   <div id="btMediaTools" class="bt-media-tools" style="display:none;">
     <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="btResizeMedia(-1)" title="Achicar"><i class="bi bi-dash-lg"></i></button>
     <span id="btMediaPct" class="small fw-bold text-dark">100%</span>
@@ -63,8 +79,8 @@
   </div>
 </div>
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=2"></script>
 <script>
-  btInitForm({{ entry.id if entry else 'null' }});
+  btInitForm({{ entry.id if entry else 'null' }}, {{ paginas | tojson }});
 </script>
 {% endblock %}

@@ -27,7 +27,21 @@
   </div>
   {% endif %}
 
-  <div class="bt-contenido">{{ entry.contenido|safe }}</div>
+  {% if paginas | length > 1 %}
+  <div class="d-flex justify-content-center mb-3">
+    <select class="form-select glass-input rounded-3 fw-bold text-dark"
+            style="width:auto;min-width:10rem;" onchange="btVerPagina(this.value)">
+      {% for p in paginas %}
+      <option value="{{ loop.index0 }}">Página {{ loop.index }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endif %}
+
+  {% for p in paginas %}
+  <div class="bt-contenido bt-pagina" data-pag="{{ loop.index0 }}"
+       {% if not loop.first %}style="display:none;"{% endif %}>{{ p.contenido|safe }}</div>
+  {% endfor %}
 
   <div class="text-center mt-4">
     <a href="{{ url_for('main.bitacora_lista') }}" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold"
@@ -36,5 +50,26 @@
     </a>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=1"></script>
+
+<!-- Lightbox de imagen -->
+<div class="modal fade" id="btImgModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-fullscreen">
+    <div class="modal-content bg-dark">
+      <div class="d-flex justify-content-end gap-2 p-2">
+        <a id="btImgDownload" href="#" download class="btn btn-sm btn-light rounded-pill px-3 fw-bold">
+          <i class="bi bi-download me-1"></i>Descargar
+        </a>
+        <button type="button" class="btn btn-sm btn-light rounded-circle" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+      <div class="modal-body d-flex align-items-center justify-content-center p-2">
+        <img id="btImgFull" src="" alt="Imagen" style="max-width:100%;max-height:100%;object-fit:contain;">
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/bitacora_ver.js') }}?v=1"></script>
 {% endblock %}
