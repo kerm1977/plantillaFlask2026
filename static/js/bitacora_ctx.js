@@ -75,11 +75,15 @@ function _btSelParrafo() {
   Wysiwyg.guardarSeleccion('btEditor');
 }
 
+/* El menú se fija al borde derecho de la pantalla, a la altura del toque,
+   para no superponerse al texto seleccionado. */
 function _btCtxPos(el, x, y) {
   document.body.appendChild(el);
   const r = el.getBoundingClientRect();
-  el.style.left = Math.max(8, Math.min(x, window.innerWidth - r.width - 8)) + 'px';
-  el.style.top = Math.max(8, Math.min(y, window.innerHeight - r.height - 8)) + 'px';
+  el.style.left = 'auto';
+  el.style.right = '8px';
+  el.style.top = Math.max(8,
+    Math.min(y - r.height / 2, window.innerHeight - r.height - 8)) + 'px';
 }
 
 function _btCtxMenu(items, x, y) {
