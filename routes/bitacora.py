@@ -138,10 +138,39 @@ def bitacora_guardar(entry_id=None):
                     'url': url_for('main.bitacora_ver', entry_id=entry.id)})
 
 
+def _respaldo_json(entry):
+    """Antes de eliminar, guarda un respaldo JSON en backups/bitacora/."""
+    import os, json
+    data = {
+        'tipo': 'bitacora-entry',
+        'id': entry.id,
+        'titulo': entry.titulo,
+        'descripcion': entry.descripcion,
+        'visibilidad': _vis(entry),
+        'compartir': [s.user_id for s in entry.shares],
+        'editado_por': entry.editado_por,
+        'creado': entry.creado.isoformat() if entry.creado else None,
+        'actualizado': (entry.actualizado.isoformat()
+                        if entry.actualizado else None),
+        'paginas': [p.contenido for p in _paginas(entry)],
+        'respaldo_eliminacion': datetime.utcnow().isoformat(),
+    }
+    carpeta = os.path.join(
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..')),
+        'backups', 'bitacora')
+    os.makedirs(carpeta, exist_ok=True)
+    nombre = 'entrada_{}_{}.json'.format(
+        entry.id, datetime.utcnow().strftime('%Y%m%d_%H%M%S'))
+    with open(os.path.join(carpeta, nombre), 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
 @bp.route('/api/bitacora/<int:entry_id>/eliminar', methods=['POST'])
 def bitacora_eliminar(entry_id):
     if not _is_super():
         return jsonify({'error': 'Sin permiso'}), 403
-    db.session.delete(BitacoraEntry.query.get_or_404(entry_id))
+    entry = BitacoraEntry.query.get_or_404(entry_id)
+    _respaldo_json(entry)          # respaldo automático antes de borrar
+    db.session.delete(entry)
     db.session.commit()
     return jsonify({'ok': True})

@@ -4,8 +4,9 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bitacora.css') }}">
 <div class="container py-4 animate__animated animate__fadeIn bt-ver">
   <h1 class="fw-bold text-dark text-center mb-1">{{ entry.titulo }}</h1>
+  <p id="btPagLbl" class="text-center text-muted small mb-2" style="display:none;"></p>
   {% if entry.descripcion %}
-  <p class="bt-descripcion mt-2">{{ entry.descripcion }}</p>
+  <p class="bt-descripcion mt-2" id="btDesc">{{ entry.descripcion }}</p>
   {% endif %}
 
   {% if is_super and not vista_usuario %}

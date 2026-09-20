@@ -10,6 +10,14 @@ function btVerPagina(i) {
   paginas.forEach(d => {
     d.style.display = (d.dataset.pag === String(i)) ? 'block' : 'none';
   });
+  // Descripción solo en la página 1; en las demás "Página X" bajo el título
+  const desc = document.getElementById('btDesc');
+  if (desc) desc.style.display = (i === 0) ? 'block' : 'none';
+  const lbl = document.getElementById('btPagLbl');
+  if (lbl) {
+    lbl.style.display = (i === 0) ? 'none' : 'block';
+    lbl.textContent = 'Página ' + (i + 1);
+  }
   document.querySelectorAll('.bt-pg').forEach(b => {
     b.closest('.page-item').classList.toggle('active',
       b.dataset.pg === String(i));
