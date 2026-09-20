@@ -3,7 +3,7 @@
    sobre imagen/video/iframe → alinear, tamaño, eliminar.
    Al mantener presionado se selecciona la palabra sola;
    el menú permite ampliar a palabra o párrafo completo. */
-/* global Wysiwyg, btResizeMedia, btMediaSel */
+/* global Wysiwyg, btResizeMedia, btMediaSel, _btAutoSave */
 
 let _btCtxEl = null;
 let _btCtxTimer = null;
@@ -14,7 +14,9 @@ function _btCtxCerrar() {
   if (_btCtxEl) { _btCtxEl.remove(); _btCtxEl = null; }
 }
 
-function _btCtxBtn(icono, texto, fn, keep) {
+/* opts: keep = no cerrar el menú; save = false omite el autoguardado */
+function _btCtxBtn(icono, texto, fn, opts) {
+  opts = opts || {};
   const b = document.createElement('button');
   b.type = 'button';
   b.className = 'bt-ctx-btn';
@@ -22,7 +24,8 @@ function _btCtxBtn(icono, texto, fn, keep) {
   b.onclick = (e) => {
     e.stopPropagation();
     fn();
-    if (!keep) _btCtxCerrar();
+    if (opts.save !== false) _btAutoSave();
+    if (!opts.keep) _btCtxCerrar();
   };
   return b;
 }
@@ -92,9 +95,9 @@ function _btCtxTexto(x, y) {
   const ed = 'btEditor';
   const items = [
     _btCtxBtn('bi-cursor-text', 'Seleccionar palabra',
-      () => _btSelPalabra(), true),
+      () => _btSelPalabra(), {keep: true, save: false}),
     _btCtxBtn('bi-paragraph', 'Seleccionar párrafo',
-      () => _btSelParrafo(), true),
+      () => _btSelParrafo(), {keep: true, save: false}),
     _btCtxBtn('bi-type-bold', 'Negrita', () => Wysiwyg.execCmd(ed, 'bold')),
     _btCtxBtn('bi-type-italic', 'Itálica', () => Wysiwyg.execCmd(ed, 'italic')),
     _btCtxBtn('bi-type-underline', 'Subrayado', () => Wysiwyg.execCmd(ed, 'underline')),
@@ -106,7 +109,8 @@ function _btCtxTexto(x, y) {
       () => Wysiwyg.execCmd(ed, 'justifyCenter')),
     _btCtxBtn('bi-text-right', 'Alinear a la derecha',
       () => Wysiwyg.execCmd(ed, 'justifyRight')),
-    _btCtxBtn('bi-fonts', 'Cambiar fuente', () => _btCtxFuentes(x, y)),
+    _btCtxBtn('bi-fonts', 'Cambiar fuente',
+      () => _btCtxFuentes(x, y), {keep: true, save: false}),
     _btCtxBtn('bi-trash', 'Eliminar',
       () => Wysiwyg.execCmd(ed, 'delete')),
   ];
@@ -115,7 +119,8 @@ function _btCtxTexto(x, y) {
 
 function _btCtxFuentes(x, y) {
   _btCtxMenu([
-    _btCtxBtn('bi-arrow-left', 'Volver', () => _btCtxTexto(x, y)),
+    _btCtxBtn('bi-arrow-left', 'Volver',
+      () => _btCtxTexto(x, y), {keep: true, save: false}),
     _btCtxBtn('bi-fonts', 'Fuente actual',
       () => Wysiwyg.execCmd('btEditor', 'fontName', '')),
     _btCtxBtn('bi-fonts', 'Bienvenidos a la tribu',

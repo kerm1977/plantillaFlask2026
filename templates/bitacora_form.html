@@ -186,9 +186,9 @@
 
 {% include "partials/bitacora_modales.html" %}
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=4"></script>
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=5"></script>
 <script src="{{ url_for('static', filename='js/bitacora_paginas.js') }}?v=2"></script>
-<script src="{{ url_for('static', filename='js/bitacora_ctx.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/bitacora_ctx.js') }}?v=3"></script>
 <script src="{{ url_for('static', filename='js/bitacora_export.js') }}?v=1"></script>
 <script>
   btInitForm({{ entry.id if entry else 'null' }}, {{ paginas | tojson }});

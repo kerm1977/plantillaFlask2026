@@ -75,6 +75,7 @@ function btInsertarWhatsApp() {
   document.execCommand('insertHTML', false,
     '<a href="' + url + '" target="_blank" rel="noopener" ' +
     'class="bt-wa-link">WhatsApp — La Tribu</a>');
+  _btAutoSave();
 }
 
 /* Resize de media con +/− */
@@ -110,6 +111,8 @@ function _btPayload() {
 }
 
 async function _btGuardarInterno(redirigir) {
+  clearTimeout(_btSaveTimer);
+  _btSaveTimer = null;
   _btStatus('Guardando…', '#0d6efd');
   const url = btEntryId ? '/api/bitacora/' + btEntryId + '/guardar'
                         : '/api/bitacora/guardar';
@@ -135,6 +138,15 @@ async function _btGuardarInterno(redirigir) {
 
 /* Botón Guardar: guarda y abre la entrada */
 function btGuardar() { _btGuardarInterno(true); }
+
+/* Si hay un guardado pendiente y el usuario sale, se envía de inmediato */
+window.addEventListener('beforeunload', () => {
+  if (!_btSaveTimer || !document.getElementById('btEditor')) return;
+  const url = btEntryId ? '/api/bitacora/' + btEntryId + '/guardar'
+                        : '/api/bitacora/guardar';
+  navigator.sendBeacon(url, new Blob([JSON.stringify(_btPayload())],
+    {type: 'application/json'}));
+});
 
 /* Eliminar entrada — modal del tema con triple confirmación */
 let _btDelId = null;
