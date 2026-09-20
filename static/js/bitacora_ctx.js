@@ -73,6 +73,25 @@ function _btFontSize(delta) {
   Wysiwyg.guardarSeleccion('btEditor');
 }
 
+/* Quita el tamaño personalizado de la selección → tamaño predeterminado */
+function _btFontReset() {
+  Wysiwyg.restaurarSeleccion('btEditor');
+  const s = window.getSelection();
+  if (!s.rangeCount) return;
+  const r = s.getRangeAt(0);
+  const ed = document.getElementById('btEditor');
+  ed.querySelectorAll('[style]').forEach(el => {
+    if (!r.intersectsNode(el)) return;
+    el.style.fontSize = '';
+    if (!el.getAttribute('style').trim()) {
+      if (el.tagName === 'SPAN' && !el.className) {
+        el.replaceWith(...Array.from(el.childNodes));
+      } else el.removeAttribute('style');
+    }
+  });
+  Wysiwyg.guardarSeleccion('btEditor');
+}
+
 function _btCtxTexto(x, y) {
   const ed = 'btEditor';
   const items = [
@@ -89,6 +108,8 @@ function _btCtxTexto(x, y) {
       () => _btFontSize(1), {keep: true}),
     _btCtxBtn('bi-zoom-out', 'Disminuir texto',
       () => _btFontSize(-1), {keep: true}),
+    _btCtxBtn('bi-arrow-counterclockwise', 'Restaurar texto',
+      () => _btFontReset(), {keep: true}),
     _btCtxBtn('bi-text-left', 'Alinear a la izquierda',
       () => Wysiwyg.execCmd(ed, 'justifyLeft')),
     _btCtxBtn('bi-text-center', 'Centrado',
