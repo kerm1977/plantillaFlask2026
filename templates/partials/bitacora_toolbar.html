@@ -30,10 +30,10 @@
   </select>
   <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.marcarSeleccion('{{ editor_id }}','btColorMarcador')" title="Marcar texto"><i class="bi bi-circle-fill" id="btIconoMarcador" style="color:#ffff99;"></i></button>
   <div class="vr mx-1"></div>
-  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
-  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
-  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
-  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btAlinear('left')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btAlinear('center')" title="Centro"><i class="bi bi-text-center"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btAlinear('right')" title="Derecha"><i class="bi bi-text-right"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btAlinear('justify')" title="Justificado"><i class="bi bi-justify"></i></button>
   <div class="vr mx-1"></div>
   <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
   <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>

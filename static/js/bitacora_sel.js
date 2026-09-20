@@ -1,5 +1,6 @@
 /* ══ BLINDADO — BITÁCORA — selección por punto de contacto ══
-   Palabra y párrafo bajo el dedo/cursor para el menú contextual. */
+   Palabra y párrafo bajo el dedo/cursor para el menú contextual,
+   y alineación de bloques (izq/centro/der/justificado). */
 /* global Wysiwyg */
 
 let _btCtxPoint = null;   // {x, y} del último toque/clic
@@ -66,5 +67,45 @@ function _btSelParrafo() {
   r.selectNodeContents(bloque);
   s.removeAllRanges();
   s.addRange(r);
+  Wysiwyg.guardarSeleccion('btEditor');
+}
+
+/* ── Alineación de bloques ──
+   execCommand('justify*') no actúa sobre texto suelto: esta función
+   aplica text-align directo a los bloques que toca la selección. */
+const _BT_BLOQUES = 'p, div, li, blockquote, h1, h2, h3, h4, h5, h6';
+
+function _btBloquesDeRango(r, ed) {
+  const bloques = [];
+  ed.querySelectorAll(_BT_BLOQUES).forEach(el => {
+    try { if (r.intersectsNode(el)) bloques.push(el); } catch (e) {}
+  });
+  // solo los más internos (no duplicar el padre que contiene otro bloque)
+  return bloques.filter(b => !bloques.some(o => o !== b && b.contains(o)));
+}
+
+function btAlinear(lado) {
+  const mapa = {left: 'left', center: 'center',
+                right: 'right', justify: 'justify'};
+  const ed = document.getElementById('btEditor');
+  if (!ed || !mapa[lado]) return;
+  Wysiwyg.restaurarSeleccion('btEditor');
+  const s = window.getSelection();
+  const r = s.rangeCount ? s.getRangeAt(0) : null;
+  // si no hay bloques, envolver el contenido suelto en un <p>
+  if (!ed.querySelector(_BT_BLOQUES)) {
+    const p = document.createElement('p');
+    while (ed.firstChild) p.appendChild(ed.firstChild);
+    ed.appendChild(p);
+  }
+  let bloques = r ? _btBloquesDeRango(r, ed) : [];
+  if (!bloques.length) {
+    // caret suelto dentro del editor: crear párrafo en el punto
+    try { document.execCommand('styleWithCSS', false, true); } catch (e) {}
+    document.execCommand('formatBlock', false, 'p');
+    const s2 = window.getSelection();
+    bloques = s2.rangeCount ? _btBloquesDeRango(s2.getRangeAt(0), ed) : [];
+  }
+  bloques.forEach(el => { el.style.textAlign = mapa[lado]; });
   Wysiwyg.guardarSeleccion('btEditor');
 }

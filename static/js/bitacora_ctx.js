@@ -3,7 +3,7 @@
    sobre imagen/video/iframe → alinear, tamaño, eliminar.
    Al mantener presionado se selecciona la palabra sola;
    el menú permite ampliar a palabra o párrafo completo. */
-/* global Wysiwyg, btResizeMedia, btMediaSel, _btAutoSave,
+/* global Wysiwyg, btResizeMedia, btMediaSel, _btAutoSave, btAlinear,
           _btCtxPoint, _btSelPalabra, _btSelParrafo */
 
 let _btCtxEl = null;
@@ -111,11 +111,13 @@ function _btCtxTexto(x, y) {
     _btCtxBtn('bi-arrow-counterclockwise', 'Restaurar texto',
       () => _btFontReset(), {keep: true}),
     _btCtxBtn('bi-text-left', 'Alinear a la izquierda',
-      () => Wysiwyg.execCmd(ed, 'justifyLeft')),
+      () => btAlinear('left')),
     _btCtxBtn('bi-text-center', 'Centrado',
-      () => Wysiwyg.execCmd(ed, 'justifyCenter')),
+      () => btAlinear('center')),
     _btCtxBtn('bi-text-right', 'Alinear a la derecha',
-      () => Wysiwyg.execCmd(ed, 'justifyRight')),
+      () => btAlinear('right')),
+    _btCtxBtn('bi-justify', 'Justificado',
+      () => btAlinear('justify')),
     _btCtxBtn('bi-fonts', 'Cambiar fuente',
       () => _btCtxFuentes(x, y), {keep: true, save: false}),
     _btCtxBtn('bi-trash', 'Eliminar',
