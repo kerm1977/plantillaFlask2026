@@ -1,0 +1,98 @@
+{# Toolbar exclusivo de la Bitácora — usa las mismas funciones Wysiwyg.*
+   Separado en dos grupos: formato de texto y multimedia. #}
+{% macro bt_toolbar_texto(editor_id) %}
+<div class="d-flex flex-wrap justify-content-center gap-2" onmousedown="Wysiwyg.guardarSeleccion('{{ editor_id }}')">
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','bold')" title="Negrita"><i class="bi bi-type-bold"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','italic')" title="Itálica"><i class="bi bi-type-italic"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','underline')" title="Subrayado"><i class="bi bi-type-underline"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','strikeThrough')" title="Tachado"><i class="bi bi-type-strikethrough"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.clearFormat('{{ editor_id }}')" title="Limpiar formato"><i class="bi bi-x-lg"></i></button>
+  <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="Wysiwyg.transformarTexto('{{ editor_id }}', this.value); this.value=''" title="Mayúsculas/minúsculas" style="width:auto;min-width:5rem;">
+    <option value="" selected>ABC</option>
+    <option value="uppercase">MAYÚSCULAS</option>
+    <option value="lowercase">minúsculas</option>
+    <option value="titlecase">Title Case</option>
+  </select>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.capitular('{{ editor_id }}')" title="Letra capitular"><i class="bi bi-type-h1"></i></button>
+  <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="Wysiwyg.interlineado('{{ editor_id }}', this.value); this.value=''" title="Interlineado" style="width:auto;min-width:6rem;">
+    <option value="" selected>Interlineado</option>
+    <option value="0.8">0.8 (-)</option>
+    <option value="1.0">1.0 Normal</option>
+    <option value="1.5">1.5 (+)</option>
+    <option value="2.0">2.0 (++)</option>
+  </select>
+  <select id="btColorMarcador" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="document.getElementById('btIconoMarcador').style.color = this.value;" title="Color de marcador" style="width:auto;min-width:5.5rem;">
+    <option value="#ffff99">Amarillo fosfor</option>
+    <option value="#99ffff">Celeste fosfor</option>
+    <option value="#ff99ff">Rosado fosfor</option>
+    <option value="#d0d0d0">Gris fosfor</option>
+  </select>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.marcarSeleccion('{{ editor_id }}','btColorMarcador')" title="Marcar texto"><i class="bi bi-circle-fill" id="btIconoMarcador" style="color:#ffff99;"></i></button>
+  <div class="vr mx-1"></div>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyLeft')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyCenter')" title="Centro"><i class="bi bi-text-center"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyRight')" title="Derecha"><i class="bi bi-text-right"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','justifyFull')" title="Justificado"><i class="bi bi-justify"></i></button>
+  <div class="vr mx-1"></div>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','insertUnorderedList')" title="Viñetas"><i class="bi bi-list-ul"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','insertOrderedList')" title="Numeración"><i class="bi bi-list-ol"></i></button>
+  <div class="vr mx-1"></div>
+  <select class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="Wysiwyg.formatBlock('{{ editor_id }}', this.value); this.value='P'" title="Título" style="width:auto;min-width:6rem;">
+    <option value="P" selected>Normal</option>
+    <option value="H1">Título 1</option>
+    <option value="H2">Título 2</option>
+    <option value="H3">Título 3</option>
+    <option value="H4">Título 4</option>
+    <option value="H5">Título 5</option>
+    <option value="H6">Título 6</option>
+  </select>
+  <select id="btFuente" class="form-select form-select-sm glass-input rounded-3 fw-bold text-dark" onchange="Wysiwyg.cambiarFuente('{{ editor_id }}', this.value)" title="Fuente" style="width:auto;min-width:6rem;">
+    <option value="current">Fuente actual</option>
+    <option value="Uncial Antiqua">Bienvenidos a la tribu</option>
+    <option value="Ronda">Ronda</option>
+  </select>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.cita('{{ editor_id }}')" title="Cita"><i class="bi bi-chat-quote"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.wrapTag('{{ editor_id }}','code')" title="Código"><i class="bi bi-code"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','insertHorizontalRule')" title="Línea horizontal"><i class="bi bi-dash-lg"></i></button>
+  <div class="vr mx-1"></div>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','undo')" title="Deshacer"><i class="bi bi-arrow-90deg-left"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','redo')" title="Rehacer"><i class="bi bi-arrow-90deg-right"></i></button>
+</div>
+{%- endmacro %}
+
+{% macro bt_toolbar_media(editor_id, upload_url) %}
+<div class="d-flex flex-wrap justify-content-center gap-2" onmousedown="Wysiwyg.guardarSeleccion('{{ editor_id }}')">
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="document.getElementById('btImageFile').click()" title="Subir imagen"><i class="bi bi-image"></i></button>
+  <input type="file" id="btImageFile" accept="image/*" style="display:none;" onchange="Wysiwyg.uploadImage('{{ editor_id }}', this, '{{ upload_url }}')">
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="document.getElementById('btVideoFile').click()" title="Subir video"><i class="bi bi-camera-video"></i></button>
+  <input type="file" id="btVideoFile" accept="video/*" style="display:none;" onchange="Wysiwyg.uploadImage('{{ editor_id }}', this, '{{ upload_url }}')">
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.imageAlign('{{ editor_id }}','left')" title="Imagen a la izquierda"><i class="bi bi-image"></i><i class="bi bi-arrow-left ms-1 small"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.imageAlign('{{ editor_id }}','center')" title="Imagen centrada"><i class="bi bi-image"></i><i class="bi bi-text-center ms-1 small"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.imageAlign('{{ editor_id }}','right')" title="Imagen a la derecha"><i class="bi bi-image"></i><i class="bi bi-arrow-right ms-1 small"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.insertarVideo('{{ editor_id }}','bt')" title="Insertar video"><i class="bi bi-film"></i></button>
+  <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" type="button" onclick="btInsertarWhatsApp()" title="Enlace de WhatsApp"><i class="bi bi-whatsapp me-1" style="color:#25d366;"></i>WhatsApp</button>
+  <div class="vr mx-1"></div>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btResizeMedia(-1)" title="Achicar elemento seleccionado"><i class="bi bi-dash-lg"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="btResizeMedia(1)" title="Agrandar elemento seleccionado"><i class="bi bi-plus-lg"></i></button>
+  <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.eliminarSeleccion('{{ editor_id }}')" title="Eliminar elemento seleccionado"><i class="bi bi-trash"></i></button>
+</div>
+<div class="modal fade" id="btInsertarVideoModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-film me-2" style="color:#ff8c00;"></i>Insertar video</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p class="small text-muted mb-2">Pega el enlace del video de YouTube o Facebook.</p>
+        <input type="url" id="btInsertarVideoUrl" class="form-control glass-input rounded-3" placeholder="https://www.youtube.com/watch?v=...">
+        <div id="btInsertarVideoFeedback" class="small text-danger mt-2" style="display:none;"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="Wysiwyg.insertarVideoDesdeModal('{{ editor_id }}', 'btInsertarVideoUrl', 'btInsertarVideoFeedback', 'btInsertarVideoModal')"><i class="bi bi-plus-circle me-2"></i>Insertar</button>
+      </div>
+    </div>
+  </div>
+</div>
+{%- endmacro %}

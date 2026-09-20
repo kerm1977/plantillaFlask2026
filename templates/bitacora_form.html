@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "partials/wysiwyg_editor.html" import wysiwyg_toolbar %}
+{% from "partials/bitacora_toolbar.html" import bt_toolbar_texto, bt_toolbar_media %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bitacora.css') }}">
@@ -8,61 +8,135 @@
     {{ 'Editar entrada' if entry else 'Nueva entrada' }}
   </h1>
 
-  <input id="btTitulo" type="text" class="form-control glass-input rounded-3 fw-bold mb-3"
-         placeholder="Título de la entrada" value="{{ entry.titulo if entry else '' }}">
+  <div class="accordion" id="btAcordeon">
 
-  <textarea id="btDescripcion" class="form-control glass-input rounded-3 mb-3" rows="2"
-            placeholder="Descripción / nota">{{ entry.descripcion if entry else '' }}</textarea>
-
-  <div class="d-flex justify-content-center mb-3">
-    <select id="btVisibilidad" class="form-select glass-input rounded-3 fw-bold text-dark"
-            style="width:auto;min-width:16rem;" onchange="btToggleCompartir()">
-      <option value="privada" {{ 'selected' if entry is none or entry.visibilidad == 'privada' or (entry and not entry.visibilidad and entry.privada) else '' }}>🔒 Privada — solo superusuarios</option>
-      <option value="publica" {{ 'selected' if entry and entry.visibilidad == 'publica' else '' }}>🌐 Pública — todo el mundo</option>
-      <option value="seleccion" {{ 'selected' if entry and (entry.visibilidad == 'seleccion' or (not entry.visibilidad and not entry.privada)) else '' }}>👥 Usuarios seleccionados</option>
-    </select>
-  </div>
-
-  <div id="btCompartirBox" class="mb-4" style="display:none;">
-    <p class="fw-bold text-dark mb-2 text-center">
-      <i class="bi bi-people-fill me-1"></i>Compartir con:
-    </p>
-    <div class="bt-share-list">
-      {% for u in usuarios %}
-      <label class="bt-share-item">
-        <input type="checkbox" class="form-check-input me-2 bt-share-check"
-               value="{{ u.id }}" {{ 'checked' if u.id in compartidos else '' }}>
-        {{ u.name }} {{ u.last_name_1 }} {{ u.last_name_2 }}
-      </label>
-      {% endfor %}
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button fw-bold bg-transparent text-dark" type="button"
+                data-bs-toggle="collapse" data-bs-target="#btAcEditar" aria-expanded="true">
+          <i class="bi bi-pencil-square me-2" style="color:#f58c1f;"></i>Editar entrada
+        </button>
+      </h2>
+      <div id="btAcEditar" class="accordion-collapse collapse show" data-bs-parent="#btAcordeon">
+        <div class="accordion-body pt-2">
+          <input id="btTitulo" type="text" class="form-control glass-input rounded-3 fw-bold mb-3"
+                 placeholder="Título de la entrada" value="{{ entry.titulo if entry else '' }}">
+          <textarea id="btDescripcion" class="form-control glass-input rounded-3 mb-3" rows="2"
+                    placeholder="Descripción / nota">{{ entry.descripcion if entry else '' }}</textarea>
+          <div class="d-flex align-items-center justify-content-center gap-2 flex-wrap">
+            <div class="dropdown">
+              <button class="btn btn-sm btn-outline-orange rounded-pill dropdown-toggle fw-bold"
+                      type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-files me-1"></i><span id="btPageLbl">Página 1</span>
+              </button>
+              <ul class="dropdown-menu" id="btPagesMenu"></ul>
+            </div>
+            <button class="btn btn-sm btn-orange rounded-pill px-3 fw-bold" type="button"
+                    onclick="btAgregarPagina()">
+              <i class="bi bi-plus-lg me-1"></i>Agregar página
+            </button>
+            <button class="btn btn-sm btn-light rounded-circle" type="button"
+                    onclick="btMoverPagina(btPageIdx,-1)" title="Subir página"><i class="bi bi-arrow-up"></i></button>
+            <button class="btn btn-sm btn-light rounded-circle" type="button"
+                    onclick="btMoverPagina(btPageIdx,1)" title="Bajar página"><i class="bi bi-arrow-down"></i></button>
+            <button class="btn btn-sm btn-light rounded-circle text-danger" type="button"
+                    onclick="btEliminarPagina(btPageIdx)" title="Eliminar página"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
 
-  <div class="d-flex align-items-center justify-content-center gap-2 mb-2 flex-wrap">
-    <div class="dropdown">
-      <button class="btn btn-sm btn-outline-orange rounded-pill dropdown-toggle fw-bold"
-              type="button" data-bs-toggle="dropdown" id="btPageBtn" aria-expanded="false">
-        <i class="bi bi-files me-1"></i><span id="btPageLbl">Página 1</span>
-      </button>
-      <ul class="dropdown-menu" id="btPagesMenu"></ul>
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button"
+                data-bs-toggle="collapse" data-bs-target="#btAcPriv" aria-expanded="false">
+          <i class="bi bi-shield-lock me-2" style="color:#f58c1f;"></i>Seleccionar privilegios
+        </button>
+      </h2>
+      <div id="btAcPriv" class="accordion-collapse collapse" data-bs-parent="#btAcordeon">
+        <div class="accordion-body pt-2">
+          <div class="d-flex justify-content-center mb-3">
+            <select id="btVisibilidad" class="form-select glass-input rounded-3 fw-bold text-dark"
+                    style="width:auto;min-width:16rem;" onchange="btToggleCompartir()">
+              <option value="privada" {{ 'selected' if entry is none or entry.visibilidad == 'privada' or (entry and not entry.visibilidad and entry.privada) else '' }}>🔒 Privada — solo superusuarios</option>
+              <option value="publica" {{ 'selected' if entry and entry.visibilidad == 'publica' else '' }}>🌐 Pública — todo el mundo</option>
+              <option value="seleccion" {{ 'selected' if entry and (entry.visibilidad == 'seleccion' or (not entry.visibilidad and not entry.privada)) else '' }}>👥 Usuarios seleccionados</option>
+            </select>
+          </div>
+          <div id="btCompartirBox" style="display:none;">
+            <p class="fw-bold text-dark mb-2 text-center">
+              <i class="bi bi-people-fill me-1"></i>Compartir con:
+            </p>
+            <div class="bt-share-list">
+              {% for u in usuarios %}
+              <label class="bt-share-item">
+                <input type="checkbox" class="form-check-input me-2 bt-share-check"
+                       value="{{ u.id }}" {{ 'checked' if u.id in compartidos else '' }}>
+                {{ u.name }} {{ u.last_name_1 }} {{ u.last_name_2 }}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <button class="btn btn-sm btn-light rounded-circle" type="button"
-            onclick="btAgregarPagina()" title="Agregar página"><i class="bi bi-plus-lg"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" type="button"
-            onclick="btMoverPagina(btPageIdx,-1)" title="Subir página"><i class="bi bi-arrow-up"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle" type="button"
-            onclick="btMoverPagina(btPageIdx,1)" title="Bajar página"><i class="bi bi-arrow-down"></i></button>
-    <button class="btn btn-sm btn-light rounded-circle text-danger" type="button"
-            onclick="btEliminarPagina(btPageIdx)" title="Eliminar página"><i class="bi bi-trash"></i></button>
+
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button"
+                data-bs-toggle="collapse" data-bs-target="#btAcTexto" aria-expanded="false">
+          <i class="bi bi-type me-2" style="color:#f58c1f;"></i>Formato de texto
+        </button>
+      </h2>
+      <div id="btAcTexto" class="accordion-collapse collapse" data-bs-parent="#btAcordeon">
+        <div class="accordion-body pt-2">
+          {{ bt_toolbar_texto('btEditor') }}
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button"
+                data-bs-toggle="collapse" data-bs-target="#btAcMedia" aria-expanded="false">
+          <i class="bi bi-image me-2" style="color:#f58c1f;"></i>Configuración de imagen o multimedia
+        </button>
+      </h2>
+      <div id="btAcMedia" class="accordion-collapse collapse" data-bs-parent="#btAcordeon">
+        <div class="accordion-body pt-2">
+          {{ bt_toolbar_media('btEditor', url_for('main.api_upload_image')) }}
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion-item glass-panel border-0 rounded-4 mb-3 shadow-sm">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button"
+                data-bs-toggle="collapse" data-bs-target="#btAcExport" aria-expanded="false">
+          <i class="bi bi-share me-2" style="color:#f58c1f;"></i>Exportar y compartir
+        </button>
+      </h2>
+      <div id="btAcExport" class="accordion-collapse collapse" data-bs-parent="#btAcordeon">
+        <div class="accordion-body pt-2 text-center">
+          {% if entry %}
+          <button class="btn btn-sm btn-outline-orange rounded-pill px-3 fw-bold me-2"
+                  onclick="btCopiarEnlace('{{ url_for('main.bitacora_ver', entry_id=entry.id, _external=True) }}')">
+            <i class="bi bi-link-45deg me-1"></i>Copiar enlace
+          </button>
+          <a class="btn btn-sm rounded-pill px-3 fw-bold text-white" style="background:#25d366;"
+             target="_blank" rel="noopener"
+             href="https://wa.me/?text={{ (entry.titulo ~ ' — ' ~ url_for('main.bitacora_ver', entry_id=entry.id, _external=True)) | urlencode }}">
+            <i class="bi bi-whatsapp me-1"></i>Compartir por WhatsApp
+          </a>
+          {% else %}
+          <p class="text-muted small mb-0">Guardá la entrada para poder compartirla.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
   </div>
 
-  {{ wysiwyg_toolbar(editor_id='btEditor', upload_url=url_for('main.api_upload_image'), modal_prefix='bitacora') }}
-  <div class="d-flex flex-wrap justify-content-center gap-2 mb-2">
-    <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold" type="button"
-            onclick="btInsertarWhatsApp()" title="Enlace de WhatsApp">
-      <i class="bi bi-whatsapp me-1" style="color:#25d366;"></i>WhatsApp
-    </button>
-  </div>
   <div id="btEditor" class="bt-editor" contenteditable="true"></div>
   <div id="btMediaTools" class="bt-media-tools" style="display:none;">
     <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="btResizeMedia(-1)" title="Achicar"><i class="bi bi-dash-lg"></i></button>
@@ -78,8 +152,38 @@
     </button>
   </div>
 </div>
+
+<!-- Modal doble confirmación: eliminar página -->
+<div class="modal fade" id="btDelPageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-trash me-2 text-danger"></i>Eliminar página</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p id="btDelPageTxt1" class="mb-0 text-muted"></p>
+        <p id="btDelPageTxt2" class="mb-0 text-danger fw-bold" style="display:none;">
+          Esta acción no se puede deshacer. ¿Confirmás la eliminación?
+        </p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold"
+                data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" id="btDelPageBtn1" class="btn btn-outline-danger rounded-pill px-4 fw-bold"
+                onclick="btDelPagePaso(2)">Continuar</button>
+        <button type="button" id="btDelPageBtn2" class="btn btn-danger rounded-pill px-4 fw-bold"
+                style="display:none;" onclick="btConfirmarDelPage()">
+          <i class="bi bi-trash me-1"></i>Sí, eliminar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/bitacora.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='js/bitacora_paginas.js') }}?v=1"></script>
 <script>
   btInitForm({{ entry.id if entry else 'null' }}, {{ paginas | tojson }});
 </script>

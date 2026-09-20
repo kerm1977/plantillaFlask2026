@@ -3,14 +3,10 @@
 
 let btEntryId = null;
 let btMediaSel = null;
-let btPages = [];       // HTML de cada página, en orden
-let btPageIdx = 0;      // página que se está editando
-let btDragIdx = null;   // índice arrastrado en el dropdown
 
 function _btEditor() { return document.getElementById('btEditor'); }
-function _btPaginaNombre(i) { return 'Página ' + (i + 1); }
 
-/* ── Init del formulario ── */
+/* Init del formulario (nueva/editar) */
 function btInitForm(entryId, paginas) {
   btEntryId = entryId;
   btPages = (paginas && paginas.length) ? paginas : [''];
@@ -34,94 +30,14 @@ function btInitForm(entryId, paginas) {
   _btRenderPagesUI();
 }
 
-/* ── Páginas: dropdown con ↑↓ y drag&drop ── */
-function _btSyncPagina() {
-  if (_btEditor()) btPages[btPageIdx] = _btEditor().innerHTML;
-}
-
-function _btRenderPagesUI() {
-  const menu = document.getElementById('btPagesMenu');
-  const lbl = document.getElementById('btPageLbl');
-  if (lbl) lbl.textContent = _btPaginaNombre(btPageIdx);
-  if (!menu) return;
-  menu.innerHTML = '';
-  btPages.forEach((_, i) => {
-    const li = document.createElement('li');
-    const it = document.createElement('div');
-    it.className = 'dropdown-item d-flex align-items-center gap-2 bt-page-item'
-      + (i === btPageIdx ? ' active' : '');
-    it.draggable = true;
-    it.innerHTML = '<i class="bi bi-grip-vertical text-muted"></i>' +
-      '<span class="flex-grow-1">' + _btPaginaNombre(i) + '</span>' +
-      '<button class="btn btn-sm btn-light rounded-circle py-0 px-1" title="Subir"><i class="bi bi-arrow-up"></i></button>' +
-      '<button class="btn btn-sm btn-light rounded-circle py-0 px-1" title="Bajar"><i class="bi bi-arrow-down"></i></button>';
-    const [btnUp, btnDown] = it.querySelectorAll('button');
-    btnUp.onclick = (e) => { e.stopPropagation(); btMoverPagina(i, -1); };
-    btnDown.onclick = (e) => { e.stopPropagation(); btMoverPagina(i, 1); };
-    it.onclick = () => btSelPagina(i);
-    it.ondragstart = () => { btDragIdx = i; };
-    it.ondragover = (e) => e.preventDefault();
-    it.ondrop = (e) => { e.preventDefault(); btSoltarPagina(i); };
-    li.appendChild(it);
-    menu.appendChild(li);
-  });
-}
-
-function btSelPagina(i) {
-  _btSyncPagina();
-  btPageIdx = i;
-  _btEditor().innerHTML = btPages[i];
-  btMediaSel = null;
-  const tools = document.getElementById('btMediaTools');
-  if (tools) tools.style.display = 'none';
-  _btRenderPagesUI();
-}
-
-function btAgregarPagina() {
-  _btSyncPagina();
-  btPages.push('');
-  btPageIdx = btPages.length - 1;
-  _btEditor().innerHTML = '';
-  _btRenderPagesUI();
-}
-
-function btMoverPagina(i, dir) {
-  const j = i + dir;
-  if (j < 0 || j >= btPages.length) return;
-  _btSyncPagina();
-  const tmp = btPages[i]; btPages[i] = btPages[j]; btPages[j] = tmp;
-  if (btPageIdx === i) btPageIdx = j; else if (btPageIdx === j) btPageIdx = i;
-  _btRenderPagesUI();
-}
-
-function btSoltarPagina(destino) {
-  if (btDragIdx === null || btDragIdx === destino) return;
-  _btSyncPagina();
-  const actual = btPages[btPageIdx];
-  const movida = btPages.splice(btDragIdx, 1)[0];
-  btPages.splice(destino, 0, movida);
-  btPageIdx = Math.max(0, btPages.indexOf(actual));
-  btDragIdx = null;
-  _btRenderPagesUI();
-}
-
-function btEliminarPagina(i) {
-  if (btPages.length <= 1) { alert('Debe quedar al menos una página.'); return; }
-  if (!confirm('¿Eliminar la ' + _btPaginaNombre(i) + '?')) return;
-  btPages.splice(i, 1);
-  if (btPageIdx >= btPages.length) btPageIdx = btPages.length - 1;
-  _btEditor().innerHTML = btPages[btPageIdx];
-  _btRenderPagesUI();
-}
-
-/* ── Visibilidad: mostrar selector de usuarios solo en "seleccion" ── */
+/* Visibilidad: mostrar selector de usuarios solo en "seleccion" */
 function btToggleCompartir() {
   const v = document.getElementById('btVisibilidad');
   const box = document.getElementById('btCompartirBox');
   if (box) box.style.display = (v && v.value === 'seleccion') ? 'block' : 'none';
 }
 
-/* ── Enlace wa.me estilo rastreo ── */
+/* Enlace wa.me estilo rastreo */
 function btInsertarWhatsApp() {
   const num = prompt('Número de WhatsApp (solo dígitos, con código de país):', '506');
   if (!num) return;
@@ -136,7 +52,7 @@ function btInsertarWhatsApp() {
     'class="bt-wa-link">WhatsApp — La Tribu</a>');
 }
 
-/* ── Resize de media con +/− ── */
+/* Resize de media con +/− */
 function _btPct(el) {
   const w = (el.style.width || '').replace('%', '');
   return w ? parseInt(w, 10) : 100;
@@ -155,7 +71,7 @@ function btResizeMedia(dir) {
   _btMediaPct(el);
 }
 
-/* ── Guardar (todas las páginas) ── */
+/* Guardar (todas las páginas) */
 async function btGuardar() {
   _btSyncPagina();
   const payload = {
@@ -178,7 +94,7 @@ async function btGuardar() {
   else alert(data.error || 'Error al guardar');
 }
 
-/* ── Eliminar entrada (doble confirmación) ── */
+/* Eliminar entrada (doble confirmación) */
 function btEliminar(id) {
   if (!confirm('¿Eliminar esta entrada de la bitácora?')) return;
   if (!confirm('Esta acción no se puede deshacer. ¿Confirmás?')) return;
@@ -191,4 +107,11 @@ function btEliminar(id) {
         } else location.reload();
       } else alert(d.error || 'Error al eliminar');
     });
+}
+
+/* Exportar y compartir */
+function btCopiarEnlace(url) {
+  navigator.clipboard.writeText(url).then(
+    () => alert('Enlace copiado'),
+    () => prompt('Copiá el enlace:', url));
 }
