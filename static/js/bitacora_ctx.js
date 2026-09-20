@@ -53,6 +53,26 @@ function _btCtxMenu(items, x, y) {
   _btCtxPos(m, x, y);
 }
 
+/* Envuelve la selección en un span con tamaño de fuente ±2px */
+function _btFontSize(delta) {
+  Wysiwyg.restaurarSeleccion('btEditor');
+  const s = window.getSelection();
+  if (!s.rangeCount || s.isCollapsed) return;
+  const r = s.getRangeAt(0);
+  const ref = r.startContainer.nodeType === 3
+    ? r.startContainer.parentElement : r.startContainer;
+  const cur = ref ? parseFloat(getComputedStyle(ref).fontSize) || 16 : 16;
+  const span = document.createElement('span');
+  span.style.fontSize = Math.max(8, Math.min(72, cur + delta * 2)) + 'px';
+  try { r.surroundContents(span); }
+  catch (e) { span.appendChild(r.extractContents()); r.insertNode(span); }
+  const nr = document.createRange();
+  nr.selectNodeContents(span);
+  s.removeAllRanges();
+  s.addRange(nr);
+  Wysiwyg.guardarSeleccion('btEditor');
+}
+
 function _btCtxTexto(x, y) {
   const ed = 'btEditor';
   const items = [
@@ -65,6 +85,8 @@ function _btCtxTexto(x, y) {
     _btCtxBtn('bi-type-underline', 'Subrayado', () => Wysiwyg.execCmd(ed, 'underline')),
     _btCtxBtn('bi-highlighter', 'Resaltar amarillo',
       () => Wysiwyg.execCmd(ed, 'hiliteColor', '#ffff99')),
+    _btCtxBtn('bi-zoom-in', 'Aumentar texto', () => _btFontSize(1)),
+    _btCtxBtn('bi-zoom-out', 'Disminuir texto', () => _btFontSize(-1)),
     _btCtxBtn('bi-text-left', 'Alinear a la izquierda',
       () => Wysiwyg.execCmd(ed, 'justifyLeft')),
     _btCtxBtn('bi-text-center', 'Centrado',

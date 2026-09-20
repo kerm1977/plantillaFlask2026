@@ -58,6 +58,14 @@
   <div class="vr mx-1"></div>
   <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','undo')" title="Deshacer"><i class="bi bi-arrow-90deg-left"></i></button>
   <button class="btn btn-sm btn-light rounded-circle" type="button" onclick="Wysiwyg.execCmd('{{ editor_id }}','redo')" title="Rehacer"><i class="bi bi-arrow-90deg-right"></i></button>
+  <div class="w-100"></div>
+  <span class="small fw-bold text-muted me-1">Color:</span>
+  {% for c, nombre in [('#f58c1f','Naranja'),('#28a745','Verde'),('#212529','Negro'),
+      ('#808080','Gris ratón'),('#38bdf8','Celeste'),('#dc3545','Rojo'),('#8e44ad','Morado')] %}
+  <button class="rounded-circle border" type="button" title="{{ nombre }}"
+          style="width:26px;height:26px;background:{{ c }};padding:0;"
+          onclick="Wysiwyg.execCmd('{{ editor_id }}','foreColor','{{ c }}')"></button>
+  {% endfor %}
 </div>
 {%- endmacro %}
 
