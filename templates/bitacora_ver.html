@@ -56,19 +56,21 @@
   </nav>
   {% endif %}
 
-  <p class="text-center text-muted small mt-3 mb-0">
+  <p class="text-center mt-3 mb-0" style="color:#c3c9d0;font-size:0.72rem;">
     <i class="bi bi-clock me-1"></i>{{ creado_cr }} (CR)
     {% if editado_cr %}
       · editado {{ editado_cr }} (CR){% if entry.editado_por %} por {{ entry.editado_por }}{% endif %}
     {% endif %}
   </p>
 
+  {% if is_super and not vista_usuario %}
   <div class="text-center mt-3">
     <a href="{{ url_for('main.bitacora_lista') }}" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold"
        style="color:#6c757d;border:1px solid #ced4da;">
       <i class="bi bi-arrow-left me-1"></i>Volver a la bitácora
     </a>
   </div>
+  {% endif %}
 </div>
 
 <!-- Lightbox de imagen -->
