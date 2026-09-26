@@ -51,8 +51,9 @@ function _dlCard(job) {
   const color = job.status === 'error' || job.status === 'cancelado'
     ? '#dc3545' : job.status === 'listo' ? '#198754' : '#f58c1f';
   return '<div class="dl-job">' +
-    '<p class="small fw-bold text-dark mb-1 text-break">' +
-    '<i class="bi bi-link-45deg"></i> ' + job.url + '</p>' +
+    '<p class="small fw-bold text-dark mb-1 dl-job-url">' +
+    '<i class="bi bi-link-45deg"></i> ' +
+    job.url.replace(/</g, '&lt;') + '</p>' +
     '<div class="progress">' +
     '<div class="progress-bar" role="progressbar" ' +
     'style="width:' + pct + '%;background:' + color + ';"></div></div>' +

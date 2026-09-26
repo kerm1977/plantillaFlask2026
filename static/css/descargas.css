@@ -50,7 +50,15 @@
   border: 1px solid rgba(0,0,0,0.07);
   border-radius: 1rem;
   padding: 0.85rem 1rem;
+  min-width: 0;                 /* evita desborde del grid en móvil */
+  overflow: hidden;             /* nada puede salirse de la tarjeta */
 }
+.dl-job-url {
+  word-break: break-all;        /* enlaces largos sin espacios */
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.dl-job .d-flex { flex-wrap: wrap; gap: 0.35rem; } /* botón + mensaje */
 .dl-job .progress {
   height: 0.7rem;
   border-radius: 1rem;
