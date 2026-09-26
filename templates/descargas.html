@@ -2,43 +2,61 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
-<div class="container py-4 animate__animated animate__fadeIn" style="max-width:40rem;">
+<div class="container py-4 animate__animated animate__fadeIn" style="max-width:42rem;">
   <h1 class="fw-bold text-dark text-center mb-1">
     <i class="bi bi-cloud-download me-2" style="color:#f58c1f;"></i>Descargar videos
   </h1>
   <p class="text-center text-muted small mb-4">
-    YouTube · Facebook · TikTok · Instagram · enlaces web
+    YouTube · Facebook · TikTok · Instagram · enlaces web · yt-dlp {{ version }}
   </p>
 
   <div class="mb-3">
     <label class="fw-bold text-dark mb-1">
-      <i class="bi bi-link-45deg me-1"></i>Enlace del video
+      <i class="bi bi-link-45deg me-1"></i>Enlaces <span class="text-muted fw-normal">(uno por línea)</span>
     </label>
     <div class="input-group">
-      <input id="dlUrl" type="url" class="form-control glass-input rounded-start-pill"
-             placeholder="https://www.youtube.com/watch?v=…">
-      <button class="btn btn-light rounded-end-pill px-3" type="button"
+      <textarea id="dlUrl" class="form-control glass-input" rows="3"
+                placeholder="https://www.youtube.com/watch?v=…"></textarea>
+      <button class="btn btn-light px-3" type="button"
               onclick="dlPegar()" title="Pegar del portapapeles">
         <i class="bi bi-clipboard"></i>
       </button>
     </div>
   </div>
 
-  <div class="mb-3 text-center">
-    <label class="fw-bold text-dark d-block mb-2">
-      <i class="bi bi-file-earmark-play me-1"></i>Formato
-    </label>
-    <div class="d-flex justify-content-center gap-2 flex-wrap">
-      {% for f in formatos %}
-      <input type="radio" class="btn-check" name="dlFmt" id="dlFmt_{{ f }}"
-             value="{{ f }}" {{ 'checked' if f == 'mp4' }}>
-      <label class="btn btn-outline-orange rounded-pill px-3 fw-bold"
-             for="dlFmt_{{ f }}">{{ f|upper }}</label>
-      {% endfor %}
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-md-7 text-center">
+      <label class="fw-bold text-dark d-block mb-2">
+        <i class="bi bi-file-earmark-play me-1"></i>Formato
+      </label>
+      <div class="d-flex justify-content-center gap-2 flex-wrap">
+        {% for f in formatos %}
+        <input type="radio" class="btn-check" name="dlFmt" id="dlFmt_{{ f }}"
+               value="{{ f }}" {{ 'checked' if f == 'mp4' }}>
+        <label class="btn btn-outline-orange rounded-pill px-3 fw-bold"
+               for="dlFmt_{{ f }}">{{ f|upper }}</label>
+        {% endfor %}
+      </div>
     </div>
-    <p class="text-muted small mt-2 mb-0">
-      mp4 = video h264 · mp3/wma = solo audio · gif/wmv = convertido con ffmpeg
-    </p>
+    <div class="col-12 col-md-5 text-center">
+      <label class="fw-bold text-dark d-block mb-2">
+        <i class="bi bi-lightning-charge me-1"></i>Simultáneas
+      </label>
+      <select id="dlMaxPar" class="form-select glass-input rounded-3 fw-bold text-dark mx-auto" style="width:auto;">
+        {% for n in range(1, max_sim + 1) %}
+        <option value="{{ n }}" {{ 'selected' if n == 2 }}>{{ n }} a la vez</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+
+  <div class="mb-3">
+    <label class="fw-bold text-dark mb-1">
+      <i class="bi bi-terminal me-1"></i>Opciones avanzadas yt-dlp
+      <span class="text-muted fw-normal small">(opcional — cualquier flag del repo)</span>
+    </label>
+    <input id="dlExtra" type="text" class="form-control glass-input rounded-3 small"
+           placeholder="--write-thumbnail --embed-metadata --audio-quality 0 …">
   </div>
 
   <div class="text-center">
@@ -48,14 +66,24 @@
     </button>
   </div>
 
-  <div id="dlEstado" class="text-center mt-4" style="display:none;">
-    <div id="dlSpinner" class="spinner-border" style="color:#f58c1f;" role="status"></div>
-    <p id="dlMsg" class="fw-bold text-dark mt-2 mb-2"></p>
-    <a id="dlArchivo" class="btn btn-success rounded-pill px-4 fw-bold"
-       style="display:none;" href="#">
-      <i class="bi bi-save me-1"></i>Guardar archivo
-    </a>
+  <div id="dlLista" class="mt-4"></div>
+
+  <hr class="opacity-25 mt-4">
+  <div class="text-center">
+    <p class="fw-bold text-dark mb-1">
+      <i class="bi bi-arrow-repeat me-1"></i>yt-dlp instalado: <span id="dlVer">{{ version }}</span>
+    </p>
+    <p id="dlVerDisp" class="text-muted small mb-2"></p>
+    <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold me-1"
+            onclick="dlCheckVersion()">
+      <i class="bi bi-search me-1"></i>Buscar actualizaciones
+    </button>
+    <button class="btn btn-sm btn-outline-orange rounded-pill px-3 fw-bold"
+            onclick="dlActualizar()">
+      <i class="bi bi-cloud-arrow-down me-1"></i>Actualizar yt-dlp
+    </button>
+    <p id="dlUpMsg" class="text-muted small mt-2 mb-0"></p>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/descargas.js') }}?v=1"></script>
+<script src="{{ url_for('static', filename='js/descargas.js') }}?v=2"></script>
 {% endblock %}

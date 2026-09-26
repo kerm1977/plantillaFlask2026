@@ -1,9 +1,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v10.16';
-const STATIC_CACHE   = 'la-tribu-static-v10.16';
-const PAGES_CACHE    = 'la-tribu-pages-v10.16';
+const CACHE_NAME     = 'la-tribu-v10.17';
+const STATIC_CACHE   = 'la-tribu-static-v10.17';
+const PAGES_CACHE    = 'la-tribu-pages-v10.17';
 const OFFLINE_DATA_CACHE = 'la-tribu-offline-data-v1';
 const OFFLINE_URL    = '/offline';
 
@@ -189,6 +189,13 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
         );
+        return;
+    }
+
+    // 2.5 Descargas (yt-dlp) → SIN interceptar: polling y archivos van
+    //     directo a la red (respuestas grandes/streaming)
+    if (url.pathname.startsWith('/api/descargas/') ||
+        url.pathname.startsWith('/herramientas/descargas')) {
         return;
     }
 

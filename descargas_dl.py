@@ -1,34 +1,51 @@
-# ══ BLINDADO — DESCARGAS (motor yt-dlp + ffmpeg) ══
+# ══ BLINDADO — DESCARGAS (cola y trabajos) ══
 # Código probado y estable. NO modificar sin revisar el flujo completo.
-# Descarga videos de YouTube/Facebook/TikTok/Instagram/web y convierte
-# a mp4 (h264), mp3, gif, wmv o wma. Solo superusuario (ver rutas).
+# Multi-enlace con cola y concurrencia configurable (1-10), progreso real,
+# opciones avanzadas yt-dlp. Solo superusuario (ver routes/descargas.py).
+# Ejecución en descargas_run.py; actualización en descargas_up.py.
 import os
 import re
-import sys
 import time
 import uuid
-import threading
-import subprocess
+import shlex
 
-import imageio_ffmpeg
+# Las descargas corren en hilos REALES del SO — los hilos verdes de
+# eventlet congelan subprocess (ver descargas_run.py).
+try:
+    import eventlet.patcher as _ep
+    threading = _ep.original('threading')
+except Exception:
+    import threading
 
-FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
-_DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'downloads')
-os.makedirs(_DIR, exist_ok=True)
+import descargas_run as run
 
 FORMATOS = ('mp4', 'mp3', 'gif', 'wmv', 'wma')
-TIMEOUT = 900          # 15 min máximo por proceso
-JOBS = {}              # id -> {status, msg, archivo, nombre, ts}
+MAX_SIMULTANEAS = 10
+
+JOBS = {}               # jid -> dict de trabajo
+LOTES = {}              # lid -> [jids]
+_COLA = []              # jids pendientes
+_LOCK = threading.Lock()
+_MAX_PAR = 2            # descargas simultáneas activas
+
+# Flags no permitidos en opciones avanzadas (seguridad/salida controlada)
+_ARGS_BLOQUEADOS = ('--exec', '-o', '--output', '--paths', '-P',
+                    '--config', '--config-location', '--plugin-dirs',
+                    '--batch-file', '-a')
 
 
 def _sweep():
-    """Borra resultados y trabajos de más de 1 hora."""
+    """Borra trabajos y archivos de más de 1 hora."""
     ahora = time.time()
     for jid, job in list(JOBS.items()):
         if ahora - job.get('ts', 0) > 3600:
             JOBS.pop(jid, None)
-    for f in os.listdir(_DIR):
-        p = os.path.join(_DIR, f)
+    for lid in list(LOTES):
+        LOTES[lid] = [j for j in LOTES[lid] if j in JOBS]
+        if not LOTES[lid]:
+            LOTES.pop(lid)
+    for f in os.listdir(run.DIR):
+        p = os.path.join(run.DIR, f)
         try:
             if os.path.isfile(p) and ahora - os.path.getmtime(p) > 3600:
                 os.remove(p)
@@ -36,110 +53,87 @@ def _sweep():
             pass
 
 
-def _ejecutar(cmd):
-    r = subprocess.run(cmd, capture_output=True, text=True, timeout=TIMEOUT)
-    return r.returncode == 0, (r.stderr or r.stdout or '')[-800:]
-
-
-def _ytdlp(url, args):
-    return [sys.executable, '-m', 'yt_dlp', '--no-playlist', '--no-warnings',
-            '--ffmpeg-location', FFMPEG] + args + [url]
-
-
-def _buscar(base):
-    """Primer archivo del trabajo que empiece con el prefijo dado."""
-    pref = os.path.basename(base)
-    for f in sorted(os.listdir(_DIR)):
-        if f.startswith(pref) and os.path.isfile(os.path.join(_DIR, f)):
-            return os.path.join(_DIR, f)
-    return None
-
-
-def _audio(job, base, fmt, url):
-    ok, log = _ejecutar(_ytdlp(url, ['-x', '--audio-format', fmt,
-                                   '-o', base + '.%(ext)s']))
-    tmp = _buscar(base)
-    if not ok or not tmp:
-        raise RuntimeError('yt-dlp falló: ' + log)
-    return tmp
-
-
-def _video(job, base, url):
-    ok, log = _ejecutar(_ytdlp(url, ['-S', 'vcodec:h264',
-                                     '--merge-output-format', 'mp4',
-                                     '-o', base + '_v.%(ext)s']))
-    tmp = _buscar(base + '_v')
-    if not ok or not tmp:
-        raise RuntimeError('yt-dlp falló: ' + log)
-    return tmp
-
-
-def _convertir(job, tmp, destino, args):
-    job['msg'] = 'Convirtiendo…'
-    ok, log = _ejecutar([FFMPEG, '-y', '-i', tmp] + args + [destino])
-    if not ok or not os.path.exists(destino):
-        raise RuntimeError('ffmpeg falló: ' + log)
-
-
-def _trabajar(jid, url, formato):
-    job = JOBS[jid]
-    base = os.path.join(_DIR, jid)
+def _extra_args(txt):
+    """Opciones yt-dlp del usuario, menos flags bloqueados."""
+    if not txt:
+        return []
     try:
-        job['msg'] = 'Descargando…'
-        if formato == 'mp3':
-            final = _audio(job, base, 'mp3', url)
-        elif formato == 'wma':
-            tmp = _audio(job, base, 'wav', url)
-            final = base + '.wma'
-            _convertir(job, tmp, final, ['-vn', '-c:a', 'wmav2'])
-            os.remove(tmp)
-        else:
-            tmp = _video(job, base, url)
-            if formato == 'mp4':
-                final = tmp
-            elif formato == 'gif':
-                final = base + '.gif'
-                _convertir(job, tmp, final,
-                           ['-vf', 'fps=10,scale=480:-1:flags=lanczos'])
-                os.remove(tmp)
-            else:  # wmv
-                final = base + '.wmv'
-                _convertir(job, tmp, final,
-                           ['-c:v', 'wmv2', '-b:v', '2M', '-c:a', 'wmav2'])
-                os.remove(tmp)
-        job['status'] = 'listo'
-        job['archivo'] = final
-        job['nombre'] = 'descarga_' + jid[:8] + '.' + formato
-        job['msg'] = 'Listo'
-    except Exception as e:
-        job['status'] = 'error'
-        job['msg'] = str(e)[:300]
-    job['ts'] = time.time()
+        args = shlex.split(txt)
+    except ValueError:
+        return []
+    out = []
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in _ARGS_BLOQUEADOS:
+            i += 2          # salta el flag y su valor
+            continue
+        if any(a.startswith(b + '=') for b in _ARGS_BLOQUEADOS):
+            i += 1
+            continue
+        out.append(a)
+        i += 1
+    return out
 
 
-def iniciar(url, formato):
-    """Lanza el trabajo en segundo plano y devuelve su id."""
+def _activos():
+    return sum(1 for j in JOBS.values()
+               if j['status'] in ('descargando', 'convirtiendo'))
+
+
+def _arrancar():
+    with _LOCK:
+        while _COLA and _activos() < _MAX_PAR:
+            jid = _COLA.pop(0)
+            JOBS[jid]['status'] = 'descargando'
+            JOBS[jid]['msg'] = 'Descargando…'
+            base = os.path.join(run.DIR, jid)
+            threading.Thread(target=run.trabajar,
+                             args=(JOBS[jid], base, _fin),
+                             daemon=True).start()
+
+
+def _fin():
+    _arrancar()
+
+
+def iniciar_lote(urls, formato, extra, max_par):
+    """Encola los enlaces y devuelve el id del lote."""
     _sweep()
-    jid = uuid.uuid4().hex
-    JOBS[jid] = {'status': 'procesando', 'msg': 'Iniciando…',
-                 'archivo': None, 'nombre': '', 'ts': time.time()}
-    threading.Thread(target=_trabajar, args=(jid, url, formato),
-                     daemon=True).start()
-    return jid
+    global _MAX_PAR
+    try:
+        _MAX_PAR = max(1, min(MAX_SIMULTANEAS, int(max_par)))
+    except (TypeError, ValueError):
+        _MAX_PAR = 2
+    extra = _extra_args(extra)
+    lid = uuid.uuid4().hex[:12]
+    jids = []
+    for u in urls:
+        jid = uuid.uuid4().hex
+        JOBS[jid] = {'id': jid, 'url': u, 'formato': formato,
+                     'status': 'pendiente', 'pct': 0,
+                     'msg': 'En cola…', 'archivo': None,
+                     'nombre': '', 'extra': extra, 'ts': time.time()}
+        _COLA.append(jid)
+        jids.append(jid)
+    LOTES[lid] = jids
+    _arrancar()
+    return lid
 
 
-def estado(jid):
-    job = JOBS.get(jid)
-    if not job:
+def lote(lid):
+    jids = LOTES.get(lid)
+    if jids is None:
         return None
-    return {'status': job['status'], 'msg': job['msg']}
+    keys = ('id', 'url', 'formato', 'status', 'pct', 'msg', 'nombre')
+    return [{k: JOBS[j].get(k) for k in keys} for j in jids if j in JOBS]
 
 
 def archivo(jid):
-    """(ruta, nombre_descarga) o None si no está listo."""
     job = JOBS.get(jid)
     if not job or job['status'] != 'listo' or not job['archivo']:
         return None
+    job['ts'] = time.time()
     return job['archivo'], job['nombre']
 
 
