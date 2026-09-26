@@ -6,6 +6,7 @@ import os
 import re
 import sys
 import time
+import shutil
 
 # subprocess y threading REALES — eventlet.monkey_patch los congela.
 try:
@@ -39,11 +40,19 @@ _ROBUSTEZ = ['--retries', '10', '--fragment-retries', '10',
              '--extractor-retries', '5', '--file-access-retries', '5',
              '--retry-sleep', '3', '--geo-bypass']
 
+# Node como runtime JS desbloquea formatos de YouTube (solución oficial EJS)
+_JS_RT = ['--js-runtimes', 'node'] if shutil.which('node') else []
+
+_COOKIES = os.path.join(DIR, 'cookies.txt')
+
 
 def ytdlp_cmd(url, args, extra):
-    return [sys.executable, '-m', 'yt_dlp', '--no-playlist', '--newline',
-            '--no-warnings', '--ffmpeg-location', FFMPEG] \
-            + _IMPERSONATE + _ROBUSTEZ + args + extra + [url]
+    cmd = [sys.executable, '-m', 'yt_dlp', '--no-playlist', '--newline',
+           '--ffmpeg-location', FFMPEG] \
+           + _IMPERSONATE + _JS_RT + _ROBUSTEZ
+    if os.path.exists(_COOKIES):
+        cmd += ['--cookies', _COOKIES]
+    return cmd + args + extra + [url]
 
 
 def _vigilante(p, job):
@@ -75,12 +84,16 @@ def run_progreso(job, cmd):
     try:
         for line in p.stdout:
             job['t_act'] = time.time()
-            tail.append(line.rstrip())
+            txt = line.rstrip()
+            tail.append(txt)
             del tail[:-20]
-            m = _PCT.search(line)
+            job['log'] = '\n'.join(tail[-4:])   # últimas líneas visibles
+            m = _PCT.search(txt)
             if m:
                 job['pct'] = int(float(m.group(1)) * 0.9)
                 job['msg'] = 'Descargando ' + m.group(1) + '%'
+            elif txt.strip():
+                job['msg'] = txt[:120]          # extracción/reintentos en vivo
         p.wait(timeout=60)
     except Exception:
         pass

@@ -13,6 +13,20 @@ async function dlCancelar(jid) {
   } catch (e) {}
 }
 
+async function dlSubirCookies(input) {
+  const f = input.files && input.files[0];
+  if (!f) return;
+  const fd = new FormData();
+  fd.append('cookies', f);
+  const st = document.getElementById('dlCookiesMsg');
+  try {
+    const r = await fetch('/api/descargas/cookies', {method: 'POST', body: fd});
+    const d = await r.json();
+    st.textContent = d.ok ? 'Cookies cargadas — anti-bot activado.'
+                          : (d.error || 'Error');
+  } catch (e) { st.textContent = 'Error al subir.'; }
+}
+
 async function dlCancelarTodo() {
   try {
     await fetch('/api/descargas/cancelar-todo', {method: 'POST'});
@@ -42,6 +56,8 @@ function _dlCard(job) {
     '<div class="progress">' +
     '<div class="progress-bar" role="progressbar" ' +
     'style="width:' + pct + '%;background:' + color + ';"></div></div>' +
+    (job.log && job.status !== 'listo'
+      ? '<pre class="dl-log">' + job.log.replace(/</g, '&lt;') + '</pre>' : '') +
     '<div class="d-flex justify-content-between align-items-center mt-1">' +
     '<span class="small" style="color:' + color + ';">' + job.msg + '</span>' +
     (job.status === 'listo'

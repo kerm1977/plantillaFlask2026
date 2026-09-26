@@ -57,3 +57,12 @@
   background: rgba(0,0,0,0.08);
 }
 .dl-job .progress-bar { border-radius: 1rem; transition: width 0.4s; }
+.dl-log {
+  font-size: 0.68rem;
+  color: #8a939b;
+  margin: 0.4rem 0 0;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 4.5rem;
+  overflow: hidden;
+}

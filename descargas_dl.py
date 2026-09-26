@@ -156,8 +156,15 @@ def lote(lid):
     jids = LOTES.get(lid)
     if jids is None:
         return None
-    keys = ('id', 'url', 'formato', 'status', 'pct', 'msg', 'nombre')
+    keys = ('id', 'url', 'formato', 'status', 'pct', 'msg', 'nombre', 'log')
     return [{k: JOBS[j].get(k) for k in keys} for j in jids if j in JOBS]
+
+
+def guardar_cookies(archivo):
+    """Guarda el cookies.txt exportado del navegador (fix anti-bot)."""
+    path = os.path.join(run.DIR, 'cookies.txt')
+    archivo.save(path)
+    return os.path.getsize(path) > 10
 
 
 def archivo(jid):

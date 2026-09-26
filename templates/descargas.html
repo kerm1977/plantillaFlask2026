@@ -66,6 +66,14 @@
         </label>
         <input id="dlExtra" type="text" class="form-control dl-input small"
                placeholder="--write-thumbnail --embed-metadata …">
+        <label class="small fw-bold text-dark mb-1 mt-3 d-block">
+          <i class="bi bi-shield-check me-1"></i>Cookies anti-bot
+          <span class="text-muted fw-normal">(cookies.txt del navegador)</span>
+        </label>
+        <input id="dlCookiesFile" type="file" accept=".txt"
+               class="form-control dl-input small"
+               onchange="dlSubirCookies(this)">
+        <p id="dlCookiesMsg" class="text-muted small mt-1 mb-0"></p>
       </div>
     </div>
   </div>
@@ -97,5 +105,5 @@
     <p id="dlUpMsg" class="text-muted small mt-2 mb-0"></p>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/descargas.js') }}?v=4"></script>
+<script src="{{ url_for('static', filename='js/descargas.js') }}?v=5"></script>
 {% endblock %}

@@ -51,6 +51,16 @@ def descargas_lote(lid):
     return jsonify({'ok': True, 'jobs': jobs})
 
 
+@bp.route('/api/descargas/cookies', methods=['POST'])
+def descargas_cookies():
+    if not _super():
+        return jsonify({'error': 'Sin permiso'}), 403
+    f = request.files.get('cookies')
+    if not f:
+        return jsonify({'error': 'Sin archivo'}), 400
+    return jsonify({'ok': dl.guardar_cookies(f)})
+
+
 @bp.route('/api/descargas/cancelar/<jid>', methods=['POST'])
 def descargas_cancelar(jid):
     if not _super():
