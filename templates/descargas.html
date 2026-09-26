@@ -2,77 +2,85 @@
 {% extends "base.html" %}
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
-<div class="container py-4 animate__animated animate__fadeIn" style="max-width:42rem;">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/descargas.css') }}">
+<div class="container-fluid py-4 px-3 px-md-5 animate__animated animate__fadeIn">
   <h1 class="fw-bold text-dark text-center mb-1">
     <i class="bi bi-cloud-download me-2" style="color:#f58c1f;"></i>Descargar videos
   </h1>
   <p class="text-center text-muted small mb-4">
-    YouTube · Facebook · TikTok · Instagram · enlaces web · yt-dlp {{ version }}
+    YouTube · Facebook · TikTok · Instagram · enlaces web · yt-dlp <span id="dlVer">{{ version }}</span>
   </p>
 
-  <div class="mb-3">
-    <label class="fw-bold text-dark mb-1">
-      <i class="bi bi-link-45deg me-1"></i>Enlaces <span class="text-muted fw-normal">(uno por línea)</span>
+  {# Enlaces — a todo lo ancho, siempre arriba #}
+  <div class="dl-bloque mb-3">
+    <label class="fw-bold text-dark mb-2">
+      <i class="bi bi-link-45deg me-1"></i>Enlaces
+      <span class="text-muted fw-normal">(uno por línea, hasta 50)</span>
     </label>
     <div class="input-group">
-      <textarea id="dlUrl" class="form-control glass-input" rows="3"
+      <textarea id="dlUrl" class="form-control dl-input" rows="3"
                 placeholder="https://www.youtube.com/watch?v=…"></textarea>
-      <button class="btn btn-light px-3" type="button"
+      <button class="btn dl-btn-clip px-3" type="button"
               onclick="dlPegar()" title="Pegar del portapapeles">
         <i class="bi bi-clipboard"></i>
       </button>
     </div>
   </div>
 
+  {# Bloques: formatos (izq) + opciones (der) en desktop; apilados en móvil #}
   <div class="row g-3 mb-3">
-    <div class="col-12 col-md-7 text-center">
-      <label class="fw-bold text-dark d-block mb-2">
-        <i class="bi bi-file-earmark-play me-1"></i>Formato
-      </label>
-      <div class="d-flex justify-content-center gap-2 flex-wrap">
-        {% for f in formatos %}
-        <input type="radio" class="btn-check" name="dlFmt" id="dlFmt_{{ f }}"
-               value="{{ f }}" {{ 'checked' if f == 'mp4' }}>
-        <label class="btn btn-outline-orange rounded-pill px-3 fw-bold"
-               for="dlFmt_{{ f }}">{{ f|upper }}</label>
-        {% endfor %}
+    <div class="col-12 col-lg-6">
+      <div class="dl-bloque h-100 text-center">
+        <p class="fw-bold text-dark mb-2">
+          <i class="bi bi-file-earmark-play me-1"></i>Formato
+        </p>
+        <div class="d-flex justify-content-center gap-2 flex-wrap">
+          {% for f in formatos %}
+          <input type="radio" class="btn-check" name="dlFmt" id="dlFmt_{{ f }}"
+                 value="{{ f }}" {{ 'checked' if f == 'mp4' }}>
+          <label class="btn btn-outline-orange rounded-pill px-3 fw-bold"
+                 for="dlFmt_{{ f }}">{{ f|upper }}</label>
+          {% endfor %}
+        </div>
+        <p class="text-muted small mt-2 mb-0">
+          mp4 = video h264 · mp3/wma = solo audio · gif/wmv = conversión ffmpeg
+        </p>
       </div>
     </div>
-    <div class="col-12 col-md-5 text-center">
-      <label class="fw-bold text-dark d-block mb-2">
-        <i class="bi bi-lightning-charge me-1"></i>Simultáneas
-      </label>
-      <select id="dlMaxPar" class="form-select glass-input rounded-3 fw-bold text-dark mx-auto" style="width:auto;">
-        {% for n in range(1, max_sim + 1) %}
-        <option value="{{ n }}" {{ 'selected' if n == 2 }}>{{ n }} a la vez</option>
-        {% endfor %}
-      </select>
+    <div class="col-12 col-lg-6">
+      <div class="dl-bloque h-100">
+        <p class="fw-bold text-dark mb-2 text-center">
+          <i class="bi bi-gear me-1"></i>Opciones
+        </p>
+        <label class="small fw-bold text-dark mb-1">
+          <i class="bi bi-lightning-charge me-1"></i>Descargas simultáneas
+        </label>
+        <select id="dlMaxPar" class="form-select dl-select fw-bold text-dark mb-3">
+          {% for n in range(1, max_sim + 1) %}
+          <option value="{{ n }}" {{ 'selected' if n == 2 }}>{{ n }} a la vez</option>
+          {% endfor %}
+        </select>
+        <label class="small fw-bold text-dark mb-1">
+          <i class="bi bi-terminal me-1"></i>Opciones avanzadas yt-dlp
+          <span class="text-muted fw-normal">(cualquier flag del repo)</span>
+        </label>
+        <input id="dlExtra" type="text" class="form-control dl-input small"
+               placeholder="--write-thumbnail --embed-metadata …">
+      </div>
     </div>
   </div>
 
-  <div class="mb-3">
-    <label class="fw-bold text-dark mb-1">
-      <i class="bi bi-terminal me-1"></i>Opciones avanzadas yt-dlp
-      <span class="text-muted fw-normal small">(opcional — cualquier flag del repo)</span>
-    </label>
-    <input id="dlExtra" type="text" class="form-control glass-input rounded-3 small"
-           placeholder="--write-thumbnail --embed-metadata --audio-quality 0 …">
-  </div>
-
-  <div class="text-center">
-    <button id="dlBtn" class="btn btn-orange rounded-pill px-4 fw-bold"
+  <div class="text-center mb-3">
+    <button id="dlBtn" class="btn btn-orange rounded-pill px-5 fw-bold"
             onclick="dlIniciar()">
       <i class="bi bi-download me-1"></i>Descargar
     </button>
   </div>
 
-  <div id="dlLista" class="mt-4"></div>
+  <div id="dlLista"></div>
 
   <hr class="opacity-25 mt-4">
   <div class="text-center">
-    <p class="fw-bold text-dark mb-1">
-      <i class="bi bi-arrow-repeat me-1"></i>yt-dlp instalado: <span id="dlVer">{{ version }}</span>
-    </p>
     <p id="dlVerDisp" class="text-muted small mb-2"></p>
     <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold me-1"
             onclick="dlCheckVersion()">
@@ -85,5 +93,5 @@
     <p id="dlUpMsg" class="text-muted small mt-2 mb-0"></p>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/descargas.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/descargas.js') }}?v=3"></script>
 {% endblock %}

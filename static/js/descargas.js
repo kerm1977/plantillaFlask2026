@@ -20,11 +20,10 @@ function _dlCard(job) {
   const pct = job.pct || 0;
   const color = job.status === 'error' ? '#dc3545'
     : job.status === 'listo' ? '#198754' : '#f58c1f';
-  return '<div class="mb-3 p-3 rounded-4 shadow-sm" ' +
-    'style="background:rgba(255,255,255,0.6);">' +
+  return '<div class="dl-job">' +
     '<p class="small fw-bold text-dark mb-1 text-break">' +
     '<i class="bi bi-link-45deg"></i> ' + job.url + '</p>' +
-    '<div class="progress" style="height:0.7rem;border-radius:1rem;">' +
+    '<div class="progress">' +
     '<div class="progress-bar" role="progressbar" ' +
     'style="width:' + pct + '%;background:' + color + ';"></div></div>' +
     '<div class="d-flex justify-content-between align-items-center mt-1">' +
