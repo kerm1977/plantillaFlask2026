@@ -32,6 +32,7 @@ flask_*.log
 
 # Backups y snapshots locales
 backups/
+downloads/
 templates_BACKUP_*/
 data/
 

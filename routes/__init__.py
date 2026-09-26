@@ -99,6 +99,7 @@ from routes import (        # noqa: E402, F401
     tracking_admin,
     tracking_public,
     bitacora,
+    descargas,
 )
 
 # Re-exportar para app.py

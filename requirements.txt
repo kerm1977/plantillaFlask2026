@@ -10,3 +10,5 @@ openpyxl
 Flask-SocketIO
 eventlet
 pymysql
+yt-dlp
+imageio-ffmpeg
