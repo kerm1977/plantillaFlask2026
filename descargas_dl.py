@@ -18,8 +18,10 @@ except Exception:
     import threading
 
 import descargas_run as run
+import descargas_directo as directo
 
 FORMATOS = ('mp4', 'mp3', 'gif', 'wmv', 'wma')
+MOTORES = ('auto', 'ytdlp', 'directo')
 MAX_SIMULTANEAS = 10
 
 JOBS = {}               # jid -> dict de trabajo
@@ -85,11 +87,18 @@ def _arrancar():
     with _LOCK:
         while _COLA and _activos() < _MAX_PAR:
             jid = _COLA.pop(0)
-            JOBS[jid]['status'] = 'descargando'
-            JOBS[jid]['msg'] = 'Descargando…'
+            job = JOBS[jid]
+            job['status'] = 'descargando'
+            job['msg'] = 'Descargando…'
+            motor = job.get('motor', 'ytdlp')
+            if motor == 'directo' or (motor == 'auto'
+                                      and directo.es_directa(job['url'])):
+                target = directo.trabajar
+                job['msg'] = 'Descarga directa…'
+            else:
+                target = run.trabajar
             base = os.path.join(run.DIR, jid)
-            threading.Thread(target=run.trabajar,
-                             args=(JOBS[jid], base, _fin),
+            threading.Thread(target=target, args=(job, base, _fin),
                              daemon=True).start()
 
 
@@ -97,7 +106,7 @@ def _fin():
     _arrancar()
 
 
-def iniciar_lote(urls, formato, extra, max_par):
+def iniciar_lote(urls, formato, extra, max_par, motor='auto', clave=''):
     """Encola los enlaces y devuelve el id del lote."""
     _sweep()
     global _MAX_PAR
@@ -113,7 +122,9 @@ def iniciar_lote(urls, formato, extra, max_par):
         JOBS[jid] = {'id': jid, 'url': u, 'formato': formato,
                      'status': 'pendiente', 'pct': 0,
                      'msg': 'En cola…', 'archivo': None,
-                     'nombre': '', 'extra': extra, 'ts': time.time()}
+                     'nombre': '', 'extra': extra, 'ts': time.time(),
+                     'motor': motor if motor in MOTORES else 'auto',
+                     'clave': (clave or '')[:300]}
         _COLA.append(jid)
         jids.append(jid)
     LOTES[lid] = jids

@@ -61,6 +61,20 @@
           {% endfor %}
         </select>
         <label class="small fw-bold text-dark mb-1">
+          <i class="bi bi-cpu me-1"></i>Motor de descarga
+        </label>
+        <select id="dlMotor" class="form-select dl-select fw-bold text-dark mb-3">
+          <option value="auto" selected>Automático (recomendado)</option>
+          <option value="ytdlp">yt-dlp — YouTube, TikTok, Facebook…</option>
+          <option value="directo">Directo ffmpeg/HTTP — .mp4 .m3u8 .mpd…</option>
+        </select>
+        <label class="small fw-bold text-dark mb-1">
+          <i class="bi bi-key me-1"></i>Clave de descifrado propia
+          <span class="text-muted fw-normal">(KID:key, solo contenido tuyo)</span>
+        </label>
+        <input id="dlClave" type="text" class="form-control dl-input small mb-3"
+               placeholder="a1b2c3…:d4e5f6…" autocomplete="off">
+        <label class="small fw-bold text-dark mb-1">
           <i class="bi bi-terminal me-1"></i>Opciones avanzadas yt-dlp
           <span class="text-muted fw-normal">(cualquier flag del repo)</span>
         </label>
@@ -105,5 +119,5 @@
     <p id="dlUpMsg" class="text-muted small mt-2 mb-0"></p>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/descargas.js') }}?v=5"></script>
+<script src="{{ url_for('static', filename='js/descargas.js') }}?v=6"></script>
 {% endblock %}

@@ -37,7 +37,9 @@ def descargas_iniciar():
         return jsonify({'error': 'Formato no válido'}), 400
     lid = dl.iniciar_lote(urls[:50], formato,
                           data.get('extra') or '',
-                          data.get('max_par') or 2)
+                          data.get('max_par') or 2,
+                          data.get('motor') or 'auto',
+                          data.get('clave') or '')
     return jsonify({'ok': True, 'lote': lid})
 
 

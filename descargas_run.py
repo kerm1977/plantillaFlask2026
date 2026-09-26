@@ -36,9 +36,9 @@ except ImportError:
     _IMPERSONATE = []
 
 # Reintentos robustos de yt-dlp (red, fragmentos, extractor)
-_ROBUSTEZ = ['--retries', '10', '--fragment-retries', '10',
-             '--extractor-retries', '5', '--file-access-retries', '5',
-             '--retry-sleep', '3', '--geo-bypass']
+_ROBUSTEZ = ['--retries', '10', '--fragment-retries', '10', '--retry-sleep',
+             '3', '--extractor-retries', '5', '--file-access-retries', '5',
+             '--geo-bypass']
 
 # Node como runtime JS desbloquea formatos de YouTube (solución oficial EJS)
 _JS_RT = ['--js-runtimes', 'node'] if shutil.which('node') else []
@@ -47,8 +47,10 @@ _COOKIES = os.path.join(DIR, 'cookies.txt')
 
 
 def ytdlp_cmd(url, args, extra):
+    # --match-filters rechaza transmisiones en vivo: el HLS de un stream
+    # nunca termina y genera el "bucle infinito" que se vio en producción.
     cmd = [sys.executable, '-m', 'yt_dlp', '--no-playlist', '--newline',
-           '--ffmpeg-location', FFMPEG] \
+           '--match-filters', '!is_live', '--ffmpeg-location', FFMPEG] \
            + _IMPERSONATE + _JS_RT + _ROBUSTEZ
     if os.path.exists(_COOKIES):
         cmd += ['--cookies', _COOKIES]
@@ -84,16 +86,19 @@ def run_progreso(job, cmd):
     try:
         for line in p.stdout:
             job['t_act'] = time.time()
-            txt = line.rstrip()
-            tail.append(txt)
-            del tail[:-20]
-            job['log'] = '\n'.join(tail[-4:])   # últimas líneas visibles
-            m = _PCT.search(txt)
-            if m:
-                job['pct'] = int(float(m.group(1)) * 0.9)
-                job['msg'] = 'Descargando ' + m.group(1) + '%'
-            elif txt.strip():
-                job['msg'] = txt[:120]          # extracción/reintentos en vivo
+            for txt in line.split('\r'):   # ffmpeg avanza con \r, no \n
+                txt = txt.strip()
+                if len(txt) < 4:
+                    continue
+                tail.append(txt)
+                del tail[:-20]
+                job['log'] = '\n'.join(tail[-4:])  # últimas líneas visibles
+                m = _PCT.search(txt)
+                if m:
+                    job['pct'] = int(float(m.group(1)) * 0.9)
+                    job['msg'] = 'Descargando ' + m.group(1) + '%'
+                else:
+                    job['msg'] = txt[:120]  # extracción/reintentos en vivo
         p.wait(timeout=60)
     except Exception:
         pass
@@ -185,11 +190,11 @@ def trabajar(job, base, al_terminar):
         job['nombre'] = 'descarga_' + job['id'][:8] + '.' + fmt
         job['msg'] = 'Listo'
     except Exception as e:
+        job['status'] = 'cancelado' if job.get('cancelar') else 'error'
+        msg = str(e)
         if job.get('cancelar'):
-            job['status'] = 'cancelado'
-            job['msg'] = 'Detenido'
-        else:
-            job['status'] = 'error'
-            job['msg'] = str(e)[:280]
-    job['proc'] = None
-    al_terminar()
+            msg = 'Detenido'
+        elif 'filter' in msg or 'is_live' in msg:
+            msg = 'Transmisión en vivo: no descargable hasta que termine.'
+        job['msg'] = msg[:280]
+    job['proc'] = None; al_terminar()

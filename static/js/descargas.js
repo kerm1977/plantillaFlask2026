@@ -120,7 +120,9 @@ async function dlIniciar() {
         urls: urls,
         formato: fmt ? fmt.value : 'mp4',
         extra: document.getElementById('dlExtra').value,
-        max_par: document.getElementById('dlMaxPar').value
+        max_par: document.getElementById('dlMaxPar').value,
+        motor: document.getElementById('dlMotor').value,
+        clave: document.getElementById('dlClave').value
       })
     });
     const d = await r.json();
