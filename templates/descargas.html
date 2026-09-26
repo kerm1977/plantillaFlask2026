@@ -75,6 +75,10 @@
             onclick="dlIniciar()">
       <i class="bi bi-download me-1"></i>Descargar
     </button>
+    <button id="dlStopAll" class="btn btn-danger rounded-pill px-4 fw-bold"
+            style="display:none;" onclick="dlCancelarTodo()">
+      <i class="bi bi-stop-circle me-1"></i>Detener todo
+    </button>
   </div>
 
   <div id="dlLista"></div>
@@ -93,5 +97,5 @@
     <p id="dlUpMsg" class="text-muted small mt-2 mb-0"></p>
   </div>
 </div>
-<script src="{{ url_for('static', filename='js/descargas.js') }}?v=3"></script>
+<script src="{{ url_for('static', filename='js/descargas.js') }}?v=4"></script>
 {% endblock %}

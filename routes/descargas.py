@@ -51,6 +51,20 @@ def descargas_lote(lid):
     return jsonify({'ok': True, 'jobs': jobs})
 
 
+@bp.route('/api/descargas/cancelar/<jid>', methods=['POST'])
+def descargas_cancelar(jid):
+    if not _super():
+        return jsonify({'error': 'Sin permiso'}), 403
+    return jsonify({'ok': dl.cancelar(jid)})
+
+
+@bp.route('/api/descargas/cancelar-todo', methods=['POST'])
+def descargas_cancelar_todo():
+    if not _super():
+        return jsonify({'error': 'Sin permiso'}), 403
+    return jsonify({'ok': True, 'detenidos': dl.cancelar_todo()})
+
+
 @bp.route('/api/descargas/archivo/<jid>')
 def descargas_archivo(jid):
     if not _super():

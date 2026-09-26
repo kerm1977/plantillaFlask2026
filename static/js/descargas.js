@@ -5,6 +5,20 @@
 let _dlLote = null;
 let _dlTimer = null;
 let _dlUpTimer = null;
+let _dlFallos = 0;
+
+async function dlCancelar(jid) {
+  try {
+    await fetch('/api/descargas/cancelar/' + jid, {method: 'POST'});
+  } catch (e) {}
+}
+
+async function dlCancelarTodo() {
+  try {
+    await fetch('/api/descargas/cancelar-todo', {method: 'POST'});
+    document.getElementById('dlBtn').disabled = false;
+  } catch (e) {}
+}
 
 async function dlPegar() {
   try {
@@ -18,8 +32,10 @@ async function dlPegar() {
 
 function _dlCard(job) {
   const pct = job.pct || 0;
-  const color = job.status === 'error' ? '#dc3545'
-    : job.status === 'listo' ? '#198754' : '#f58c1f';
+  const activo = job.status === 'pendiente' || job.status === 'descargando'
+    || job.status === 'convirtiendo';
+  const color = job.status === 'error' || job.status === 'cancelado'
+    ? '#dc3545' : job.status === 'listo' ? '#198754' : '#f58c1f';
   return '<div class="dl-job">' +
     '<p class="small fw-bold text-dark mb-1 text-break">' +
     '<i class="bi bi-link-45deg"></i> ' + job.url + '</p>' +
@@ -32,8 +48,12 @@ function _dlCard(job) {
       ? '<a class="btn btn-sm btn-success rounded-pill px-3 fw-bold" ' +
         'href="/api/descargas/archivo/' + job.id + '">' +
         '<i class="bi bi-save me-1"></i>Guardar</a>'
-      : '<span class="small fw-bold" style="color:' + color + ';">' +
-        pct + '%</span>') +
+      : activo
+        ? '<button class="btn btn-sm btn-outline-danger rounded-pill px-3 ' +
+          'fw-bold" onclick="dlCancelar(\'' + job.id + '\')">' +
+          '<i class="bi bi-stop-circle me-1"></i>Detener</button>'
+        : '<span class="small fw-bold" style="color:' + color + ';">' +
+          pct + '%</span>') +
     '</div></div>';
 }
 
@@ -43,12 +63,15 @@ async function _dlPoll() {
     const r = await fetch('/api/descargas/lote/' + _dlLote,
                           {cache: 'no-store'});
     const d = await r.json();
-    if (!d.ok) return;
+    if (!d.ok) { _dlFallos++; throw new Error(d.error || 'Error'); }
+    _dlFallos = 0;
     const lista = document.getElementById('dlLista');
     lista.innerHTML = d.jobs.map(_dlCard).join('');
     const activo = d.jobs.some(j =>
       j.status === 'pendiente' || j.status === 'descargando' ||
       j.status === 'convirtiendo');
+    document.getElementById('dlStopAll').style.display =
+      activo ? 'inline-block' : 'none';
     if (activo) {
       _dlTimer = setTimeout(_dlPoll, 1200);
     } else {
@@ -56,6 +79,13 @@ async function _dlPoll() {
       _dlLote = null;
     }
   } catch (e) {
+    _dlFallos++;
+    if (_dlFallos > 20) {   // ~1 min sin respuesta: se detiene el polling
+      document.getElementById('dlBtn').disabled = false;
+      document.getElementById('dlStopAll').style.display = 'none';
+      _dlLote = null;
+      return;
+    }
     _dlTimer = setTimeout(_dlPoll, 3000);  // reintenta si la red falla
   }
 }

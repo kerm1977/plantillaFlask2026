@@ -121,6 +121,37 @@ def iniciar_lote(urls, formato, extra, max_par):
     return lid
 
 
+def cancelar(jid):
+    """Detiene un trabajo: lo saca de la cola o mata su proceso."""
+    job = JOBS.get(jid)
+    if not job:
+        return False
+    job['cancelar'] = True
+    if job['status'] == 'pendiente':
+        job['status'] = 'cancelado'
+        job['msg'] = 'Detenido'
+        with _LOCK:
+            if jid in _COLA:
+                _COLA.remove(jid)
+    p = job.get('proc')
+    if p:
+        try:
+            p.kill()
+        except OSError:
+            pass
+    _arrancar()
+    return True
+
+
+def cancelar_todo():
+    n = 0
+    for jid, job in list(JOBS.items()):
+        if job['status'] in ('pendiente', 'descargando', 'convirtiendo'):
+            cancelar(jid)
+            n += 1
+    return n
+
+
 def lote(lid):
     jids = LOTES.get(lid)
     if jids is None:
