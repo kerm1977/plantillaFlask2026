@@ -69,7 +69,9 @@ function _dlCard(job) {
           'fw-bold" onclick="dlCancelar(\'' + job.id + '\')">' +
           '<i class="bi bi-stop-circle me-1"></i>Detener</button>'
         : '<span class="small fw-bold" style="color:' + color + ';">' +
-          pct + '%</span>') +
+          (job.status === 'error' || job.status === 'cancelado'
+            ? '<i class="bi bi-x-circle"></i>'
+            : pct + '%') + '</span>') +
     '</div></div>';
 }
 
