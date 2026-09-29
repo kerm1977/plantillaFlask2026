@@ -147,7 +147,8 @@
             catch (e) { msg(e.message, false); }
             ev.target.value = '';
         });
-        $('mmPanel').addEventListener('shown.bs.collapse', () => { if (!_files.length) cargar(); }, { once: false });
+        const collapse = document.getElementById('profileMultimedia');
+        if (collapse) collapse.addEventListener('shown.bs.collapse', cargar);
         cargar();
     });
 })();

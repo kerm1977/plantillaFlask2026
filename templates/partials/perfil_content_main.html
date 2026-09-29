@@ -288,6 +288,10 @@
                         <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileCarousel"><i class="bi bi-images me-2" style="color:#6f42c1;"></i>Administrar carrusel</button></h2>
                         <div id="profileCarousel" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body"><p class="small text-muted">Permite agregar, ordenar, activar o retirar imágenes y otros elementos visuales del carrusel de inicio.</p><a href="{{ url_for('main.admin_carrusel') }}" class="btn btn-outline-primary rounded-pill fw-bold">Abrir administración del carrusel</a></div></div>
                     </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileMultimedia"><i class="bi bi-folder-fill me-2 text-orange"></i>Multimedia</button></h2>
+                        <div id="profileMultimedia" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body">{% include 'partials/dashboard_multimedia.html' %}</div></div>
+                    </div>
                 </div>
                 {% endif %}
                 <div class="accordion w-100" id="profileActionsAccordion">
