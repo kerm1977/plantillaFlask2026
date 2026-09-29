@@ -5,7 +5,7 @@
 // Registro del Service Worker
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=10.16')
+        navigator.serviceWorker.register('/sw.js?v=10.18')
             .then(reg => console.log('[PWA] SW registrado:', reg.scope))
             .catch(err => console.warn('[PWA] SW falló:', err));
     });
@@ -74,7 +74,7 @@ async function downloadAllOffline() {
         appendOfflineLog(`Inventario recibido: ${inventory.file_count} archivos, ${inventory.pages.length} páginas, ${formatOfflineBytes(inventory.total_bytes)}.`);
         if (status) status.textContent = 'Activando servicio de descarga…';
         if (navigator.storage && navigator.storage.persist) await navigator.storage.persist();
-        const registration = await navigator.serviceWorker.register('/sw.js?v=10.16');
+        const registration = await navigator.serviceWorker.register('/sw.js?v=10.18');
         await registration.update();
         if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
         const worker = navigator.serviceWorker.controller || registration.active;
