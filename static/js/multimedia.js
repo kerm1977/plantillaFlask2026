@@ -132,49 +132,8 @@
         } catch (e) { msg(e.message, false); }
     };
 
-    // ---- Eliminar: modal de doble confirmación (estilo app) ----
-    let _mmDelPath = null, _mmDelStep = 1;
-
-    function _mmDelPintar() {
-        const t = $('mmDelTitle'), m = $('mmDelMsg'), b = $('mmDelBtn');
-        if (_mmDelStep === 1) {
-            t.textContent = 'Paso 1 de 2';
-            m.innerHTML = `¿Seguro que deseas eliminar <strong>${trunc(_mmDelPath.split('/').pop())}</strong>?`;
-            b.className = 'btn btn-outline-danger rounded-pill px-4 shadow-sm fw-bold w-100';
-            b.textContent = 'Continuar';
-        } else {
-            t.textContent = 'Paso 2 de 2';
-            m.innerHTML = 'Esta acción es <strong>irreversible</strong>: el archivo se borra del servidor y <strong>no se puede recuperar</strong>.';
-            b.className = 'btn btn-danger rounded-pill px-4 shadow-sm fw-bold w-100';
-            b.innerHTML = '<i class="bi bi-trash-fill me-1"></i>Eliminar definitivamente';
-        }
-    }
-
-    window.mmEliminar = function (path) {
-        _mmDelPath = path; _mmDelStep = 1;
-        _mmDelPintar();
-        new bootstrap.Modal($('mmDeleteModal')).show();
-    };
-
-    window.mmCerrarDel = function () {
-        const m = bootstrap.Modal.getInstance($('mmDeleteModal'));
-        if (m) m.hide();
-    };
-
-    window.mmDelAvanzar = async function () {
-        if (_mmDelStep === 1) {
-            _mmDelStep = 2; _mmDelPintar(); return;
-        }
-        const btn = $('mmDelBtn');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando…';
-        try {
-            await api('/api/multimedia/delete', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: _mmDelPath }) });
-            bootstrap.Modal.getInstance($('mmDeleteModal')).hide();
-            msg('Eliminado ✓', true); cargar();
-        } catch (e) { msg(e.message, false); }
-        finally { btn.disabled = false; }
-    };
+    // Helpers compartidos con multimedia_del.js (modal de eliminar)
+    window._mm = { api, cargar, msg, trunc, $ };
 
     window.mmNuevaCarpeta = async function () {
         const name = prompt('Nombre de la carpeta nueva (se crea dentro de uploads):');
