@@ -20,6 +20,10 @@ def multimedia_page():
     return render_template('multimedia.html')
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads'))
+_MUSICA = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'musica'))
+
+# Raíces virtuales: 'musica/...' apunta a static/musica; todo lo demás a static/uploads
+_SOURCES = [(_ROOT, 'uploads', ''), (_MUSICA, 'musica', 'musica')]
 
 _TIPOS = {
     'imagen': {'png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp', 'svg', 'ico'},
@@ -33,10 +37,15 @@ def _deny():
 
 
 def _safe_rel(rel):
-    """Normaliza un path relativo; None si sale de la raíz de uploads."""
+    """Normaliza un path virtual; None si sale de las raíces permitidas."""
     rel = (rel or '').replace('\\', '/').lstrip('/')
-    full = os.path.realpath(os.path.join(_ROOT, rel))
-    root = os.path.realpath(_ROOT)
+    if rel == 'musica' or rel.startswith('musica/'):
+        root, sub = os.path.realpath(_MUSICA), rel[7:]
+        base = 'musica'
+    else:
+        root, sub = os.path.realpath(_ROOT), rel
+        base = 'uploads'
+    full = os.path.realpath(os.path.join(root, sub))
     if full != root and not full.startswith(root + os.sep):
         return None
     return full
@@ -54,27 +63,29 @@ def _tipo(fname):
 def api_mm_list():
     if _deny():
         return jsonify({'error': 'No autorizado'}), 403
-    files, folders = [], set()
-    for root_d, dirs, names in os.walk(_ROOT):
-        dirs.sort()
-        rel_dir = os.path.relpath(root_d, _ROOT).replace('\\', '/')
-        if rel_dir == '.':
-            rel_dir = ''
-        elif rel_dir:
-            folders.add(rel_dir)
-        for n in sorted(names):
-            if n.startswith('.'):
-                continue
-            fp = os.path.join(root_d, n)
-            rel = f'{rel_dir}/{n}' if rel_dir else n
-            try:
-                st = os.stat(fp)
-            except OSError:
-                continue
-            files.append({'path': rel, 'name': n, 'folder': rel_dir,
-                          'tipo': _tipo(n), 'size': st.st_size,
-                          'mtime': int(st.st_mtime),
-                          'url': url_for('static', filename='uploads/' + rel)})
+    files, folders = [], {'musica'}
+    for root_dir, static_base, vprefix in _SOURCES:
+        for root_d, dirs, names in os.walk(root_dir):
+            dirs.sort()
+            rel_dir = os.path.relpath(root_d, root_dir).replace('\\', '/')
+            rel_dir = '' if rel_dir == '.' else rel_dir
+            vdir = f'{vprefix}/{rel_dir}'.strip('/')
+            if vdir:
+                folders.add(vdir)
+            for n in sorted(names):
+                if n.startswith('.'):
+                    continue
+                fp = os.path.join(root_d, n)
+                rel = f'{rel_dir}/{n}' if rel_dir else n
+                vpath = f'{vprefix}/{rel}' if vprefix else rel
+                try:
+                    st = os.stat(fp)
+                except OSError:
+                    continue
+                files.append({'path': vpath, 'name': n, 'folder': vdir,
+                              'tipo': _tipo(n), 'size': st.st_size,
+                              'mtime': int(st.st_mtime),
+                              'url': url_for('static', filename=f'{static_base}/{rel}')})
     return jsonify({'ok': True, 'files': files, 'folders': sorted(folders)})
 
 
