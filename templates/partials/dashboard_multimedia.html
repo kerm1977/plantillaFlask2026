@@ -70,4 +70,19 @@
     </div>
   </div>
 </div>
+
+<!-- Modal: eliminar archivo — doble confirmación estilo app -->
+<div class="modal fade" id="mmDeleteModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content rounded-4 border-0 shadow-lg text-center p-4">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-body p-0">
+        <div class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i></div>
+        <h5 id="mmDelTitle" class="fw-bold text-dark mb-2">Paso 1 de 2</h5>
+        <p id="mmDelMsg" class="text-secondary small mb-4"></p>
+        <button type="button" id="mmDelBtn" class="btn btn-outline-danger rounded-pill px-4 shadow-sm fw-bold w-100" onclick="mmDelAvanzar()">Continuar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <script src="{{ url_for('static', filename='js/multimedia.js') }}"></script>
