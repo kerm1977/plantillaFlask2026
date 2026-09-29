@@ -17,9 +17,9 @@ except Exception:
     import subprocess
     import threading
 
-import imageio_ffmpeg
-
-FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
+try:
+    import imageio_ffmpeg; FFMPEG = imageio_ffmpeg.get_ffmpeg_exe()
+except Exception: FFMPEG = shutil.which('ffmpeg') or 'ffmpeg'  # PATH
 DIR = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'downloads')
 os.makedirs(DIR, exist_ok=True)
 
