@@ -52,6 +52,7 @@ class Event(db.Model):
     solo_chat = db.Column(db.Boolean, default=False)
     logistica_segura = db.Column(db.Boolean, default=False)
     is_sold_out = db.Column(db.Boolean, default=False)
+    suspendida = db.Column(db.Boolean, default=False)
     zona_alto_riesgo = db.Column(db.Boolean, default=False)
 
     dias = db.Column(db.Integer, default=1)

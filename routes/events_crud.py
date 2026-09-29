@@ -6,6 +6,7 @@ import os
 import hashlib
 from flask import request, jsonify, session
 from models import Event, CaminataBlock, PaymentMethod
+from models_core import EventDateChange
 from db import db
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
@@ -196,7 +197,9 @@ def cambiar_fecha_evento(event_id):
     evento = Event.query.get_or_404(event_id)
     if not dias:
         dias = evento.dias or 1
+    estado = data.get('estado') or ''   # '', 'suspendida', 'lleno'
     try:
+        anterior = evento.fecha_unica or evento.fecha_inicio or ''
         evento.dias = dias
         if dias > 1:
             evento.fecha_inicio = nueva
@@ -206,6 +209,11 @@ def cambiar_fecha_evento(event_id):
             evento.fecha_unica = nueva
             evento.fecha_inicio = None
             evento.fecha_regreso = None
+        evento.suspendida = estado == 'suspendida'
+        evento.is_sold_out = estado == 'lleno'
+        db.session.add(EventDateChange(
+            event_id=event_id, fecha_anterior=anterior,
+            fecha_nueva=nueva, usuario=session.get('email', 'Sistema')))
         db.session.commit()
         return jsonify({"ok": True})
     except Exception:

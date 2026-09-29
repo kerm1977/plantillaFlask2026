@@ -142,6 +142,21 @@ def _migrate_event_tipo_caminata():
     except Exception as e:
         print(f"[Migration] Error en _migrate_event_tipo_caminata: {e}")
 
+def _migrate_event_suspendida():
+    """Agrega columna suspendida a tabla event si no existe."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(event)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'suspendida' not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN suspendida BOOLEAN DEFAULT 0")
+            conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_event_suspendida: {e}")
+
+
 def _migrate_event_precio_buseta():
     """Agrega columna precio_buseta a tabla event si no existe."""
     try:

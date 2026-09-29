@@ -5,7 +5,9 @@
                         <div class="row g-4 mb-4">
                             <div class="col-12 col-md-5 d-flex flex-column align-items-center">
                                 <div class="position-relative w-100" style="max-width: 320px;">
-                                    {% if is_sold_out %}
+                                    {% if evento.suspendida %}
+                                        <div class="sold-out-overlay" style="font-size: 1.1rem; padding: 4px 12px; background: rgba(200, 16, 46, 0.95);">SUSPENDIDA</div>
+                                    {% elif is_sold_out %}
                                         <div class="sold-out-overlay" style="font-size: 1.1rem; padding: 4px 12px;">SIN ESPACIO</div>
                                     {% endif %}
 

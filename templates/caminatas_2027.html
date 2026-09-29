@@ -61,7 +61,17 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   {% endset %}
   <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
     <div class="d-flex align-items-center gap-3">
-      <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+      {# BLINDADO: sello de estado sobre el poster — suspendida / sin espacios #}
+      <div class="position-relative flex-shrink-0">
+        <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+        {% if ev.suspendida %}
+        <div class="ev-filtro ev-filtro-rojo"></div>
+        <div class="ev-sello ev-sello-suspendida">SUSPENDIDA</div>
+        {% elif ev.is_sold_out %}
+        <div class="ev-filtro ev-filtro-gris"></div>
+        <div class="ev-sello ev-sello-lleno">SIN ESPACIOS</div>
+        {% endif %}
+      </div>
       <div class="flex-grow-1 min-width-0">
         <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
         <small class="text-muted d-block">
@@ -86,7 +96,7 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
         {% if is_super %}
         {# BLINDADO: selector rápido de fecha (solo superusuario) #}
         <button class="btn btn-sm btn-outline-orange rounded-pill"
-                onclick="abrirSelectorFecha('{{ ev.id }}', '{{ ev.fecha_unica or ev.fecha_inicio or '' }}', {{ ev.dias or 1 }}, '{{ ev.nombre_lugar | replace("'", "") }}')"
+                onclick="abrirSelectorFecha('{{ ev.id }}', '{{ ev.fecha_unica or ev.fecha_inicio or '' }}', {{ ev.dias or 1 }}, '{{ ev.nombre_lugar | replace("'", "") }}', '{{ 'suspendida' if ev.suspendida else ('lleno' if ev.is_sold_out else '') }}')"
                 title="Cambiar fecha">
           <i class="bi bi-calendar-event"></i>
         </button>
@@ -130,6 +140,25 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   #mfAviso.ocupado { color: #b35400; }
   #mfAviso.libre { color: #198754; }
   #mfAviso.pasada { color: #dc3545; }
+  /* Sellos de estado sobre el poster (mini versión de sold-out-overlay) */
+  .ev-sello {
+    position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-12deg);
+    color: #fff; font-weight: 900; text-transform: uppercase;
+    letter-spacing: 1px; white-space: nowrap;
+    border: 2px solid #fff; border-radius: 6px;
+    padding: 2px 7px; font-size: 0.72rem;
+    text-shadow: 0 1px 3px rgba(0,0,0,.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,.35);
+    pointer-events: none; z-index: 3;
+  }
+  .ev-sello-suspendida { background: rgba(220, 53, 69, 0.92); }
+  .ev-sello-lleno { background: rgba(60, 60, 60, 0.92); }
+  /* Filtro de color encima de la imagen */
+  .ev-filtro { position: absolute; inset: 0; border-radius: .5rem; pointer-events: none; z-index: 2; }
+  .ev-filtro-rojo { background: rgba(220, 53, 69, 0.42); }
+  .ev-filtro-gris { background: rgba(25, 25, 25, 0.5); backdrop-filter: grayscale(1); -webkit-backdrop-filter: grayscale(1); }
+
 </style>
 
 {% set is_tribu = not (is_caminatas_2027_page | default(true)) %}
@@ -563,6 +592,14 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
         <div class="mt-2 text-center">
           <label class="small text-muted">Duración</label>
           <select id="mfDias" class="form-select"></select>
+        </div>
+        <div class="mt-2 text-center">
+          <label class="small text-muted">Estado de la caminata</label>
+          <select id="mfEstado" class="form-select">
+            <option value="">Normal</option>
+            <option value="suspendida">🔴 Suspendida</option>
+            <option value="lleno">⛔ Cupo lleno (sin espacios)</option>
+          </select>
         </div>
         <p id="mfAviso" class="small text-center mt-2 mb-0 fw-semibold"></p>
       </div>
