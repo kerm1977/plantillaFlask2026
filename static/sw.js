@@ -1,9 +1,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v10.17';
-const STATIC_CACHE   = 'la-tribu-static-v10.17';
-const PAGES_CACHE    = 'la-tribu-pages-v10.17';
+const CACHE_NAME     = 'la-tribu-v10.18';
+const STATIC_CACHE   = 'la-tribu-static-v10.18';
+const PAGES_CACHE    = 'la-tribu-pages-v10.18';
 const OFFLINE_DATA_CACHE = 'la-tribu-offline-data-v1';
 const OFFLINE_URL    = '/offline';
 
@@ -219,7 +219,11 @@ self.addEventListener('fetch', event => {
                 const fresh = await fetch(event.request, { cache: 'no-store' });
                 if (fresh && fresh.status === 200) {
                     cache.put(event.request, fresh.clone());
+                    return fresh;
                 }
+                // Respuesta con error (502/etc): preferir copia en caché
+                const buena = await caches.match(event.request);
+                if (buena) return buena;
                 return fresh;
             } catch (err) {
                 // Sin red → intentar caché
