@@ -178,8 +178,8 @@ def delete_event(event_id):
 
 @bp.route('/api/eventos/<int:event_id>/fecha', methods=['POST'])
 def cambiar_fecha_evento(event_id):
-    """Cambio rápido de fecha (solo superusuario): mueve el evento
-    conservando su duración en días."""
+    """Cambio rápido de fecha (solo superusuario): mueve el evento.
+    'dias' opcional redefine la duración (1 = fecha_unica)."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
     data = request.get_json(silent=True) or {}
@@ -189,19 +189,47 @@ def cambiar_fecha_evento(event_id):
         f0 = datetime.strptime(nueva, '%Y-%m-%d').date()
     except (ValueError, TypeError):
         return jsonify({"error": "Fecha inválida"}), 400
-    evento = Event.query.get_or_404(event_id)
     try:
-        if (evento.dias or 1) > 1 and evento.fecha_inicio:
-            duracion = evento.dias - 1
+        dias = max(1, min(30, int(data.get('dias') or 0)))
+    except (TypeError, ValueError):
+        dias = 0
+    evento = Event.query.get_or_404(event_id)
+    if not dias:
+        dias = evento.dias or 1
+    try:
+        evento.dias = dias
+        if dias > 1:
             evento.fecha_inicio = nueva
-            evento.fecha_regreso = (f0 + timedelta(days=duracion)).isoformat()
+            evento.fecha_regreso = (f0 + timedelta(days=dias - 1)).isoformat()
+            evento.fecha_unica = None
         else:
             evento.fecha_unica = nueva
+            evento.fecha_inicio = None
+            evento.fecha_regreso = None
         db.session.commit()
         return jsonify({"ok": True})
     except Exception:
         db.session.rollback()
         return jsonify({"error": "Error al guardar la fecha"}), 500
+
+
+@bp.route('/api/eventos/ocupados/<fecha>')
+def eventos_en_fecha(fecha):
+    """Lista los eventos que ocupan una fecha (solo superusuario)."""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+    try:
+        from datetime import datetime
+        datetime.strptime(fecha, '%Y-%m-%d')
+    except (ValueError, TypeError):
+        return jsonify({"error": "Fecha inválida"}), 400
+    from sqlalchemy import or_, and_
+    evs = Event.query.filter(or_(
+        Event.fecha_unica == fecha,
+        and_(Event.fecha_inicio <= fecha, Event.fecha_regreso >= fecha)
+    )).all()
+    return jsonify({"ok": True, "eventos": [
+        {"id": e.id, "nombre": e.nombre_lugar} for e in evs]})
 
 
 @bp.route('/api/caminatas-2027/<int:event_id>/upload-image', methods=['POST'])
