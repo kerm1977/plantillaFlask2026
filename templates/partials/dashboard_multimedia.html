@@ -12,9 +12,12 @@
 .mm-icon-audio { height:80px; font-size:2rem; border-radius:.75rem .75rem 0 0; }
 .mm-file { border:1px solid #eee; border-radius:.75rem; overflow:hidden; transition:transform .15s, box-shadow .15s; }
 .mm-file:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.12); }
-.mm-file .mm-name { font-size:.72rem; font-weight:600; word-break:break-all; line-height:1.2; }
-.mm-badge { font-size:.6rem; }
-.mm-actions button { padding:.15rem .45rem; font-size:.75rem; }
+.mm-file .mm-name { font-size:.72rem; font-weight:600; line-height:1.2; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mm-file .mm-loc { font-size:.6rem; color:#868e96; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Iconos de acción: grises, sin caja, hover naranja/rojo */
+.mm-act { color:#868e96; cursor:pointer; font-size:1rem; padding:2px 3px; transition:color .15s, transform .15s; }
+.mm-act:hover { color:#212529; transform:scale(1.25); }
+.mm-act.mm-del:hover { color:#dc3545; }
 .mm-tab.active { background:#ff8c00 !important; color:#fff !important; }
 </style>
 
@@ -74,8 +77,8 @@
 <!-- Modal: eliminar archivo — doble confirmación estilo app -->
 <div class="modal fade" id="mmDeleteModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-sm">
-    <div class="modal-content rounded-4 border-0 shadow-lg text-center p-4">
-      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+    <div class="modal-content rounded-4 border-0 shadow-lg text-center p-4" style="position:relative;">
+      <button type="button" class="btn-close position-absolute top-0 end-0 m-3" onclick="mmCerrarDel()" aria-label="Cerrar" style="z-index:5;"></button>
       <div class="modal-body p-0">
         <div class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i></div>
         <h5 id="mmDelTitle" class="fw-bold text-dark mb-2">Paso 1 de 2</h5>

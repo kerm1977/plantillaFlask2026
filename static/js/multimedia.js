@@ -12,6 +12,12 @@
         ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     const fmtSize = b => b > 1048576 ? (b / 1048576).toFixed(1) + ' MB'
         : b > 1024 ? (b / 1024).toFixed(0) + ' KB' : b + ' B';
+    // "15letras…ext" para que nombres largos no desborden
+    const trunc = n => {
+        const i = n.lastIndexOf('.');
+        const ext = i > 0 ? n.slice(i) : '', base = i > 0 ? n.slice(0, i) : n;
+        return esc(base.length > 15 ? base.slice(0, 15) + '...' + ext : n);
+    };
 
     function msg(text, ok) {
         const m = $('mmMsg');
@@ -76,16 +82,13 @@
           <div class="mm-file">
             ${icono(f)}
             <div class="p-2">
-              <div class="mm-name" title="${esc(f.path)}">${esc(f.name)}</div>
-              <div class="d-flex justify-content-between align-items-center mt-1">
-                <span class="badge text-bg-light mm-badge">${f.folder ? esc(f.folder) : 'raíz'}</span>
-                <span class="text-muted" style="font-size:.62rem;">${fmtSize(f.size)}</span>
-              </div>
-              <div class="mm-actions d-flex gap-1 mt-1">
-                <button class="btn btn-outline-secondary" title="Renombrar" onclick="mmRenombrar('${esc(f.path)}','${esc(f.name)}')"><i class="bi bi-pencil"></i></button>
-                <button class="btn btn-outline-secondary" title="Mover" onclick="mmAbrirMove('${esc(f.path)}')"><i class="bi bi-folder-symlink"></i></button>
-                <a class="btn btn-outline-secondary" title="Descargar" href="${f.url}" download="${esc(f.name)}"><i class="bi bi-download"></i></a>
-                <button class="btn btn-outline-danger ms-auto" title="Eliminar" onclick="mmEliminar('${esc(f.path)}')"><i class="bi bi-trash"></i></button>
+              <div class="mm-name" title="${esc(f.name)}">${trunc(f.name)}</div>
+              <div class="mm-loc" title="${esc(f.path)}"><i class="bi bi-folder2 me-1"></i>${f.folder ? esc(f.folder) : 'uploads (raíz)'} · ${fmtSize(f.size)}</div>
+              <div class="d-flex gap-2 mt-1 justify-content-center">
+                <i class="bi bi-pencil mm-act" title="Renombrar" onclick="mmRenombrar('${esc(f.path)}','${esc(f.name)}')"></i>
+                <i class="bi bi-folder-symlink mm-act" title="Mover" onclick="mmAbrirMove('${esc(f.path)}')"></i>
+                <a class="mm-act" title="Descargar" href="${f.url}" download="${esc(f.name)}"><i class="bi bi-download"></i></a>
+                <i class="bi bi-trash mm-act mm-del" title="Eliminar" onclick="mmEliminar('${esc(f.path)}')"></i>
               </div>
             </div>
           </div>
@@ -124,7 +127,7 @@
         const t = $('mmDelTitle'), m = $('mmDelMsg'), b = $('mmDelBtn');
         if (_mmDelStep === 1) {
             t.textContent = 'Paso 1 de 2';
-            m.innerHTML = `¿Seguro que deseas eliminar <strong>${esc(_mmDelPath)}</strong>?`;
+            m.innerHTML = `¿Seguro que deseas eliminar <strong>${trunc(_mmDelPath.split('/').pop())}</strong>?`;
             b.className = 'btn btn-outline-danger rounded-pill px-4 shadow-sm fw-bold w-100';
             b.textContent = 'Continuar';
         } else {
@@ -139,6 +142,11 @@
         _mmDelPath = path; _mmDelStep = 1;
         _mmDelPintar();
         new bootstrap.Modal($('mmDeleteModal')).show();
+    };
+
+    window.mmCerrarDel = function () {
+        const m = bootstrap.Modal.getInstance($('mmDeleteModal'));
+        if (m) m.hide();
     };
 
     window.mmDelAvanzar = async function () {
