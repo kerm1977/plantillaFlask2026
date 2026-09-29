@@ -1,0 +1,77 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+<!-- Mini-Dropbox: gestor de static/uploads (solo superusuario) -->
+<style>
+.mm-card { background:#fff; border-radius:1rem; box-shadow:0 4px 18px rgba(0,0,0,.08); }
+.mm-thumb { width:100%; height:110px; object-fit:cover; border-radius:.75rem .75rem 0 0; background:#f1f3f5; }
+.mm-icon { height:110px; display:flex; align-items:center; justify-content:center; font-size:2.6rem; border-radius:.75rem .75rem 0 0; }
+.mm-file { border:1px solid #eee; border-radius:.75rem; overflow:hidden; transition:transform .15s, box-shadow .15s; }
+.mm-file:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.12); }
+.mm-file .mm-name { font-size:.72rem; font-weight:600; word-break:break-all; line-height:1.2; }
+.mm-badge { font-size:.6rem; }
+.mm-actions button { padding:.15rem .45rem; font-size:.75rem; }
+.mm-tab.active { background:#ff8c00 !important; color:#fff !important; }
+</style>
+
+<div class="mm-card p-3 mb-4">
+  <button class="btn w-100 d-flex justify-content-between align-items-center fw-bold text-dark p-0"
+          type="button" data-bs-toggle="collapse" data-bs-target="#mmPanel" aria-expanded="false">
+    <span><i class="bi bi-folder-fill text-orange me-2"></i>Multimedia
+      <span class="badge rounded-pill text-bg-secondary ms-2" id="mmTotalBadge">…</span></span>
+    <i class="bi bi-chevron-down"></i>
+  </button>
+
+  <div class="collapse mt-3" id="mmPanel">
+    <!-- Contadores por tipo -->
+    <div class="d-flex gap-2 flex-wrap mb-3">
+      <button class="btn btn-sm btn-outline-secondary rounded-pill mm-tab active" data-mm-tipo="todas"><i class="bi bi-grid-3x3-gap me-1"></i>Todas <span id="mmAll" class="fw-bold"></span></button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill mm-tab" data-mm-tipo="imagen"><i class="bi bi-image me-1"></i>Fotos <span id="mmImg" class="fw-bold"></span></button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill mm-tab" data-mm-tipo="video"><i class="bi bi-film me-1"></i>Videos <span id="mmVid" class="fw-bold"></span></button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill mm-tab" data-mm-tipo="audio"><i class="bi bi-music-note-beamed me-1"></i>Música <span id="mmAud" class="fw-bold"></span></button>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill mm-tab" data-mm-tipo="otro"><i class="bi bi-file-earmark me-1"></i>Otros <span id="mmOtr" class="fw-bold"></span></button>
+    </div>
+
+    <!-- Barra de herramientas -->
+    <div class="d-flex gap-2 flex-wrap align-items-center mb-3">
+      <div class="input-group input-group-sm rounded-pill overflow-hidden shadow-sm" style="max-width:280px;">
+        <span class="input-group-text bg-white border-0"><i class="bi bi-search text-orange"></i></span>
+        <input id="mmSearch" type="text" class="form-control border-0" placeholder="Buscar archivo…">
+      </div>
+      <select id="mmFolderFilter" class="form-select form-select-sm rounded-pill shadow-sm" style="max-width:180px;">
+        <option value="">📂 Todas las carpetas</option>
+      </select>
+      <div class="ms-auto d-flex gap-2">
+        <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="mmNuevaCarpeta()"><i class="bi bi-folder-plus me-1"></i>Carpeta</button>
+        <label class="btn btn-sm btn-orange rounded-pill fw-bold px-3 mb-0" style="cursor:pointer;">
+          <i class="bi bi-cloud-upload me-1"></i>Subir
+          <input type="file" id="mmUploadInput" class="d-none" multiple>
+        </label>
+      </div>
+    </div>
+
+    <div id="mmMsg" class="small mb-2 d-none"></div>
+    <div id="mmGrid" class="row g-2"></div>
+  </div>
+</div>
+
+<!-- Modal: mover archivo -->
+<div class="modal fade" id="mmMoveModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content rounded-4">
+      <div class="modal-header py-2 border-0">
+        <h6 class="modal-title fw-bold"><i class="bi bi-folder-symlink me-1 text-orange"></i>Mover a…</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-0">
+        <p id="mmMoveName" class="small text-muted text-truncate mb-2"></p>
+        <select id="mmMoveFolder" class="form-select"></select>
+      </div>
+      <div class="modal-footer py-2 border-0">
+        <button class="btn btn-orange rounded-pill px-4 fw-bold" onclick="mmConfirmarMove()">Mover</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/multimedia.js') }}"></script>

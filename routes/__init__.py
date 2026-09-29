@@ -104,6 +104,7 @@ from routes import (        # noqa: E402, F401
     tracking_public,
     bitacora,
     descargas,
+    multimedia,
 )
 
 # Re-exportar para app.py
