@@ -1,3 +1,7 @@
+// ==============================================================
+//   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+//   Explicar antes de editar. Contenido sagrado protegido.
+// ==============================================================
 // Archivo: static/js/home_events.js
 // Funciones de carga y gestión de eventos
 

@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 from flask import request, jsonify, session
 from models import SiteContent
 from db import db

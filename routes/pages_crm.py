@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 import re
 from flask import render_template, redirect, url_for
 from models import Event, Hiker

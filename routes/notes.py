@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 from . import notes_admin
 from . import notes_public, notes_import_export, notes_socketio
 from routes import bp

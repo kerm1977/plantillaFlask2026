@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 # modules/points_admin.py - Acciones de superusuario sobre puntos
 from datetime import datetime
 from db import db

@@ -1,3 +1,7 @@
+:: ==============================================================
+::   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+::   Explicar antes de editar. Contenido sagrado protegido.
+:: ==============================================================
 @rem
 @rem Copyright 2015 the original author or authors.
 @rem

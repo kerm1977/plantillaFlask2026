@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 # routes/agenda.py - Buscador de agenda médica con PIN maestro
 from sqlalchemy import or_
 from flask import request, jsonify

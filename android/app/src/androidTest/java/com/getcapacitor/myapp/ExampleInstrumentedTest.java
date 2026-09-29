@@ -1,3 +1,7 @@
+// ==============================================================
+//   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+//   Explicar antes de editar. Contenido sagrado protegido.
+// ==============================================================
 package com.getcapacitor.myapp;
 
 import static org.junit.Assert.*;

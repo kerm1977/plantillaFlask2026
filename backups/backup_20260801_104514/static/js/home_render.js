@@ -1,3 +1,7 @@
+// ==============================================================
+//   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+//   Explicar antes de editar. Contenido sagrado protegido.
+// ==============================================================
 // Archivo: static/js/home_render.js
 // Funciones de renderizado de eventos
 

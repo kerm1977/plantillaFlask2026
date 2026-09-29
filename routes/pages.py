@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 from flask import render_template, session, redirect, url_for, jsonify, request, make_response, current_app, abort
 import hashlib
 from itsdangerous import URLSafeSerializer, BadSignature

@@ -1,3 +1,7 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
 "# plantillaFlask2026" 
 
 Ahora que ya tienes la casa construida, vamos a ponerle los "sistemas de soporte vital" para que sea un Servidor Inmortal.

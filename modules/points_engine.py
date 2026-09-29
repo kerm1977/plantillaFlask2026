@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 # modules/points_engine.py - Motor de puntuación por cédula
 from db import db
 from models import Hiker, HikerPoints, Event, EventRegistration, User

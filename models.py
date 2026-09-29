@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 # models.py - Import centralizado de todos los modelos
 from models_core import User, Event, Notification, SiteContent, CaminataBlock, Hiker, EventRegistration, PaymentMethod, HikerPoints
 from models_forms import Form, FormField, FormResponse, FormAnswer

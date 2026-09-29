@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 # routes.py
 from flask import Blueprint, render_template, request, jsonify, session, redirect, url_for, send_from_directory, Response
 from models import User, Notification, Event

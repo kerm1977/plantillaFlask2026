@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 import json
 from flask import render_template, redirect, url_for, flash, request, jsonify
 from models import Raffle, RaffleSelection, Hiker

@@ -1,3 +1,7 @@
+# ==============================================================
+#   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+#   Explicar antes de editar. Contenido sagrado protegido.
+# ==============================================================
 """Instancia compartida de Flask-SocketIO usada por app.py y los blueprints."""
 from flask_socketio import SocketIO
 
