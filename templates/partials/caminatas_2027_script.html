@@ -200,7 +200,8 @@ function _mfPoblar(idSel, desde, hasta, elegido, etiquetas) {
 function abrirSelectorFecha(id, fechaActual, dias, nombre, estado) {
     _mfEvId = id;
     document.getElementById('mfNombre').textContent = nombre || '';
-    document.getElementById('mfEstado').value = estado || '';
+    const estRadio = document.querySelector(`input[name="mfEstado"][value="${estado || ''}"]`);
+    if (estRadio) estRadio.checked = true;
     const hoy = mfHoyCR();
     let y = hoy.y, m = hoy.m, d = hoy.d;
     if (fechaActual && /^\d{4}-\d{2}-\d{2}$/.test(fechaActual)) {
@@ -261,7 +262,7 @@ async function confirmarFechaRapida() {
         const res = await fetch(`/api/eventos/${_mfEvId}/fecha`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fecha, dias, estado: document.getElementById('mfEstado').value })
+            body: JSON.stringify({ fecha, dias, estado: (document.querySelector('input[name="mfEstado"]:checked') || {}).value || '' })
         });
         const data = await res.json();
         if (!res.ok || !data.ok) { alert(data.error || 'No se pudo cambiar la fecha.'); return; }
