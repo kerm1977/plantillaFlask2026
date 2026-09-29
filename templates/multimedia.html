@@ -8,12 +8,13 @@
 {% block content %}
 <style>
 .mm-head { position: sticky; top: 0; z-index: 1040; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); }
-.mm-page .mm-thumb { height: 160px; }
+.mm-page .mm-thumb, .mm-page .mm-video { height: 160px; }
 .mm-page .mm-icon { height: 160px; font-size: 3rem; }
+.mm-page .mm-icon-audio { height: 110px; }
 .mm-side-item { cursor: pointer; border-radius: .6rem; padding: .45rem .7rem; font-size: .85rem; font-weight: 600; color: #495057; word-break: break-all; }
 .mm-side-item:hover { background: #f1f3f5; }
 .mm-side-item.active { background: #fff4e8; color: #d96c00; }
-@media (max-width: 991px) { .mm-page .mm-thumb, .mm-page .mm-icon { height: 120px; font-size: 2.4rem; } }
+@media (max-width: 991px) { .mm-page .mm-thumb, .mm-page .mm-video, .mm-page .mm-icon { height: 120px; font-size: 2.4rem; } .mm-page .mm-icon-audio { height: 85px; } }
 </style>
 
 <div class="mm-page animate__animated animate__fadeIn">

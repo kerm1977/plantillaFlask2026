@@ -55,11 +55,13 @@
 
     function icono(f) {
         if (f.tipo === 'imagen')
-            return `<img src="${f.url}" class="mm-thumb" loading="lazy" alt="">`;
-        const ic = { video: 'bi-film text-danger', audio: 'bi-music-note-beamed text-primary' }[f.tipo]
-            || 'bi-file-earmark text-secondary';
-        const bg = { video: '#fdecec', audio: '#eef3ff' }[f.tipo] || '#f1f3f5';
-        return `<div class="mm-icon" style="background:${bg}"><i class="bi ${ic}"></i></div>`;
+            return `<a href="${f.url}" target="_blank" title="Abrir"><img src="${f.url}" class="mm-thumb" loading="lazy" alt=""></a>`;
+        if (f.tipo === 'video')
+            return `<video src="${f.url}" class="mm-video" preload="metadata" controls playsinline></video>`;
+        if (f.tipo === 'audio')
+            return `<div class="mm-icon mm-icon-audio" style="background:#eef3ff"><i class="bi bi-music-note-beamed text-primary"></i></div>
+                    <audio src="${f.url}" class="mm-audio" controls preload="none"></audio>`;
+        return `<a href="${f.url}" target="_blank" title="Abrir"><div class="mm-icon" style="background:#f1f3f5"><i class="bi bi-file-earmark text-secondary"></i></div></a>`;
     }
 
     function render() {
@@ -72,7 +74,7 @@
         $('mmGrid').innerHTML = lista.map(f => `
         <div class="col-6 col-md-3 col-lg-2">
           <div class="mm-file">
-            <a href="${f.url}" target="_blank" title="Abrir">${icono(f)}</a>
+            ${icono(f)}
             <div class="p-2">
               <div class="mm-name" title="${esc(f.path)}">${esc(f.name)}</div>
               <div class="d-flex justify-content-between align-items-center mt-1">
