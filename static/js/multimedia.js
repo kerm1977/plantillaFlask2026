@@ -71,11 +71,23 @@
     }
 
     function render() {
-        const q = ($('mmSearch').value || '').toLowerCase();
+        const q = ($('mmSearch').value || '').toLowerCase().trim();
         const fold = $('mmFolderFilter').value;
+        const sinAcento = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const aliasTipo = {
+            imagen: 'imagen imagenes foto fotos jpg jpeg png gif webp',
+            video: 'video videos pelicula film mp4 webm mov avi mkv wmv',
+            audio: 'audio musica cancion canciones mp3 wav ogg m4a wma flac',
+            otro: 'otro otros archivo documento'
+        };
+        const coincide = f => {
+            if (!q) return true;
+            const ext = f.name.includes('.') ? f.name.split('.').pop().toLowerCase() : '';
+            const hay = sinAcento(`${f.name} ${ext} ${f.tipo} ${aliasTipo[f.tipo] || ''} ${f.folder}`.toLowerCase());
+            return q.split(/\s+/).every(t => hay.includes(sinAcento(t)));
+        };
         const lista = _files.filter(f =>
-            (_tipo === 'todas' || f.tipo === _tipo) &&
-            (!q || f.name.toLowerCase().includes(q)) &&
+            (_tipo === 'todas' || f.tipo === _tipo) && coincide(f) &&
             (!fold || (fold === '__root__' ? !f.folder : f.folder === fold)));
         $('mmGrid').innerHTML = lista.map(f => `
         <div class="col-6 col-md-3 col-lg-2">
