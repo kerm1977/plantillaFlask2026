@@ -8,9 +8,16 @@ Todos los endpoints son SOLO superusuario. Los paths se validan contra
 la raíz de uploads para impedir path traversal.
 """
 import os
-from flask import request, jsonify, session, url_for
+from flask import request, jsonify, session, url_for, render_template, redirect
 from werkzeug.utils import secure_filename
 from routes import bp
+
+
+@bp.route('/multimedia')
+def multimedia_page():
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    return render_template('multimedia.html')
 
 _ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'static', 'uploads'))
 

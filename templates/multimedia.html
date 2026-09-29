@@ -1,0 +1,71 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+<!-- Vista: multimedia.html — gestor de archivos a pantalla completa -->
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+.mm-head { position: sticky; top: 0; z-index: 1040; background: rgba(255,255,255,.94); backdrop-filter: blur(8px); }
+.mm-page .mm-thumb { height: 160px; }
+.mm-page .mm-icon { height: 160px; font-size: 3rem; }
+.mm-side-item { cursor: pointer; border-radius: .6rem; padding: .45rem .7rem; font-size: .85rem; font-weight: 600; color: #495057; word-break: break-all; }
+.mm-side-item:hover { background: #f1f3f5; }
+.mm-side-item.active { background: #fff4e8; color: #d96c00; }
+@media (max-width: 991px) { .mm-page .mm-thumb, .mm-page .mm-icon { height: 120px; font-size: 2.4rem; } }
+</style>
+
+<div class="mm-page animate__animated animate__fadeIn">
+  <!-- Barra superior fija -->
+  <div class="mm-head py-2 mb-3 border-bottom">
+    <div class="d-flex align-items-center gap-2">
+      <a href="{{ url_for('main.profile') }}" class="btn btn-light rounded-circle shadow-sm" title="Volver al perfil">
+        <i class="bi bi-arrow-left"></i>
+      </a>
+      <h4 class="fw-bold m-0 text-dark"><i class="bi bi-folder-fill text-orange me-2"></i>Multimedia</h4>
+      <span class="badge rounded-pill text-bg-secondary" id="mmHeadCount">…</span>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Sidebar de carpetas (solo escritorio) -->
+    <div class="col-lg-2 d-none d-lg-block">
+      <div class="mm-card p-2 sticky-top" style="top:70px;">
+        <div class="text-uppercase text-muted fw-bold px-2 pt-1" style="font-size:.65rem;">Carpetas</div>
+        <div id="mmSidebar"></div>
+      </div>
+    </div>
+
+    <!-- Panel principal -->
+    <div class="col-12 col-lg-10">
+      {% include 'partials/dashboard_multimedia.html' %}
+    </div>
+  </div>
+</div>
+
+<script>
+// Sincroniza el sidebar de carpetas con el filtro principal del gestor
+document.addEventListener('DOMContentLoaded', function () {
+  const sel = document.getElementById('mmFolderFilter');
+  const side = document.getElementById('mmSidebar');
+  if (!sel || !side) return;
+  function pintarSidebar() {
+    const items = [['', 'Todas'], ['__root__', 'Raíz (uploads)']]
+      .concat([...sel.options].slice(2).map(o => [o.value, o.text]));
+    side.innerHTML = items.map(([v, t]) =>
+      `<div class="mm-side-item ${sel.value === v ? 'active' : ''}" data-mm-v="${v}">
+         <i class="bi bi-folder2${sel.value === v ? '-open' : ''} me-1"></i>${t}
+       </div>`).join('');
+    side.querySelectorAll('.mm-side-item').forEach(el =>
+      el.addEventListener('click', () => {
+        sel.value = el.dataset.mmV;
+        sel.dispatchEvent(new Event('change'));
+      }));
+  }
+  new MutationObserver(pintarSidebar).observe(sel, { childList: true });
+  sel.addEventListener('change', pintarSidebar);
+  pintarSidebar();
+});
+</script>
+{% endblock %}

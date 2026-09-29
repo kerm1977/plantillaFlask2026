@@ -39,6 +39,8 @@
         const c = { imagen: 0, video: 0, audio: 0, otro: 0 };
         _files.forEach(f => c[f.tipo]++);
         $('mmTotalBadge').textContent = _files.length;
+        const head = $('mmHeadCount');
+        if (head) head.textContent = _files.length + ' archivos';
         $('mmAll').textContent = '(' + _files.length + ')';
         $('mmImg').textContent = '(' + c.imagen + ')';
         $('mmVid').textContent = '(' + c.video + ')';
