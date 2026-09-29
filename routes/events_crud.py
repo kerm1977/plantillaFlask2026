@@ -24,8 +24,14 @@ def create_event():
         if not nombre:
             return jsonify({"error": "Falta el nombre del lugar"}), 400
         es_programado = request.form.get('visitado') == 'Programados'
-        if es_programado and not (request.form.get('fechaUnica') or request.form.get('fechaInicio')):
-            return jsonify({"error": "Falta la fecha de la actividad"}), 400
+        if es_programado:
+            from datetime import datetime, timedelta
+            hoy_cr = (datetime.utcnow() - timedelta(hours=6)).date().isoformat()
+            fecha_ev = request.form.get('fechaUnica') or request.form.get('fechaInicio') or ''
+            if not fecha_ev:
+                return jsonify({"error": "Falta la fecha de la actividad"}), 400
+            if fecha_ev < hoy_cr:
+                return jsonify({"error": "La fecha no puede ser anterior a hoy"}), 400
         file = request.files.get('poster')
         filename = "default_event.png"
         

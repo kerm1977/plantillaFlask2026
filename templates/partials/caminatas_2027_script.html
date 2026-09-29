@@ -168,6 +168,16 @@ function validarEventoForm() {
     const diaSeguro = document.getElementById('diaSeguroToggle').checked;
     const visitado = document.getElementById('visitado').value;
     const dias = parseInt(document.getElementById('dias').value) || 1;
+    const g = id => document.getElementById(id).value;
+    // Hoy en Costa Rica (UTC-6, sin horario de verano)
+    const _h = mfHoyCR();
+    const hoyStr = `${_h.y}-${String(_h.m).padStart(2, '0')}-${String(_h.d).padStart(2, '0')}`;
+    const aIso = (d, m, y) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    const marcaInvalida = (id, label) => {
+        const el = document.getElementById(id);
+        el.classList.add('is-invalid');
+        faltan.push({ el, label });
+    };
 
     chk('nombreLugar', 'Nombre del lugar', el => el.value.trim() !== '');
     chk('capacidad', 'Capacidad', el => el.value !== '');
@@ -175,19 +185,18 @@ function validarEventoForm() {
     if (visitado === 'Programados') {
         if (document.getElementById('actividad').value === 'Internacional') {
             chk('fechaIda', 'Fecha del vuelo de ida', el => !!el.value);
+            if (!faltan.length && g('fechaIda') < hoyStr)
+                marcaInvalida('fechaIda', 'La fecha no puede ser pasada');
         } else if (dias === 1) {
-            if (diaSeguro) {
-                chk('monthUnica', 'Mes de la actividad', el => el.value !== '');
-                chk('yearUnica', 'Año de la actividad', el => el.value !== '');
-            } else {
-                chk('dayUnica', 'Día de la actividad', el => el.value !== '');
-                chk('monthUnica', 'Mes de la actividad', el => el.value !== '');
-                chk('yearUnica', 'Año de la actividad', el => el.value !== '');
-                if (!faltan.length && !fechaOK(document.getElementById('dayUnica').value, document.getElementById('monthUnica').value, document.getElementById('yearUnica').value)) {
-                    const el = document.getElementById('dayUnica');
-                    el.classList.add('is-invalid');
-                    faltan.push({ el, label: 'Fecha válida (día/mes correctos)' });
-                }
+            chk('monthUnica', 'Mes de la actividad', el => el.value !== '');
+            chk('yearUnica', 'Año de la actividad', el => el.value !== '');
+            if (!diaSeguro) chk('dayUnica', 'Día de la actividad', el => el.value !== '');
+            if (!faltan.length) {
+                const iso = aIso(diaSeguro ? 1 : g('dayUnica'), g('monthUnica'), g('yearUnica'));
+                if (!diaSeguro && !fechaOK(g('dayUnica'), g('monthUnica'), g('yearUnica')))
+                    marcaInvalida('dayUnica', 'Fecha válida (día/mes correctos)');
+                else if (iso < hoyStr)
+                    marcaInvalida('dayUnica', 'La fecha no puede ser pasada');
             }
         } else {
             chk('dayInicio', 'Día de inicio', el => el.value !== '');
@@ -197,14 +206,15 @@ function validarEventoForm() {
             chk('monthRegreso', 'Mes de regreso', el => el.value !== '');
             chk('yearRegreso', 'Año de regreso', el => el.value !== '');
             if (!faltan.length) {
-                const g = id => document.getElementById(id).value;
-                const okI = diaSeguro || fechaOK(g('dayInicio'), g('monthInicio'), g('yearInicio'));
-                const okR = diaSeguro || fechaOK(g('dayRegreso'), g('monthRegreso'), g('yearRegreso'));
-                if (!okI || !okR) {
-                    const el = document.getElementById(okI ? 'dayRegreso' : 'dayInicio');
-                    el.classList.add('is-invalid');
-                    faltan.push({ el, label: 'Fechas válidas' });
-                }
+                const dI = diaSeguro ? 1 : g('dayInicio'), dR = diaSeguro ? 1 : g('dayRegreso');
+                const okI = diaSeguro || fechaOK(dI, g('monthInicio'), g('yearInicio'));
+                const okR = diaSeguro || fechaOK(dR, g('monthRegreso'), g('yearRegreso'));
+                const isoI = aIso(dI, g('monthInicio'), g('yearInicio'));
+                const isoR = aIso(dR, g('monthRegreso'), g('yearRegreso'));
+                if (!okI) marcaInvalida('dayInicio', 'Fecha de inicio válida');
+                else if (isoI < hoyStr) marcaInvalida('dayInicio', 'La fecha de inicio no puede ser pasada');
+                if (!okR) marcaInvalida('dayRegreso', 'Fecha de regreso válida');
+                else if (isoR < isoI) marcaInvalida('dayRegreso', 'El regreso no puede ser antes del inicio');
             }
         }
     }
@@ -230,6 +240,19 @@ function abrirCrear() {
     document.getElementById('reserva').value = '0';
     document.getElementById('kilometros').value = '';
     document.getElementById('anio').value = '2027';
+    // Fecha por defecto: mes/año actuales de Costa Rica; el año no admite pasados
+    const _hc = mfHoyCR();
+    ['yearUnica', 'yearInicio', 'yearRegreso'].forEach(id => {
+        const e = document.getElementById(id); if (e) { e.value = _hc.y; e.min = _hc.y; }
+    });
+    ['monthUnica', 'monthInicio', 'monthRegreso'].forEach(id => {
+        const e = document.getElementById(id); if (e) e.value = String(_hc.m).padStart(2, '0');
+    });
+    ['dayUnica', 'dayInicio', 'dayRegreso'].forEach(id => {
+        const e = document.getElementById(id); if (e) e.value = '';
+    });
+    const _fida = document.getElementById('fechaIda');
+    if (_fida) _fida.min = `${_hc.y}-${String(_hc.m).padStart(2, '0')}-${String(_hc.d).padStart(2, '0')}`;
     document.getElementById('anioCol').style.display = 'none';
     document.getElementById('tipoTerreno').value = 'Lastre';
     document.getElementById('eventImagePreview').src = '/static/default.png';
