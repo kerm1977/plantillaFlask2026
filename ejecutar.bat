@@ -92,7 +92,7 @@ color 0E
 :cloud_loop
 set /p TOKEN=<cloudflared_token.txt
 echo [!] CONECTANDO CON CLOUDFLARE...
-cloudflared.exe tunnel run --token %TOKEN%
+cloudflared.exe tunnel run --protocol http2 --token %TOKEN%
 echo [X] TUNEL DESCONECTADO O CERRADO. ¡Forzando reconexion en 3 segundos!
 timeout /t 3 > nul
 goto cloud_loop
