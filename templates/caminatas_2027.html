@@ -84,6 +84,14 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
           <i class="bi bi-card-text"></i>
         </a>
         {% if is_super %}
+        {# BLINDADO: selector rápido de fecha (solo superusuario) #}
+        <button class="btn btn-sm btn-outline-orange rounded-pill position-relative"
+                onclick="abrirSelectorFecha('{{ ev.id }}')" title="Cambiar fecha">
+          <i class="bi bi-calendar-event"></i>
+          <input type="date" id="fechaPicker_{{ ev.id }}" class="fecha-picker-oculto"
+                 value="{{ ev.fecha_unica or ev.fecha_inicio or '' }}"
+                 onchange="cambiarFechaEvento('{{ ev.id }}', this.value)">
+        </button>
         <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
         {% elif not is_share | default(false) %}
@@ -119,6 +127,8 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
     filter: brightness(1.12);
     box-shadow: 0 6px 12px rgba(0,0,0,0.25);
   }
+  /* BLINDADO: input date invisible cubre el botón — un toque abre el picker nativo */
+  .fecha-picker-oculto { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 </style>
 
 {% set is_tribu = not (is_caminatas_2027_page | default(true)) %}

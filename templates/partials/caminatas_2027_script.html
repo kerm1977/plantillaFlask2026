@@ -173,6 +173,28 @@ function abrirCrear() {
     if (modalEvento) modalEvento.show();
 }
 
+// BLINDADO: cambio rápido de fecha — solo superusuario, conserva duración.
+function abrirSelectorFecha(id) {
+    const input = document.getElementById('fechaPicker_' + id);
+    if (input && input.showPicker) { try { input.showPicker(); } catch (e) {} }
+}
+
+async function cambiarFechaEvento(id, fecha) {
+    if (!fecha) return;
+    try {
+        const res = await fetch(`/api/eventos/${id}/fecha`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ fecha })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.ok) { alert(data.error || 'No se pudo cambiar la fecha.'); return; }
+        location.reload();   // el evento queda reordenado en el mes nuevo
+    } catch (e) {
+        alert('Error de conexión al cambiar la fecha.');
+    }
+}
+
 async function editarEvento(id) {
     try {
         const res = await fetch(`/api/get_event/${id}`);

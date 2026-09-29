@@ -176,6 +176,34 @@ def delete_event(event_id):
         return jsonify({"error": "Error al eliminar evento"}), 500
 
 
+@bp.route('/api/eventos/<int:event_id>/fecha', methods=['POST'])
+def cambiar_fecha_evento(event_id):
+    """Cambio rápido de fecha (solo superusuario): mueve el evento
+    conservando su duración en días."""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+    data = request.get_json(silent=True) or {}
+    nueva = (data.get('fecha') or '').strip()
+    try:
+        from datetime import datetime, timedelta
+        f0 = datetime.strptime(nueva, '%Y-%m-%d').date()
+    except (ValueError, TypeError):
+        return jsonify({"error": "Fecha inválida"}), 400
+    evento = Event.query.get_or_404(event_id)
+    try:
+        if (evento.dias or 1) > 1 and evento.fecha_inicio:
+            duracion = evento.dias - 1
+            evento.fecha_inicio = nueva
+            evento.fecha_regreso = (f0 + timedelta(days=duracion)).isoformat()
+        else:
+            evento.fecha_unica = nueva
+        db.session.commit()
+        return jsonify({"ok": True})
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Error al guardar la fecha"}), 500
+
+
 @bp.route('/api/caminatas-2027/<int:event_id>/upload-image', methods=['POST'])
 def upload_caminata_2027_image(event_id):
     if 'user_id' not in session or session.get('role') != 'Superusuario':
