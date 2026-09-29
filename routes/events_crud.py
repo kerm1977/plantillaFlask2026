@@ -20,6 +20,12 @@ def create_event():
         return jsonify({"error": "No autorizado"}), 403
     
     try:
+        nombre = (request.form.get('nombreLugar') or '').strip()
+        if not nombre:
+            return jsonify({"error": "Falta el nombre del lugar"}), 400
+        es_programado = request.form.get('visitado') == 'Programados'
+        if es_programado and not (request.form.get('fechaUnica') or request.form.get('fechaInicio')):
+            return jsonify({"error": "Falta la fecha de la actividad"}), 400
         file = request.files.get('poster')
         filename = "default_event.png"
         
@@ -48,7 +54,7 @@ def create_event():
 
         new_event = Event(
             poster=filename,
-            nombre_lugar=request.form.get('nombreLugar'),
+            nombre_lugar=nombre,
             dificultad=request.form.get('dificultad'),
             tipo_terreno=request.form.get('tipoTerreno'),
             actividad=request.form.get('actividad'),

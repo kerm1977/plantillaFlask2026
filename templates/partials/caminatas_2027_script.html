@@ -16,6 +16,10 @@ document.addEventListener('DOMContentLoaded', () => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
+            // Validación explícita: el navegador no puede mostrar errores
+            // de campos required dentro de accordions colapsados.
+            if (!validarEventoForm()) return;
+
             const submitBtn = document.getElementById('submitEventBtn');
             const originalBtnText = submitBtn.innerHTML;
             submitBtn.disabled = true;
@@ -104,6 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.innerHTML = originalBtnText;
             }
         });
+
+        // Limpiar marca roja al corregir el campo
+        form.addEventListener('input', ev => ev.target.classList.remove('is-invalid'));
+        form.addEventListener('change', ev => ev.target.classList.remove('is-invalid'));
     }
 
     const upload = document.getElementById('eventImageUpload');
@@ -141,6 +149,77 @@ document.addEventListener('DOMContentLoaded', () => {
         window.history.replaceState({}, '', newUrl);
     }
 });
+
+// BLINDADO: validación visible del formulario de evento.
+// Devuelve true si todo está completo; si falta algo, muestra qué,
+// abre el accordion que lo contiene y enfoca el campo en rojo.
+function validarEventoForm() {
+    const faltan = [];
+    const fechaOK = (d, m, y) => {
+        const dd = parseInt(d, 10), mm = parseInt(m, 10), yy = parseInt(y, 10);
+        if (!dd || !mm || !yy) return false;
+        const dt = new Date(yy, mm - 1, dd);
+        return dt.getFullYear() === yy && dt.getMonth() === mm - 1 && dt.getDate() === dd;
+    };
+    const chk = (id, label, ok) => {
+        const el = document.getElementById(id);
+        if (el && !el.closest('.d-none') && !ok(el)) { el.classList.add('is-invalid'); faltan.push({ el, label }); }
+    };
+    const diaSeguro = document.getElementById('diaSeguroToggle').checked;
+    const visitado = document.getElementById('visitado').value;
+    const dias = parseInt(document.getElementById('dias').value) || 1;
+
+    chk('nombreLugar', 'Nombre del lugar', el => el.value.trim() !== '');
+    chk('capacidad', 'Capacidad', el => el.value !== '');
+
+    if (visitado === 'Programados') {
+        if (document.getElementById('actividad').value === 'Internacional') {
+            chk('fechaIda', 'Fecha del vuelo de ida', el => !!el.value);
+        } else if (dias === 1) {
+            if (diaSeguro) {
+                chk('monthUnica', 'Mes de la actividad', el => el.value !== '');
+                chk('yearUnica', 'Año de la actividad', el => el.value !== '');
+            } else {
+                chk('dayUnica', 'Día de la actividad', el => el.value !== '');
+                chk('monthUnica', 'Mes de la actividad', el => el.value !== '');
+                chk('yearUnica', 'Año de la actividad', el => el.value !== '');
+                if (!faltan.length && !fechaOK(document.getElementById('dayUnica').value, document.getElementById('monthUnica').value, document.getElementById('yearUnica').value)) {
+                    const el = document.getElementById('dayUnica');
+                    el.classList.add('is-invalid');
+                    faltan.push({ el, label: 'Fecha válida (día/mes correctos)' });
+                }
+            }
+        } else {
+            chk('dayInicio', 'Día de inicio', el => el.value !== '');
+            chk('monthInicio', 'Mes de inicio', el => el.value !== '');
+            chk('yearInicio', 'Año de inicio', el => el.value !== '');
+            chk('dayRegreso', 'Día de regreso', el => el.value !== '');
+            chk('monthRegreso', 'Mes de regreso', el => el.value !== '');
+            chk('yearRegreso', 'Año de regreso', el => el.value !== '');
+            if (!faltan.length) {
+                const g = id => document.getElementById(id).value;
+                const okI = diaSeguro || fechaOK(g('dayInicio'), g('monthInicio'), g('yearInicio'));
+                const okR = diaSeguro || fechaOK(g('dayRegreso'), g('monthRegreso'), g('yearRegreso'));
+                if (!okI || !okR) {
+                    const el = document.getElementById(okI ? 'dayRegreso' : 'dayInicio');
+                    el.classList.add('is-invalid');
+                    faltan.push({ el, label: 'Fechas válidas' });
+                }
+            }
+        }
+    }
+
+    if (!faltan.length) return true;
+    mostrarAlerta('Falta completar: ' + faltan.map(f => f.label).join(' · '), 'warning');
+    const primero = faltan[0].el;
+    const acc = primero.closest('.accordion-collapse');
+    if (acc) bootstrap.Collapse.getOrCreateInstance(acc).show();
+    setTimeout(() => {
+        primero.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        primero.focus({ preventScroll: true });
+    }, 350);
+    return false;
+}
 
 function abrirCrear() {
     eventoEditando = null;
