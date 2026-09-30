@@ -1,0 +1,24 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+<!-- Modal para compartir "Mis puntos" por WhatsApp (mantener presionado en el footer) -->
+<div class="modal fade" id="shareMisPuntosModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-whatsapp text-success me-2"></i>Compartir Mis Puntos</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-3 pt-2">
+        <p class="small text-muted mb-2">Personaliza el mensaje. Al final se agregará el enlace automáticamente.</p>
+        <textarea id="shareMisPuntosMensaje" class="form-control glass-input rounded-3" rows="4" placeholder="Ej: Hola, ingresa aquí para revisar tus puntos..."></textarea>
+        <p class="small text-muted mt-2 mb-0 text-truncate"><strong>Enlace:</strong> <span id="shareMisPuntosEnlace"></span></p>
+      </div>
+      <div class="modal-footer border-0 pt-0 pb-4 px-4 d-flex justify-content-end gap-2">
+        <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color:#6c757d;border:1px solid #ced4da;">Cancelar</button>
+        <button type="button" class="btn btn-success rounded-pill px-4 fw-bold" onclick="compartirMisPuntosPorWhatsApp()"><i class="bi bi-whatsapp me-2"></i>Enviar por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
