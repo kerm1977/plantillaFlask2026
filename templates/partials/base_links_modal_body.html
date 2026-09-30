@@ -1,0 +1,66 @@
+    <div class="modal fade" id="linkGeneratorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+                <div class="modal-header bg-warning bg-opacity-25 border-0" style="border-radius: 1.5rem 1.5rem 0 0;">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-gear-fill text-orange me-2"></i>Fábrica de Formularios</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 bg-light" style="border-radius: 0 0 1.5rem 1.5rem; max-height: 70vh; overflow-y: auto;">
+                    <!-- Paso 1: Seleccionar evento -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-calendar-event me-2"></i>Paso 1: Seleccionar Evento</h6>
+                        <select id="selectEventosActivos" class="form-select fw-bold shadow-sm" style="border-radius: 1rem; border: 2px solid #ff8c00;">
+                            <option value="">Cargando caminatas...</option>
+                        </select>
+                    </div>
+
+                    <!-- Paso 2: Secciones del formulario -->
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-layers me-2"></i>Paso 2: Secciones del Formulario</h6>
+                            <div id="sectionsContainer" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small mb-3" id="noSectionsMsg">
+                                    No hay secciones. Agrega una sección abajo.
+                                </div>
+                                <div id="sectionsList"></div>
+                            </div>
+                            <button class="btn btn-outline-orange w-100 mt-2 rounded-pill" onclick="addSection()">
+                                <i class="bi bi-plus-lg me-2"></i>Agregar Sección
+                            </button>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-eye me-2"></i>Vista Previa</h6>
+                            <div id="formPreview" class="bg-white p-3 rounded-3 shadow-sm" style="max-height: 400px; overflow-y: auto;">
+                                <div class="text-center text-muted small">
+                                    Agrega secciones para ver la vista previa
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botón generar -->
+                    <div id="linkResultContainer" class="d-none animate__animated animate__fadeIn">
+                        <div class="input-group mb-2 shadow-sm" style="border-radius: 1rem; overflow: hidden;">
+                            <span class="input-group-text bg-white border-end-0 text-orange"><i class="bi bi-link-45deg fs-4"></i></span>
+                            <input type="text" id="generatedLinkUrl" class="form-control border-start-0 bg-white text-dark fw-bold" readonly
+                                   style="cursor:pointer;" onclick="copyGeneratedLink()" title="Toca para copiar">
+                            <span class="input-group-text bg-white border-start-0" style="cursor:pointer;" onclick="copyGeneratedLink()">
+                                <i class="bi bi-copy text-orange"></i>
+                            </span>
+                        </div>
+                        <div id="copyFeedback" class="text-success fw-bold small mb-2 d-none">
+                            <i class="bi bi-check-circle-fill me-1"></i>¡Enlace copiado!
+                        </div>
+                        <button class="btn btn-warning-orange fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="copyGeneratedLink()">
+                            <i class="bi bi-whatsapp me-2 fs-5"></i> Copiar para WhatsApp
+                        </button>
+                    </div>
+
+                    <button class="btn btn-orange fw-bold w-100 py-3 shadow rounded-pill text-uppercase" onclick="generateFormLink()">
+                        <i class="bi bi-gear me-2"></i> Generar Formulario
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+

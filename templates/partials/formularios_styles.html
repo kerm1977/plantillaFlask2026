@@ -1,0 +1,35 @@
+<style>
+#responsesViewer, #responsesTable {
+    overflow: visible;
+    min-width: 0;
+}
+#responsesTable .row {
+    min-width: 0;
+}
+/* Acordeones de respuesta: mismo estilo que el perfil (accordion Bootstrap + glass-panel) */
+.resp-field .resp-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #6c757d;
+    margin-bottom: 1px;
+}
+.resp-field .resp-value {
+    font-weight: 600;
+    color: #212529;
+    word-break: break-word;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 4px;
+}
+
+/* Vista móvil: cada dato apilado — etiqueta arriba, valor debajo, uno bajo otro */
+@media (max-width: 550px) {
+    .resp-field {
+        padding: 6px 0;
+    }
+    .resp-field .resp-value {
+        border-bottom: none;
+    }
+}
+</style>

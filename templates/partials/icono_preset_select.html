@@ -1,0 +1,14 @@
+<select class="form-select" id="{{ icono_preset_id }}" style="max-width:140px;">
+              <option value="">Sugerencias</option>
+              <optgroup label="Emojis">
+{% include 'partials/icono_preset_emojis.html' %}
+              </optgroup>
+              <optgroup label="Emojis WhatsApp">
+{% include 'partials/icono_preset_wa1.html' %}
+{% include 'partials/icono_preset_wa2.html' %}
+{% include 'partials/icono_preset_wa3.html' %}
+              </optgroup>
+              <optgroup label="Bootstrap Icons">
+{% include 'partials/icono_preset_bi.html' %}
+              </optgroup>
+            </select>

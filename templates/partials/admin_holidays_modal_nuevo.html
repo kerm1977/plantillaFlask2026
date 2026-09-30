@@ -1,0 +1,103 @@
+<div class="modal fade" id="newHolidayModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0 justify-content-center flex-column text-center">
+        <h5 class="modal-title fw-bold text-dark mt-1">Nuevo trigger</h5>
+      </div>
+      <div class="modal-body pt-3 pb-2">
+        <div class="mb-3">
+          <label for="nuevo-titulo" class="form-label fw-semibold small">Título del mensaje</label>
+          <input type="text" class="form-control" id="nuevo-titulo">
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-subtitulo" class="form-label fw-semibold small">Mensaje de felicitación</label>
+          <textarea class="form-control" id="nuevo-subtitulo" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-icono" class="form-label fw-semibold small">Ícono (emoji o clase bi-*)</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="nuevo-icono" placeholder="🎉 o bi bi-balloon">
+            {% set icono_preset_id = 'nuevo-icono-preset' %}{% include 'partials/icono_preset_select.html' %}
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-6 mb-3">
+            <label for="nuevo-mes" class="form-label fw-semibold small">Mes inicio</label>
+            <select class="form-select" id="nuevo-mes">
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-dia" class="form-label fw-semibold small">Día inicio</label>
+            <select class="form-select" id="nuevo-dia">
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-fin-mes" class="form-label fw-semibold small">Mes fin</label>
+            <select class="form-select" id="nuevo-fin-mes">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 13) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="col-6 mb-3">
+            <label for="nuevo-fin-dia" class="form-label fw-semibold small">Día fin</label>
+            <select class="form-select" id="nuevo-fin-dia">
+              <option value="">Sin fecha final</option>
+              {% for i in range(1, 32) %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-activo" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-activo">Activar trigger</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-autoplay">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-autoplay">Reproducir canción automáticamente</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-confeti" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-confeti">Mostrar confeti</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-reproductor" checked>
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-reproductor">Mostrar reproductor de música</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-superuser">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-superuser">Solo superusuarios o administradores</label>
+        </div>
+        <div class="form-check form-switch d-flex justify-content-start align-items-center mb-2">
+          <input class="form-check-input" type="checkbox" id="nuevo-link-activo">
+          <label class="form-check-label ms-2 fw-semibold" for="nuevo-link-activo">Activar enlace</label>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-link" class="form-label fw-semibold small">URL del enlace</label>
+          <input type="url" class="form-control" id="nuevo-link" placeholder="https://...">
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-mensaje" class="form-label fw-semibold small">Mensaje personalizado</label>
+          <textarea class="form-control" id="nuevo-mensaje" rows="2" placeholder="Dejar en blanco para usar el mensaje predeterminado"></textarea>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-cancion" class="form-label fw-semibold small">Canción del modal</label>
+          <select class="form-select" id="nuevo-cancion">
+            <option value="">Sin música</option>
+            {% for c in canciones %}
+            <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="nuevo-cancion-file" class="form-label fw-semibold small">O subir una nueva canción</label>
+          <input class="form-control" type="file" id="nuevo-cancion-file" accept=".mp3,.wav,.ogg,.m4a,audio/*">
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0 flex-column gap-2">
+        <button type="button" class="btn btn-orange rounded-pill w-100 fw-bold" onclick="guardarNuevoFeriado()">Crear trigger</button>
+        <button type="button" class="btn btn-outline-secondary rounded-pill w-100" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>

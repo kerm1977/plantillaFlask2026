@@ -1,0 +1,114 @@
+                  <!-- Lo que Incluye -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accIncluye">
+                        <i class="bi bi-check2-square me-2"></i>Lo que Incluye
+                      </button>
+                    </h2>
+                    <div id="accIncluye" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-2 mb-3 text-muted small check-btn-wrapper" id="incluyeWrapper">
+                          {% set includes_predef = ['Transporte', 'Lancha', 'Desayuno', 'Café', 'Almuerzo', 'Refrigerio', 'Cena', 'Guías', 'Pasaporte', 'Entrada', 'Reconocimiento', 'Rifas', 'Estadía', 'Ducha', 'Servicios Sanitarios', 'Impuestos', 'Tiquetes Aereos', 'Zona de Camping', 'Póliza de Viajero', 'Taxi/Uber/Otro', 'Acarreo', 'Guías Certificados'] %}
+                          {% for item in includes_predef %}
+                          <div class="col-6 col-md-3">
+                            <input type="checkbox" id="modalInc{{ loop.index }}" name="incluye_check" value="{{ item }}" class="btn-check-custom">
+                            <label for="modalInc{{ loop.index }}" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">{{ item }}</label>
+                          </div>
+                          {% endfor %}
+                          <div class="col-6 col-md-3">
+                            <input type="checkbox" id="modalCheckOtros" name="incluye_check" value="Otros" class="btn-check-custom" onchange="toggleOtherDesc()">
+                            <label for="modalCheckOtros" class="btn w-100 rounded-3 py-1 lbl-check-custom d-block text-truncate">Otros</label>
+                          </div>
+                        </div>
+                        <div id="otrosDescContainer" class="mt-3 glass-panel p-3 rounded-3 border-0 shadow-sm d-none">
+                          <label class="form-label fw-bold text-muted small mb-1">Descripción de Otros:</label>
+                          <input type="text" id="otrosDescripcion" class="form-control glass-input rounded-3" placeholder="Especifique qué más incluye...">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Seguridad -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accSeguridad">
+                        <i class="bi bi-shield-fill me-2"></i>Seguridad
+                      </button>
+                    </h2>
+                    <div id="accSeguridad" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div class="row g-3">
+                          <div class="col-12">
+                            <div class="form-check form-switch m-0 border border-danger border-opacity-50 rounded-3 p-3 d-flex justify-content-between align-items-center" style="background: rgba(220, 53, 69, 0.05);">
+                              <div>
+                                <label class="form-check-label fw-bold text-danger mb-0 d-block" for="altoRiesgoToggle" style="cursor: pointer; font-size: 1.05rem;">
+                                  <i class="bi bi-exclamation-triangle-fill me-2"></i>Marcar como "Zona de Alto Riesgo"
+                                </label>
+                                <small class="text-danger opacity-75">Agrega una alerta visual obligatoria sobre la dificultad técnica del terreno.</small>
+                              </div>
+                              <input class="form-check-input m-0 shadow-sm" type="checkbox" id="altoRiesgoToggle" style="width: 3rem; height: 1.5rem; cursor: pointer;">
+                            </div>
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label fw-bold text-muted small mb-1">Detalle de la zona</label>
+                            <textarea id="textoReferencia" name="textoReferencia" rows="3" class="form-control glass-input rounded-4 shadow-sm" placeholder="Explique por qué se marcó como zona de alto riesgo..."></textarea>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Información Especial (WYSIWYG) - SIEMPRE VISIBLE en todos los estados -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accInfoEspecial">
+                        <i class="bi bi-journal-text me-2"></i>Información Especial
+                      </button>
+                    </h2>
+                    <div id="accInfoEspecial" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <p class="text-muted small mb-2">Este contenido es lo que verán los caminantes al presionar el botón "Información Especial" de esta caminata.</p>
+                        {{ wysiwyg_toolbar(
+                          editor_id='itinerarioEditor',
+                          upload_url=url_for('main.api_upload_image'),
+                          modal_prefix='eventoItin'
+                        ) }}
+                        <div id="itinerarioEditor" class="p-3 bg-white bg-opacity-75 rounded-4 shadow-sm border" contenteditable="true" style="min-height:180px;"></div>
+                        <textarea id="itinerario" name="itinerario" class="d-none"></textarea>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Puntos a acumular -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accInfoPuntos">
+                        <i class="bi bi-trophy me-2"></i>Puntos a acumular
+                      </button>
+                    </h2>
+                    <div id="accInfoPuntos" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <label class="form-label fw-bold text-muted small mb-1">Cantidad de puntos que ganará un participante</label>
+                        <input type="number" id="puntos" name="puntos" min="0" step="1" value="0" class="form-control glass-input rounded-3" placeholder="Ej: 10">
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="no-cotizacion">{% include 'partials/evento_flyer_editor.html' %}</div>
+
+                </div>
+
+                <div class="d-flex flex-column flex-sm-row justify-content-end gap-2 pt-4 border-top border-white border-opacity-50">
+                  <button type="button" class="btn bg-white shadow-sm rounded-pill px-4 fw-bold" data-bs-dismiss="modal" style="color: #6c757d; border: 1px solid #ced4da;">Cancelar</button>
+                  <button type="submit" id="submitEventBtn" class="btn btn-warning shadow-sm rounded-pill px-4 fw-bold text-dark"><i class="bi bi-save me-2"></i>Publicar Evento</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'partials/evento_flyer_script.html' %}

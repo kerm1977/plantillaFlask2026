@@ -1,0 +1,136 @@
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accHistorial">
+                <i class="bi bi-clock-history me-2"></i>Historial de puntos ganados
+              </button>
+            </h2>
+            <div id="accHistorial" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                {% if history %}
+                <div class="mb-0">
+                  {% for row in history %}
+                  <div class="card border-0 shadow-sm rounded-4 mb-2 p-3 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                      <div>
+                        <span class="badge bg-light text-dark rounded-pill mb-1">{{ row.creado_at[:10] if row.creado_at else 'Sin fecha' }}</span>
+                        <h6 class="fw-bold mb-0 text-break">{{ row.evento_nombre or 'Actividad general' }}</h6>
+                        <small class="text-muted text-uppercase text-break">{{ row.tipo }}</small>
+                      </div>
+                      <div class="text-end">
+                        <span class="fw-bold fs-5 {{ 'text-danger' if row.puntos < 0 else 'text-success' }}">{{ row.puntos }}</span>
+                        <small class="d-block text-muted">puntos</small>
+                      </div>
+                    </div>
+                    {% if row.detalle %}
+                    <p class="mb-0 small text-break"><span class="fw-semibold">Detalle:</span> {{ row.detalle }}</p>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted mb-0">No hay movimientos registrados.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRedimir">
+                <i class="bi bi-cash-coin me-2"></i>Redimir puntos
+              </button>
+            </h2>
+            <div id="accRedimir" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                {% if total >= 5000 %}
+                <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}">
+                  <input type="hidden" name="accion" value="redimir">
+                  <input type="hidden" name="cedula" value="{{ cedula }}">
+                  <div class="mb-3">
+                    <select name="tipo" id="tipoRedencion" class="form-select glass-input rounded-pill">
+                      <option value="caminata">Caminata (100%)</option>
+                      <option value="dinero">Devolución de dinero (80%)</option>
+                    </select>
+                  </div>
+                  <div class="input-group mb-3">
+                    <input type="number" id="cantidadRedencion" name="cantidad" class="form-control glass-input rounded-start-pill" min="1" max="{{ total }}" value="5000" required>
+                    <button type="submit" class="btn btn-warning rounded-end-pill fw-bold text-dark">Redimir</button>
+                  </div>
+                  <div id="valorRedencion" class="small text-dark fw-bold"></div>
+                  <p class="small text-muted mt-2">Pronto podrás aplicar tus puntos en otros servicios.</p>
+                </form>
+                {% else %}
+                <p class="text-muted mb-0">Necesitás al menos <strong>5.000</strong> puntos para redimir.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accDonar">
+                <i class="bi bi-gift me-2"></i>Donar o transferir puntos a compañeros
+              </button>
+            </h2>
+            <div id="accDonar" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                <p class="small text-muted">A partir de <strong>1.000 puntos</strong> podés donar a cumpleañeros o transferir a otro compañero. No podés quedarte con cero.</p>
+
+                <h6 class="fw-bold mt-3 mb-2">Cumpleañeros de hoy</h6>
+                {% if cumpleaneros %}
+                {% if total >= 1000 %}
+                <p class="small text-muted">Tenés {{ total }} puntos. El máximo por donación es {{ total - 1 }}.</p>
+                {% for p in cumpleaneros %}
+                {% if p.cedula != cedula %}
+                <div class="d-flex flex-column flex-md-row align-items-md-center gap-2 mb-3 p-2 border rounded-3 bg-white bg-opacity-10">
+                  <div class="flex-grow-1">
+                    <strong class="text-dark">{{ p.nombre_completo }}</strong>
+                    <span class="text-muted d-block small">{{ p.cedula }}</span>
+                  </div>
+                  <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}" class="d-flex gap-2 flex-grow-1" onsubmit="return confirm('¿Donar estos puntos a {{ p.nombre_completo }}?');">
+                    <input type="hidden" name="accion" value="donar">
+                    <input type="hidden" name="cedula" value="{{ cedula }}">
+                    <input type="hidden" name="cedula_destino" value="{{ p.cedula }}">
+                    <input type="number" name="monto" class="form-control" placeholder="Puntos" min="1" max="{{ total - 1 }}" required>
+                    <button type="submit" class="btn btn-info text-white fw-bold text-nowrap">Donar</button>
+                  </form>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% else %}
+                <p class="text-muted mb-0">Necesitás al menos <strong>1.000</strong> puntos para donar.</p>
+                {% endif %}
+                {% else %}
+                <p class="text-muted mb-0">Hoy no hay cumpleañeros registrados.</p>
+                {% endif %}
+
+                <h6 class="fw-bold mt-4 mb-2">Transferir puntos a otro compañero</h6>
+                {% if total >= 1000 %}
+                <p class="small text-muted">Tenés {{ total }} puntos. El máximo a transferir es {{ total - 1 }}.</p>
+                <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}" class="row g-2" onsubmit="return confirm('¿Estás seguro de transferir estos puntos?');">
+                  <input type="hidden" name="accion" value="transferir">
+                  <input type="hidden" name="cedula" value="{{ cedula }}">
+                  <div class="col-5">
+                    <select name="cedula_destino" class="form-select" data-searchable required>
+                      <option value="" disabled selected>Seleccioná un compañero</option>
+                      {% for p in participantes %}
+                      {% if p.cedula != cedula %}
+                      <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                      {% endif %}
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="col-4">
+                    <input type="number" name="monto" class="form-control" placeholder="Puntos" min="1" max="{{ total - 1 }}" required>
+                  </div>
+                  <div class="col-3">
+                    <button type="submit" class="btn btn-info w-100 text-white fw-bold">Transferir</button>
+                  </div>
+                </form>
+                {% else %}
+                <p class="text-muted mb-0">Necesitás al menos <strong>1.000</strong> puntos para transferir.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+

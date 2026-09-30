@@ -1,0 +1,138 @@
+  <div id="vistaProvincias" class="caminatas-vista" style="display:block;">
+  <div id="accordionProvincias">
+    {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) %}
+      {% if entry.type == 'provincia' %}
+      <div class="accordion glass-panel border-0 rounded-4 mb-3 shadow-sm">
+        <div class="accordion-item border-0 bg-transparent">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
+              <span class="d-flex align-items-start gap-2 w-100 justify-content-between pe-3">
+                <span class="d-flex flex-column align-items-start">
+                  <span class="{{ group_header_text_class | default('text-uppercase') }}" style="font-size:1.05rem; line-height:1.15;">{{ entry.group_label }}</span>
+                  {% if show_expand_hint | default(false) %}
+                  <small class="text-muted" style="font-size:0.6rem; opacity:0.55; line-height:1; margin-top:0.05rem;">
+                    <i class="bi bi-hand-index-thumb me-1"></i>{{ expand_hint_text | default('Toca para expandir') }}
+                  </small>
+                  {% endif %}
+                </span>
+                <span class="badge {{ group_badge_class | default('rounded-pill') }}" style="{{ group_badge_style | default('background:#ff8c00; color:#fff;') }}">
+                  {% if group_badge_icon %}<i class="bi {{ group_badge_icon }} me-1" style="color:{{ group_badge_icon_color | default('#fff') }};"></i>{% endif %}{{ entry.walks|length }}
+                </span>
+              </span>
+            </button>
+          </h2>
+          <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
+            <div class="accordion-body pt-0">
+              {% if entry.group_label == 'Otras Caminatas' %}
+              {% set year_values = [] %}
+              {% for ev in entry.walks %}
+                {% if ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 and ev.visitado not in year_values %}
+                  {% set year_values = year_values + [ev.visitado] %}
+                {% endif %}
+              {% endfor %}
+              {% set year_label = year_values[0] if year_values else '2027' %}
+              <div class="row row-cols-2 g-3">
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#ff8c00;min-height:100px;">
+                    <span class="fs-5 fw-bold">{{ year_label }}</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_visitados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#198754;min-height:100px;">
+                    <span class="fs-6 fw-bold">Visitados</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_pendientes') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6c757d;min-height:100px;">
+                    <span class="fs-6 fw-bold">Pendiente</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_programados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6f42c1;min-height:100px;">
+                    <span class="fs-6 fw-bold">Programados</span>
+                  </a>
+                </div>
+                {% if is_super %}
+                <div class="col">
+                  <a href="{{ url_for('main.caminatas_cotizaciones') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#d63384;min-height:100px;">
+                    <span class="fs-6 fw-bold">Cotizaciones</span>
+                  </a>
+                </div>
+                <div class="col">
+                  <a href="{{ url_for('main.bitacora_lista') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#38bdf8;min-height:100px;">
+                    <span class="fs-6 fw-bold">Bitácora</span>
+                  </a>
+                </div>
+                {% endif %}
+              </div>
+              {% else %}
+              <ul class="list-group list-group-flush">
+                {% for ev in entry.walks %}
+                {{ caminata_item(ev, is_tribu, is_super, is_share|default(false), meses, detail_endpoint) }}
+                {% endfor %}
+              </ul>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="caminata-content-block mb-3 position-relative p-4">
+        {% if is_super %}
+        <div class="position-absolute top-0 end-0 d-flex gap-1 p-2" style="z-index:2;">
+          <button class="btn btn-sm btn-light rounded-circle" onclick="openBlockEditor('edit', {{ entry.id }}, document.getElementById('block-{{ entry.id }}').innerHTML, null)" title="Editar párrafo"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger rounded-circle" onclick="openDeleteModal({{ entry.id }})" title="Eliminar párrafo"><i class="bi bi-trash"></i></button>
+        </div>
+        {% endif %}
+        <div id="block-{{ entry.id }}">{{ entry.content|safe }}</div>
+      </div>
+      {% endif %}
+
+      {% if is_super and (is_caminatas_2027_page | default(true)) %}
+      <div class="text-center mb-3">
+        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="openBlockEditor('create', null, '', {{ ((entry.order + timeline[loop.index].order) / 2) if not loop.last else (entry.order + 10) }})">
+          <i class="bi bi-plus-lg me-1"></i>Agregar párrafo aquí
+        </button>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  </div>
+  <div id="vistaLista" class="caminatas-vista" style="display:none;">
+    <div class="glass-panel rounded-4 shadow-sm mb-3">
+      <ul class="list-group list-group-flush">
+        {% for ev in eventos %}
+        <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center gap-2">
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none">{{ ev.nombre_lugar }}</a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Información Especial"><i class="bi bi-card-text"></i></a>
+            <span class="small text-muted text-end">
+              {{ ev.provincia }}{% if ev.provincia and (ev.dificultad or ev.actividad) %}<br>{% endif %}
+              {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+              <br>{{ estado_badge(ev.visitado) }}
+            </span>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div id="vistaAlfabetica" class="caminatas-vista" style="display:none;">
+    <div class="glass-panel rounded-4 shadow-sm mb-3">
+      <ul class="list-group list-group-flush">
+        {% for ev in eventos | sort(attribute='visitado,nombre_lugar') %}
+        <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3 d-flex justify-content-between align-items-center gap-2">
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark text-decoration-none">{{ ev.nombre_lugar }}</a>
+          <div class="d-flex align-items-center gap-2">
+            <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill" title="Información Especial"><i class="bi bi-card-text"></i></a>
+            <span class="small text-muted text-end">
+              {{ ev.provincia }}{% if ev.provincia and (ev.dificultad or ev.actividad) %}<br>{% endif %}
+              {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {{ ev.actividad }}{% endif %}{% elif ev.actividad %}{{ ev.actividad }}{% endif %}
+              <br>{{ estado_badge(ev.visitado) }}
+            </span>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>

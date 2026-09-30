@@ -1,0 +1,163 @@
+<script>
+  let deleteBlockId = null;
+  let deleteBlockModalInstance;
+  let blockEditorModalInstance;
+  let blockEditorState = { mode: null, id: null, order: null };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Wysiwyg.setupUploadListeners('blockEditorContent', "{{ url_for('main.api_upload_image') }}", () => {
+      if (blockEditorState.mode !== 'create') saveBlockEditor();
+    });
+  });
+
+  function openBlockEditor(mode, id, initialContent, order) {
+    blockEditorState = { mode, id, order };
+    document.getElementById('blockEditorContent').innerHTML = initialContent || '';
+    document.getElementById('blockEditorTitle').textContent = mode === 'intro' ? 'Editar información' : (mode === 'create' ? 'Agregar párrafo' : 'Editar párrafo');
+    if (!blockEditorModalInstance) blockEditorModalInstance = new bootstrap.Modal(document.getElementById('blockEditorModal'));
+    blockEditorModalInstance.show();
+  }
+
+  function blockExecCmd(command) {
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand(command, false, null);
+    document.getElementById('blockEditorContent').focus();
+  }
+
+  function blockSetLineHeight(value) {
+    if (!value) return;
+    document.getElementById('blockEditorContent').style.lineHeight = value;
+  }
+
+  function blockInsertLink() {
+    const url = window.prompt('Ingrese la URL del enlace:', 'https://');
+    if (!url) return;
+    document.getElementById('blockEditorContent').focus();
+    try { document.execCommand('styleWithCSS', false, true); } catch(e) {}
+    document.execCommand('createLink', false, url);
+  }
+
+  async function blockUploadImage(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('image', file);
+    try {
+      const r = await fetch('/api/caminatas-2027/blocks/upload-image', {method:'POST', body: formData});
+      const data = await r.json();
+      if (data.ok) {
+        document.getElementById('blockEditorContent').focus();
+        document.execCommand('insertHTML', false, `<img src="${data.url}" class="img-fluid rounded-3" style="max-width:100%;" alt="Imagen">`);
+      } else {
+        alert(data.error || 'Error al subir imagen');
+      }
+    } catch(e) {
+      alert('Error de conexión al subir imagen');
+    }
+    input.value = '';
+  }
+
+  async function saveBlockEditor() {
+    const content = document.getElementById('blockEditorContent').innerHTML;
+    const { mode, id, order } = blockEditorState;
+    try {
+      let r;
+      let body;
+      if (mode === 'intro') {
+        body = content;
+        r = await fetch('/api/site-content/caminatas_2027', {method:'PUT', headers:{'Content-Type':'text/plain'}, body: body});
+      } else if (mode === 'create') {
+        const newOrder = (order === null || order === undefined) ? 0 : order;
+        r = await fetch('/api/caminatas-2027/blocks', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content, order: newOrder})});
+      } else {
+        r = await fetch(`/api/caminatas-2027/blocks/${id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({content})});
+      }
+      const data = await r.json().catch(() => ({}));
+      if (data.ok) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al guardar');
+      }
+    } catch(e) {
+      alert('Error de conexión al guardar');
+    }
+  }
+
+  function openDeleteModal(id) {
+    deleteBlockId = id;
+    if (!deleteBlockModalInstance) deleteBlockModalInstance = new bootstrap.Modal(document.getElementById('deleteBlockModal'));
+    deleteBlockModalInstance.show();
+  }
+
+  async function confirmDeleteBlock() {
+    if (!deleteBlockId) return;
+    try {
+      const r = await fetch(`/api/caminatas-2027/blocks/${deleteBlockId}`, {method:'DELETE'});
+      const data = await r.json();
+      if (data.ok) {
+        deleteBlockModalInstance.hide();
+        window.location.reload();
+      } else {
+        alert(data.error || 'Error al eliminar');
+      }
+    } catch(e) {
+      alert('Error de conexión al eliminar');
+    }
+  }
+
+  async function copyTextToClipboard(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+      alert('Enlace copiado al portapapeles');
+    } catch(e) {
+      alert('No se pudo copiar el enlace');
+    }
+  }
+
+  let caminatasVistaIndex = 0;
+  const caminatasVistas = ['vistaProvincias', 'vistaAlfabetica'];
+  function cambiarVistaCaminatasCiclo() {
+    caminatasVistaIndex = (caminatasVistaIndex + 1) % caminatasVistas.length;
+    caminatasVistas.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = (i === caminatasVistaIndex) ? 'block' : 'none';
+    });
+  }
+
+  function setupCaminatas2027LongPress() {
+    const title = document.getElementById('caminatas2027Title');
+    if (!title) return;
+    let timer = null;
+    const start = (e) => {
+      title.dataset.longpress = '0';
+      timer = setTimeout(() => {
+        title.dataset.longpress = '1';
+        const url = window.location.origin + window.location.pathname + '?share=1';
+        copyTextToClipboard(url);
+        title.style.transform = 'scale(0.98)';
+        setTimeout(() => { title.style.transform = ''; }, 150);
+      }, 600);
+    };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    title.addEventListener('mousedown', start);
+    title.addEventListener('touchstart', start, {passive: true});
+    title.addEventListener('mouseup', cancel);
+    title.addEventListener('mouseleave', cancel);
+    title.addEventListener('touchend', cancel);
+    title.addEventListener('touchcancel', cancel);
+    title.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
+  setupCaminatas2027LongPress();
+</script>

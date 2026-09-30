@@ -120,6 +120,7 @@
 {{ site | tojson | safe }}
 </script>
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+<script src="{{ url_for('static', filename='js/wysiwyg_media.js') }}"></script>
 <script>
   const siteData = JSON.parse(document.getElementById('siteDataJson').textContent);
   const sectionKeys = ['quienes_somos','mision','oracion','nota','caminatas_2027','terminos'];

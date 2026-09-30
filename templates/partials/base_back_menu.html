@@ -1,0 +1,171 @@
+
+    {% if request.path != '/' %}
+    {% if request.path == '/terminos' %}
+      {% set back_url = url_for('main.caminatas') %}
+    {% elif request.path.startswith('/caminatas-2027/') %}
+      {% set back_url = url_for('main.caminatas_2027') %}
+    {% elif request.path.startswith('/editar_caminante/') %}
+      {% set back_url = url_for('main.dashboard') %}
+    {% else %}
+      {% set back_url = url_for('main.home') %}
+    {% endif %}
+    <!-- Botón Volver Atrás Global (OCULTO EN INICIO): intenta un paso atrás en historial, si no hay, usa back_url -->
+    <button id="btnBack" class="btn-global-back" onclick="{% if request.path == '/dashboard' %}if (document.getElementById('adminUserDetails') && !document.getElementById('adminUserDetails').classList.contains('d-none')) { document.getElementById('adminUsersList').classList.remove('d-none'); document.getElementById('adminUserDetails').classList.add('d-none'); } else if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }{% elif request.path.startswith('/editar_caminante/') %}window.location.href='{{ back_url }}';{% else %}if (window.history.length > 1) { window.history.back(); } else { window.location.href='{{ back_url }}'; }{% endif %}" title="Volver" style="{% if site.back_button_bg %}background: {{ site.back_button_bg }} !important;{% endif %}">
+        <i class="bi bi-arrow-left fs-4" style="color:#000 !important;"></i>
+    </button>
+    {% endif %}
+
+    <!-- ========================================== -->
+    <!-- LOGO DE SUEÑOS FLOTANTE EN PC -->
+    <!-- ========================================== -->
+    <a id="logoSuenosDesktopLink" href="#" target="_blank" class="d-none d-md-block" style="display: none !important;">
+        <img id="logoSuenosDesktop" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed animate-heartbeat">
+    </a>
+    <img id="logoSuenosDesktopNoLink" src="{{ url_for('static', filename='uploads/logosueños.png') }}" alt="Logo Sueños" class="logo-suenos-desktop-fixed d-none d-md-block animate-heartbeat" style="display: none !important;">
+
+    <!-- ========================================== -->
+    <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
+    <!-- ========================================== -->
+    {% if session.get('role') == 'Superusuario' %}
+    <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
+        <!-- El menú abre hacia abajo y se hace scroll si es largo -->
+        <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none; {% if site.admin_tools_bg %}background: {{ site.admin_tools_bg }} !important;{% endif %}">
+            <i class="bi bi-tools fs-4"></i>
+        </a>
+
+        <!-- Menú desplegable Glassmorphic -->
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2" style="background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 1rem; right: 20px; max-height: 70vh; overflow-y: auto; z-index: 9999;">
+            <!-- Opción 1: Crear Caminata -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/caminatas-2027?crear=1">
+                    <i class="bi bi-plus-circle text-orange me-2 fs-5"></i> Crear Caminata
+                </a>
+            </li>
+            
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 2: Generar Calendario (ABRE EL MODAL) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" data-bs-toggle="modal" data-bs-target="#calendarioModal">
+                    <i class="bi bi-easel text-orange me-2 fs-5"></i> Arte de Calendario
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 2.5: Arte de Cotizaciones -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/cotizadores/arte">
+                    <i class="bi bi-currency-dollar text-orange me-2 fs-5"></i> Arte de Cotizaciones
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- NUEVA Opción 3: Link de Inscripción (ABRE EL MODAL DE GENERADOR) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="abrirGeneradorLinks()">
+                    <i class="bi bi-link-45deg text-orange me-2 fs-5"></i> Link de Inscripción
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 4: Gestor de Fechas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/gestor-fechas">
+                    <i class="bi bi-calendar-check text-orange me-2 fs-5"></i> Gestor de Fechas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+            
+            <!-- Opción 5: Agenda / Directorio (Dashboard) -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard">
+                    <i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 6: Notas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="openNotesModal()">
+                    <i class="bi bi-journal-text text-orange me-2 fs-5"></i> Notas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 7: Evento Social -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/publicaciones">
+                    <i class="bi bi-calendar-event text-orange me-2 fs-5"></i> Evento Social
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 6: Formularios -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/formularios">
+                    <i class="bi bi-clipboard-data text-orange me-2 fs-5"></i> Formularios
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 7: Cotizadores - VERSION ACTUALIZADA -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/cotizadores/lista">
+                    <i class="bi bi-currency-dollar text-orange me-2 fs-5"></i> Cotizadores
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 8: Rifas -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/rifas">
+                    <i class="bi bi-ticket-perforated text-orange me-2 fs-5"></i> Rifas
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 9: Triggers de Festivos -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/holidays">
+                    <i class="bi bi-calendar-event text-orange me-2 fs-5"></i> Triggers de Festivos
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 10: Rastreo en Vivo -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/rastreo/admin">
+                    <i class="bi bi-geo-alt-fill text-orange me-2 fs-5"></i> Rastreo en Vivo
+                </a>
+            </li>
+
+            <li><hr class="dropdown-divider opacity-25"></li>
+
+            <!-- Opción 11: Descargar Videos -->
+            <li>
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/herramientas/descargas">
+                    <i class="bi bi-cloud-download text-orange me-2 fs-5"></i> Descargar Videos
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <style>
+        /* Elimina la flechita por defecto del dropdown en el botón flotante */
+        .btn-global-add.dropdown-toggle::after {
+            display: none !important;
+        }
+    </style>
+    {% endif %}
+

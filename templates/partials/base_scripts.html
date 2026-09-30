@@ -27,11 +27,17 @@
 
     <!-- PWA y Configuración del Logo -->
     <script src="{{ url_for('static', filename='js/pwa_service.js') }}?v=16"></script>
+    <script src="{{ url_for('static', filename='js/pwa_offline.js') }}?v=16"></script>
     <script src="{{ url_for('static', filename='js/logo_config.js') }}?v=10"></script>
     <script src="{{ url_for('static', filename='js/agenda_search.js') }}?v=2"></script>
     <script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notes_collab.js') }}?v=1"></script>
-    <script src="{{ url_for('static', filename='js/notes.js') }}?v=20"></script>
+    <script src="{{ url_for('static', filename='js/notes.js') }}?v=21"></script>
+    <script src="{{ url_for('static', filename='js/notes_view.js') }}?v=21"></script>
+    <script src="{{ url_for('static', filename='js/notes_media.js') }}?v=21"></script>
+    <script src="{{ url_for('static', filename='js/notes_utils.js') }}?v=21"></script>
+    <script src="{{ url_for('static', filename='js/notes_share.js') }}?v=21"></script>
+    <script src="{{ url_for('static', filename='js/notes_export.js') }}?v=21"></script>
 <script>
 (function() {
     const STORAGE_KEY = 'admin_pines_v1';

@@ -1,0 +1,125 @@
+<!-- MODAL PARA SUBIR IMAGEN -->
+<div class="modal fade" id="noteImageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-image text-orange me-2"></i>Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="noteImageFile" class="form-label small text-muted fw-bold">Seleccionar imagen</label>
+                    <input type="file" id="noteImageFile" class="form-control rounded-pill border-0 bg-white bg-opacity-75" accept="image/*" onchange="previewNoteImage(this)">
+                </div>
+                <div id="noteImagePreviewContainer" class="text-center mb-3 d-none">
+                    <img id="noteImagePreview" class="img-fluid rounded-3" style="max-height: 200px;" alt="Vista previa">
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageSizeSlider" class="form-label small text-muted fw-bold">Tamaño de imagen</label>
+                    <input type="range" id="noteImageSizeSlider" class="form-range" min="20" max="100" value="100" oninput="updateImageSizePreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Pequeña</span>
+                        <span id="noteImageSizeValue">100%</span>
+                        <span>Grande</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyNoteImage()">
+                        <i class="bi bi-check-lg me-1"></i>Insertar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA VER IMAGEN EN TAMAÑO REAL -->
+<div class="modal fade" id="noteImageViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-zoom-in text-orange me-2"></i>Vista de imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="noteImageViewReal" class="img-fluid rounded-3" style="max-height: 80vh;" alt="Imagen completa">
+                <div class="d-flex justify-content-center gap-2 mt-3 flex-wrap">
+                    <button class="btn btn-primary rounded-pill px-3" onclick="openImageEditFromView()">
+                        <i class="bi bi-pencil me-1"></i>Editar
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToTop()">
+                        <i class="bi bi-arrow-up me-1"></i>Arriba
+                    </button>
+                    <button class="btn btn-warning rounded-pill px-3" onclick="moveImageToBottom()">
+                        <i class="bi bi-arrow-down me-1"></i>Abajo
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-3" onclick="deleteImageFromView()">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cerrar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA EDITAR IMAGEN -->
+<div class="modal fade" id="noteImageEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-image text-orange me-2"></i>Editar Imagen</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <img id="noteImageEditPreview" class="img-fluid rounded-3" style="max-height: 200px;" alt="Vista previa">
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditSizeSlider" class="form-label small text-muted fw-bold">Tamaño</label>
+                    <input type="range" id="noteImageEditSizeSlider" class="form-range" min="20" max="100" value="100" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Pequeña</span>
+                        <span id="noteImageEditSizeValue">100%</span>
+                        <span>Grande</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditBlurSlider" class="form-label small text-muted fw-bold">Blur</label>
+                    <input type="range" id="noteImageEditBlurSlider" class="form-range" min="0" max="10" value="0" step="0.5" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Sin blur</span>
+                        <span id="noteImageEditBlurValue">0px</span>
+                        <span>Mucho</span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="noteImageEditOpacitySlider" class="form-label small text-muted fw-bold">Opacidad</label>
+                    <input type="range" id="noteImageEditOpacitySlider" class="form-range" min="10" max="100" value="100" oninput="updateImageEditPreview()">
+                    <div class="d-flex justify-content-between small text-muted">
+                        <span>Transparente</span>
+                        <span id="noteImageEditOpacityValue">100%</span>
+                        <span>Opaca</span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success rounded-pill px-4 flex-grow-1" onclick="applyImageEdit()">
+                        <i class="bi bi-check-lg me-1"></i>Aplicar
+                    </button>
+                    <button class="btn btn-danger rounded-pill px-3" onclick="deleteImageEdit()">
+                        <i class="bi bi-trash me-1"></i>Eliminar
+                    </button>
+                    <button class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-1"></i>Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

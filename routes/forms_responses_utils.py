@@ -23,6 +23,19 @@ def _build_answers_map(response, fields):
     return result
 
 
+def _fmt_tel(tel, form):
+    """Antepone +506 a teléfonos cuando el formulario solicita pasaporte."""
+    if not tel:
+        return ''
+    if not form.show_pasaporte:
+        return tel
+    digits = ''.join(ch for ch in str(tel) if ch.isdigit())
+    if not digits:
+        return tel
+    rest = digits[3:] if digits.startswith('506') else digits
+    return f'+506 {rest}'
+
+
 def _update_response_answers(resp, answers_data, form_id):
     """Actualiza las respuestas de un formulario."""
     existing = {a.field_id: a for a in resp.answers}

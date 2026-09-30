@@ -1,0 +1,79 @@
+  <!-- Asignación de puntos -->
+  <div class="row justify-content-center mb-4" id="puntosCaminataRow" style="display:none;">
+    <div class="col-12 col-lg-8">
+      <div class="accordion" id="puntosCaminataAccordion">
+        <div class="accordion-item glass-table-container border-0 rounded-4 overflow-hidden">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accPuntosCaminata">
+              <i class="bi bi-trophy me-2"></i>Asignación de puntos para esta actividad
+            </button>
+          </h2>
+          <div id="accPuntosCaminata" class="accordion-collapse collapse" data-bs-parent="#puntosCaminataAccordion">
+            <div class="accordion-body">
+              <p class="mb-2">Puntos por participar: <strong id="puntosValorCaminata">0</strong></p>
+              <p class="text-muted small" id="puntosTotalCaminata">Total acumulado en esta actividad: 0</p>
+              <div id="puntosAdmin" class="d-none">
+                <div class="d-flex gap-2 mb-3">
+                  <button type="button" class="btn btn-success btn-sm rounded-pill" onclick="asignarPuntosCaminata()">
+                    <i class="bi bi-plus-circle me-1"></i>Asignar puntos a registrados
+                  </button>
+                </div>
+                <div class="input-group input-group-sm mb-3">
+                  <input type="text" id="retirarCedula" class="form-control rounded-start-pill" placeholder="Cédula a retirar">
+                  <button type="button" class="btn btn-outline-danger rounded-end-pill" onclick="retirarPuntosCaminata()">
+                    <i class="bi bi-x-circle me-1"></i>Retirar persona
+                  </button>
+                </div>
+              </div>
+              <div id="puntosAsignadosCaminata" class="small"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="text-center mb-4 mt-3 caminata-actions">
+    <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" solicitado y aprobado por el usuario. NO ELIMINAR. -->
+    {% set v_visitado = (event.visitado | default('') | string | trim) %}
+    {% set p_val = (event.precio | default(0) | int) %}
+    {% set r_val = (event.reserva | default(0) | int) %}
+    {% set is_pendiente = (p_val == 0 or r_val == 0 or v_visitado in ('Pendiente','No','') or v_visitado == 'Cotización' or v_visitado in ('Visitados','Visitado','Sí')) %}
+    {% if is_pendiente %}
+    {% set whatsapp_msg -%}
+Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
+
+*Nota:*
+> La Tribu de los Libres va a guardar este número de teléfono como posible persona participante de este viaje y se guardará en la base de datos de La Tribu de los Libres. Si está de acuerdo, envíe el mensaje; si no está de acuerdo, recházalo. Apenas tengamos el precio y la fecha exacta, se le estará informando a este mismo número de teléfono.
+
+Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) }}
+    {%- endset %}
+    <a href="https://wa.me/50686529837?text={{ whatsapp_msg | trim | urlencode }}"
+       target="_blank" rel="noopener"
+       class="btn btn-outline-success rounded-pill fw-bold d-inline-flex align-items-center">
+      <i class="bi bi-whatsapp me-2"></i>Avisarme
+    </a>
+    {% else %}
+    <button onclick="reservarCaminataWhatsApp()" type="button"
+       class="btn btn-warning-orange rounded-pill fw-bold d-inline-flex align-items-center">
+      <i class="bi bi-whatsapp me-2"></i>¡Quiero Ir!
+    </button>
+    {% endif %}
+    {% if event.enlace_extra %}
+    <a href="{{ event.enlace_extra }}" target="_blank" rel="noopener"
+       class="btn btn-outline-primary rounded-pill fw-bold d-inline-flex align-items-center ms-2">
+      <i class="bi bi-geo-alt me-2"></i>Ubicación
+    </a>
+    {% endif %}
+    <!-- FIN BOTÓN WHATSAPP -->
+    <div class="btn-group d-inline-flex align-items-center ms-2">
+      <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold d-inline-flex align-items-center" data-bs-toggle="dropdown" aria-expanded="false" title="Más opciones">
+        <i class="bi bi-three-dots"></i>
+      </button>
+      <ul class="dropdown-menu">
+        <li><button class="dropdown-item" type="button" onclick="caminataExport('pdf')"><i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Exportar PDF</button></li>
+        <li><button class="dropdown-item" type="button" onclick="abrirModalCompartirCaminata()"><i class="bi bi-whatsapp me-2 text-success"></i>Compartir</button></li>
+      </ul>
+    </div>
+  </div>
+</div>

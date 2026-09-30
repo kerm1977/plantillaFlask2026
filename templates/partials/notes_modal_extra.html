@@ -1,0 +1,105 @@
+<!-- MODAL PARA EMOJIS -->
+<div class="modal fade" id="emojiPickerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-emoji-smile text-orange me-2"></i>Emojis</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between gap-1 mb-2">
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="left" onclick="setEmojiAlign('left')" title="Izquierda"><i class="bi bi-text-left"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="center" onclick="setEmojiAlign('center')" title="Centro"><i class="bi bi-text-center"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="right" onclick="setEmojiAlign('right')" title="Derecha"><i class="bi bi-text-right"></i></button>
+                    <button class="btn btn-sm btn-light rounded-circle emoji-align-btn" data-align="justify" onclick="setEmojiAlign('justify')" title="Justificado"><i class="bi bi-justify"></i></button>
+                </div>
+                <div id="emojiGrid" class="d-flex flex-wrap gap-1 justify-content-center" style="max-height: 260px; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE OPCIONES DE NOTA -->
+<div class="modal fade" id="noteOptionsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-three-dots-vertical text-orange me-2"></i>Opciones</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="small fw-bold text-muted mb-1">Exportar</div>
+                <div class="d-flex flex-wrap gap-2 mb-3">
+                    <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportNoteJPG()">
+                        <i class="bi bi-image me-1"></i>JPG
+                    </button>
+                    <button class="btn btn-outline-info rounded-pill px-3" onclick="exportNotePNG()">
+                        <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="shareNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </button>
+                </div>
+                <div class="small fw-bold text-muted mb-1">Compartir y respaldar</div>
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-warning rounded-pill px-3" onclick="shareCurrentNote()">
+                        <i class="bi bi-link-45deg me-1"></i>Enlace Público
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="exportSingleNoteJSON()">
+                        <i class="bi bi-filetype-json me-1"></i>Exportar JSON
+                    </button>
+                    <button class="btn btn-outline-dark rounded-pill px-3" onclick="importSingleNoteJSON()">
+                        <i class="bi bi-upload me-1"></i>Importar JSON
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE VISTA DE NOTA -->
+<div class="modal fade" id="noteViewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content glass-modal shadow-lg">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark" id="noteViewTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="noteViewContainer" class="bg-white bg-opacity-75 rounded-3 p-4" style="min-height: 200px; max-height: 500px; overflow-y: auto;">
+                    <h4 id="noteViewBodyTitle" class="fw-bold text-center text-dark mb-2"></h4>
+                    <hr class="border-2 opacity-75" style="border-color: #ff8c00;">
+                    <div id="noteViewContent"></div>
+                </div>
+                <div id="noteViewProgressContainer" class="mt-3 d-none">
+                    <div class="d-flex justify-content-between small text-muted mb-1">
+                        <span>Progreso</span>
+                        <span id="noteViewProgressText">0%</span>
+                    </div>
+                    <div class="progress rounded-pill" style="height: 8px;">
+                        <div id="noteViewProgressBar" class="progress-bar bg-orange" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                </div>
+                <div class="d-flex flex-wrap gap-2 mt-3">
+                    <button class="btn btn-outline-primary rounded-pill px-3" onclick="exportViewNoteJPG()">
+                        <i class="bi bi-image me-1"></i>JPG
+                    </button>
+                    <button class="btn btn-outline-info rounded-pill px-3" onclick="exportViewNotePNG()">
+                        <i class="bi bi-file-earmark-image me-1"></i>PNG
+                    </button>
+                    <button class="btn btn-outline-danger rounded-pill px-3" onclick="exportViewNotePDF()">
+                        <i class="bi bi-filetype-pdf me-1"></i>PDF
+                    </button>
+                    <button class="btn btn-outline-success rounded-pill px-3" onclick="exportViewNoteWhatsApp()">
+                        <i class="bi bi-whatsapp me-1"></i>WhatsApp
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Eliminar Nota - Paso 1 -->

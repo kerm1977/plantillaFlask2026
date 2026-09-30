@@ -1,0 +1,19 @@
+    {% if secciones %}
+    <div class="tab-pane fade" id="paneQS">
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10 col-xl-8">
+                {% for titulo, contenido in secciones.items() %}
+                <div class="card border-0 shadow rounded-4 overflow-hidden mb-4">
+                    <div class="p-4 text-center" style="background: linear-gradient(135deg, rgba(255,140,0,0.12), rgba(255,255,255,0.6));">
+                        {% if logo_b64 %}<img src="{{ logo_b64 }}" alt="La Tribu" class="mb-2" style="max-height:45px;">{% endif %}
+                        <h3 class="fw-bold text-warning-custom mb-0"><i class="bi bi-bookmark-heart me-2"></i>{{ titulo }}</h3>
+                    </div>
+                    <div class="p-4">
+                        <div class="text-dark">{{ contenido|safe }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div><!-- /paneQS -->
+    {% endif %}

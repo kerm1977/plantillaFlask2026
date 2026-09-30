@@ -1,0 +1,107 @@
+<!-- MODAL COMPARTIR ENLACE PÚBLICO -->
+<div class="modal fade" id="compartirUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content glass-modal border-0 shadow-lg p-4">
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-body p-0">
+                <h5 class="fw-bold text-dark text-center mb-3">Compartir enlace público</h5>
+                <p class="text-muted small text-center mb-4">Solo un superusuario puede generar y compartir este enlace. La persona que lo reciba verá en el home las opciones de crear o actualizar usuario.</p>
+
+                <div class="position-relative mb-3">
+                    <input type="text" id="compartirEnlaceInput" class="form-control glass-input pe-5" value="" readonly onmousedown="if(!this.dataset.holdTimer){ this.dataset.holdTimer = setTimeout(() => { copiarEnlacePublico(); this.dataset.holdTimer = ''; }, 900); }" onmouseup="if(this.dataset.holdTimer){ clearTimeout(this.dataset.holdTimer); this.dataset.holdTimer = ''; }" onmouseleave="if(this.dataset.holdTimer){ clearTimeout(this.dataset.holdTimer); this.dataset.holdTimer = ''; }">
+                    <button type="button" class="btn btn-sm btn-link position-absolute top-50 end-0 translate-middle-y me-2 text-orange" onclick="copiarEnlacePublico()" title="Copiar enlace">
+                        <i class="bi bi-clipboard fs-5"></i>
+                    </button>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-success rounded-pill fw-bold" onclick="compartirWhatsApp()">
+                        <i class="bi bi-whatsapp me-2"></i>Compartir por WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE CONFIRMACIÓN TRIPLE PARA ELIMINAR USUARIO -->
+<div class="modal fade" id="tripleConfirmDeleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content glass-modal border-0 shadow-lg text-center p-4">
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-body p-0">
+                <div class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger" style="font-size:3rem;"></i></div>
+                <h5 id="tripleConfirmTitle" class="fw-bold text-dark mb-2">Paso 1 de 3</h5>
+                <p id="tripleConfirmMessage" class="text-secondary small mb-4"></p>
+                <div id="tripleConfirmInputGroup" class="mb-3 d-none">
+                    <input type="text" id="tripleConfirmInput" class="form-control glass-input text-center fw-bold" placeholder="Escriba ELIMINAR">
+                </div>
+                <button type="button" id="tripleConfirmBtn" class="btn btn-outline-danger rounded-pill px-4 shadow-sm fw-bold w-100" onclick="avanzarTripleConfirm()">Continuar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL TARJETA / CÓDIGO QR DEL USUARIO -->
+<div class="modal fade" id="usuarioCardModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+        <div class="modal-content glass-modal border-0 shadow-lg p-4">
+            <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-body p-0 text-center">
+                <img src="/static/logo.png" alt="Logo" class="mb-3" style="max-height: 55px;">
+                <h5 class="fw-bold text-dark mb-1" id="ucCardName"></h5>
+                <p class="text-secondary small mb-0" id="ucCardCedula"></p>
+                <hr class="my-3" style="border-color: rgba(255,140,0,0.2);">
+                <div class="text-start mb-3 d-flex flex-column gap-2">
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Correo electrónico</label>
+                        <div id="ucCardEmail" class="text-dark fw-semibold text-break" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Teléfono</label>
+                        <div id="ucCardPhone" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Tipo de sangre</label>
+                        <div id="ucCardBlood" class="text-danger fw-bold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Puntos</label>
+                        <div id="ucCardPuntos" class="text-success fw-bold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Pasaporte</label>
+                        <div id="ucCardPasaporte" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Contacto de emergencia</label>
+                        <div id="ucCardEmergencyName" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div>
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Teléfono de emergencia</label>
+                        <div id="ucCardEmergencyPhone" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div class="d-none" id="ucCardAlergiasWrapper">
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Alergias</label>
+                        <div id="ucCardAlergias" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                    <div class="d-none" id="ucCardEnfermedadesWrapper">
+                        <label class="d-block text-uppercase fw-bold mb-0" style="font-size:0.65rem; color:#ff8c00;">Enfermedades</label>
+                        <div id="ucCardEnfermedades" class="text-dark fw-semibold" style="font-size:0.85rem;"></div>
+                    </div>
+                </div>
+                <div class="p-3 rounded-4 bg-white shadow-sm d-inline-block">
+                    <img id="ucCardQR" src="" alt="Código QR" class="img-fluid" style="max-width: 220px;">
+                </div>
+                <p class="text-muted small mt-3 mb-2">Escanea el código para abrir la tarjeta completa de la persona.</p>
+                <a id="ucCardLink" href="#" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold"><i class="bi bi-box-arrow-up-right me-1"></i>Abrir tarjeta</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- BOTÓN FLOTANTE CREAR USUARIO (+) -->
+<button type="button" class="btn btn-global-add" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal" title="Crear Nuevo Usuario" style="position: fixed; bottom: 145px; right: 20px; width: 50px; height: 50px; z-index: 1046;">
+    <i class="bi bi-plus-lg fs-4"></i>
+</button>

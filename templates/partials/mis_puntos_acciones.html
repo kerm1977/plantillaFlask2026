@@ -1,0 +1,87 @@
+        {% if result %}
+        <div class="border-top pt-4 mt-4">
+          <h4 class="fw-bold text-dark mb-3">Acciones</h4>
+          <div class="accordion" id="accionesPuntosAccordion">
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accObsequiar">
+                  <i class="bi bi-gift me-2 text-success"></i>Obsequiar puntos
+                </button>
+              </h2>
+              <div id="accObsequiar" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="transferir">
+                    <div class="mb-3">
+                      <select name="cedula_destino" class="form-select" data-searchable required>
+                        <option value="" disabled selected>Usuario destino</option>
+                        {% for p in todos_hikers %}
+                        {% if p.cedula != result.cedula %}
+                        <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                        {% endif %}
+                        {% endfor %}
+                      </select>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a obsequiar</label>
+                      <input type="number" name="monto" class="form-control" placeholder="Ej. 500" min="1" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Descripción del obsequio</label>
+                      <textarea name="detalle" class="form-control" rows="3" placeholder="¿Por qué le obsequiás estos puntos?" required></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaTransferir" required>
+                      <label class="form-check-label" for="confirmaTransferir">Sí, confirmo que quiero obsequiar estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Confirmar obsequio</button>
+                  </form>
+                  <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos y no podés donar el total (deben quedar al menos 1).</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRedimir">
+                  <i class="bi bi-cash-coin me-2 text-warning"></i>Redimir puntos
+                </button>
+              </h2>
+              <div id="accRedimir" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.mis_puntos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="accion" value="redimir">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a redimir</label>
+                      <input type="number" id="montoRedimir" name="monto" class="form-control" placeholder="Ej. 5000" min="1" max="{{ result.total }}" required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Caminata u otro concepto</label>
+                      <select name="concepto" class="form-select" required onchange="toggleOtroDetalle(this)">
+                        <option value="" disabled selected>Seleccioná una opción</option>
+                        {% for e in eventos_redimir %}
+                        <option value="caminata_{{ e.id }}" data-precio="{{ e.precio or 0 }}">{{ e.nombre_lugar }}</option>
+                        {% endfor %}
+                        <option value="otro">Otros (80%)</option>
+                      </select>
+                      <small class="text-muted">Caminatas: 100% de los puntos. Otros conceptos: 80%.</small>
+                      <div id="precioCaminata" class="small fw-bold text-success mt-1 d-none"></div>
+                    </div>
+                    <div class="mb-3" id="detalleOtro" style="display:none;">
+                      <label class="form-label fw-bold">¿En qué querés redimir los puntos?</label>
+                      <textarea id="detalleOtroText" name="detalle" class="form-control" rows="3" placeholder="Detalle del concepto u otra actividad"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                      <input class="form-check-input" type="checkbox" id="confirmaRedimir" required>
+                      <label class="form-check-label" for="confirmaRedimir">Sí, confirmo que quiero redimir estos puntos.</label>
+                    </div>
+                    <button type="submit" class="btn btn-warning w-100 rounded-pill fw-bold text-dark">Confirmar redención</button>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endif %}

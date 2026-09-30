@@ -1,0 +1,74 @@
+        <div class="accordion" id="puntosAccordion">
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accGanar">
+                <i class="bi bi-trophy me-2"></i>Ganar puntos de esta caminata
+              </button>
+            </h2>
+            <div id="accGanar" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                {% if registrado %}
+                <p class="text-success mb-0">Ya ganaste <strong>{{ event.puntos }}</strong> puntos en esta caminata.</p>
+                {% elif event.puntos %}
+                <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}">
+                  <input type="hidden" name="accion" value="registrar">
+                  <input type="hidden" name="cedula" value="{{ cedula }}">
+                  <button type="submit" class="btn btn-success rounded-pill fw-bold">Sí, participaré en esta caminata</button>
+                </form>
+                {% else %}
+                <p class="text-muted mb-0">Esta caminata no otorga puntos.</p>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          {% if is_super %}
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRetirar">
+                <i class="bi bi-x-circle me-2"></i>Retirar de caminata
+              </button>
+            </h2>
+            <div id="accRetirar" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                <p class="small text-muted">Si te retirás <strong>sin justificación</strong>, se restan los puntos de la caminata más <strong>250 puntos</strong> de penalización. Si justificás por lesión, solo se restan los puntos de la caminata.</p>
+                <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}" onsubmit="return confirm('¿Estás seguro de retirarte? Se aplicará penalización si no justificás.');">
+                  <input type="hidden" name="accion" value="retirar">
+                  <input type="hidden" name="cedula" value="{{ cedula }}">
+                  <div class="form-check mb-3">
+                    <input type="checkbox" class="form-check-input" id="justifico" name="justifico" value="si">
+                    <label class="form-check-label" for="justifico">Me retiro con justificación por lesión</label>
+                  </div>
+                  <div class="mb-3">
+                    <textarea name="mensaje" class="form-control" rows="2" placeholder="Explicá por qué te retirás (obligatorio si justificás por lesión)"></textarea>
+                  </div>
+                  <button type="submit" class="btn btn-danger rounded-pill fw-bold">Retirarme de esta caminata</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          {% endif %}
+
+          <div class="accordion-item glass-table-container border-0 rounded-4 mb-2 overflow-hidden">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accComprar">
+                <i class="bi bi-cart-plus me-2"></i>Comprar más puntos
+              </button>
+            </h2>
+            <div id="accComprar" class="accordion-collapse collapse" data-bs-parent="#puntosAccordion">
+              <div class="accordion-body">
+                <p class="small text-muted">Mínimo 500 puntos. Hasta 1.000: excedente de 150. Más de 1.000: excedente de 250.</p>
+                <form method="post" action="{{ url_for('main.evento_puntos', event_id=event.id) }}">
+                  <input type="hidden" name="accion" value="comprar">
+                  <input type="hidden" name="cedula" value="{{ cedula }}">
+                  <div class="input-group mb-3">
+                    <input type="number" id="cantidadCompra" name="cantidad" class="form-control glass-input rounded-start-pill" min="500" step="100" value="500" required>
+                    <button type="submit" class="btn btn-success rounded-end-pill fw-bold">Comprar</button>
+                  </div>
+                  <div id="costoCompra" class="small text-dark fw-bold"></div>
+                  <div id="detalleCompra" class="small text-muted mt-1"></div>
+                </form>
+              </div>
+            </div>
+          </div>
+

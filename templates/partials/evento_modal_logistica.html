@@ -1,0 +1,91 @@
+                  <!-- Logística de Salida -->
+                  <div class="accordion-item glass-table-container border-0 mb-2 rounded-4 overflow-hidden solo-programados">
+                    <h2 class="accordion-header">
+                      <button class="accordion-button collapsed fw-bold text-warning-custom" type="button" data-bs-toggle="collapse" data-bs-target="#accLogisticaSalida">
+                        <i class="bi bi-signpost-split me-2"></i>Logística de Salida
+                      </button>
+                    </h2>
+                    <div id="accLogisticaSalida" class="accordion-collapse collapse" data-bs-parent="#infoCaminataAccordion">
+                      <div class="accordion-body">
+                        <div id="nationalFields">
+                          <div class="d-flex justify-content-end mb-3">
+                            <div class="form-check form-switch m-0">
+                              <input class="form-check-input m-0" type="checkbox" id="logisticaSeguraToggle" onchange="toggleLogisticaSegura()" style="width: 2.5rem; height: 1.3rem; cursor: pointer;">
+                              <label class="form-check-label fw-bold text-danger small ms-2 mb-0" for="logisticaSeguraToggle" style="cursor: pointer; padding-top: 1px;">
+                                <i class="bi bi-shield-lock-fill me-1"></i>Ocultar Logística
+                              </label>
+                            </div>
+                          </div>
+                          <div class="row g-3">
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Hora de Salida</label>
+                              <div class="d-flex align-items-center gap-2 normal-logistics">
+                                <input type="time" id="horaSalida" name="horaSalida" class="form-control glass-input rounded-3" onchange="updateTimePreview()">
+                                <span id="timePreview" class="small fw-bold text-warning-custom text-nowrap" style="min-width: 70px;"></span>
+                              </div>
+                              <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="⏰ Solo en el Chat" disabled>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Lugar de Salida</label>
+                              <div class="normal-logistics">
+                                <select id="lugarSalida" name="lugarSalida" class="form-select glass-input rounded-3">
+                                  <option value="Parque de Tres Ríos - Escuela">Parque de Tres Ríos - Escuela</option>
+                                  <option value="Parque de Tres Ríos - Cruz Roja">Parque de Tres Ríos - Cruz Roja</option>
+                                  <option value="Parque de Tres Ríos - Letras">Parque de Tres Ríos - Letras</option>
+                                  <option value="San José">San José (Sabana)</option>
+                                </select>
+                              </div>
+                              <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="📍 Solo en el Chat" disabled>
+                            </div>
+                          </div>
+                          <div class="mt-3">
+                            <label class="form-label fw-bold text-muted small mb-1">Pasamos a recoger en (Separar por comas):</label>
+                            <div class="normal-logistics">
+                              <textarea id="puntosRecogidaInput" name="puntosRecogida" rows="2" class="form-control glass-input rounded-3" placeholder="Ej: Cartago, Plaza del Sol, Outlet Mall, Sabana..."></textarea>
+                              <div class="form-text text-secondary" style="font-size: 0.75rem;">Escriba los lugares donde pasará la buseta, separados por comas.</div>
+                            </div>
+                            <input type="text" class="form-control glass-input rounded-3 secure-logistics d-none fw-bold text-danger bg-light" value="🚍 Solo en el Chat" disabled>
+                          </div>
+                        </div>
+
+                        <!-- Internacional -->
+                        <div id="internationalFields" class="mt-3 d-none">
+                          <h6 class="fw-bold mb-3 text-warning-custom"><i class="bi bi-airplane-fill me-2"></i>Logística Internacional y Vuelos</h6>
+                          <div class="row g-3 mb-3">
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">País Destino</label>
+                              <select id="pais" name="pais" class="form-select glass-input rounded-3">
+                                <option value="Panamá">Panamá</option>
+                                <option value="Nicaragua">Nicaragua</option>
+                                <option value="El Salvador">El Salvador</option>
+                                <option value="Honduras">Honduras</option>
+                                <option value="Guatemala">Guatemala</option>
+                                <option value="México">México</option>
+                                <option value="España">España</option>
+                                <option value="Perú">Perú</option>
+                                <option value="Colombia">Colombia</option>
+                              </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                              <label class="form-label fw-bold text-muted small mb-1">Nombre Destino Exacto</label>
+                              <input type="text" id="destinoInternacional" name="destinoInternacional" class="form-control glass-input rounded-3" placeholder="Ej: Ciudad de México, Machu Picchu...">
+                            </div>
+                          </div>
+                          <div class="glass-panel p-3 rounded-3 shadow-sm" style="border: 1px solid rgba(255,255,255,0.6);">
+                            <h6 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-2 mb-3">✈️ Vuelo de IDA</h6>
+                            <div class="row g-2">
+                              <div class="col-6 col-md-6">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Fecha</label>
+                                <input type="date" id="fechaIda" name="fechaIda" class="form-control form-control-sm glass-input rounded-2">
+                              </div>
+                              <div class="col-6 col-md-6">
+                                <label class="form-label fw-bold text-muted" style="font-size: 0.75rem;">Hora Salida</label>
+                                <input type="time" id="horaIda" name="horaIda" class="form-control form-control-sm glass-input rounded-2">
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+

@@ -1,0 +1,20 @@
+{% if session.get('role') == 'Superusuario' %}
+<div class="modal fade" id="offlineConsoleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-terminal me-2"></i>Consola de descarga offline</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <p class="small text-muted">La consola no cambia tu posición mientras revisás líneas anteriores. Los mensajes nuevos continúan agregándose al final.</p>
+                <div id="offlineDownloadConsoleModal" class="bg-dark text-start font-monospace small text-light p-3 rounded" style="height:60vh;overflow:auto;white-space:pre-wrap;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-danger rounded-pill" onclick="copyOfflineErrors()"><i class="bi bi-copy me-1"></i>Copiar errores</button>
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}

@@ -1,0 +1,230 @@
+<!-- MODAL CREAR NUEVO USUARIO -->
+<div class="modal fade" id="crearUsuarioModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 1.5rem;">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold text-dark"><i class="bi bi-person-plus text-orange me-2"></i>Crear Nuevo Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="crearUsuarioForm" enctype="multipart/form-data">
+
+                    <!-- Editor Visual de Avatar -->
+                    <div class="text-center mb-4">
+                        <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                            <div class="position-relative d-inline-block">
+                                <div class="overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                                    <img id="cuAvatarPreviewImg" src="{{ url_for('static', filename='default.png') }}" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                                </div>
+                                <label for="cuAvatarUpload" class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 36px; height: 36px; background-color: #ff8c00; border: 2px solid white; cursor: pointer; z-index: 10;">
+                                    <i class="bi bi-camera-fill text-white" style="font-size: 0.85rem;"></i>
+                                </label>
+                            </div>
+                            <input type="file" name="avatar" id="cuAvatarUpload" class="d-none" accept="image/*">
+
+                            <!-- Controles del Editor Visual -->
+                            <div class="image-editor-controls mt-3 text-start">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                                <input type="range" class="form-range" id="cuScaleSlider" min="1" max="3" step="0.1" value="1">
+
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                        <input type="range" class="form-range" id="cuPosXSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                        <input type="range" class="form-range" id="cuPosYSlider" min="-50" max="50" step="1" value="0">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cédula -->
+                    <div class="mb-4">
+                        <label class="label-bulma">Número de Cédula</label>
+                        <input type="text" name="cedula" class="input-bulma" id="cuCedula" {{ 'required' if session.get('role') != 'Superusuario' else '' }} inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('crearUsuarioForm', 'cuCedula'); checkCedulaExistente(this.value, 'crearUsuarioForm');" placeholder="Ej: 112340567">
+                    </div>
+
+                    <!-- Información Personal Básica -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="label-bulma">Nombre</label>
+                            <input type="text" name="name" class="input-bulma validate-name field-border" id="cuName" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="label-bulma">1° Apellido</label>
+                            <input type="text" name="last_name_1" class="input-bulma validate-lastname field-border" id="cuLastName1" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="label-bulma">2° Apellido</label>
+                            <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="cuLastName2" required>
+                        </div>
+                        {% if session.get('role') == 'Superusuario' %}
+                        <div class="col-md-12 mt-3">
+                            <label class="label-bulma">Rol de Seguridad</label>
+                            <select class="form-select select-bulma field-border" name="role" id="cuRole" required>
+                                <option value="Usuario">Usuario</option>
+                                <option value="Colaborador">Colaborador</option>
+                                <option value="Administrador">Administrador</option>
+                                <option value="Superusuario">Superusuario</option>
+                            </select>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="label-bulma">Email Principal</label>
+                        <input type="email" name="email" class="input-bulma force-lowercase" id="cuEmail" required>
+                    </div>
+
+                    <!-- Información Adicional Dinámica -->
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.15);">
+                        <label class="text-orange fw-bold mb-3 d-block"><i class="bi bi-plus-circle-dotted me-2"></i>Información Adicional</label>
+                        <select class="form-select select-bulma field-border" id="cuDynamicSelect" onchange="handleCreateDynamicSelect()">
+                            <option value="">Seleccione para agregar...</option>
+                            <option value="Telefono">Teléfono</option>
+                            <option value="Whatsapp">Whatsapp</option>
+                            <option value="Facebook">Facebook (URL)</option>
+                            <option value="Instagram">Instagram (URL)</option>
+                            <option value="Direccion">Dirección (Google Maps)</option>
+                            <option value="Fecha">Fecha Especial</option>
+                            <option value="Institucion">Institución/Empresa</option>
+                            <option value="Otro">Otros</option>
+                        </select>
+                        <div id="cuDynamicContainer" class="animate__animated animate__fadeIn"></div>
+                    </div>
+
+                    <!-- Fecha de Nacimiento -->
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.08); border: 1px solid rgba(255,140,0,0.15);">
+                        <label class="text-orange fw-bold mb-3 d-block"><i class="bi bi-calendar-event me-2"></i>Fecha de Nacimiento</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-4">
+                                <select class="form-select select-bulma" id="cuDia">
+                                    <option value="" disabled selected>Día</option>
+                                    {% for d in range(1, 32) %}
+                                    <option value="{{ '%02d'|format(d) }}">{{ d }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select select-bulma" id="cuMes">
+                                    <option value="" disabled selected>Mes</option>
+                                    <option value="01">Enero</option>
+                                    <option value="02">Febrero</option>
+                                    <option value="03">Marzo</option>
+                                    <option value="04">Abril</option>
+                                    <option value="05">Mayo</option>
+                                    <option value="06">Junio</option>
+                                    <option value="07">Julio</option>
+                                    <option value="08">Agosto</option>
+                                    <option value="09">Setiembre</option>
+                                    <option value="10">Octubre</option>
+                                    <option value="11">Noviembre</option>
+                                    <option value="12">Diciembre</option>
+                                </select>
+                            </div>
+                            <div class="col-4">
+                                <select class="form-select select-bulma" id="cuAnio">
+                                    <option value="" disabled selected>Año</option>
+                                    {% for a in range(2025, 1919, -1) %}
+                                    <option value="{{ a }}">{{ a }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <input type="hidden" name="dob" id="cuDobHidden">
+                        <input type="hidden" name="fecha_nacimiento" id="cuFechaNacHidden">
+
+                        <!-- Espacio reservado para actividad de cumpleaños -->
+                        <div id="birthdayActivitySpot" class="mt-3 p-3 rounded-4 border border-dashed border-warning" style="background: rgba(255,193,7,0.05); min-height: 80px;">
+                            <p class="text-muted small text-center mb-0">Espacio reservado para actividad de cumpleaños</p>
+                        </div>
+                    </div>
+
+                    <!-- Información del Caminante -->
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(13,110,253,0.08); border: 1px solid rgba(13,110,253,0.15);">
+                        <label class="text-primary fw-bold mb-3 d-block"><i class="bi bi-person-walking me-2"></i>Información del Caminante</label>
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-6">
+                                <label class="label-bulma">Número de Pasaporte (Opcional)</label>
+                                <input type="text" name="pasaporte" class="input-bulma" id="cuPasaporte" placeholder="Ej: 123456789">
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="label-bulma">Tipo de Sangre</label>
+                                <select name="tipo_sangre" class="form-select select-bulma" id="cuSangre" required>
+                                    <option value="" selected disabled>Seleccione...</option>
+                                    <option value="O+">O Positivo (O+)</option>
+                                    <option value="O-">O Negativo (O-)</option>
+                                    <option value="A+">A Positivo (A+)</option>
+                                    <option value="A-">A Negativo (A-)</option>
+                                    <option value="B+">B Positivo (B+)</option>
+                                    <option value="B-">B Negativo (B-)</option>
+                                    <option value="AB+">AB Positivo (AB+)</option>
+                                    <option value="AB-">AB Negativo (AB-)</option>
+                                    <option value="No sabe">No lo sé</option>
+                                    <option value="No transfusiones">NO RECIBO TRANSFUSIONES</option>
+                                </select>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="label-bulma">Alergias Conocidas</label>
+                                <textarea name="alergias" class="textarea-bulma" id="cuAlergias" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <label class="label-bulma">Enfermedades Crónicas</label>
+                                <textarea name="enfermedades_cronicas" class="textarea-bulma" id="cuEnfermedades" rows="2" placeholder="Si no tiene, escriba 'Ninguna'"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Contacto de Emergencia -->
+                    <div class="mb-4 p-4 rounded-4" style="background: rgba(220,53,69,0.06); border: 1px solid rgba(220,53,69,0.15);">
+                        <label class="text-danger fw-bold mb-3 d-block"><i class="bi bi-telephone-plus me-2"></i>Información de Contacto de Emergencia</label>
+                        <div id="cuEmergencyContainer">
+                            <div class="cu-emergency-row row g-3 mb-3 align-items-end">
+                                <div class="col-md-6">
+                                    <label class="label-bulma">Contacto de Emergencia</label>
+                                    <input type="text" name="contacto_emergencia_nombre[]" class="input-bulma" required placeholder="Ej: María (Esposa)">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="label-bulma">Teléfono del Contacto</label>
+                                    <input type="tel" name="contacto_emergencia_telefono[]" class="input-bulma" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="88889999">
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="addCreateEmergencyContact()">
+                            <i class="bi bi-plus-lg me-1"></i>Agregar otro contacto
+                        </button>
+                    </div>
+
+                    <!-- Contraseña -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12 position-relative">
+                            <label class="label-bulma">Contraseña</label>
+                            <input type="password" name="password" class="input-bulma pe-5 field-border" id="cuPass" required placeholder="Mínimo 6 caracteres">
+                            <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('cuPass', this)"></i>
+                        </div>
+                    </div>
+
+                    {% if session.get('role') == 'Superusuario' %}
+                    <!-- Compartir enlace público -->
+                    <div class="mb-4 text-center">
+                        <button type="button" class="btn btn-outline-primary rounded-pill w-100 fw-bold" onclick="abrirModalCompartir('crear')">
+                            <i class="bi bi-share me-2"></i>Compartir enlace público
+                        </button>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-orange rounded-pill py-3 fw-bold fs-5 shadow-sm" id="btnCrearUsuario">
+                            <i class="bi bi-person-plus me-2"></i>Crear Usuario
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
