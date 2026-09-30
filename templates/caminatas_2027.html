@@ -60,7 +60,7 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
     {% endif %}
   {% endset %}
   <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex align-items-center gap-3 cam-item-row">
       {# BLINDADO: sello de estado sobre el poster — suspendida / sin espacios #}
       <div class="position-relative flex-shrink-0">
         <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
@@ -86,7 +86,7 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
         <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
         {% endif %}
       </div>
-      <div class="d-flex gap-2" style="z-index:2;">
+      <div class="d-flex gap-2 cam-admin-actions" style="z-index:2;">
         <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}"
            class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0"
            style="z-index:2;"
@@ -155,6 +155,19 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   .ev-filtro-rojo { background: rgba(220, 53, 69, 0.42); }
   .ev-filtro-gris { background: rgba(25, 25, 25, 0.5); backdrop-filter: grayscale(1); -webkit-backdrop-filter: grayscale(1); }
 
+  /* BLINDADO: en móvil los botones (info/fecha/editar/eliminar) desbordaban
+     el <li> y corrían todo el layout hacia los lados. Se bajan debajo de la
+     fila, centrados y separados con una línea. Sin cambios en vista PC. */
+  @media (max-width: 767.98px) {
+    .cam-item-row { flex-wrap: wrap; }
+    .cam-admin-actions {
+      flex-basis: 100%;
+      justify-content: center;
+      margin-top: .6rem;
+      padding-top: .6rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+    }
+  }
 </style>
 
 {% set is_tribu = not (is_caminatas_2027_page | default(true)) %}
