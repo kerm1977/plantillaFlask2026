@@ -122,6 +122,8 @@ def db_import_json():
                 skipped += 1; continue
             db.session.add(SiteContent(key=row.get('key'), value=row.get('value',''))); added += 1
         db.session.commit()
+        from helpers.req_cache import invalidate
+        invalidate('site_content')
         stats['site_content'] = {'added': added, 'skipped': skipped}
 
         return jsonify({'ok': True, 'stats': stats})

@@ -152,4 +152,6 @@ def create_payment_method():
     metodo = PaymentMethod(tipo=tipo, titular=titular, numero=numero, detalle=detalle, orden=orden)
     db.session.add(metodo)
     db.session.commit()
+    from helpers.req_cache import invalidate
+    invalidate('payment_methods')
     return jsonify({"ok": True, "id": metodo.id, "display": metodo.display(), "tipo": metodo.tipo})

@@ -85,6 +85,8 @@ def inject_site_content():
         if not SiteContent.query.filter_by(key=key).first():
             db.session.add(SiteContent(key=key, value=value))
     db.session.commit()
+    from helpers.req_cache import invalidate
+    invalidate('site_content')
 
 
 @bp.route('/api/about', methods=['GET'])
@@ -107,6 +109,8 @@ def update_about():
             else:
                 db.session.add(SiteContent(key=key, value=payload[key]))
     db.session.commit()
+    from helpers.req_cache import invalidate
+    invalidate('site_content')
     return jsonify({'ok': True})
 
 
@@ -121,6 +125,8 @@ def update_site_content(key):
     else:
         db.session.add(SiteContent(key=key, value=value))
     db.session.commit()
+    from helpers.req_cache import invalidate
+    invalidate('site_content')
     return jsonify({'ok': True})
 
 
@@ -136,6 +142,8 @@ def update_site_content_json(key):
     else:
         db.session.add(SiteContent(key=key, value=value))
     db.session.commit()
+    from helpers.req_cache import invalidate
+    invalidate('site_content')
     return jsonify({'ok': True})
 
 
@@ -160,12 +168,17 @@ def api_upload_image():
     return jsonify({'ok': True, 'url': f'/static/uploads/{filename}', 'kind': kind})
 
 
-@bp.context_processor
-def inject_site_context():
+def _site_dict():
     site = {row.key: row.value for row in SiteContent.query.all()}
     for key, val in DEFAULT_SITE_CONTENT.items():
         if key not in site:
             site[key] = val
+    return site
+
+@bp.context_processor
+def inject_site_context():
+    from helpers.req_cache import cached
+    site = dict(cached('site_content', 60, _site_dict))
     # Enlace público del rastreo en vivo para el footer:
     # solo aparece si hay una sesión EN VIVO en este momento
     try:

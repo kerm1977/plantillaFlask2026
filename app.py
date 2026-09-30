@@ -12,6 +12,7 @@ except Exception:
 import os
 import re
 import html
+from datetime import timedelta
 from markupsafe import Markup
 from flask import Flask, request
 from werkzeug.middleware.proxy_fix import ProxyFix
@@ -29,14 +30,18 @@ import models_core, models_forms, models_rifas, models_publicaciones, models_cot
 
 def inject_payment_methods():
     from models_core import PaymentMethod
-    metodos = PaymentMethod.query.filter_by(is_active=True).order_by(PaymentMethod.orden, PaymentMethod.id).all()
-    sinpes = [m for m in metodos if m.tipo == 'sinpe']
-    cuentas = [m for m in metodos if m.tipo == 'cuenta']
-    return {
-        'payment_methods': metodos,
-        'sinpe_methods': sinpes,
-        'cuenta_methods': cuentas
-    }
+    from helpers.req_cache import cached
+    def _load():
+        metodos = PaymentMethod.query.filter_by(is_active=True).order_by(PaymentMethod.orden, PaymentMethod.id).all()
+        db.session.expunge_all()
+        sinpes = [m for m in metodos if m.tipo == 'sinpe']
+        cuentas = [m for m in metodos if m.tipo == 'cuenta']
+        return {
+            'payment_methods': metodos,
+            'sinpe_methods': sinpes,
+            'cuenta_methods': cuentas
+        }
+    return cached('payment_methods', 60, _load)
 
 
 def create_app():
@@ -44,15 +49,26 @@ def create_app():
     app.config.from_object(Config)
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     
-    # Agregar logging para debug de templates
+    # Logging en INFO: DEBUG inunda la consola/disco en producción
     import logging
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=logging.INFO)
     
     # Configuración inteligente de Base de Datos
     app.config['SQLALCHEMY_DATABASE_URI'] = configure_db_uri()
 
     # Inicializar la base de datos con la app
     db.init_app(app)
+
+    # Estáticos cacheables 12h: el navegador y Cloudflare (edge) sirven
+    # imágenes/js/css sin consultar el origen en cada petición.
+    app.send_file_max_age_default = timedelta(hours=12)
+
+    # SQLite en modo WAL: las lecturas no bloquean al escritor.
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+        with app.app_context():
+            from sqlalchemy import event as _sa_event
+            _sa_event.listen(db.engine, 'connect',
+                             lambda conn, _rec: conn.execute('PRAGMA journal_mode=WAL'))
 
     # Inicializar Socket.IO (edición colaborativa en tiempo real de notas)
     socketio.init_app(app)
@@ -71,7 +87,11 @@ def create_app():
 
     @app.after_request
     def no_cache_private_pages(response):
-        if not request.path.startswith('/static'):
+        if request.path.startswith('/static'):
+            # Sobreescribe el 'no-cache' que Flask pone en modo debug:
+            # permite que Cloudflare sirva los estáticos desde el edge.
+            response.headers['Cache-Control'] = 'public, max-age=43200'
+        else:
             response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
             response.headers['Pragma'] = 'no-cache'
             response.headers['Expires'] = '-1'

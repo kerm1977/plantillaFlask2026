@@ -67,3 +67,5 @@ gps-widget/app/build/
 gps-widget/build/
 gps-widget/local.properties
 gps-widget/.gradle/
+*.db-shm
+*.db-wal
