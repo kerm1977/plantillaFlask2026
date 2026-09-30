@@ -4,8 +4,8 @@
 ============================================================== -->
 <div class="row justify-content-center animate__animated animate__fadeIn">
     <div class="col-12">
-            <div class="row align-items-center mb-4 pb-4 border-bottom border-white border-opacity-50 perfil-header-row">
-                <div class="col-12 col-md-3 col-lg-2 text-center mb-3 mb-md-0">
+            <div class="row align-items-center mb-4 pb-4 border-bottom border-white border-opacity-50">
+                <div class="col-12 col-md-4 col-lg-3 text-center mb-3 mb-md-0">
                     <div class="position-relative d-inline-block">
                         <div class="rounded-circle shadow-lg border border-4 border-white overflow-hidden" style="width: 200px; height: 200px; background-color: #fff;">
                             <img id="mainProfileAvatar" src="{{ url_for('static', filename=avatar_file) }}?v={{ user.updated_at.timestamp() if user.updated_at else '1' }}" 
@@ -24,7 +24,7 @@
                     </div>
                 </div>
                 
-                <div class="col-12 col-md-9 col-lg-10">
+                <div class="col-12 col-md-8 col-lg-9">
                     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center align-items-sm-start text-center text-sm-start">
                         <div class="mb-3 mb-sm-0 w-100">
                             {% if user.role == 'Superusuario' %}
