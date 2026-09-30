@@ -13,16 +13,16 @@
   window._fbSlideIndices = Array.from(slides).map(function(s, i) { return s.dataset.type === 'facebook' ? i : null; }).filter(function(x) { return x !== null; });
 
 
+  const playPauseBtn = document.getElementById('heroPlayPause');
+  const muteBtn = document.getElementById('heroMute');
+  const volumeInput = document.getElementById('heroVolume');
+
   const H = window._hero = {
     carouselEl, slides, playPauseBtn, muteBtn, volumeInput,
     current: 0, isPlaying: true, isMuted: false, volume: 50, resumeAt: null,
     interval: null, ytReady: false, carouselInitialized: false, ytPlayers: {},
     SLIDE_INTERVAL: 8000
   };
-
-  const playPauseBtn = document.getElementById('heroPlayPause');
-  const muteBtn = document.getElementById('heroMute');
-  const volumeInput = document.getElementById('heroVolume');
 
   function showSlide(idx, force) {
     if (idx === H.current && slides.length > 1 && !force) return;
@@ -120,8 +120,8 @@
 
   function updateMuteIcon() {
     muteBtn.innerHTML = H.isMuted
-      ? '<i class="bi bi-H.volume-mute-fill"></i>'
-      : '<i class="bi bi-H.volume-up-fill"></i>';
+      ? '<i class="bi bi-volume-mute-fill"></i>'
+      : '<i class="bi bi-volume-up-fill"></i>';
   }
 
   function getSlideResumeTime(idx) {

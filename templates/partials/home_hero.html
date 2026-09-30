@@ -106,6 +106,6 @@
   var firstScriptTag = document.getElementsByTagName('script')[0];
   firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 </script>
-<script src="{{ url_for('static', filename='js/home_hero.js') }}"></script>
-<script src="{{ url_for('static', filename='js/home_hero_players.js') }}"></script>
+<script src="{{ url_for('static', filename='js/home_hero.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/home_hero_players.js') }}?v=2"></script>
 {% endif %}
