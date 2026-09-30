@@ -65,22 +65,43 @@
     }
     /* BLINDADO: el ícono de WhatsApp queda centrado en el espacio que sobra
        a la derecha de la imagen (misma distancia al borde de la imagen que
-       al borde del contenedor), un poco más grande y en un verde más suave. */
+       al borde del contenedor), claro (blanco) con halo verde pulsante que
+       invita a hacer clic — igual estilo que el halo del logo de la navbar. */
     .cam-wa-slot {
       flex: 1 1 auto;
       display: flex;
       justify-content: center;
     }
     .cam-wa-icon {
+      position: relative;
+      z-index: 1;
       width: 2.75rem;
       height: 2.75rem;
       font-size: 1.35rem;
       display: flex;
       align-items: center;
       justify-content: center;
-      background-color: #5a9c78;
-      border-color: #5a9c78;
-      color: #fff;
+      background-color: #fff;
+      border: 2px solid #25D366;
+      color: #25D366;
+    }
+    .cam-wa-icon::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(37, 211, 102, 0.55) 0%, rgba(37, 211, 102, 0) 70%);
+      transform: translate(-50%, -50%) scale(1);
+      z-index: -1;
+      pointer-events: none;
+      animation: cam-wa-halo 1.8s ease-in-out infinite;
+    }
+    @keyframes cam-wa-halo {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: .85; }
+      50% { transform: translate(-50%, -50%) scale(1.9); opacity: 0; }
     }
     .cam-price-mobile { font-size: 1.15rem; }
     .cam-actions-sep {
