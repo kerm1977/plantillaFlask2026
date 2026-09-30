@@ -71,13 +71,15 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
           {% endif %}
         </div>
         {# BLINDADO: ícono WhatsApp junto a la imagen (solo móvil) — mensaje de interés en participar #}
-        <a href="https://wa.me/50686529837?text={{ whatsapp_interes_msg(url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
-           target="_blank" rel="noopener"
-           class="btn btn-sm btn-success rounded-circle d-md-none cam-wa-icon"
-           style="z-index:2;"
-           title="Preguntar por esta caminata en WhatsApp">
-          <i class="bi bi-whatsapp"></i>
-        </a>
+        <div class="cam-wa-slot d-md-none">
+          <a href="https://wa.me/50686529837?text={{ whatsapp_interes_msg(url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
+             target="_blank" rel="noopener"
+             class="btn rounded-circle cam-wa-icon"
+             style="z-index:2;"
+             title="Preguntar por esta caminata en WhatsApp">
+            <i class="bi bi-whatsapp"></i>
+          </a>
+        </div>
       </div>
       <div class="flex-grow-1 min-width-0">
         {# Vista PC: orden original, sin cambios #}

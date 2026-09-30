@@ -61,10 +61,27 @@
     .cam-item-row { flex-wrap: wrap; }
     .cam-thumb-wrap {
       flex-basis: 100%;
-      justify-content: space-between;
       margin-bottom: .75rem;
     }
-    .cam-wa-icon { font-size: 1.1rem; }
+    /* BLINDADO: el ícono de WhatsApp queda centrado en el espacio que sobra
+       a la derecha de la imagen (misma distancia al borde de la imagen que
+       al borde del contenedor), un poco más grande y en un verde más suave. */
+    .cam-wa-slot {
+      flex: 1 1 auto;
+      display: flex;
+      justify-content: center;
+    }
+    .cam-wa-icon {
+      width: 2.75rem;
+      height: 2.75rem;
+      font-size: 1.35rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #5a9c78;
+      border-color: #5a9c78;
+      color: #fff;
+    }
     .cam-price-mobile { font-size: 1.15rem; }
     .cam-actions-sep {
       margin: 1rem 0 0;
