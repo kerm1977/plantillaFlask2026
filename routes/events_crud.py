@@ -223,6 +223,9 @@ def cambiar_fecha_evento(event_id):
             evento.fecha_regreso = None
         evento.suspendida = estado == 'suspendida'
         evento.is_sold_out = estado == 'lleno'
+        # Al asignar fecha a una caminata pendiente, se programa automáticamente
+        if (evento.visitado or '') in ('Pendiente', 'No', ''):
+            evento.visitado = 'Programados'
         db.session.add(EventDateChange(
             event_id=event_id, fecha_anterior=anterior,
             fecha_nueva=nueva, usuario=session.get('email', 'Sistema')))

@@ -100,6 +100,9 @@
       <div class="d-flex gap-2" style="z-index:2;">
         <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0" style="z-index:2;" title="Información Especial"><i class="bi bi-card-text"></i></a>
         {% if is_super %}
+        <button class="btn btn-sm btn-outline-orange rounded-pill"
+                onclick="abrirSelectorFecha('{{ ev.id }}', '{{ ev.fecha_unica or ev.fecha_inicio or '' }}', {{ ev.dias or 1 }}, '{{ ev.nombre_lugar | replace("'", "") }}', '{{ 'suspendida' if ev.suspendida else ('lleno' if ev.is_sold_out else '') }}')"
+                title="Asignar fecha / estado"><i class="bi bi-calendar-event"></i></button>
         <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
         {% endif %}
@@ -124,6 +127,7 @@
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
 {% include 'partials/evento_crear_editar_modal.html' %}
 {% include 'partials/evento_delete_modals.html' %}
+{% include 'partials/modal_fecha_rapida.html' %}
 {% include 'partials/caminatas_2027_script.html' %}
 {% endif %}
 
