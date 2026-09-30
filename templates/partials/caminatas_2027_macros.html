@@ -11,6 +11,12 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
 {% if url %}Enlace: {{ url }}{% endif %}
 {%- endmacro %}
 
+{% macro whatsapp_interes_msg(url='') -%}
+Hola, estoy interesado en participar en esta actividad. Necesito que me contactes para que me des los detalles de la caminata y poder participar de ella.
+
+{% if url %}Enlace: {{ url }}{% endif %}
+{%- endmacro %}
+
 {% macro dificultad_badge(dificultad) -%}
   {% set dificultad_map = {
     'avanzado': {'bg':'#dc3545','text':'#fff'},
@@ -53,15 +59,25 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
   <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
     <div class="d-flex align-items-center gap-3 cam-item-row">
       {# BLINDADO: sello de estado sobre el poster — suspendida / sin espacios #}
-      <div class="position-relative flex-shrink-0 cam-thumb-wrap">
-        <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
-        {% if ev.suspendida %}
-        <div class="ev-filtro ev-filtro-rojo"></div>
-        <div class="ev-sello ev-sello-suspendida">SUSPENDIDA</div>
-        {% elif ev.is_sold_out %}
-        <div class="ev-filtro ev-filtro-gris"></div>
-        <div class="ev-sello ev-sello-lleno">SIN ESPACIOS</div>
-        {% endif %}
+      <div class="flex-shrink-0 cam-thumb-wrap d-flex align-items-center gap-2">
+        <div class="position-relative">
+          <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+          {% if ev.suspendida %}
+          <div class="ev-filtro ev-filtro-rojo"></div>
+          <div class="ev-sello ev-sello-suspendida">SUSPENDIDA</div>
+          {% elif ev.is_sold_out %}
+          <div class="ev-filtro ev-filtro-gris"></div>
+          <div class="ev-sello ev-sello-lleno">SIN ESPACIOS</div>
+          {% endif %}
+        </div>
+        {# BLINDADO: ícono WhatsApp junto a la imagen (solo móvil) — mensaje de interés en participar #}
+        <a href="https://wa.me/50686529837?text={{ whatsapp_interes_msg(url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
+           target="_blank" rel="noopener"
+           class="btn btn-sm btn-success rounded-circle d-md-none cam-wa-icon"
+           style="z-index:2;"
+           title="Preguntar por esta caminata en WhatsApp">
+          <i class="bi bi-whatsapp"></i>
+        </a>
       </div>
       <div class="flex-grow-1 min-width-0">
         {# Vista PC: orden original, sin cambios #}
