@@ -8,10 +8,16 @@
 cd /d "%~dp0"
 
 echo [*] Cerrando ventanas y procesos anteriores...
+:: Si alguien hizo clic dentro de una consola, Windows la deja en modo
+:: "Seleccionar ..." (congela el proceso). Se cierran ambas variantes.
 taskkill /F /T /FI "WINDOWTITLE eq Lanzador Maestro (La Tribu)*" >nul 2>&1
 taskkill /F /T /FI "WINDOWTITLE eq TRIBU_APP*" >nul 2>&1
 taskkill /F /T /FI "WINDOWTITLE eq CLOUDFLARE_TUNNEL_TRIBU*" >nul 2>&1
 taskkill /F /T /FI "WINDOWTITLE eq TAILSCALE_MANAGER_TRIBU*" >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq Seleccionar Lanzador Maestro*" >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq Seleccionar TRIBU_APP*" >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq Seleccionar CLOUDFLARE_TUNNEL_TRIBU*" >nul 2>&1
+taskkill /F /T /FI "WINDOWTITLE eq Seleccionar TAILSCALE_MANAGER_TRIBU*" >nul 2>&1
 taskkill /F /IM cloudflared.exe >nul 2>&1
 
 echo [*] Cerrando procesos en el puerto 5050...

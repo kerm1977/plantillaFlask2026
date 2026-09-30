@@ -75,6 +75,7 @@ exit
 cd /d "%~dp0"
 title TRIBU_APP (Local: 5050)
 color 0A
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable_quickedit.ps1" >nul 2>&1
 set PY_CMD=python
 if exist "env\Scripts\python.exe" set PY_CMD=env\Scripts\python.exe
 
@@ -92,6 +93,7 @@ goto tribu_loop
 cd /d "%~dp0"
 title CLOUDFLARE_TUNNEL_TRIBU
 color 0E
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable_quickedit.ps1" >nul 2>&1
 
 :cloud_loop
 set /p TOKEN=<cloudflared_token.txt
@@ -108,6 +110,7 @@ goto cloud_loop
 cd /d "%~dp0"
 title TAILSCALE_MANAGER_TRIBU
 color 0D
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable_quickedit.ps1" >nul 2>&1
 
 :tail_loop
 echo [!] ENRUTANDO TAILSCALE...
