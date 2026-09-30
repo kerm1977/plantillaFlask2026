@@ -102,7 +102,7 @@ def api_eventos_activos():
     eventos = []
     try:
         # Eventos de caminatas
-        caminatas = Event.query.filter_by(is_active=True).all()
+        caminatas = Event.query.order_by(Event.id.desc()).all()
         for ev in caminatas:
             eventos.append({
                 'nombre': getattr(ev, 'nombre_lugar', 'Caminata'),

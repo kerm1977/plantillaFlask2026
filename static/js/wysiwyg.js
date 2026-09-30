@@ -3,7 +3,7 @@
 //   Explicar antes de editar. Contenido sagrado protegido.
 // ==============================================================
 // WYSIWYG reutilizable para La Tribu — parte formato/texto
-const Wysiwyg = (function() {
+window.Wysiwyg = (function() {
   'use strict';
 
   function _editor(editorId) { return document.getElementById(editorId); }

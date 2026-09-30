@@ -18,45 +18,6 @@ function exportNotePDF() {
     );
 }
 
-function exportNoteImage(format, ext) {
-    const title = document.getElementById('noteTitleInput').value || 'nota';
-    const content = document.getElementById('noteContentEditor').innerHTML;
-    
-    // Crear canvas temporal
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = 800;
-    canvas.height = 600;
-    
-    // Fondo blanco
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Título
-    ctx.fillStyle = '#000000';
-    ctx.font = 'bold 24px Arial';
-    ctx.fillText(title, 20, 40);
-    
-    // Contenido (simplificado - texto plano)
-    ctx.font = '16px Arial';
-    const plainText = stripHtml(content);
-    const lines = wrapText(ctx, plainText, 760);
-    let y = 80;
-    lines.forEach(line => {
-        if (y < canvas.height - 20) {
-            ctx.fillText(line, 20, y);
-            y += 24;
-        }
-    });
-    
-    // Descargar
-    const url = canvas.toDataURL(format);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title}.${ext}`;
-    a.click();
-}
-
 // WhatsApp Share
 function shareNoteWhatsApp() {
     const title = document.getElementById('noteTitleInput').value || 'Nota';
