@@ -11,112 +11,11 @@
 
 {% set meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'] %}
 
-{% macro whatsapp_caminata_msg(nombre_lugar='Caminata', url='') -%}
-Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
-
-*Nota:*
-> La Tribu de los Libres va a guardar este número de teléfono como posible persona participante de este viaje y se guardará en la base de datos de La Tribu de los Libres. Si está de acuerdo, envíe el mensaje; si no está de acuerdo, recházalo. Apenas tengamos el precio y la fecha exacta, se le estará informando a este mismo número de teléfono.
-
-{% if url %}Enlace: {{ url }}{% endif %}
-{%- endmacro %}
-
-{% macro dificultad_badge(dificultad) -%}
-  {% set dificultad_map = {
-    'avanzado': {'bg':'#dc3545','text':'#fff'},
-    'dificil': {'bg':'#ff8c00','text':'#fff'},
-    'intermedio': {'bg':'#ffc107','text':'#000'},
-    'facil': {'bg':'#28a745','text':'#fff'},
-    'basico': {'bg':'#28a745','text':'#fff'},
-    'paseo': {'bg':'#0d6efd','text':'#fff'}
-  } %}
-  {% set d = (dificultad or 'Paseo') | lower | replace('í','i') | replace('á','a') | replace('é','e') | replace('ó','o') | replace('ú','u') | replace(' ','') | trim %}
-  {% set info = dificultad_map.get(d, dificultad_map['paseo']) %}
-  <span class="badge rounded-pill align-baseline" style="background:{{ info.bg }}; color:{{ info.text }}; font-size:0.7rem; margin-left:0.35rem;">{{ dificultad or 'Paseo' }}</span>
-{%- endmacro %}
-
-{% macro estado_badge(visitado) -%}
-  {% set v = visitado or 'Pendiente' %}
-  {% if v == 'Cotización' %}<span class="badge" style="background-color: #d63384; color: #fff;">Cotización</span>
-  {% elif v in ('Visitados','Visitado','Sí') %}<span class="badge bg-success">Visitados</span>
-  {% elif v in ('Programados','Por programar') %}<span class="badge" style="background-color: #6f42c1; color: #fff;">Programados</span>
-  {% elif v.isdigit() and v|length == 4 %}<span class="badge" style="background-color: #ff8c00; color: #fff;">{{ v }}</span>
-  {% else %}<span class="badge bg-secondary">Pendiente</span>
-  {% endif %}
-{%- endmacro %}
-
-{% macro caminata_item(ev, is_tribu, is_super, is_share, meses, detail_endpoint) -%}
-  {% set precio_val = ev.precio | default(0, true) | int %}
-  {% set precio_mostrar = ev.moneda ~ precio_val if precio_val > 0 else 'PENDIENTE' %}
-  {% set fecha_text %}
-    {% if ev.dias == 1 and ev.fecha_unica %}
-      {% set p = ev.fecha_unica.split('-') %}
-      {% if p|length == 3 %}{{ p[2]|int }} de {{ meses[p[1]|int - 1] }} del {{ p[0] }}{% else %}{{ ev.fecha_unica }}{% endif %}
-    {% elif ev.dias > 1 and ev.fecha_inicio and ev.fecha_regreso %}
-      {% set pi = ev.fecha_inicio.split('-') %}
-      {% set pr = ev.fecha_regreso.split('-') %}
-      {{ pi[2]|int }} de {{ meses[pi[1]|int - 1] }} al {{ pr[2]|int }} de {{ meses[pr[1]|int - 1] }} del {{ pi[0] }}
-    {% else %}
-      Por definir
-    {% endif %}
-  {% endset %}
-  <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
-    <div class="d-flex align-items-center gap-3 cam-item-row">
-      {# BLINDADO: sello de estado sobre el poster — suspendida / sin espacios #}
-      <div class="position-relative flex-shrink-0">
-        <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
-        {% if ev.suspendida %}
-        <div class="ev-filtro ev-filtro-rojo"></div>
-        <div class="ev-sello ev-sello-suspendida">SUSPENDIDA</div>
-        {% elif ev.is_sold_out %}
-        <div class="ev-filtro ev-filtro-gris"></div>
-        <div class="ev-sello ev-sello-lleno">SIN ESPACIOS</div>
-        {% endif %}
-      </div>
-      <div class="flex-grow-1 min-width-0">
-        <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
-        <small class="text-muted d-block">
-          {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
-          {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
-          {% if ev.actividad %}{{ ev.actividad }}{% endif %}
-          <br>{{ estado_badge(ev.visitado) }}
-          {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
-        </small>
-        {% if is_tribu %}
-        <small class="text-muted d-block">{{ fecha_text | trim }}</small>
-        <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
-        {% endif %}
-      </div>
-      <div class="d-flex gap-2 cam-admin-actions" style="z-index:2;">
-        <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}"
-           class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0"
-           style="z-index:2;"
-           title="Información Especial">
-          <i class="bi bi-card-text"></i>
-        </a>
-        {% if is_super %}
-        {# BLINDADO: selector rápido de fecha (solo superusuario) #}
-        <button class="btn btn-sm btn-outline-orange rounded-pill"
-                onclick="abrirSelectorFecha('{{ ev.id }}', '{{ ev.fecha_unica or ev.fecha_inicio or '' }}', {{ ev.dias or 1 }}, '{{ ev.nombre_lugar | replace("'", "") }}', '{{ 'suspendida' if ev.suspendida else ('lleno' if ev.is_sold_out else '') }}')"
-                title="Cambiar fecha">
-          <i class="bi bi-calendar-event"></i>
-        </button>
-        <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
-        <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
-        {% elif not is_share | default(false) %}
-        <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" junto a cada caminata. NO ELIMINAR. -->
-        <a href="https://wa.me/50686529837?text={{ whatsapp_caminata_msg(ev.nombre_lugar, url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
-           target="_blank" rel="noopener"
-           class="btn btn-sm btn-outline-success rounded-pill position-relative flex-shrink-0"
-           style="z-index:2;"
-           title="Avisarme de {{ ev.nombre_lugar }}">
-          <i class="bi bi-whatsapp"></i>
-        </a>
-        <!-- FIN BOTÓN WHATSAPP -->
-        {% endif %}
-      </div>
-    </div>
-  </li>
-{%- endmacro %}
+{% import 'partials/caminatas_2027_macros.html' as cm %}
+{% set whatsapp_caminata_msg = cm.whatsapp_caminata_msg %}
+{% set dificultad_badge = cm.dificultad_badge %}
+{% set estado_badge = cm.estado_badge %}
+{% set caminata_item = cm.caminata_item %}
 
 {% block content %}
 
@@ -160,6 +59,19 @@ Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el prec
      fila, centrados y separados con una línea. Sin cambios en vista PC. */
   @media (max-width: 767.98px) {
     .cam-item-row { flex-wrap: wrap; }
+    .cam-thumb-wrap {
+      flex-basis: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: .75rem;
+    }
+    .cam-price-mobile { font-size: 1.15rem; }
+    .cam-actions-sep {
+      margin: 1rem 0 0;
+      border: none;
+      border-top: 3px solid rgba(0, 0, 0, 0.35);
+      opacity: 1;
+    }
     .cam-admin-actions {
       flex-basis: 100%;
       justify-content: center;
