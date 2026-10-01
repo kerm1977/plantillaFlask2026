@@ -6,14 +6,15 @@
 (function () {
     'use strict';
     var modal = null;
-    var scanned = null;   // {kind: 'caminata'|'evento', id: n}
+    var ev = null;        // evento en contexto: {kind: 'caminata'|'evento', id: n}
+    var persona = null;   // persona identificada por QR de carnet: {cedula, nombre}
     var mode = 'award';   // 'award' = asignar puntos | 'estado' = enviar estado de cuenta
     var searchTimer = null;
 
     function $(id) { return document.getElementById(id); }
 
     function showStep(stepId) {
-        ['scanStepCamera', 'scanStepCedula', 'scanStepResult'].forEach(function (s) {
+        ['scanStepCamera', 'scanStepCedula', 'scanStepResult', 'scanStepWaitEvent'].forEach(function (s) {
             var el = $(s);
             if (el) el.classList.add('d-none');
         });
@@ -27,17 +28,38 @@
     }
 
     function onScan(payload, err) {
-        if (err || !payload || !payload.id) {
+        if (err || !payload || (!payload.id && !payload.cedula)) {
             showResult(false, err ? 'No se pudo acceder a la cámara. Revisá los permisos.' : 'Código no reconocido.');
             return;
         }
-        scanned = payload;
+        if (payload.kind === 'persona') { onPersona(payload.cedula); return; }
+        ev = payload;
+        if (persona) { award(persona.cedula); return; }
         mode = 'award';
         fetch('/api/scan/info/' + payload.kind + '/' + payload.id)
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (!d.ok) { showResult(false, d.error || 'Código no encontrado.'); return; }
                 showCedulaStep(d.nombre + (d.puntos ? ' · ' + d.puntos + ' puntos' : ''), 'Asignar');
+            })
+            .catch(function () { showResult(false, 'Error de conexión.'); });
+    }
+
+    function onPersona(cedula) {
+        fetch('/api/scan/hikers?q=' + encodeURIComponent(cedula))
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                var h = (d.results || []).filter(function (x) { return x.cedula === cedula; })[0];
+                if (!h) {
+                    showResult(false, 'La cédula ' + cedula + ' del carnet no está registrada.',
+                        { showRegister: true });
+                    return;
+                }
+                persona = { cedula: cedula, nombre: h.nombre };
+                if (mode === 'estado') { sendEstado(cedula); return; }
+                if (ev) { award(cedula); return; }
+                $('scanWaitName').textContent = h.nombre + ' (' + cedula + ')';
+                showStep('scanStepWaitEvent');
             })
             .catch(function () { showResult(false, 'Error de conexión.'); });
     }
@@ -85,8 +107,8 @@
         if (opts.showRegister) regBtn.classList.remove('d-none');
     }
 
-    function sendEstado() {
-        var cedula = ($('scanCedulaInput').value || '').replace(/\D/g, '');
+    function sendEstado(cedulaDirecta) {
+        var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '');
         if (!cedula) { alert('Ingresá un número de cédula.'); return; }
         fetch('/api/scan/estado', {
             method: 'POST',
@@ -96,6 +118,7 @@
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.ok) {
+                    persona = null;
                     showResult(true, 'Estado de cuenta de ' + d.nombre + ' (total: ' + d.total + ' pts)',
                         { estadoUrl: d.estado_whatsapp_url, estadoTexto: d.estado_texto });
                 } else {
@@ -106,17 +129,18 @@
             .catch(function () { showResult(false, 'Error de conexión.'); });
     }
 
-    function award() {
-        var cedula = ($('scanCedulaInput').value || '').replace(/\D/g, '');
+    function award(cedulaDirecta) {
+        var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '');
         if (!cedula) { alert('Ingresá un número de cédula.'); return; }
         fetch('/api/scan/award', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kind: scanned.kind, id: scanned.id, cedula: cedula })
+            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: cedula })
         })
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.ok) {
+                    persona = null;
                     showResult(true, '+' + d.puntos_ganados + ' pts a ' + d.nombre + ' (total: ' + d.total + ')',
                         { estadoUrl: d.estado_whatsapp_url });
                 } else {
@@ -168,7 +192,8 @@
 
         modalEl.addEventListener('hidden.bs.modal', function () {
             window.ScanCam.stop();
-            scanned = null;
+            ev = null;
+            persona = null;
         });
 
         $('scanConfirmBtn').addEventListener('click', function () {
@@ -178,6 +203,8 @@
             if (e.key === 'Enter') { if (mode === 'estado') sendEstado(); else award(); }
         });
         $('scanNextBtn').addEventListener('click', startCamera);
+        $('scanCarnetBtn').addEventListener('click', startCamera);
+        $('scanWaitBtn').addEventListener('click', startCamera);
         $('scanEstadoFlowBtn').addEventListener('click', startEstadoFlow);
         $('scanEstadoFromCedulaBtn').addEventListener('click', startEstadoFlow);
         $('scanShareBtn').addEventListener('click', function () {

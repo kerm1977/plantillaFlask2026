@@ -21,12 +21,18 @@
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 220, height: 220 } },
                 function (decoded) {
-                    var m = decoded.match(/\/puntos-(scan|evento)\/(\d+)/);
-                    if (m && onCode) {
-                        var payload = {
-                            kind: m[1] === 'evento' ? 'evento' : 'caminata',
-                            id: parseInt(m[2], 10)
+                    var payload = null;
+                    var ev = decoded.match(/\/puntos-(scan|evento)\/(\d+)/);
+                    var per = decoded.match(/\/tarjeta\/([^/\s?]+)\//);
+                    if (ev) {
+                        payload = {
+                            kind: ev[1] === 'evento' ? 'evento' : 'caminata',
+                            id: parseInt(ev[2], 10)
                         };
+                    } else if (per) {
+                        payload = { kind: 'persona', cedula: per[1].replace(/\D/g, '') || per[1] };
+                    }
+                    if (payload && onCode) {
                         stop().then(function () { onCode(payload); });
                     }
                 },
