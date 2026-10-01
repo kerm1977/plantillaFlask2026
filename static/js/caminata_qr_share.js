@@ -37,6 +37,8 @@
         el.addEventListener('contextmenu', function (e) { e.preventDefault(); });
     }
 
+    window.QRShare = { open: openShare };
+
     document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.cam-qr-share').forEach(setupLongPress);
 

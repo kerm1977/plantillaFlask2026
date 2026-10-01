@@ -193,6 +193,7 @@ class HikerPoints(db.Model):
     cedula = db.Column(db.String(50), nullable=False, index=True)
     hiker_id = db.Column(db.Integer, db.ForeignKey('hiker.id'), nullable=True)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
+    puntos_evento_id = db.Column(db.Integer, db.ForeignKey('puntos_evento.id'), nullable=True)
     points = db.Column(db.Integer, default=0)
     tipo = db.Column(db.String(20), default='participacion')
     detalle = db.Column(db.String(255))

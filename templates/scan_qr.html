@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow">
-    <title>QR - {{ event.nombre_lugar }}</title>
+    <title>QR - {{ titulo }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=3">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=3">
     <style>
@@ -40,11 +40,11 @@
 <body>
     <div class="qr-card">
         <i class="bi bi-qr-code fs-1 text-warning"></i>
-        <h1 class="fs-4 fw-bold mt-2">{{ event.nombre_lugar }}</h1>
-        {% if event.actividad %}<p class="qr-nota mb-1">{{ event.actividad }}</p>{% endif %}
-        <img src="{{ qr_img }}" alt="QR {{ event.nombre_lugar }}" class="my-3">
-        {% if event.puntos %}
-        <p class="qr-puntos fw-bold mb-1"><i class="bi bi-star-fill me-1"></i>{{ event.puntos }} puntos</p>
+        <h1 class="fs-4 fw-bold mt-2">{{ titulo }}</h1>
+        {% if subtitulo %}<p class="qr-nota mb-1">{{ subtitulo }}</p>{% endif %}
+        <img src="{{ qr_img }}" alt="QR {{ titulo }}" class="my-3">
+        {% if puntos %}
+        <p class="qr-puntos fw-bold mb-1"><i class="bi bi-star-fill me-1"></i>{{ puntos }} puntos</p>
         {% endif %}
         <p class="qr-nota mb-0">Presentá este código al ingresar a la actividad para registrar tu participación.</p>
     </div>

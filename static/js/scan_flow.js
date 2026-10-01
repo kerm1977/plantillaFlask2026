@@ -6,7 +6,7 @@
 (function () {
     'use strict';
     var modal = null;
-    var eventId = null;
+    var scanned = null;   // {kind: 'caminata'|'evento', id: n}
     var searchTimer = null;
 
     function $(id) { return document.getElementById(id); }
@@ -25,16 +25,16 @@
         window.ScanCam.start('scanReader', onScan);
     }
 
-    function onScan(id, err) {
-        if (err || !id) {
+    function onScan(payload, err) {
+        if (err || !payload || !payload.id) {
             showResult(false, err ? 'No se pudo acceder a la cámara. Revisá los permisos.' : 'Código no reconocido.');
             return;
         }
-        eventId = id;
-        fetch('/api/scan/evento/' + id)
+        scanned = payload;
+        fetch('/api/scan/info/' + payload.kind + '/' + payload.id)
             .then(function (r) { return r.json(); })
             .then(function (d) {
-                if (!d.ok) { showResult(false, d.error || 'Caminata no encontrada.'); return; }
+                if (!d.ok) { showResult(false, d.error || 'Código no encontrado.'); return; }
                 $('scanEventName').textContent = d.nombre + (d.puntos ? ' · ' + d.puntos + ' puntos' : '');
                 $('scanSearchInput').value = '';
                 $('scanCedulaInput').value = '';
@@ -69,7 +69,7 @@
         fetch('/api/scan/award', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ event_id: eventId, cedula: cedula })
+            body: JSON.stringify({ kind: scanned.kind, id: scanned.id, cedula: cedula })
         })
             .then(function (r) { return r.json(); })
             .then(function (d) {
@@ -125,7 +125,7 @@
 
         modalEl.addEventListener('hidden.bs.modal', function () {
             window.ScanCam.stop();
-            eventId = null;
+            scanned = null;
         });
 
         $('scanConfirmBtn').addEventListener('click', award);

@@ -3,6 +3,7 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 import os
+from datetime import datetime, timedelta
 from flask import request, jsonify, session
 from models import Event
 from models_core import EventDateChange
@@ -21,7 +22,6 @@ def create_event():
             return jsonify({"error": "Falta el nombre del lugar"}), 400
         es_programado = request.form.get('visitado') == 'Programados'
         if es_programado:
-            from datetime import datetime, timedelta
             hoy_cr = (datetime.utcnow() - timedelta(hours=6)).date().isoformat()
             fecha_ev = request.form.get('fechaUnica') or request.form.get('fechaInicio') or ''
             if not fecha_ev:
@@ -47,12 +47,10 @@ def create_event():
             kilometros = float(km_raw) if km_raw else None
         except ValueError:
             kilometros = None
-
         try:
             precio_buseta = int(request.form.get('precioBuseta')) if request.form.get('precioBuseta') else None
         except (ValueError, TypeError):
             precio_buseta = None
-
         new_event = Event(
             poster=filename,
             nombre_lugar=nombre,
@@ -86,6 +84,10 @@ def create_event():
             enlace_extra=request.form.get('enlaceExtra'),
             puntos=int(request.form.get('puntos', 0) or 0)
         )
+        # Si llegó una fecha con estado Pendiente, pasa a Programados
+        # (misma regla que el selector rápido de fecha de la lista).
+        if (new_event.visitado or '') in ('Pendiente', 'No', '') and (new_event.fecha_unica or new_event.fecha_inicio):
+            new_event.visitado = 'Programados'
         db.session.add(new_event)
         db.session.commit()
         return jsonify({"success": True, "event_id": new_event.id})
@@ -93,7 +95,6 @@ def create_event():
         db.session.rollback()
         print(f"Error grave al guardar evento: {e}")
         return jsonify({"error": "Error interno del servidor al crear el evento"}), 500
-
 
 @bp.route('/api/update_event/<int:event_id>', methods=['POST'])
 def update_event(event_id):
@@ -103,7 +104,7 @@ def update_event(event_id):
     evento = Event.query.get_or_404(event_id)
     try:
         file = request.files.get('poster')
-        if file and file.filename != '':
+        if file and file.filename != '':  # noqa: E501
             if not allowed_file(file.filename, ALLOWED_IMAGE_EXTENSIONS):
                 return jsonify({"error": "Formato de imagen no permitido"}), 400
 
@@ -155,6 +156,9 @@ def update_event(event_id):
         estado = request.form.get('visitado', evento.visitado)
         anio = request.form.get('anio', '2027')
         evento.visitado = anio if estado == 'Año' else estado
+        # Si el formulario envió una fecha con estado Pendiente, pasa a Programados
+        if (evento.visitado or '') in ('Pendiente', 'No', '') and (request.form.get('fechaUnica') or request.form.get('fechaInicio')):
+            evento.visitado = 'Programados'
         evento.enlace_extra = request.form.get('enlaceExtra', evento.enlace_extra)
         try:
             evento.puntos = int(request.form.get('puntos', evento.puntos) if request.form.get('puntos') else 0)
@@ -186,14 +190,12 @@ def delete_event(event_id):
 
 @bp.route('/api/eventos/<int:event_id>/fecha', methods=['POST'])
 def cambiar_fecha_evento(event_id):
-    """Cambio rápido de fecha (solo superusuario): mueve el evento.
-    'dias' opcional redefine la duración (1 = fecha_unica)."""
+    """Cambio rápido de fecha (solo superusuario). 'dias' redefine la duración."""
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
     data = request.get_json(silent=True) or {}
     nueva = (data.get('fecha') or '').strip()
     try:
-        from datetime import datetime, timedelta
         f0 = datetime.strptime(nueva, '%Y-%m-%d').date()
     except (ValueError, TypeError):
         return jsonify({"error": "Fecha inválida"}), 400
@@ -237,7 +239,6 @@ def eventos_en_fecha(fecha):
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({"error": "No autorizado"}), 403
     try:
-        from datetime import datetime
         datetime.strptime(fecha, '%Y-%m-%d')
     except (ValueError, TypeError):
         return jsonify({"error": "Fecha inválida"}), 400

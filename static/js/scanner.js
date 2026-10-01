@@ -21,10 +21,13 @@
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 220, height: 220 } },
                 function (decoded) {
-                    var m = decoded.match(/\/puntos-scan\/(\d+)/);
+                    var m = decoded.match(/\/puntos-(scan|evento)\/(\d+)/);
                     if (m && onCode) {
-                        var id = parseInt(m[1], 10);
-                        stop().then(function () { onCode(id); });
+                        var payload = {
+                            kind: m[1] === 'evento' ? 'evento' : 'caminata',
+                            id: parseInt(m[2], 10)
+                        };
+                        stop().then(function () { onCode(payload); });
                     }
                 },
                 function () { /* errores de lectura por frame: ignorar */ }

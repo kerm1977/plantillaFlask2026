@@ -10,6 +10,7 @@ from models_publicaciones import Publicacion, LogoConfig
 from models_notes import Note
 from models_home_media import HomeMedia
 from models_tracking import LiveSession, LivePoint
+from models_puntos_evento import PuntosEvento
 
 __all__ = [
     'User', 'Event', 'Notification', 'SiteContent', 'CaminataBlock', 'Hiker', 'EventRegistration', 'PaymentMethod', 'HikerPoints',
@@ -18,5 +19,6 @@ __all__ = [
     'Publicacion', 'LogoConfig',
     'Note',
     'HomeMedia',
-    'LiveSession', 'LivePoint'
+    'LiveSession', 'LivePoint',
+    'PuntosEvento'
 ]

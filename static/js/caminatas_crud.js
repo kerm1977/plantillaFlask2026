@@ -48,31 +48,47 @@ document.addEventListener('DOMContentLoaded', () => {
             // Información Especial (WYSIWYG) -> campo itinerario
             formData.set('itinerario', Wysiwyg.getContent('itinerarioEditor'));
 
-            // Lógica inteligente de fechas (solo aplica si el estado es Programados)
-            if (document.getElementById('visitado').value === 'Programados') {
-                const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0' + v : v)); };
+            // Lógica inteligente de fechas: se serializa siempre que la fecha
+            // esté completa; si el estado era Pendiente, el evento pasa a
+            // Programados (mismo comportamiento que el selector rápido).
+            const pad = (n) => { let v = parseInt(n, 10); return (isNaN(v) ? '01' : (v < 10 ? '0' + v : v)); };
+            const visitadoSel = document.getElementById('visitado');
+            let fechaCompleta = false;
 
-                if (document.getElementById('actividad').value === 'Internacional') {
-                    formData.set('fechaUnica', document.getElementById('fechaIda').value);
+            if (document.getElementById('actividad').value === 'Internacional') {
+                const f = document.getElementById('fechaIda').value;
+                if (f) {
+                    formData.set('fechaUnica', f);
+                    fechaCompleta = true;
+                }
+            } else {
+                const dias = parseInt(document.getElementById('dias').value) || 1;
+                if (dias === 1) {
+                    const y = document.getElementById('yearUnica').value;
+                    const m = document.getElementById('monthUnica').value;
+                    const dRaw = document.getElementById('dayUnica').value;
+                    if (y && m && (dRaw || isSecureDia)) {
+                        formData.set('fechaUnica', `${y}-${m}-${isSecureDia ? '01' : pad(dRaw)}`);
+                        fechaCompleta = true;
+                    }
                 } else {
-                    const dias = parseInt(document.getElementById('dias').value) || 1;
-                    if (dias === 1) {
-                        const y = document.getElementById('yearUnica').value;
-                        const m = document.getElementById('monthUnica').value;
-                        const d = isSecureDia ? '01' : pad(document.getElementById('dayUnica').value);
-                        formData.set('fechaUnica', `${y}-${m}-${d}`);
-                    } else {
-                        const yI = document.getElementById('yearInicio').value;
-                        const mI = document.getElementById('monthInicio').value;
-                        const dI = isSecureDia ? '01' : pad(document.getElementById('dayInicio').value);
-                        formData.set('fechaInicio', `${yI}-${mI}-${dI}`);
-
-                        const yR = document.getElementById('yearRegreso').value;
-                        const mR = document.getElementById('monthRegreso').value;
-                        const dR = isSecureDia ? '01' : pad(document.getElementById('dayRegreso').value);
-                        formData.set('fechaRegreso', `${yR}-${mR}-${dR}`);
+                    const yI = document.getElementById('yearInicio').value;
+                    const mI = document.getElementById('monthInicio').value;
+                    const dRawI = document.getElementById('dayInicio').value;
+                    const yR = document.getElementById('yearRegreso').value;
+                    const mR = document.getElementById('monthRegreso').value;
+                    const dRawR = document.getElementById('dayRegreso').value;
+                    if (yI && mI && (dRawI || isSecureDia) && yR && mR && (dRawR || isSecureDia)) {
+                        formData.set('fechaInicio', `${yI}-${mI}-${isSecureDia ? '01' : pad(dRawI)}`);
+                        formData.set('fechaRegreso', `${yR}-${mR}-${isSecureDia ? '01' : pad(dRawR)}`);
+                        fechaCompleta = true;
                     }
                 }
+            }
+
+            if (fechaCompleta && ['Pendiente', 'No', ''].includes(visitadoSel.value)) {
+                visitadoSel.value = 'Programados';
+                formData.set('visitado', 'Programados');
             }
 
             const endpoint = eventoEditando ? `/api/update_event/${eventoEditando}` : '/api/create_event';

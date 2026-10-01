@@ -1,0 +1,89 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Panel admin: Eventos de puntos con QR propio (solo superusuario)
+============================================================== -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4 animate__animated animate__fadeIn">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0"><i class="bi bi-stars text-orange me-2"></i>Eventos de Puntos</h1>
+    <p class="text-muted mb-0">Eventos fuera de las caminatas que acumulan puntos al escanear su QR.</p>
+  </div>
+
+  <!-- Crear evento -->
+  <div class="glass-panel rounded-4 shadow-sm p-4 mb-4">
+    <h2 class="fs-5 fw-bold text-dark mb-3"><i class="bi bi-plus-circle me-2"></i>Nuevo evento</h2>
+    <form id="peForm" class="row g-3">
+      <div class="col-12 col-md-5">
+        <label class="form-label fw-bold text-muted small mb-1">Nombre del evento</label>
+        <input type="text" id="peNombre" class="form-control glass-input rounded-3" required
+               placeholder="Ej: Fiesta de fin de año, Recolección de basura">
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label fw-bold text-muted small mb-1">Puntos</label>
+        <input type="number" id="pePuntos" class="form-control glass-input rounded-3" min="1" value="10" required>
+      </div>
+      <div class="col-6 col-md-3">
+        <label class="form-label fw-bold text-muted small mb-1">Descripción (opcional)</label>
+        <input type="text" id="peDesc" class="form-control glass-input rounded-3" placeholder="Detalle corto">
+      </div>
+      <div class="col-12 col-md-2 d-flex align-items-end gap-2">
+        <div class="form-check form-switch mb-2">
+          <input class="form-check-input" type="checkbox" id="pePublico" checked>
+          <label class="form-check-label small fw-bold" for="pePublico">Público</label>
+        </div>
+        <button type="submit" class="btn btn-orange rounded-pill fw-bold flex-grow-1">
+          <i class="bi bi-qr-code me-1"></i>Crear
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Lista de eventos -->
+  <div class="glass-panel rounded-4 shadow-sm p-3">
+    {% if eventos %}
+    <ul class="list-group list-group-flush">
+      {% for ev in eventos %}
+      <li class="list-group-item bg-transparent border-bottom border-white border-opacity-25 py-3">
+        <div class="d-flex align-items-center gap-3 flex-wrap">
+          <a href="{{ url_for('main.puntos_evento_qr_page', pid=ev.id) }}" target="_blank" rel="noopener"
+             class="flex-shrink-0" title="Ver código QR">
+            <img src="{{ url_for('main.puntos_evento_qr_png', pid=ev.id) }}" alt="QR" width="54" height="54" class="rounded-2 border">
+          </a>
+          <div class="flex-grow-1 min-width-0">
+            <span class="fw-bold text-dark d-block cam-qr-share"
+                  data-scan-url="{{ url_for('main.puntos_evento_qr_page', pid=ev.id, _external=True) }}"
+                  data-nombre="{{ ev.nombre }}">{{ ev.nombre }}</span>
+            <span class="badge bg-warning text-dark me-1"><i class="bi bi-star-fill me-1"></i>{{ ev.puntos }} pts</span>
+            <span class="badge {{ 'bg-success' if ev.activo else 'bg-secondary' }}">{{ 'Activo' if ev.activo else 'Inactivo' }}</span>
+            <span class="badge {{ 'bg-info text-dark' if ev.publico else 'bg-dark' }}">{{ 'Público' if ev.publico else 'Privado' }}</span>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-outline-success rounded-pill" title="Compartir enlace QR"
+                    onclick="QRShare.open('{{ ev.nombre | replace("'", "") }}', '{{ url_for('main.puntos_evento_qr_page', pid=ev.id, _external=True) }}')">
+              <i class="bi bi-whatsapp"></i>
+            </button>
+            <button class="btn btn-sm btn-outline-primary rounded-pill" title="{{ 'Desactivar' if ev.activo else 'Activar' }}"
+                    onclick="peToggle({{ ev.id }}, 'activo')"><i class="bi bi-power"></i></button>
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" title="{{ 'Hacer privado' if ev.publico else 'Hacer público' }}"
+                    onclick="peToggle({{ ev.id }}, 'publico')"><i class="bi bi-{{ 'eye' if ev.publico else 'eye-slash' }}"></i></button>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar"
+                    onclick="peBorrar({{ ev.id }})"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+      <i class="bi bi-qr-code fs-1"></i>
+      <p class="mt-2">Aún no hay eventos de puntos. Creá el primero arriba.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% include 'partials/caminata_qr_share_modal.html' %}
+<script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
+<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}"></script>
+{% endblock %}
