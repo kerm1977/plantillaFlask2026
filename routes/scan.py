@@ -119,6 +119,7 @@ def scan_estado():
                         'error': f'La cédula {cedula} no está registrada.'})
     return jsonify({'ok': True, 'nombre': hiker.nombre_completo, 'cedula': cedula,
                     'total': get_points_engine().total_by_cedula(cedula),
+                    'estado_texto': build_estado_cuenta_whatsapp(cedula, hiker),
                     'estado_whatsapp_url': _estado_wa_url(cedula, hiker)})
 
 

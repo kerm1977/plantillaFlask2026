@@ -54,7 +54,7 @@
 
     function startEstadoFlow() {
         mode = 'estado';
-        showCedulaStep('Enviar estado de cuenta', 'Enviar');
+        showCedulaStep('Enviar estado de cuenta', 'Buscar');
     }
 
     function showResult(ok, msg, opts) {
@@ -66,8 +66,18 @@
         $('scanResultMsg').textContent = msg;
         var estadoBtn = $('scanEstadoBtn');
         var regBtn = $('scanRegisterBtn');
+        var prev = $('scanEstadoPreview');
+        var shareBtn = $('scanShareBtn');
         estadoBtn.classList.add('d-none');
         regBtn.classList.add('d-none');
+        prev.classList.add('d-none');
+        shareBtn.classList.add('d-none');
+        if (opts.estadoTexto) {
+            prev.textContent = opts.estadoTexto;
+            prev.classList.remove('d-none');
+            shareBtn.dataset.texto = opts.estadoTexto;
+            shareBtn.classList.remove('d-none');
+        }
         if (ok && opts.estadoUrl) {
             estadoBtn.href = opts.estadoUrl;
             estadoBtn.classList.remove('d-none');
@@ -87,7 +97,7 @@
             .then(function (d) {
                 if (d.ok) {
                     showResult(true, 'Estado de cuenta de ' + d.nombre + ' (total: ' + d.total + ' pts)',
-                        { estadoUrl: d.estado_whatsapp_url });
+                        { estadoUrl: d.estado_whatsapp_url, estadoTexto: d.estado_texto });
                 } else {
                     showResult(false, d.error || 'No se pudo generar el estado.',
                         { showRegister: d.code === 'not_found' });
@@ -169,6 +179,15 @@
         });
         $('scanNextBtn').addEventListener('click', startCamera);
         $('scanEstadoFlowBtn').addEventListener('click', startEstadoFlow);
+        $('scanEstadoFromCedulaBtn').addEventListener('click', startEstadoFlow);
+        $('scanShareBtn').addEventListener('click', function () {
+            var texto = this.dataset.texto || '';
+            if (navigator.share) {
+                navigator.share({ title: 'Estado de cuenta - La Tribu', text: texto }).catch(function () {});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(texto).then(function () { alert('Estado copiado al portapapeles.'); });
+            }
+        });
         $('scanBackBtn').addEventListener('click', startCamera);
         $('scanSearchInput').addEventListener('input', function () {
             clearTimeout(searchTimer);
