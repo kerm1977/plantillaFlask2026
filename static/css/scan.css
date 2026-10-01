@@ -1,4 +1,9 @@
-/* scan.css - Botón flotante de escáner QR y modal de escaneo (superusuario) */
+/* ==============================================================
+   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+   Explicar antes de editar. Contenido sagrado protegido.
+   scan.css - Botón flotante de escáner QR y modal de escaneo
+   (solo superusuario)
+============================================================== */
 
 /* Botón flotante: escáner QR (encima del botón de herramientas admin) */
 .btn-scan-float {
