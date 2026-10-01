@@ -120,6 +120,7 @@ class Hiker(db.Model):
     pin_secreto = db.Column(db.String(20), unique=True)
     card_email = db.Column(db.String(120))
     status = db.Column(db.String(20), default='Activo')
+    consultas_puntos_count = db.Column(db.Integer, default=0)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class EventRegistration(db.Model):

@@ -118,6 +118,15 @@
 {% include 'partials/footer_share_modal.html' %}
 <script src="{{ url_for('static', filename='js/footer_share.js') }}"></script>
 
+<!-- BLINDADO: escáner QR de caminatas (solo superusuario) -->
+{% if session.get('role') == 'Superusuario' %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/scan.css') }}">
+{% include 'partials/scan_modal.html' %}
+<script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
+<script src="{{ url_for('static', filename='js/scan_flow.js') }}"></script>
+{% endif %}
+
 <!-- MODAL: ACCESO AL COTIZADOR -->
 {% include 'partials/base_cotizador_modal.html' %}
 <script src="{{ url_for('static', filename='js/base_cotizador.js') }}"></script>

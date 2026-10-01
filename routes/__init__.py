@@ -108,6 +108,7 @@ from routes import (        # noqa: E402, F401
     points_mis,
     points_evento,
     points_export,
+    scan,
     tracking_admin,
     tracking_public,
     bitacora,

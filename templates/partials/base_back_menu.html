@@ -27,6 +27,10 @@
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
+    <!-- BLINDADO: botón flotante del escáner QR de caminatas (encima del de herramientas) -->
+    <a href="#" class="btn-scan-float" id="btnScanFloat" title="Escanear QR de caminata">
+        <i class="bi bi-qr-code-scan fs-4"></i>
+    </a>
     <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
         <!-- El menú abre hacia abajo y se hace scroll si es largo -->
         <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none; {% if site.admin_tools_bg %}background: {{ site.admin_tools_bg }} !important;{% endif %}">

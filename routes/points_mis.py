@@ -4,17 +4,26 @@
 # ==============================================================
 # routes/points_mis.py - Página "Mis Puntos" (consulta, donar, redimir)
 import re
-from datetime import datetime
 from urllib.parse import quote
 from flask import request, session, render_template, redirect, url_for
+from db import db
 from models import Hiker, Event, User, EventRegistration
 from modules.points_engine import get_points_engine
 from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
 from modules.points_donations import birthday_hikers, donate
-from modules.points_helpers import is_past_event, get_puntos_password, set_notif_cleared, get_notif_cutoff
+from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
+                                    get_notif_cutoff, build_estado_cuenta_whatsapp)
 from routes import bp
 from routes.points import _current_user
+
+
+@bp.route('/api/mis-puntos/salida', methods=['POST'])
+def mis_puntos_salida():
+    # BLINDADO: beacon de salida de "Mis puntos" — libera el marcador para que
+    # la próxima entrada cuente como nueva consulta (no toca la sesión de acceso).
+    session.pop('mis_puntos_counted', None)
+    return ('', 204)
 
 
 @bp.route('/mis-puntos', methods=['GET', 'POST'])
@@ -192,6 +201,17 @@ def mis_puntos():
                         admin_error = 'La contraseña no es correcta.'
             if verificado:
                 bonuses.apply(cedula)
+                # BLINDADO: contador disimulado de consultas de puntos (solo superusuario lo ve).
+                # Cuenta una vez por visita: el marcador se limpia al salir de la página (beacon),
+                # así recargar NO cuenta, pero salir y volver a entrar SÍ.
+                if not is_super and session.get('mis_puntos_counted') != cedula:
+                    hiker_found.consultas_puntos_count = (hiker_found.consultas_puntos_count or 0) + 1
+                    session['mis_puntos_counted'] = cedula
+                    db.session.commit()
+                    # BLINDADO: el commit expira los objetos cargados; se re-consultan
+                    # para que el template no reciba instancias expiradas.
+                    hiker_found = Hiker.query.get(hiker_found.id)
+                    todos_hikers = Hiker.query.order_by(Hiker.nombre_completo).all()
                 history = engine.history_with_names(cedula)
                 cutoff = get_notif_cutoff(cedula)
                 notificaciones = [r for r in history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > cutoff]
@@ -200,7 +220,8 @@ def mis_puntos():
                     'nombre_completo': getattr(hiker_found, 'nombre_completo', ''),
                     'total': engine.total_by_cedula(cedula),
                     'history': history,
-                    'notificaciones': notificaciones
+                    'notificaciones': notificaciones,
+                    'consultas_puntos_count': hiker_found.consultas_puntos_count or 0
                 }
                 if is_super:
                     for r in EventRegistration.query.filter_by(hiker_id=hiker_found.id).all():
@@ -212,35 +233,7 @@ def mis_puntos():
                     wa_lines.append(f'{(row.get("creado_at") or "")[:10]} | {row.get("tipo")} | {row.get("puntos")} | {row.get("detalle") or ""}')
                 whatsapp_url = 'https://wa.me/?text=' + quote("\n".join(wa_lines), safe='')
                 telefono_registrado = re.sub(r'\D', '', hiker_found.telefono or '')
-                estado_txt = _build_estado_cuenta_whatsapp(cedula, hiker_found)
+                estado_txt = build_estado_cuenta_whatsapp(cedula, hiker_found)
                 estado_whatsapp_url = ('https://wa.me/' + telefono_registrado if telefono_registrado else 'https://wa.me/') + '?text=' + quote(estado_txt)
     return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, telefono_registrado=telefono_registrado)
 
-
-def _build_estado_cuenta_whatsapp(cedula, hiker=None):
-    engine = get_points_engine()
-    sep = '-' * 40
-    lines = []
-    lines.append('*ESTADO DE CUENTA DE PUNTOS - LA TRIBU DE LOS LIBRES*')
-    lines.append(sep)
-    lines.append(f'Cédula: {cedula}')
-    lines.append(f'Nombre: {hiker.nombre_completo if hiker else ""}')
-    if hiker and hiker.telefono:
-        lines.append(f'Teléfono: {hiker.telefono}')
-    lines.append(f'Total puntos: {engine.total_by_cedula(cedula)}')
-    lines.append(f'Generado: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC')
-    lines.append(sep)
-    lines.append('*MOVIMIENTOS*')
-    lines.append('')
-    for row in engine.history_with_names(cedula):
-        fecha = (row.get('creado_at') or '')[:19].replace('T', ' ')
-        lines.append(f'Fecha y hora: {fecha}')
-        lines.append(f'Tipo: {row.get("tipo")}')
-        lines.append(f'Puntos: {row.get("puntos", 0)}')
-        if row.get('evento_nombre'):
-            lines.append(f'Caminata: {row["evento_nombre"]}')
-        if row.get('detalle'):
-            lines.append(f'Detalle: {row["detalle"]}')
-        lines.append(sep)
-        lines.append('')
-    return '\n'.join(lines)

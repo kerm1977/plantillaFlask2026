@@ -50,3 +50,19 @@ def _migrate_hiker_status():
     except Exception as e:
         print(f"[Migration] Error en _migrate_hiker_status: {e}")
 
+
+def _migrate_hiker_consultas_puntos():
+    """Agrega columna consultas_puntos_count (contador de ingresos a Mis Puntos, visible solo para superusuario)."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(hiker)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "consultas_puntos_count" not in existing_cols:
+            cursor.execute("ALTER TABLE hiker ADD COLUMN consultas_puntos_count INTEGER DEFAULT 0")
+            cursor.execute("UPDATE hiker SET consultas_puntos_count=0 WHERE consultas_puntos_count IS NULL")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_hiker_consultas_puntos: {e}")
+

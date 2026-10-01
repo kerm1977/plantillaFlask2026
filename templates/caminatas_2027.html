@@ -57,6 +57,9 @@
   /* BLINDADO: en móvil los botones (info/fecha/editar/eliminar) desbordaban
      el <li> y corrían todo el layout hacia los lados. Se bajan debajo de la
      fila, centrados y separados con una línea. Sin cambios en vista PC. */
+  /* BLINDADO: el escáner QR sube un piso en esta página para no tapar el botón "+" */
+  .btn-scan-float { bottom: calc(var(--nav-mobile-height, 70px) - 15px + 140px) !important; }
+
   @media (max-width: 767.98px) {
     .cam-item-row { flex-wrap: wrap; }
     .cam-thumb-wrap {
@@ -188,6 +191,8 @@
 </button>
 
 {% include 'partials/modal_fecha_rapida.html' %}
+{% include 'partials/caminata_qr_share_modal.html' %}
+<script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
 {% endif %}
 
 {% include 'partials/evento_crear_editar_modal.html' %}

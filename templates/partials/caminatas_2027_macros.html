@@ -61,7 +61,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
       {# BLINDADO: sello de estado sobre el poster — suspendida / sin espacios #}
       <div class="flex-shrink-0 cam-thumb-wrap d-flex align-items-center gap-2">
         <div class="position-relative">
-          <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb" alt="{{ ev.nombre_lugar }}">
+          <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}" class="rounded-3 caminata-thumb{% if is_super %} cam-qr-share{% endif %}" alt="{{ ev.nombre_lugar }}"{% if is_super %} data-scan-url="{{ url_for('main.puntos_scan', event_id=ev.id, _external=True) }}" data-nombre="{{ ev.nombre_lugar }}"{% endif %}>
           {% if ev.suspendida %}
           <div class="ev-filtro ev-filtro-rojo"></div>
           <div class="ev-sello ev-sello-suspendida">SUSPENDIDA</div>
@@ -84,7 +84,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
       <div class="flex-grow-1 min-width-0">
         {# Vista PC: orden original, sin cambios #}
         <div class="d-none d-md-block">
-          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link{% if is_super %} cam-qr-share{% endif %}"{% if is_super %} data-scan-url="{{ url_for('main.puntos_scan', event_id=ev.id, _external=True) }}" data-nombre="{{ ev.nombre_lugar }}"{% endif %}>{{ ev.nombre_lugar }}{% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}</a>
           <small class="text-muted d-block">
             {% if ev.provincia %}{{ ev.provincia }}{% if ev.dificultad or ev.actividad %} · {% endif %}{% endif %}
             {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
@@ -99,7 +99,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
         </div>
         {# BLINDADO: vista móvil — nombre, actividad, provincia, fecha, precio (centrado y más grande), etiquetas #}
         <div class="d-md-none">
-          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link">{{ ev.nombre_lugar }}</a>
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link{% if is_super %} cam-qr-share{% endif %}"{% if is_super %} data-scan-url="{{ url_for('main.puntos_scan', event_id=ev.id, _external=True) }}" data-nombre="{{ ev.nombre_lugar }}"{% endif %}>{{ ev.nombre_lugar }}</a>
           {% if ev.actividad %}<small class="text-muted d-block">{{ ev.actividad }}</small>{% endif %}
           {% if ev.provincia %}<small class="text-muted d-block">{{ ev.provincia }}</small>{% endif %}
           {% if is_tribu %}<small class="text-muted d-block">{{ fecha_text | trim }}</small>{% endif %}

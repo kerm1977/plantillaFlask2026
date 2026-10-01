@@ -68,7 +68,10 @@
           <div class="col-12 col-lg-7">
         <div class="text-center mb-4">
           <h2 class="fw-bold text-warning-custom">{{ result.total }} puntos</h2>
-          <p class="text-muted">{{ result.nombre_completo }} ({{ result.cedula }})</p>
+          <p class="text-muted">
+            {{ result.nombre_completo }} ({{ result.cedula }})
+            {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
+          </p>
         </div>
 
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
@@ -185,4 +188,12 @@
     </div>
   </div>
 </section><script src="{{ url_for('static', filename='js/mis_puntos.js') }}"></script>
+{% if result and not is_super %}
+{# BLINDADO: al salir de la página se avisa al servidor para contar la próxima entrada #}
+<script>
+window.addEventListener('pagehide', function () {
+    if (navigator.sendBeacon) navigator.sendBeacon('/api/mis-puntos/salida');
+});
+</script>
+{% endif %}
 {% endblock %}

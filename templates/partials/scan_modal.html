@@ -1,0 +1,62 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Modal de escaneo QR + asignación de puntos (solo superusuario)
+============================================================== -->
+<div class="modal fade" id="scanModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow-lg">
+
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-qr-code-scan me-2 text-orange"></i>Escáner de puntos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" id="scanModalClose"></button>
+            </div>
+
+            <div class="modal-body pt-0">
+
+                <!-- Paso 1: cámara leyendo el QR del participante -->
+                <div id="scanStepCamera">
+                    <div id="scanReader" class="scan-reader"></div>
+                    <p class="text-muted small text-center mt-2 mb-0">Apuntá la cámara al código QR del participante.</p>
+                </div>
+
+                <!-- Paso 2: cédula / buscador en vivo -->
+                <div id="scanStepCedula" class="d-none">
+                    <div class="alert alert-warning rounded-3 py-2 small fw-bold mb-3" id="scanEventName"></div>
+                    <label class="form-label fw-bold small">Buscar o digitar cédula</label>
+                    <input type="text" id="scanSearchInput" class="form-control rounded-pill mb-2"
+                           placeholder="Nombre, cédula, teléfono, sangre..." autocomplete="off">
+                    <div id="scanSearchResults" class="list-group mb-3 scan-results"></div>
+                    <div class="input-group">
+                        <input type="text" id="scanCedulaInput" class="form-control rounded-start-pill"
+                               placeholder="Número de cédula" inputmode="numeric">
+                        <button class="btn btn-orange rounded-end-pill fw-bold" id="scanConfirmBtn" type="button">
+                            <i class="bi bi-check-lg me-1"></i>Asignar
+                        </button>
+                    </div>
+                    <button class="btn btn-link btn-sm text-muted w-100 mt-2" id="scanBackBtn" type="button">
+                        <i class="bi bi-arrow-left me-1"></i>Volver a escanear
+                    </button>
+                </div>
+
+                <!-- Paso 3: resultado -->
+                <div id="scanStepResult" class="d-none text-center">
+                    <div id="scanResultIcon" class="fs-1 mb-2"></div>
+                    <p id="scanResultMsg" class="fw-bold mb-3"></p>
+                    <div id="scanResultActions" class="d-grid gap-2">
+                        <a href="#" id="scanEstadoBtn" target="_blank" rel="noopener"
+                           class="btn btn-success rounded-pill fw-bold d-none">
+                            <i class="bi bi-whatsapp me-1"></i>Enviar estado de cuenta
+                        </a>
+                        <a href="/dashboard" id="scanRegisterBtn" class="btn btn-outline-primary rounded-pill fw-bold d-none">
+                            <i class="bi bi-person-plus me-1"></i>Registrar nuevo usuario
+                        </a>
+                        <button class="btn btn-orange rounded-pill fw-bold" id="scanNextBtn" type="button">
+                            <i class="bi bi-upc-scan me-1"></i>Escanear siguiente
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

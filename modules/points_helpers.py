@@ -6,6 +6,30 @@
 from datetime import datetime, date
 
 
+def build_estado_cuenta_whatsapp(cedula, hiker=None):
+    """Estado de cuenta de puntos para WhatsApp (reutilizable)."""
+    from modules.points_engine import get_points_engine
+    engine = get_points_engine()
+    sep = '-' * 40
+    lines = ['*ESTADO DE CUENTA DE PUNTOS - LA TRIBU DE LOS LIBRES*', sep,
+             f'Cédula: {cedula}', f'Nombre: {hiker.nombre_completo if hiker else ""}']
+    if hiker and hiker.telefono:
+        lines.append(f'Teléfono: {hiker.telefono}')
+    lines += [f'Total puntos: {engine.total_by_cedula(cedula)}',
+              f'Generado: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC', sep, '*MOVIMIENTOS*', '']
+    for row in engine.history_with_names(cedula):
+        fecha = (row.get('creado_at') or '')[:19].replace('T', ' ')
+        lines.append(f'Fecha y hora: {fecha}')
+        lines.append(f'Tipo: {row.get("tipo")}')
+        lines.append(f'Puntos: {row.get("puntos", 0)}')
+        if row.get('evento_nombre'):
+            lines.append(f'Caminata: {row["evento_nombre"]}')
+        if row.get('detalle'):
+            lines.append(f'Detalle: {row["detalle"]}')
+        lines += [sep, '']
+    return '\n'.join(lines)
+
+
 def is_past_event(event):
     today = date.today()
     for attr in ('fecha_unica', 'fecha_inicio', 'fecha_regreso'):

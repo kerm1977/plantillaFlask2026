@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>QR - {{ event.nombre_lugar }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}?v=3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}?v=3">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #fff;
+            font-family: system-ui, sans-serif;
+        }
+        .qr-card {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 420px;
+            width: 92%;
+        }
+        .qr-card img {
+            width: 100%;
+            max-width: 300px;
+            background: #fff;
+            border-radius: 1rem;
+            padding: 0.75rem;
+        }
+        .qr-puntos { color: #ffc107; font-size: 1.4rem; }
+        .qr-nota { color: rgba(255,255,255,0.7); font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+    <div class="qr-card">
+        <i class="bi bi-qr-code fs-1 text-warning"></i>
+        <h1 class="fs-4 fw-bold mt-2">{{ event.nombre_lugar }}</h1>
+        {% if event.actividad %}<p class="qr-nota mb-1">{{ event.actividad }}</p>{% endif %}
+        <img src="{{ qr_img }}" alt="QR {{ event.nombre_lugar }}" class="my-3">
+        {% if event.puntos %}
+        <p class="qr-puntos fw-bold mb-1"><i class="bi bi-star-fill me-1"></i>{{ event.puntos }} puntos</p>
+        {% endif %}
+        <p class="qr-nota mb-0">Presentá este código al ingresar a la actividad para registrar tu participación.</p>
+    </div>
+</body>
+</html>
