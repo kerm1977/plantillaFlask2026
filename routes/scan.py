@@ -103,6 +103,25 @@ def _estado_wa_url(cedula, hiker):
     return wa_base + '?text=' + quote(estado_txt)
 
 
+@bp.route('/api/scan/estado', methods=['POST'])
+def scan_estado():
+    """Devuelve el link de WhatsApp con el estado de cuenta de una cédula
+    (solo superusuario). Se usa desde el escáner sin asignar puntos."""
+    if not _require_super():
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    data = request.get_json(silent=True) or {}
+    cedula = re.sub(r'\D', '', str(data.get('cedula') or ''))
+    if not cedula:
+        return jsonify({'ok': False, 'error': 'Ingresá una cédula válida.'})
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if not hiker:
+        return jsonify({'ok': False, 'code': 'not_found',
+                        'error': f'La cédula {cedula} no está registrada.'})
+    return jsonify({'ok': True, 'nombre': hiker.nombre_completo, 'cedula': cedula,
+                    'total': get_points_engine().total_by_cedula(cedula),
+                    'estado_whatsapp_url': _estado_wa_url(cedula, hiker)})
+
+
 @bp.route('/api/scan/award', methods=['POST'])
 def scan_award():
     """Asigna puntos a una cédula desde un código escaneado (solo superusuario).
