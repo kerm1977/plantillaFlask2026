@@ -11,7 +11,7 @@
                                         <div class="sold-out-overlay" style="font-size: 1.1rem; padding: 4px 12px;">SIN ESPACIO</div>
                                     {% endif %}
 
-                                    {% set poster_url = url_for('static', filename='uploads/' + evento.flyer_bg) if evento.flyer_bg else (url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png')) %}
+                                    {% set poster_url = url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png') %}
                                     <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
                                     
                                     {% set badge_class = 'bg-success' %}
@@ -19,6 +19,9 @@
                                     {% if evento.dificultad in ['Dificil', 'Técnico', 'Avanzado'] %} {% set badge_class = 'bg-danger' %} {% endif %}
                                     <span class="position-absolute top-0 end-0 badge rounded-pill {{ badge_class }} m-2 border border-2 border-white shadow-sm badge-dificultad text-uppercase">
                                         {{ evento.dificultad }}
+                                    </span>
+                                    <span class="position-absolute top-0 start-0 badge rounded-pill m-2 border border-2 border-white shadow-sm text-white {{ 'd-none' if not (evento.puntos and evento.puntos > 0) }}" style="background:#dc3545;">
+                                        <i class="bi bi-star-fill"></i> {{ evento.puntos or 0 }} PTS
                                     </span>
                                 </div>
                             </div>
