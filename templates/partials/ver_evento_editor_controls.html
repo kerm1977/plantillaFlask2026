@@ -74,9 +74,13 @@
                     </div>
                     {# BLINDADO: hora de salida editable — actualiza el flyer, la tarjeta de detalle y la BD #}
                     <div class="row g-2 mt-2 pt-2 border-top border-secondary border-opacity-25">
-                        <div class="col-12">
+                        <div class="col-7">
                             <label class="form-label editor-control-label w-100 mb-1"><i class="bi bi-clock me-1"></i>Hora de salida <span class="float-end text-success small" id="flyerHoraMsg"></span></label>
                             <input type="time" id="flyerHoraSalida" class="form-control form-control-sm rounded-3" value="{{ evento.hora_salida or '' }}">
+                        </div>
+                        <div class="col-5">
+                            <label class="form-label editor-control-label w-100 mb-1"><i class="bi bi-star-fill me-1"></i>Puntos <span class="float-end text-success small" id="flyerPuntosMsg"></span></label>
+                            <input type="number" id="flyerPuntos" class="form-control form-control-sm rounded-3" min="0" max="99999" step="50" value="{{ evento.puntos or 0 }}">
                         </div>
                     </div>
                 </div>

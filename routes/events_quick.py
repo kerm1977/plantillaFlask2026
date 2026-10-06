@@ -35,6 +35,26 @@ def cambiar_hora_evento(event_id):
         return jsonify({"error": "Error al guardar la hora"}), 500
 
 
+@bp.route('/api/eventos/<int:event_id>/puntos', methods=['POST'])
+def cambiar_puntos_evento(event_id):
+    """Cambio rápido de puntos del evento desde el editor de flyer (superusuario)."""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({"error": "No autorizado"}), 403
+    data = request.get_json(silent=True) or {}
+    try:
+        puntos = max(0, min(99999, int(data.get('puntos', 0))))
+    except (TypeError, ValueError):
+        return jsonify({"error": "Puntos inválidos"}), 400
+    evento = Event.query.get_or_404(event_id)
+    try:
+        evento.puntos = puntos
+        db.session.commit()
+        return jsonify({"ok": True, "puntos": puntos})
+    except Exception:
+        db.session.rollback()
+        return jsonify({"error": "Error al guardar los puntos"}), 500
+
+
 @bp.route('/api/eventos/<int:event_id>/fondo-flyer', methods=['POST'])
 def cambiar_fondo_flyer(event_id):
     """Fondo propio del flyer (superusuario): archivo nuevo, uno de uploads, o '' = usar póster."""

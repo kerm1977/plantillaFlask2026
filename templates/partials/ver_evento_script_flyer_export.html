@@ -66,6 +66,34 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    // BLINDADO: puntos del evento editables — actualiza flyer, tarjeta y BD.
+    const flyerPuntosInput = document.getElementById('flyerPuntos');
+    if (flyerPuntosInput) {
+        flyerPuntosInput.addEventListener('change', async function() {
+            const v = Math.max(0, parseInt(this.value) || 0);
+            const msg = document.getElementById('flyerPuntosMsg');
+            try {
+                const res = await fetch('/api/eventos/{{ evento.id }}/puntos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ puntos: v })
+                });
+                if (!res.ok) throw new Error();
+                this.value = v;
+                [['fl_puntosVal','fl_puntos'], ['cardPuntosVal','cardPuntosBadge'], ['hbPuntosVal','hbPuntos']]
+                    .forEach(([valId, boxId]) => {
+                        const val = document.getElementById(valId);
+                        const box = document.getElementById(boxId);
+                        if (val) val.innerText = v;
+                        if (box) box.classList.toggle('d-none', v <= 0);
+                    });
+                if (msg) { msg.innerText = 'Guardados'; setTimeout(() => msg.innerText = '', 2500); }
+            } catch(e) {
+                if (msg) msg.innerText = 'Error al guardar';
+            }
+        });
+    }
+
     // BLINDADO: fondo propio del flyer — sube imagen o vuelve al póster del evento.
     const flyerBgFile = document.getElementById('flyerBgFile');
     const flyerBgReset = document.getElementById('flyerBgReset');
