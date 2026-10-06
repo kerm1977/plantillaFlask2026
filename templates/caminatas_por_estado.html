@@ -106,9 +106,11 @@
         <span class="fw-bold text-dark fs-6">{{ ev.moneda ~ (ev.precio | int) if ev.precio | int > 0 else 'PENDIENTE' }}</span>
         {# BLINDADO: puntos que genera la caminata - vista PC, debajo del precio #}
         {% if ev.puntos and ev.puntos > 0 %}
-        <span class="puntos-heartbeat fw-bold text-dark d-none d-md-block" style="font-size:1.9rem; letter-spacing:-0.5px;">
-          <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
-        </span>
+        <div class="d-none d-md-block">
+          <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
+            <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+          </span>
+        </div>
         {% endif %}
       </div>
       <div class="d-flex flex-column align-items-center gap-1" style="z-index:2;">

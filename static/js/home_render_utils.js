@@ -10,7 +10,7 @@ const isSuperUser = window.IS_SUPER_USER || false;
 
 function getBadgeClass(dificultad) {
     if (dificultad === 'Intermedio') return "bg-warning text-dark";
-    if (dificultad === 'Dificil' || dificultad === 'Técnico' || dificultad === 'Avanzado') return "bg-danger";
+    if (dificultad === 'Dificil' || dificultad === 'Difícil' || dificultad === 'Técnico' || dificultad === 'Avanzado') return "bg-danger";
     return "bg-success";
 }
 

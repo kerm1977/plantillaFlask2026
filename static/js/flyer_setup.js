@@ -139,7 +139,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const tActividad = document.getElementById('fl_actividad');
         if(tActividad) tActividad.innerText = actividad;
         const tDificultad = document.getElementById('fl_dificultad');
-        if(tDificultad) tDificultad.innerText = dificultad;
+        if(tDificultad) {
+            tDificultad.innerText = dificultad;
+            const inter = dificultad === 'Intermedio';
+            tDificultad.classList.toggle('bg-warning', inter);
+            tDificultad.classList.toggle('text-dark', inter);
+            tDificultad.classList.toggle('bg-danger', !inter);
+        }
         const tAlto = document.getElementById('fl_altoRiesgo');
         if(tAlto) tAlto.classList.toggle('d-none', !(document.getElementById('altoRiesgoToggle')?.checked));
         const tFecha = document.getElementById('flyerFechaText');

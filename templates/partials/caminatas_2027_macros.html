@@ -31,7 +31,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
 {% macro dificultad_badge(dificultad) -%}
   {% set dificultad_map = {
     'avanzado': {'bg':'#dc3545','text':'#fff'},
-    'dificil': {'bg':'#ff8c00','text':'#fff'},
+    'dificil': {'bg':'#dc3545','text':'#fff'},
     'intermedio': {'bg':'#ffc107','text':'#000'},
     'facil': {'bg':'#28a745','text':'#fff'},
     'basico': {'bg':'#28a745','text':'#fff'},
@@ -114,9 +114,11 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
           <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
           {% endif %}
           {% if ev.puntos and ev.puntos > 0 %}
-          <span class="puntos-heartbeat fw-bold text-dark d-block" style="font-size:1.9rem; letter-spacing:-0.5px;">
-            <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
-          </span>
+          <div>
+            <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
+              <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+            </span>
+          </div>
           {% endif %}
         </div>
         {# BLINDADO: vista móvil — nombre, actividad, provincia, fecha, precio (centrado y más grande), etiquetas #}

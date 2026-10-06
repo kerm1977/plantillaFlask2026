@@ -33,7 +33,7 @@
                                 {% if evento.zona_alto_riesgo %}
                                 <span class="flyer-badge bg-dark border-danger text-danger me-1"><i class="bi bi-exclamation-triangle-fill"></i> ALTO RIESGO</span>
                                 {% endif %}
-                                <span id="fl_dificultad" class="flyer-badge bg-danger border-0">{{ evento.dificultad }}</span>
+                                <span id="fl_dificultad" class="flyer-badge border-0 {{ 'bg-warning text-dark' if evento.dificultad == 'Intermedio' else 'bg-danger' }}">{{ evento.dificultad }}</span>
                                 <span id="fl_puntos" class="flyer-badge border-0 ms-1 {{ 'd-none' if not (evento.puntos and evento.puntos > 0) }}" style="background:#dc3545;"><i class="bi bi-star-fill"></i> <span id="fl_puntosVal">{{ evento.puntos or 0 }}</span> PTS</span>
                             </div>
                         </div>

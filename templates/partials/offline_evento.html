@@ -14,7 +14,7 @@
                                 {% if evento.is_sold_out %}
                                 <span class="position-absolute top-50 start-50 translate-middle badge bg-danger rounded-pill px-3 py-2 shadow">SIN ESPACIO</span>
                                 {% elif evento.dificultad %}
-                                <span class="position-absolute top-0 end-0 badge rounded-pill {{ 'bg-warning text-dark' if evento.dificultad == 'Intermedio' else ('bg-danger' if evento.dificultad in ['Dificil','Técnico','Avanzado'] else 'bg-success') }} m-2 border border-2 border-white shadow-sm text-uppercase">{{ evento.dificultad }}</span>
+                                <span class="position-absolute top-0 end-0 badge rounded-pill {{ 'bg-warning text-dark' if evento.dificultad == 'Intermedio' else ('bg-danger' if evento.dificultad in ['Dificil','Difícil','Técnico','Avanzado'] else 'bg-success') }} m-2 border border-2 border-white shadow-sm text-uppercase">{{ evento.dificultad }}</span>
                                 {% endif %}
                             </div>
                         </div>
