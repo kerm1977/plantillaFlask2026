@@ -25,6 +25,9 @@
 
                             <div class="col-12 col-md-7">
                                 <span class="badge bg-dark rounded-pill px-3 py-1 mb-2 text-uppercase fw-bold shadow-sm" style="font-size: 0.75rem;">{{ evento.actividad }}</span>
+                                {% if evento.puntos and evento.puntos > 0 %}
+                                <span class="badge rounded-pill px-3 py-1 mb-2 text-uppercase fw-bold shadow-sm text-white" style="font-size: 0.75rem; background: #dc3545;"><i class="bi bi-star-fill me-1" style="font-size:0.7rem;"></i>{{ evento.puntos }} PTS</span>
+                                {% endif %}
                                 <h1 class="fw-bold text-dark h3 mb-3 lh-sm">{{ evento.nombre_lugar }}</h1>
                                 
                                 <div class="price-banner d-flex flex-column gap-2 mb-3">
