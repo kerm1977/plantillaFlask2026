@@ -145,6 +145,17 @@
       alert('Espere a que cargue html2canvas o recargue la pÃ¡gina.');
       return;
     }
+    // Puntos de la caminata: se agregan temporalmente a la base del
+    // área capturada para que salgan en el flyer descargado.
+    let ptsNode = null;
+    if (typeof CAMINATA_PUNTOS !== 'undefined' && CAMINATA_PUNTOS > 0) {
+      ptsNode = document.createElement('div');
+      ptsNode.style.cssText = 'text-align:center;margin-top:1.2rem;padding-top:0.8rem;border-top:1px solid rgba(0,0,0,0.1);';
+      ptsNode.innerHTML = '<span style="display:inline-block;font-weight:bold;font-size:1.6rem;color:#212529;">' +
+        '<span style="color:#ffc107;font-size:1.2rem;">★</span> ' + CAMINATA_PUNTOS +
+        '<small style="font-size:0.6em;color:#6c757d;font-weight:bold;margin-left:2px;">PTS</small></span>';
+      preview.appendChild(ptsNode);
+    }
     try {
       const canvas = await html2canvas(preview, {scale: 2, useCORS: true});
       if (format === 'png') {
@@ -183,6 +194,8 @@
     } catch(e) {
       console.error(e);
       alert('Error al exportar');
+    } finally {
+      if (ptsNode && ptsNode.parentNode) ptsNode.parentNode.removeChild(ptsNode);
     }
   }
 

@@ -67,7 +67,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
     {% endif %}
     <!-- FIN BOTÓN WHATSAPP -->
     {% if event.puntos and event.puntos > 0 %}
-    <!-- BLINDADO: puntos que genera la caminata - solo vista móvil, debajo del WhatsApp -->
+    <!-- BLINDADO: puntos que genera la caminata - debajo del botón de WhatsApp -->
     <style>
       @keyframes puntosHeartbeat {
         0%, 100% { transform: scale(1); }
@@ -77,7 +77,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=event.id, _external=True) 
       }
       .puntos-heartbeat { display: inline-block; animation: puntosHeartbeat 1.5s ease-in-out infinite; }
     </style>
-    <div class="d-md-none text-center w-100 mt-3">
+    <div class="text-center w-100 mt-3">
       <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
         <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ event.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
       </span>
