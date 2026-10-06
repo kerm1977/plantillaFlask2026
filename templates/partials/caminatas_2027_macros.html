@@ -90,6 +90,12 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
              title="Preguntar por esta caminata en WhatsApp">
             <i class="bi bi-whatsapp"></i>
           </a>
+          {# BLINDADO: puntos que genera la caminata - móvil, debajo del ícono de WhatsApp #}
+          {% if ev.puntos and ev.puntos > 0 %}
+          <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
+            <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+          </span>
+          {% endif %}
         </div>
       </div>
       <div class="flex-grow-1 min-width-0">
@@ -157,28 +163,10 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
         </button>
         <button class="btn btn-sm btn-outline-orange rounded-pill" onclick="editarEvento('{{ ev.id }}')" title="Editar"><i class="bi bi-pencil"></i></button>
         <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="eliminarEvento('{{ ev.id }}')" title="Eliminar"><i class="bi bi-trash"></i></button>
-        {% elif not is_share | default(false) %}
-        <!-- NO MODIFICAR: Botón WhatsApp "Avisarme" junto a cada caminata. NO ELIMINAR. -->
-        <a href="https://wa.me/50686529837?text={{ whatsapp_caminata_msg(ev.nombre_lugar, url_for('main.ver_caminata_2027', event_id=ev.id, _external=True)) | urlencode }}"
-           target="_blank" rel="noopener"
-           class="btn btn-sm btn-outline-success rounded-pill position-relative flex-shrink-0"
-           style="z-index:2;"
-           title="Avisarme de {{ ev.nombre_lugar }}">
-          <i class="bi bi-whatsapp"></i>
-        </a>
-        <!-- FIN BOTÓN WHATSAPP -->
         {% endif %}
         </div>
       </div>
     </div>
-    {# BLINDADO: puntos que genera la caminata - vista móvil, debajo de la fila #}
-    {% if ev.puntos and ev.puntos > 0 %}
-    <div class="text-center w-100 mt-2 d-md-none">
-      <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
-        <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
-      </span>
-    </div>
-    {% endif %}
     <hr class="cam-actions-sep d-md-none">
   </li>
 {%- endmacro %}
