@@ -42,7 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
         actualizarPreviewFlyer();
         scalePreview();
     });
-    ['nombreLugar','precio','reserva','horaSalida','lugarSalida'].forEach(id => {
+    ['nombreLugar','precio','reserva','horaSalida','lugarSalida','puntos'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', actualizarPreviewFlyer);
     });
     ['dificultad','actividad','moneda','capacidad','sinpe','cuenta','dias'].forEach(id => {

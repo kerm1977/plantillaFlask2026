@@ -150,6 +150,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if(tPrecio) tPrecio.innerText = precio > 0 ? moneda + precio : 'PENDIENTE';
         const tReserva = document.getElementById('flyerReservaText');
         if(tReserva) tReserva.innerText = reserva > 0 ? moneda + reserva : 'PENDIENTE';
+        const tPuntos = document.getElementById('fl_puntos');
+        const pts = parseInt(document.getElementById('puntos')?.value || 0) || 0;
+        if (tPuntos) {
+            tPuntos.classList.toggle('d-none', pts <= 0);
+            const pv = document.getElementById('fl_puntosVal');
+            if (pv) pv.innerText = pts;
+        }
         const tCap = document.getElementById('flyerCapacidadText');
         if(tCap) tCap.innerText = capacidad;
         const tSinpe = document.getElementById('flyerSinpeText');
