@@ -127,7 +127,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=evento.id, _external=True)
                                     <p class="mb-1 text-dark"><strong>Lugar:</strong> {{ lugar_real }} 
                                     {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
                                     </p>
-                                    <p class="mb-1 text-dark"><strong>Hora de Salida:</strong> {{ evento.hora_salida or 'Por definir' }}
+                                    <p class="mb-1 text-dark"><strong>Hora de Salida:</strong> <span id="horaSalidaCardText">{{ evento.hora_salida or 'Por definir' }}</span>
                                     {% if is_private and is_super_user %}<span class="badge bg-danger rounded-pill ms-2" style="font-size:0.6rem; vertical-align: middle;">Oculto</span>{% endif %}
                                     </p>
                                     {% if evento.puntos_recogida %}

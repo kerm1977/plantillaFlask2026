@@ -39,6 +39,32 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // BLINDADO: hora de salida editable desde el generador de flyer.
+    // Guarda en BD y refleja el cambio en el flyer y en la tarjeta de detalle.
+    const flyerHoraInput = document.getElementById('flyerHoraSalida');
+    if (flyerHoraInput) {
+        flyerHoraInput.addEventListener('change', async function() {
+            const v = this.value;
+            const msg = document.getElementById('flyerHoraMsg');
+            try {
+                const res = await fetch('/api/eventos/{{ evento.id }}/hora', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ hora: v })
+                });
+                if (!res.ok) throw new Error();
+                const dest = document.getElementById('fl_salida')?.dataset.dest || '';
+                const flTxt = document.getElementById('flSalidaTexto');
+                if (flTxt) flTxt.innerText = dest + ' (' + (v || 'Por definir') + ')';
+                const cardTxt = document.getElementById('horaSalidaCardText');
+                if (cardTxt) cardTxt.innerText = v || 'Por definir';
+                if (msg) { msg.innerText = 'Guardada'; setTimeout(() => msg.innerText = '', 2500); }
+            } catch(e) {
+                if (msg) msg.innerText = 'Error al guardar';
+            }
+        });
+    }
     {% endif %}
 });
 </script>

@@ -44,6 +44,7 @@
   }
 
   function setupCaminataDetalleLongPress() {
+    if (typeof IS_SUPER === 'undefined' || !IS_SUPER) return;
     const title = document.getElementById('caminataDetalleTitle');
     if (!title) return;
     let timer = null;

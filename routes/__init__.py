@@ -84,6 +84,7 @@ from routes import (        # noqa: E402, F401
     events,
     events_blocks,
     events_crud,
+    events_quick,
     publicaciones,
     music,
     rifas_json_backup,

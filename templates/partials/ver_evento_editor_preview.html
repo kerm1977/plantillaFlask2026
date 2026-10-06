@@ -42,8 +42,8 @@
                         <div id="fl_fecha" class="mb-1 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
                             <i class="bi bi-calendar-event me-1"></i><strong>Fecha:</strong> {{ date_display }}
                         </div>
-                        <div id="fl_salida" class="mb-2 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));">
-                            <i class="bi bi-geo-alt me-1"></i><strong>Salida:</strong> {{ dest_text }} ({{ time_text }})
+                        <div id="fl_salida" class="mb-2 opacity-90" style="font-size: calc(0.75rem * var(--text-scale));" data-dest="{{ dest_text }}">
+                            <i class="bi bi-geo-alt me-1"></i><strong>Salida:</strong> <span id="flSalidaTexto">{{ dest_text }} ({{ time_text }})</span>
                         </div>
                         <div class="row g-2 mt-2 pt-2 border-top border-white border-opacity-25">
                             <div class="col-6" id="fl_inversion">
