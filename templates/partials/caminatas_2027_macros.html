@@ -2,6 +2,17 @@
      BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
+{# BLINDADO: animación heartbeat del indicador de puntos #}
+<style>
+  @keyframes puntosHeartbeat {
+    0%, 100% { transform: scale(1); }
+    30% { transform: scale(1.12); }
+    45% { transform: scale(0.97); }
+    60% { transform: scale(1.07); }
+  }
+  .puntos-heartbeat { display: inline-block; animation: puntosHeartbeat 1.5s ease-in-out infinite; }
+</style>
+
 {% macro whatsapp_caminata_msg(nombre_lugar='Caminata', url='') -%}
 Saludos Coordinador@s de La Tribu de Los Libres. Avísarme cuando tengas el precio y la fecha de esta caminata. Muchas gracias.
 
@@ -91,8 +102,6 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
             {% if ev.actividad %}{{ ev.actividad }}{% endif %}
             <br>{{ estado_badge(ev.visitado) }}
             {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
-            {# BLINDADO: puntos que genera la caminata #}
-            {% if ev.puntos and ev.puntos > 0 %}<span class="badge rounded-pill ms-1" style="background:#dc3545; color:#fff;" title="Puntos que genera esta caminata"><i class="bi bi-star-fill me-1"></i>{{ ev.puntos }} PTS</span>{% endif %}
           </small>
           {% if is_tribu %}
           <small class="text-muted d-block">{{ fecha_text | trim }}</small>
@@ -114,8 +123,6 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
             {% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}
             {{ estado_badge(ev.visitado) }}
             {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
-            {# BLINDADO: puntos que genera la caminata #}
-            {% if ev.puntos and ev.puntos > 0 %}<span class="badge rounded-pill ms-1" style="background:#dc3545; color:#fff;" title="Puntos que genera esta caminata"><i class="bi bi-star-fill me-1"></i>{{ ev.puntos }} PTS</span>{% endif %}
           </div>
         </div>
       </div>
@@ -156,6 +163,14 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
         {% endif %}
       </div>
     </div>
+    {# BLINDADO: puntos que genera la caminata - debajo del botón de WhatsApp, estilo heartbeat #}
+    {% if ev.puntos and ev.puntos > 0 %}
+    <div class="text-center w-100 mt-2">
+      <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
+        <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+      </span>
+    </div>
+    {% endif %}
     <hr class="cam-actions-sep d-md-none">
   </li>
 {%- endmacro %}
