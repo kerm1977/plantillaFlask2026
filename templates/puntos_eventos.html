@@ -59,6 +59,10 @@
             <span class="badge {{ 'bg-info text-dark' if ev.publico else 'bg-dark' }}">{{ 'Público' if ev.publico else 'Privado' }}</span>
           </div>
           <div class="d-flex gap-2">
+            <a href="{{ url_for('main.puntos_evento_card_png', pid=ev.id) }}" download="qr-puntos-evento-{{ ev.id }}.png"
+               class="btn btn-sm btn-outline-orange rounded-pill" title="Descargar QR de puntos">
+              <i class="bi bi-qr-code"></i>
+            </a>
             <button class="btn btn-sm btn-outline-success rounded-pill" title="Compartir enlace QR"
                     onclick="QRShare.open('{{ ev.nombre | replace("'", "") }}', '{{ url_for('main.puntos_evento_qr_page', pid=ev.id, _external=True) }}')">
               <i class="bi bi-whatsapp"></i>

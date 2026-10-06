@@ -10,6 +10,7 @@ from flask import render_template, session, jsonify, request, send_file, url_for
 
 from db import db
 from models import PuntosEvento, HikerPoints
+from modules.qr_card import build_card_png
 from . import bp
 
 
@@ -103,3 +104,15 @@ def puntos_evento_qr_png(pid):
     img.save(buf, format='PNG')
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
+
+
+@bp.route('/scan/puntos-evento/<int:pid>/card.png')
+def puntos_evento_card_png(pid):
+    """PNG del recuadro completo del evento de puntos (para descargar)."""
+    ev = PuntosEvento.query.get_or_404(pid)
+    if not ev.publico and not _is_super():
+        return redirect(url_for('main.home'))
+    buf = build_card_png(ev.nombre, ev.descripcion, ev.puntos,
+                         _evento_scan_url(pid))
+    return send_file(buf, mimetype='image/png',
+                     download_name=f'qr-puntos-evento-{pid}.png')

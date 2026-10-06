@@ -16,6 +16,7 @@ from db import db
 from models import Event, Hiker, User, PuntosEvento, HikerPoints
 from modules.points_engine import get_points_engine
 from modules.points_helpers import is_past_event, build_estado_cuenta_whatsapp
+from modules.qr_card import build_card_png
 from . import bp
 
 
@@ -45,6 +46,16 @@ def puntos_scan_qr(event_id):
     img.save(buf, format='PNG')
     buf.seek(0)
     return send_file(buf, mimetype='image/png')
+
+
+@bp.route('/scan/evento/<int:event_id>/card.png')
+def puntos_scan_card(event_id):
+    """PNG del recuadro completo (idéntico a la página /puntos-scan/<id>)."""
+    event = Event.query.get_or_404(event_id)
+    buf = build_card_png(event.nombre_lugar, event.actividad, event.puntos,
+                         _scan_url(event_id))
+    return send_file(buf, mimetype='image/png',
+                     download_name=f'qr-puntos-{event_id}.png')
 
 
 @bp.route('/api/scan/info/<kind>/<int:item_id>')
