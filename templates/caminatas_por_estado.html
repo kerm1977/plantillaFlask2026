@@ -98,6 +98,9 @@
         <span class="fw-bold text-dark fs-6">{{ ev.moneda ~ (ev.precio | int) if ev.precio | int > 0 else 'PENDIENTE' }}</span>
       </div>
       <div class="d-flex gap-2" style="z-index:2;">
+        {% if is_super %}
+        <a href="{{ url_for('main.puntos_scan_qr', event_id=ev.id) }}" download="qr-puntos-{{ ev.id }}.png" class="btn btn-sm btn-outline-orange rounded-pill flex-shrink-0" style="z-index:2;" title="Descargar QR de puntos"><i class="bi bi-qr-code"></i></a>
+        {% endif %}
         <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}" class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0" style="z-index:2;" title="Información Especial"><i class="bi bi-card-text"></i></a>
         {% if is_super %}
         <button class="btn btn-sm btn-outline-orange rounded-pill"

@@ -116,6 +116,14 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
         </div>
       </div>
       <div class="d-flex gap-2 cam-admin-actions" style="z-index:2;">
+        {% if is_super %}
+        {# BLINDADO: descarga del QR de puntos de esta caminata (PNG) #}
+        <a href="{{ url_for('main.puntos_scan_qr', event_id=ev.id) }}" download="qr-puntos-{{ ev.id }}.png"
+           class="btn btn-sm btn-outline-orange rounded-pill flex-shrink-0" style="z-index:2;"
+           title="Descargar QR de puntos">
+          <i class="bi bi-qr-code"></i>
+        </a>
+        {% endif %}
         <a href="{{ url_for('main.ver_caminata_2027', event_id=ev.id) }}"
            class="btn btn-sm btn-outline-orange rounded-pill position-relative flex-shrink-0"
            style="z-index:2;"
