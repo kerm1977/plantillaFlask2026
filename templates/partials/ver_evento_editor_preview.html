@@ -33,6 +33,9 @@
                                 <span class="flyer-badge bg-dark border-danger text-danger me-1"><i class="bi bi-exclamation-triangle-fill"></i> ALTO RIESGO</span>
                                 {% endif %}
                                 <span id="fl_dificultad" class="flyer-badge bg-danger border-0">{{ evento.dificultad }}</span>
+                                {% if evento.puntos and evento.puntos > 0 %}
+                                <span class="flyer-badge border-0 ms-1" style="background:#dc3545;"><i class="bi bi-star-fill"></i> {{ evento.puntos }} PTS</span>
+                                {% endif %}
                             </div>
                         </div>
                         <h2 class="fw-bold mb-2" style="font-size: calc(1.4rem * var(--text-scale)); line-height: 1.15; letter-spacing: -0.5px;">{{ evento.nombre_lugar }}</h2>
