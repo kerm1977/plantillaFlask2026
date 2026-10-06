@@ -94,6 +94,8 @@
           <br>
           {% if ev.visitado == 'Cotización' %}<span class="badge" style="background-color: #d63384; color: #fff;">Cotización</span>{% elif ev.visitado in ('Visitados','Visitado','Sí') %}<span class="badge bg-success">Visitados</span>{% elif ev.visitado in ('Programados','Por programar') %}<span class="badge" style="background-color: #6f42c1; color: #fff;">Programados</span>{% elif ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 %}<span class="badge" style="background-color: #ff8c00; color: #fff;">{{ ev.visitado }}</span>{% else %}<span class="badge bg-secondary">Pendiente</span>{% endif %}
           {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
+          {# BLINDADO: puntos que genera la caminata #}
+          {% if ev.puntos and ev.puntos > 0 %}<span class="badge rounded-pill ms-1" style="background:#dc3545; color:#fff;" title="Puntos que genera esta caminata"><i class="bi bi-star-fill me-1"></i>{{ ev.puntos }} PTS</span>{% endif %}
         </small>
         <span class="fw-bold text-dark fs-6">{{ ev.moneda ~ (ev.precio | int) if ev.precio | int > 0 else 'PENDIENTE' }}</span>
       </div>
