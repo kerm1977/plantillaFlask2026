@@ -10,23 +10,24 @@ def build_estado_cuenta_whatsapp(cedula, hiker=None):
     """Estado de cuenta de puntos para WhatsApp (reutilizable)."""
     from modules.points_engine import get_points_engine
     engine = get_points_engine()
-    sep = '-' * 40
-    lines = ['*ESTADO DE CUENTA DE PUNTOS - LA TRIBU DE LOS LIBRES*', sep,
-             f'Cédula: {cedula}', f'Nombre: {hiker.nombre_completo if hiker else ""}']
-    if hiker and hiker.telefono:
-        lines.append(f'Teléfono: {hiker.telefono}')
-    lines += [f'Total puntos: {engine.total_by_cedula(cedula)}',
-              f'Generado: {datetime.utcnow().strftime("%Y-%m-%d %H:%M")} UTC', sep, '*MOVIMIENTOS*', '']
-    for row in engine.history_with_names(cedula):
-        fecha = (row.get('creado_at') or '')[:19].replace('T', ' ')
-        lines.append(f'Fecha y hora: {fecha}')
-        lines.append(f'Tipo: {row.get("tipo")}')
-        lines.append(f'Puntos: {row.get("puntos", 0)}')
-        if row.get('evento_nombre'):
-            lines.append(f'Caminata: {row["evento_nombre"]}')
+    sep = '-' * 30
+    history = engine.history_with_names(cedula)
+    ganados = sum(r['puntos'] for r in history if r['puntos'] > 0)
+    usados = -sum(r['puntos'] for r in history if r['puntos'] < 0)
+    lines = ['*ESTADO DE CUENTA DE PUNTOS*', '_La Tribu de los Libres_', sep,
+             f'*Nombre:* {hiker.nombre_completo if hiker else ""}', f'*Cédula:* {cedula}',
+             f'*TOTAL: {engine.total_by_cedula(cedula)} puntos*',
+             f'Ganados: {ganados} | Usados: {usados}',
+             f'Generado: {datetime.now().strftime("%d/%m/%Y %H:%M")}', sep, '*MOVIMIENTOS*']
+    for row in history:
+        f = (row.get('creado_at') or '')[:10]
+        f = f'{f[8:10]}/{f[5:7]}/{f[0:4]}' if len(f) == 10 else 'Sin fecha'
+        actividad = row.get('evento_nombre') or (row.get('tipo') or '').replace('_', ' ').capitalize()
+        lines.append(f'{f} | {actividad} | *{row.get("puntos", 0):+d}*')
         if row.get('detalle'):
-            lines.append(f'Detalle: {row["detalle"]}')
-        lines += [sep, '']
+            lines.append(f'   _{row["detalle"]}_')
+    if not history:
+        lines.append('Sin movimientos registrados.')
     return '\n'.join(lines)
 
 

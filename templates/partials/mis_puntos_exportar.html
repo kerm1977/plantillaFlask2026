@@ -1,0 +1,16 @@
+          <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accEstadoCuenta">
+                <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>Exportar estado de cuenta
+              </button>
+            </h2>
+            <div id="accEstadoCuenta" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
+              <div class="accordion-body">
+                <p class="small text-muted">Resumen de tu total, puntos ganados y usados, y todos tus movimientos con fecha, actividad y detalle.</p>
+                <div class="d-grid gap-2">
+                  <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula) }}" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF</a>
+                  <a href="{{ estado_whatsapp_url }}" class="btn btn-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar por WhatsApp</a>
+                </div>
+              </div>
+            </div>
+          </div>
