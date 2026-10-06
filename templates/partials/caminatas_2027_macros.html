@@ -113,6 +113,11 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
           <small class="text-muted d-block">{{ fecha_text | trim }}</small>
           <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
           {% endif %}
+          {% if ev.puntos and ev.puntos > 0 %}
+          <span class="puntos-heartbeat fw-bold text-dark d-block" style="font-size:1.9rem; letter-spacing:-0.5px;">
+            <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+          </span>
+          {% endif %}
         </div>
         {# BLINDADO: vista móvil — nombre, actividad, provincia, fecha, precio (centrado y más grande), etiquetas #}
         <div class="d-md-none">
@@ -133,12 +138,6 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
         </div>
       </div>
       <div class="d-flex flex-column align-items-center gap-1 cam-admin-actions" style="z-index:2;">
-        {# BLINDADO: puntos que genera la caminata - vista PC, arriba de los botones #}
-        {% if ev.puntos and ev.puntos > 0 %}
-        <span class="puntos-heartbeat fw-bold text-dark d-none d-md-inline-block" style="font-size:1.9rem; letter-spacing:-0.5px;">
-          <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ ev.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
-        </span>
-        {% endif %}
         <div class="d-flex gap-2">
         {% if is_super %}
         {# BLINDADO: descarga del QR de puntos de esta caminata (PNG) #}
