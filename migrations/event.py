@@ -157,6 +157,21 @@ def _migrate_event_suspendida():
         print(f"[Migration] Error en _migrate_event_suspendida: {e}")
 
 
+def _migrate_event_flyer_bg():
+    """Agrega columna flyer_bg a tabla event si no existe."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(event)")
+        columns = [col[1] for col in cursor.fetchall()]
+        if 'flyer_bg' not in columns:
+            cursor.execute("ALTER TABLE event ADD COLUMN flyer_bg VARCHAR(255)")
+            conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_event_flyer_bg: {e}")
+
+
 def _migrate_event_precio_buseta():
     """Agrega columna precio_buseta a tabla event si no existe."""
     try:

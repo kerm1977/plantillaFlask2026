@@ -65,6 +65,42 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
+
+    // BLINDADO: fondo propio del flyer — sube imagen o vuelve al póster del evento.
+    const flyerBgFile = document.getElementById('flyerBgFile');
+    const flyerBgReset = document.getElementById('flyerBgReset');
+    function setFlyerBgSrc(url) {
+        const img = document.getElementById('flyerBgImg');
+        const clone = document.getElementById('flyerBgImgClone');
+        if (img) img.src = url;
+        if (clone) clone.src = url;
+    }
+    async function postFlyerBg(fd) {
+        try {
+            const res = await fetch(flyerBgFile.dataset.url, { method: 'POST', body: fd });
+            const data = await res.json();
+            if (!res.ok || !data.ok) throw new Error(data.error || 'Error');
+            setFlyerBgSrc(data.url || flyerBgFile.dataset.poster);
+        } catch(e) {
+            alert(e.message || 'Error al guardar el fondo');
+        }
+    }
+    if (flyerBgFile) {
+        flyerBgFile.addEventListener('change', function() {
+            if (!this.files || !this.files[0]) return;
+            const fd = new FormData();
+            fd.append('fondo', this.files[0]);
+            postFlyerBg(fd);
+            this.value = '';
+        });
+    }
+    if (flyerBgReset) {
+        flyerBgReset.addEventListener('click', function() {
+            const fd = new FormData();
+            postFlyerBg(fd);
+            flyerBgReset.remove();
+        });
+    }
     {% endif %}
 });
 </script>

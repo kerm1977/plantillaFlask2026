@@ -121,6 +121,17 @@
                             <input type="range" class="form-range" id="flyerOpacity" min="-100" max="100" step="5" value="100">
                         </div>
                     </div>
+                    <div class="row g-2 mt-1">
+                        <div class="col-12">
+                            <label class="form-label editor-control-label w-100">Imagen de Fondo del Flyer</label>
+                            <input type="file" class="form-control form-control-sm" id="flyerBgFile" accept="image/*" data-url="{{ url_for('main.cambiar_fondo_flyer', event_id=evento.id) }}" data-poster="{{ poster_url }}">
+                            {% if evento.flyer_bg %}
+                            <button type="button" id="flyerBgReset" class="btn btn-sm btn-outline-secondary rounded-pill mt-1 px-3">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Volver al póster
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -35,6 +35,7 @@ class User(db.Model):
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     poster = db.Column(db.String(255)) 
+    flyer_bg = db.Column(db.String(255))
     nombre_lugar = db.Column(db.String(200), nullable=False)
     dificultad = db.Column(db.String(50))
     tipo_terreno = db.Column(db.String(100))

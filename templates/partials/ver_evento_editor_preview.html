@@ -16,13 +16,14 @@
             <div id="flyerPreviewWrapper" class="flyer-preview-wrapper mb-3 shadow">
                 <!-- ÁREA DE CAPTURA DEL FLYER FÍSICA (Base = 360x640 siempre) -->
                 <div id="flyerCaptureArea" class="flyer-capture-area">
+                    {% set flyer_bg_url = url_for('static', filename='uploads/' + evento.flyer_bg) if evento.flyer_bg else poster_url %}
                     <!-- Capa 1: Imagen Base -->
                     <div class="flyer-bg-container" style="z-index: 0;">
-                        <img id="flyerBgImg" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                        <img id="flyerBgImg" class="flyer-bg-img" src="{{ flyer_bg_url }}" crossorigin="anonymous">
                     </div>
                     <!-- Capa 2: Clon de la Imagen para el Efecto Blur -->
                     <div id="flyerBgBlurContainer" class="flyer-bg-container" style="z-index: 1;">
-                        <img id="flyerBgImgClone" class="flyer-bg-img" src="{{ poster_url }}" crossorigin="anonymous">
+                        <img id="flyerBgImgClone" class="flyer-bg-img" src="{{ flyer_bg_url }}" crossorigin="anonymous">
                     </div>
                     <!-- Capa 3: Textos y Overlay Oscuro -->
                     <div id="flyerOverlay" class="flyer-glass-overlay" style="z-index: 2;">
