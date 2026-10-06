@@ -68,6 +68,24 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=evento.id, _external=True)
                                 </button>
                                 {% endif %}
 
+                                {% if evento.puntos and evento.puntos > 0 %}
+                                <!-- BLINDADO: puntos que genera el evento - debajo del botón Quiero Ir -->
+                                <style>
+                                  @keyframes puntosHeartbeat {
+                                    0%, 100% { transform: scale(1); }
+                                    30% { transform: scale(1.12); }
+                                    45% { transform: scale(0.97); }
+                                    60% { transform: scale(1.07); }
+                                  }
+                                  .puntos-heartbeat { display: inline-block; animation: puntosHeartbeat 1.5s ease-in-out infinite; }
+                                </style>
+                                <div class="text-center w-100 mt-3">
+                                    <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
+                                        <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i>{{ evento.puntos }}<small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
+                                    </span>
+                                </div>
+                                {% endif %}
+
                                 <!-- ALERTA ZONA ALTO RIESGO PÚBLICA -->
                                 {% if evento.zona_alto_riesgo %}
                                 <div class="alert alert-danger bg-danger bg-opacity-10 border border-danger border-opacity-50 rounded-4 p-3 mt-4 mb-0 d-flex align-items-center hide-on-export shadow-sm">
