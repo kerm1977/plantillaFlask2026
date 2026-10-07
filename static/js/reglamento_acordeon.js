@@ -8,6 +8,9 @@
   if (!cont) return;
   var flatHTML = cont.innerHTML;
   var RX_ART = /^art[ií]culo\s*\d+/i;
+  var KEY_TODOS = 'rgTodosAbiertos';
+  var todosAbiertos = false;
+  var btnTodos = null;
 
   function esArticulo(el) {
     if (!el || el.tagName !== 'P') return false;
@@ -20,6 +23,46 @@
     cont.querySelectorAll('.rg-art-cuerpo, .rg-art-titulo').forEach(function (e) {
       e.classList.add('rg-cerrado');
     });
+  }
+
+  function pintarBtnTodos() {
+    if (!btnTodos) return;
+    btnTodos.innerHTML = todosAbiertos
+      ? '<i class="bi bi-eye-slash me-1"></i>Ocultar todo'
+      : '<i class="bi bi-eye me-1"></i>Mostrar todo';
+  }
+
+  function guardarEstadoTodos() {
+    try { sessionStorage.setItem(KEY_TODOS, todosAbiertos ? '1' : '0'); } catch (e) {}
+  }
+
+  function leerEstadoTodos() {
+    try { return sessionStorage.getItem(KEY_TODOS) === '1'; } catch (e) { return false; }
+  }
+
+  function abrirCerrarTodos(abrir) {
+    todosAbiertos = abrir;
+    cont.querySelectorAll('.rg-art-cuerpo, .rg-art-titulo').forEach(function (e) {
+      e.classList.toggle('rg-cerrado', !abrir);
+    });
+    pintarBtnTodos();
+  }
+
+  function insertarBtnTodos() {
+    if (btnTodos) return;
+    var barra = document.createElement('div');
+    barra.className = 'rg-todos text-center mb-3';
+    btnTodos = document.createElement('button');
+    btnTodos.type = 'button';
+    btnTodos.className = 'btn btn-outline-orange btn-sm rounded-pill fw-bold';
+    btnTodos.addEventListener('click', function () {
+      abrirCerrarTodos(!todosAbiertos);
+      guardarEstadoTodos();
+    });
+    barra.appendChild(btnTodos);
+    var h6 = cont.querySelector(':scope > h6');
+    cont.insertBefore(barra, h6 || cont.firstElementChild);
+    pintarBtnTodos();
   }
 
   function aplicar() {
@@ -60,6 +103,11 @@
       }
       (function (t, c) {
         t.addEventListener('click', function () {
+          if (todosAbiertos) {
+            var nc = c.classList.toggle('rg-cerrado');
+            t.classList.toggle('rg-cerrado', nc);
+            return;
+          }
           var cerrado = c.classList.contains('rg-cerrado');
           cerrarTodos();
           if (cerrado) { c.classList.remove('rg-cerrado'); t.classList.remove('rg-cerrado'); }
@@ -70,6 +118,10 @@
       cont.replaceChild(art, el);
       if (primero) { titulo.classList.remove('rg-cerrado'); cuerpo.classList.remove('rg-cerrado'); primero = false; }
       el = art.nextElementSibling;
+    }
+    if (cont.querySelector(':scope > .rg-articulo')) {
+      insertarBtnTodos();
+      if (leerEstadoTodos()) abrirCerrarTodos(true);
     }
   }
 

@@ -19,7 +19,7 @@
     document.getElementById('rgCompartir').classList.toggle('d-none', editando);
     if (editando) {
       document.execCommand('defaultParagraphSeparator', false, 'p');
-      document.execCommand('styleWithCSS', false, false);
+      document.execCommand('styleWithCSS', false, true);
       cont.focus();
     }
   }

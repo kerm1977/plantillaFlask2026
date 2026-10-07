@@ -14,7 +14,7 @@ KEY = 'reglamento_puntos_html'
 MAX_LEN = 80000
 PERMITIDAS = {'h5', 'h6', 'p', 'ul', 'ol', 'li', 'b', 'strong', 'i', 'em', 'u', 'br', 'a'}
 BLOQUES = {'h5', 'h6', 'p', 'ul', 'ol', 'li'}
-ALINEA = re.compile(r'text-align\s*:\s*(right|center|justify)', re.I)
+ALINEA = re.compile(r'text-align\s*:\s*(left|right|center|justify)', re.I)
 HREF_OK = re.compile(r'^(https?://|/)', re.I)
 
 
