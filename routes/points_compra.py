@@ -3,7 +3,7 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 # routes/points_compra.py - Comprar puntos (usuario) y aprobar pagos (superusuario)
-from flask import request, session, redirect, url_for
+from flask import request, session, redirect, url_for, jsonify
 from modules import points_purchase as pp
 from routes import bp
 from routes.points import _current_user
@@ -26,9 +26,10 @@ def _es_super():
 @bp.route('/mis-puntos/comprar', methods=['POST'])
 def comprar_puntos():
     cedula = (request.form.get('cedula') or '').strip()
+    ajax = request.headers.get('X-Requested-With') == 'fetch'
     if not cedula or not (_es_super() or session.get('mis_puntos_ok') == cedula):
         session['admin_error'] = 'Verificá tu cédula y contraseña primero.'
-        return _volver(cedula)
+        return jsonify({'ok': False}) if ajax else _volver(cedula)
     try:
         puntos = int(request.form.get('puntos') or 0)
     except ValueError:
@@ -36,9 +37,12 @@ def comprar_puntos():
     res = pp.solicitar(cedula, puntos)
     if res.get('ok'):
         session['admin_message'] = (f'Solicitud registrada: {pp.miles(puntos)} puntos por ₡{pp.miles(res["pagar"])}. '
-                                    'Avisá por WhatsApp; los puntos se acreditan cuando un superusuario apruebe tu pago.')
+                                    'Se abrió WhatsApp con el aviso para la coordinadora; si no se abrió, tocá «Avisar por WhatsApp». '
+                                    'Los puntos se acreditan cuando un superusuario apruebe tu pago.')
     else:
         session['admin_error'] = res.get('error')
+    if ajax:
+        return jsonify({'ok': bool(res.get('ok')), 'wa': res.get('wa', '')})
     return _volver(cedula, '#accComprar')
 
 

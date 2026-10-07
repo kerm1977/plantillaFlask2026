@@ -49,7 +49,7 @@ def solicitar(cedula, puntos):
     c = CompraPuntos(cedula=cedula, hiker_id=hiker.id if hiker else None, puntos=puntos, monto_pagar=costo(puntos))
     db.session.add(c)
     db.session.commit()
-    return {'ok': True, 'pagar': c.monto_pagar}
+    return {'ok': True, 'pagar': c.monto_pagar, 'wa': url_whatsapp(c, hiker.nombre_completo if hiker else '')}
 
 
 def pendientes_usuario(cedula):

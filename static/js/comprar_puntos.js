@@ -39,7 +39,15 @@
   });
   if (modalEl) {
     document.body.appendChild(modalEl);
-    document.getElementById('cmConfirmar').addEventListener('click', function () { this.disabled = true; form.submit(); });
+    document.getElementById('cmConfirmar').addEventListener('click', function () {
+      this.disabled = true;
+      var w = window.open('', '_blank');  // se abre dentro del toque del usuario para que no lo bloquee el navegador
+      var volver = function () { location.hash = '#accComprar'; location.reload(); };
+      fetch(form.action, { method: 'POST', body: new FormData(form), headers: { 'X-Requested-With': 'fetch' }, credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { if (w) { if (d.ok && d.wa) w.location.href = d.wa; else w.close(); } volver(); })
+        .catch(function () { if (w) w.close(); volver(); });
+    });
     modalEl.addEventListener('hidden.bs.modal', function () { document.getElementById('cmConfirmar').disabled = false; });
   }
   input.addEventListener('input', function () { input.setCustomValidity(''); });
