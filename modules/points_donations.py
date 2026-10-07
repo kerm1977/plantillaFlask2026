@@ -45,9 +45,10 @@ def donate(donor_cedula, recipient_cedula, monto, created_by='donante', detalle=
         return {'ok': False, 'error': 'El monto debe ser mayor a 0.'}
     total = _total(donor_cedula)
     if total < 1000:
-        return {'ok': False, 'error': 'Necesitás al menos 1.000 puntos para donar.'}
-    if monto >= total:
-        return {'ok': False, 'error': 'No podés donar todos tus puntos. Tenés que quedarte con al menos 1.'}
+        return {'ok': False, 'error': f'Tenés {total} puntos. Necesitás al menos 1.000 puntos para obsequiar o transferir; no podés transferir el total.'}
+    tope = int(total * 0.8)
+    if monto > tope:
+        return {'ok': False, 'error': f'Tenés {total} puntos. Podés obsequiar o transferir hasta {tope} puntos (80% de tus puntos); no te podés quedar en cero.'}
     recipient = Hiker.query.filter_by(cedula=recipient_cedula).first()
     if not recipient:
         return {'ok': False, 'error': 'La cédula del receptor no está registrada.'}

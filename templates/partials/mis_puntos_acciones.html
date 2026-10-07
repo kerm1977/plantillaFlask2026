@@ -25,7 +25,8 @@
                     </div>
                     <div class="mb-3">
                       <label class="form-label fw-bold">Puntos a obsequiar</label>
-                      <input type="number" name="monto" class="form-control" placeholder="Ej. 500" min="1" required>
+                      {% set tope = (result.total * 0.8) | int %}
+                      <input type="number" name="monto" class="form-control" placeholder="Ej. 500" min="1"{% if result.total >= 1000 %} max="{{ tope }}"{% endif %} required>
                     </div>
                     <div class="mb-3">
                       <label class="form-label fw-bold">Descripción del obsequio</label>
@@ -37,7 +38,11 @@
                     </div>
                     <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold">Confirmar obsequio</button>
                   </form>
-                  <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos y no podés donar el total (deben quedar al menos 1).</p>
+                  {% if result.total >= 1000 %}
+                  <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Podés obsequiar o transferir hasta {{ tope }} puntos (el 80% de tus puntos); no te podés quedar en cero.</p>
+                  {% else %}
+                  <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos para obsequiar o transferir, y no podés transferir el total.</p>
+                  {% endif %}
                 </div>
               </div>
             </div>

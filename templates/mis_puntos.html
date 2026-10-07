@@ -170,15 +170,15 @@
               </select>
             </div>
             <div class="col-4">
-              <input type="number" name="monto" class="form-control" placeholder="Puntos" min="1" required>
+              <input type="number" name="monto" class="form-control" placeholder="Puntos" min="1" max="{{ (result.total * 0.8) | int }}" required>
             </div>
             <div class="col-3">
               <button type="submit" class="btn btn-info w-100 text-white fw-bold">Donar</button>
             </div>
           </form>
-          <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. No podés donar todos; siempre tenés que quedar con al menos 1 punto.</p>
+          <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Podés donar hasta {{ (result.total * 0.8) | int }} puntos (el 80% de tus puntos); no te podés quedar en cero.</p>
           {% else %}
-          <p class="small text-muted">Necesitás al menos 1.000 puntos para donar.</p>
+          <p class="small text-muted">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos para donar, y no podés donar el total.</p>
           {% endif %}
         </div>
         {% endif %}
