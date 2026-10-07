@@ -8,6 +8,7 @@ from models import Hiker, HikerPoints, Event, EventRegistration, User
 from sqlalchemy import func
 from datetime import datetime
 from modules.points_helpers import is_past_event
+from modules import fidelidad
 
 
 class PointsEngine:
@@ -84,13 +85,14 @@ class PointsEngine:
             if existing:
                 skipped += 1
                 continue
+            puntos = fidelidad.puntos_con_bono(hiker.cedula, event.puntos)
             record = HikerPoints(
                 cedula=hiker.cedula,
                 hiker_id=hiker.id,
                 event_id=event_id,
-                points=event.puntos,
+                points=puntos,
                 tipo='participacion',
-                detalle=f'Participación en {event.nombre_lugar}',
+                detalle=f'Participación en {event.nombre_lugar}{fidelidad.etiqueta_bono(hiker.cedula, event.puntos)}',
                 created_by=operator_name,
                 created_at=datetime.utcnow()
             )
@@ -110,7 +112,10 @@ class PointsEngine:
         if existing:
             return {'ok': False, 'error': 'Esa persona ya fue retirada de esta caminata.'}
 
-        base = event.puntos or 0
+        ganado = HikerPoints.query.filter_by(
+            event_id=event_id, cedula=cedula, tipo='participacion'
+        ).order_by(HikerPoints.id.desc()).first()
+        base = abs(ganado.points) if ganado else (event.puntos or 0)
         extra = 0 if justificado else 250
         total_deducted = base + extra
         detalle = f'Retiro en {event.nombre_lugar}'
@@ -191,9 +196,10 @@ class PointsEngine:
         if self.has_earned(event_id, cedula):
             return {'ok': False, 'error': 'Esta cédula ya ganó puntos en esta caminata.'}
         hiker = self._get_hiker(cedula)
-        self._add_record(cedula, hiker.id if hiker else None, event_id, event.puntos,
-                         'participacion', f'Puntos ganados en {event.nombre_lugar} (enlace)', operator)
-        return {'ok': True, 'puntos_ganados': event.puntos, 'total': self.total_by_cedula(cedula)}
+        puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
+        self._add_record(cedula, hiker.id if hiker else None, event_id, puntos,
+                         'participacion', f'Puntos ganados en {event.nombre_lugar} (enlace){fidelidad.etiqueta_bono(cedula, event.puntos)}', operator)
+        return {'ok': True, 'puntos_ganados': puntos, 'total': self.total_by_cedula(cedula)}
 
     def purchase_cost(self, puntos):
         if puntos < 500:

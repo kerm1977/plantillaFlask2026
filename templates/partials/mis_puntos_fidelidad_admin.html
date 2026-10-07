@@ -1,0 +1,56 @@
+            {# BLINDADO: programa de fidelidad - niveles VIP y obsequios (solo superusuario) #}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accFidelidad">
+                  <i class="bi bi-gem me-2 text-info"></i>Programa de fidelidad <span class="badge bg-light text-dark border rounded-pill ms-2" id="fidContador">…</span>
+                </button>
+              </h2>
+              <div id="accFidelidad" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <p class="small text-muted">
+                    <strong>Activo VIP</strong> (12+ caminatas) suma ×1.2 · <strong>Exclusivo VIP</strong> (20+ caminatas) suma ×1.5
+                    en todo lo que acumula puntos (no aplica a compras ni obsequios). El nivel se calcula solo; aquí podés
+                    ascender o degradar manualmente, siempre con nota si el nivel baja.
+                  </p>
+                  <div class="mb-3">
+                    <label class="form-label fw-bold small" for="fidPersona">Persona</label>
+                    <select id="fidPersona" class="form-select" data-searchable>
+                      <option value="" disabled selected>Seleccioná una persona</option>
+                      {% for p in todos_hikers %}
+                      <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div id="fidEstado" class="alert alert-light border small py-2 d-none"></div>
+                  <div class="row g-2 mb-2">
+                    <div class="col-6">
+                      <label class="form-label fw-bold small" for="fidNivel">Nuevo nivel</label>
+                      <select id="fidNivel" class="form-select">
+                        <option value="auto">Automático (por caminatas)</option>
+                        <option value="activo">Activo VIP (×1.2)</option>
+                        <option value="exclusivo">Exclusivo VIP (×1.5)</option>
+                      </select>
+                    </div>
+                    <div class="col-6">
+                      <label class="form-label fw-bold small" for="fidNota">Nota (obligatoria si baja de nivel)</label>
+                      <input type="text" id="fidNota" class="form-control" maxlength="255" placeholder="Motivo del cambio">
+                    </div>
+                  </div>
+                  <button type="button" id="fidGuardar" class="btn btn-info w-100 rounded-pill fw-bold text-dark mb-3">Aplicar nivel</button>
+                  <div class="row g-2 mb-3">
+                    <div class="col-8">
+                      <label class="form-label fw-bold small" for="fidObsequio">Obsequiar puntos por fidelidad</label>
+                      <input type="number" id="fidObsequio" class="form-control" min="1" placeholder="Ej. 200">
+                    </div>
+                    <div class="col-4 d-flex align-items-end">
+                      <button type="button" id="fidObsequiar" class="btn btn-success w-100 rounded-pill fw-bold">Obsequiar</button>
+                    </div>
+                  </div>
+                  <div id="fidMsg" class="small mb-2"></div>
+                  <h6 class="fw-bold small text-muted mt-3">Personas con nivel VIP</h6>
+                  <div id="fidLista" class="small"></div>
+                  <h6 class="fw-bold small text-muted mt-3">Bitácora de cambios de nivel</h6>
+                  <div id="fidHistorial" class="small text-muted"></div>
+                </div>
+              </div>
+            </div>

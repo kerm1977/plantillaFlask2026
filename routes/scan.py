@@ -15,6 +15,7 @@ from sqlalchemy import or_
 from db import db
 from models import Event, Hiker, User, PuntosEvento, HikerPoints
 from modules.points_engine import get_points_engine
+from modules import fidelidad
 from modules.points_helpers import is_past_event, build_estado_cuenta_whatsapp
 from modules.qr_card import build_card_png
 from . import bp
@@ -166,15 +167,16 @@ def scan_award():
         if ya:
             return jsonify({'ok': False, 'code': 'duplicate',
                             'error': f'{hiker.nombre_completo} ya recibió los puntos de este evento.'})
+        puntos = fidelidad.puntos_con_bono(cedula, pe.puntos)
         db.session.add(HikerPoints(
             cedula=cedula, hiker_id=hiker.id, puntos_evento_id=pe.id,
-            points=pe.puntos, tipo='evento',
-            detalle=f'Puntos ganados en {pe.nombre} (escaneo QR)',
+            points=puntos, tipo='evento',
+            detalle=f'Puntos ganados en {pe.nombre} (escaneo QR){fidelidad.etiqueta_bono(cedula, pe.puntos)}',
             created_by=operador, created_at=datetime.utcnow()))
         db.session.commit()
         return jsonify({'ok': True, 'nombre': hiker.nombre_completo, 'cedula': cedula,
-                        'puntos_ganados': pe.puntos, 'total': engine.total_by_cedula(cedula),
-                        'evento': pe.nombre,
+                        'puntos_ganados': puntos, 'total': engine.total_by_cedula(cedula),
+                        'evento': pe.nombre, 'nivel_label': fidelidad.info(cedula)['nivel_label'],
                         'estado_whatsapp_url': _estado_wa_url(cedula, hiker)})
 
     event = Event.query.get(item_id) if item_id else None
@@ -187,9 +189,10 @@ def scan_award():
     if engine.has_earned(event.id, cedula):
         return jsonify({'ok': False, 'code': 'duplicate',
                         'error': f'{hiker.nombre_completo} ya recibió los puntos de esta caminata.'})
-    engine._add_record(cedula, hiker.id, event.id, event.puntos, 'participacion',
-                       f'Puntos ganados en {event.nombre_lugar} (escaneo QR)', operador)
+    puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
+    engine._add_record(cedula, hiker.id, event.id, puntos, 'participacion',
+                       f'Puntos ganados en {event.nombre_lugar} (escaneo QR){fidelidad.etiqueta_bono(cedula, event.puntos)}', operador)
     return jsonify({'ok': True, 'nombre': hiker.nombre_completo, 'cedula': cedula,
-                    'puntos_ganados': event.puntos, 'total': engine.total_by_cedula(cedula),
-                    'evento': event.nombre_lugar,
+                    'puntos_ganados': puntos, 'total': engine.total_by_cedula(cedula),
+                    'evento': event.nombre_lugar, 'nivel_label': fidelidad.info(cedula)['nivel_label'],
                     'estado_whatsapp_url': _estado_wa_url(cedula, hiker)})

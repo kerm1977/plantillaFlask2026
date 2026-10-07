@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import extract
 from db import db
 from models import Hiker, HikerPoints
+from modules import fidelidad
 
 
 class PointsBonuses:
@@ -30,8 +31,10 @@ class PointsBonuses:
         if existing:
             return 0
         hiker = Hiker.query.filter_by(cedula=cedula).first()
-        self._record(cedula, hiker.id if hiker else None, 500, 'bienvenida', '500 puntos de regalía por primera entrada al sistema de puntos')
-        return 500
+        puntos = fidelidad.puntos_con_bono(cedula, 500)
+        self._record(cedula, hiker.id if hiker else None, puntos, 'bienvenida',
+                   f'{puntos} puntos de regalía por primera entrada al sistema de puntos{fidelidad.etiqueta_bono(cedula, 500)}')
+        return puntos
 
     def birthday(self, cedula):
         hiker = Hiker.query.filter_by(cedula=cedula).first()
@@ -47,8 +50,10 @@ class PointsBonuses:
         ).first()
         if existing:
             return 0
-        self._record(cedula, hiker.id, 500, 'cumpleanos', f'500 puntos de regalo por cumpleaños ({hiker.fecha_nacimiento.strftime("%d/%m")}, año {now.year})')
-        return 500
+        puntos = fidelidad.puntos_con_bono(cedula, 500)
+        self._record(cedula, hiker.id, puntos, 'cumpleanos',
+                     f'{puntos} puntos de regalo por cumpleaños ({hiker.fecha_nacimiento.strftime("%d/%m")}, año {now.year}){fidelidad.etiqueta_bono(cedula, 500)}')
+        return puntos
 
     def apply(self, cedula):
         added = 0

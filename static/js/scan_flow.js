@@ -141,7 +141,7 @@
             .then(function (d) {
                 if (d.ok) {
                     persona = null;
-                    showResult(true, '+' + d.puntos_ganados + ' pts a ' + d.nombre + ' (total: ' + d.total + ')',
+                    showResult(true, '+' + d.puntos_ganados + ' pts a ' + d.nombre + ' (total: ' + d.total + ')' + (d.nivel_label ? ' · ' + d.nivel_label : ''),
                         { estadoUrl: d.estado_whatsapp_url });
                 } else {
                     showResult(false, d.error || 'Error al asignar puntos.',

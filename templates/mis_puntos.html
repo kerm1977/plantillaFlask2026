@@ -71,6 +71,9 @@
           <h2 class="fw-bold text-warning-custom">{{ result.total }} puntos</h2>
           <p class="text-muted">
             {{ result.nombre_completo }} ({{ result.cedula }})
+            {% if result.fidelidad.nivel == 'exclusivo' %}<span class="badge rounded-pill text-dark" style="background:#ffe082;" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">💎 Exclusivo VIP</span>
+            {% elif result.fidelidad.nivel == 'activo' %}<span class="badge rounded-pill" style="background:#b3e5fc;" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">⭐ Activo VIP</span>
+            {% endif %}
             {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
           </p>
         </div>
@@ -192,6 +195,7 @@
     </div>
   </div>
 </section><script src="{{ url_for('static', filename='js/mis_puntos.js') }}"></script>
+{% if is_super %}<script src="{{ url_for('static', filename='js/fidelidad_admin.js') }}"></script>{% endif %}
 {% if result and not is_super %}
 {# BLINDADO: al salir de la página se avisa al servidor para contar la próxima entrada #}
 <script>

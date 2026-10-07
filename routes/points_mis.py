@@ -12,6 +12,7 @@ from modules.points_engine import get_points_engine
 from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
 from modules.points_donations import birthday_hikers, donate
+from modules import fidelidad
 from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
                                     get_notif_cutoff, build_estado_cuenta_whatsapp)
 from routes import bp
@@ -224,7 +225,8 @@ def mis_puntos():
                     'total': engine.total_by_cedula(cedula),
                     'history': history,
                     'notificaciones': notificaciones,
-                    'consultas_puntos_count': hiker_found.consultas_puntos_count or 0
+                    'consultas_puntos_count': hiker_found.consultas_puntos_count or 0,
+                    'fidelidad': fidelidad.info(cedula)
                 }
                 if is_super:
                     for r in EventRegistration.query.filter_by(hiker_id=hiker_found.id).all():

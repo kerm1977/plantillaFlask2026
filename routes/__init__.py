@@ -113,6 +113,7 @@ from routes import (        # noqa: E402, F401
     points_donacion,
     points_compra,
     points_reglamento,
+    points_fidelidad,
     scan,
     puntos_eventos,
     tracking_admin,

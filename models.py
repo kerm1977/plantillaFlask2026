@@ -13,6 +13,7 @@ from models_tracking import LiveSession, LivePoint
 from models_puntos_evento import PuntosEvento
 from models_donacion import DonacionFinalidad
 from models_compra import CompraPuntos
+from models_fidelidad import FidelidadAjuste, FidelidadLog
 
 __all__ = [
     'User', 'Event', 'Notification', 'SiteContent', 'CaminataBlock', 'Hiker', 'EventRegistration', 'PaymentMethod', 'HikerPoints',
@@ -22,5 +23,6 @@ __all__ = [
     'Note',
     'HomeMedia',
     'LiveSession', 'LivePoint',
-    'PuntosEvento'
+    'PuntosEvento',
+    'FidelidadAjuste', 'FidelidadLog'
 ]
