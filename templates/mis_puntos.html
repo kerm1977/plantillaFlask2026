@@ -165,14 +165,32 @@
             </h2>
             <div id="accCarnet" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
               <div class="accordion-body text-center">
-                <p class="small text-muted mb-3 text-start">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación.</p>
+                <p class="small text-muted mb-3 text-start">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación. Tocalo para verlo en grande y descargarlo.</p>
                 <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
-                     class="img-fluid rounded-4 shadow mb-3" style="max-width: 300px;" loading="lazy">
+                     class="img-fluid rounded-4 shadow mb-3 d-block mx-auto" style="max-width: 300px; cursor: zoom-in;" loading="lazy"
+                     data-bs-toggle="modal" data-bs-target="#modalCarnet" title="Tocá para ampliar">
                 <div class="d-grid gap-2">
-                  <a href="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}" class="btn btn-primary rounded-pill fw-bold"><i class="bi bi-file-earmark-image me-2"></i>Descargar PNG</a>
                   <button type="button" id="btnCarnetWa" class="btn btn-success rounded-pill fw-bold"
                           data-url="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}"
                           data-wa="{{ carnet_wa_url }}"><i class="bi bi-whatsapp me-2"></i>Enviar mi carnet por WhatsApp</button>
+                </div>
+              </div>
+            </div>
+            <div class="modal fade" id="modalCarnet" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-person-badge me-2 text-orange"></i>Mi carnet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body text-center px-3">
+                    <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
+                         class="img-fluid rounded-4 shadow">
+                  </div>
+                  <div class="modal-footer border-0 justify-content-center pt-0 pb-4 gap-2">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <a href="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-file-earmark-image me-1"></i>Descargar PNG</a>
+                  </div>
                 </div>
               </div>
             </div>
