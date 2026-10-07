@@ -1,0 +1,24 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+{# Modal del póster del evento: ampliar, descargar y compartir. La imagen la toma del póster mostrado en la tarjeta. #}
+<div class="modal fade" id="posterModal" tabindex="-1" aria-hidden="true" data-nombre="{{ evento.nombre_lugar }}">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold w-100 text-center text-break"><i class="bi bi-image-fill text-orange me-2"></i>{{ evento.nombre_lugar }}</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <img id="posterModalImg" src="" alt="Póster de {{ evento.nombre_lugar }}" class="img-fluid rounded-4 shadow" style="max-height:68vh;">
+        <div id="posterModalMsg" class="small text-success mt-2"></div>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pt-0 pb-4 gap-2">
+        <a id="posterDescargar" href="#" download class="btn btn-orange rounded-pill px-4 fw-bold"><i class="bi bi-download me-1"></i>Descargar</a>
+        <button type="button" id="posterCompartir" class="btn btn-success rounded-pill px-4 fw-bold"><i class="bi bi-share-fill me-1"></i>Compartir</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/ver_evento_poster.js') }}"></script>
