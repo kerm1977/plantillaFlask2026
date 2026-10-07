@@ -1,0 +1,25 @@
+{# BLINDADO: modal de edición rápida de puntos del evento (long-press, solo superusuario) #}
+{% if is_super_user %}
+<div class="modal fade" id="modalEditarPuntos" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-star-fill text-warning me-2"></i>Puntos del evento</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <p class="small text-muted mb-3">Cambiá cuántos puntos entrega este evento. Se guarda directo en la base de datos y se actualizan todos los indicadores (latido, badge del póster y flyer).</p>
+        <label class="form-label fw-bold" for="epInput">Puntos</label>
+        <input type="number" id="epInput" class="form-control form-control-lg text-center fw-bold" min="0" max="99999" step="1" inputmode="numeric">
+        <p class="small text-muted mt-2 mb-0">Rango: 0 a 99.999. Con 0 el indicador se oculta.</p>
+        <div id="epMsg" class="small mt-2"></div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" id="epGuardar" class="btn btn-warning rounded-pill fw-bold text-dark px-4">Guardar puntos</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/ver_evento_puntos.js') }}" data-event-id="{{ evento.id }}" data-puntos="{{ evento.puntos or 0 }}"></script>
+{% endif %}
