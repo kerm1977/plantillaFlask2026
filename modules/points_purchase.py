@@ -120,6 +120,13 @@ def resolver(compra_id, accion, operator):
             return {'ok': False, 'error': 'Primero hay que aprobar el pago.'}
         c.estado, c.resuelto_at, c.resuelto_por = 'confirmada', ahora, operator
         db.session.commit()
+    elif accion == 'eliminar':
+        # Solo se puede eliminar una solicitud pendiente que fue rechazada:
+        # nunca se borra un pago aprobado (los puntos ya se acreditaron).
+        if c.estado != 'pendiente' or not c.rechazado_at:
+            return {'ok': False, 'error': 'Solo se puede eliminar una solicitud pendiente rechazada.'}
+        db.session.delete(c)
+        db.session.commit()
     else:
         return {'ok': False, 'error': 'Acción no válida.'}
     return {'ok': True, 'cedula': c.cedula, 'puntos': c.puntos}

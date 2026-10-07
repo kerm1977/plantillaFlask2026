@@ -28,6 +28,14 @@
         ['alert-danger', '<strong>Última confirmación:</strong> ¿estás completamente seguro? La solicitud no se elimina: queda pendiente, esperando que se confirme el pago nuevamente.']
       ]
     },
+    eliminar: {
+      titulo: '<i class="bi bi-trash-fill text-danger me-2"></i>Eliminar pago pendiente', btn: 'btn-danger', final: 'Sí, eliminar definitivamente',
+      pasos: [
+        ['alert-info', '¿Eliminar la solicitud de <strong>{puntos}</strong> puntos (₡{pagar}) de <strong class="ca-nombre"></strong>? El pago ya fue rechazado una vez.'],
+        ['alert-warning', 'Esta acción <strong>borra la solicitud por completo</strong>: desaparece de la lista y la persona tendrá que hacer una compra nueva si quiere puntos.'],
+        ['alert-danger', '<strong>Última confirmación:</strong> la solicitud de la cédula {cedula} se eliminará definitivamente y no se puede recuperar. ¿Continuar?']
+      ]
+    },
     confirmar: {
       titulo: '<i class="bi bi-patch-check-fill text-primary me-2"></i>Confirmado', btn: 'btn-primary', final: 'Sí, realmente confirmado',
       pasos: [

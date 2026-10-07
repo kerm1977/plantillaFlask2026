@@ -29,6 +29,11 @@
                               data-action="{{ url_for('main.compra_resolver', compra_id=c.id, accion=acc) }}" data-nombre="{{ c.nombre }}" data-cedula="{{ c.cedula }}"
                               data-puntos="{{ compra_miles(c.puntos) }}" data-pagar="{{ compra_miles(c.pagar) }}"><i class="bi bi-{{ icon }} me-1"></i>{{ label }}</button>
                       {% endfor %}
+                      {% if c.rechazado %}
+                      <button type="button" class="btn btn-danger btn-sm rounded-pill fw-bold btn-compra-accion" data-accion="eliminar"
+                              data-action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='eliminar') }}" data-nombre="{{ c.nombre }}" data-cedula="{{ c.cedula }}"
+                              data-puntos="{{ compra_miles(c.puntos) }}" data-pagar="{{ compra_miles(c.pagar) }}"><i class="bi bi-trash me-1"></i>Eliminar pago pendiente</button>
+                      {% endif %}
                       {% endif %}
                     </div>
                   </div>
@@ -61,4 +66,4 @@
                 </div>
               </div>
             </div>
-            <script src="{{ url_for('static', filename='js/compras_admin.js') }}"></script>
+            <script src="{{ url_for('static', filename='js/compras_admin.js') }}?v=1"></script>

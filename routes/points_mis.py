@@ -36,7 +36,30 @@ def mis_puntos_persona(cedula):
     persona = detalle_persona(cedula)
     if not persona:
         return redirect(url_for('main.mis_puntos'))
-    return render_template('mis_puntos_persona.html', p=persona)
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    estado_txt = build_estado_cuenta_whatsapp(cedula, hiker)
+    extra = ['', '-' * 30, 'FIDELIDAD',
+             f'Nivel: {persona["fidelidad"]["nivel_label"]}',
+             f'Estatus: {"Superusuario" if persona["es_super"] else "Regular"}',
+             f'Caminatas participadas: {len(persona["caminatas_ok"])}',
+             f'Caminatas ausentes: {len(persona["caminatas_no"])}']
+    estado_txt += '\n'.join(extra)
+    wa_url = 'https://wa.me/?text=' + quote(estado_txt)
+    return render_template('mis_puntos_persona.html', p=persona, wa_url=wa_url)
+
+
+@bp.route('/mis-puntos/persona/<cedula>/pdf')
+def mis_puntos_persona_pdf(cedula):
+    # BLINDADO: PDF del estado de cuenta individual — solo superusuario.
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.mis_puntos'))
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if not hiker:
+        return redirect(url_for('main.mis_puntos'))
+    from modules.estado_cuenta_pdf import build_estado_cuenta_pdf
+    from flask import Response
+    return Response(build_estado_cuenta_pdf(cedula, hiker), mimetype='application/pdf',
+                    headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.pdf'})
 
 
 @bp.route('/mis-puntos', methods=['GET', 'POST'])

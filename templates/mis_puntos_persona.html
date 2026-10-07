@@ -86,6 +86,10 @@
             </div>
           </div>
         </div>
+        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center mt-4">
+          <a href="{{ url_for('main.mis_puntos_persona_pdf', cedula=p.cedula) }}" class="btn btn-danger rounded-pill fw-bold px-4"><i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF</a>
+          <a href="{{ wa_url }}" target="_blank" class="btn btn-success rounded-pill fw-bold px-4"><i class="bi bi-whatsapp me-1"></i>Enviar por WhatsApp</a>
+        </div>
         <p class="small text-muted text-center mt-4 mb-0">La Tribu de los Libres · Estado de cuenta de puntos</p>
       </div>
     </div>
