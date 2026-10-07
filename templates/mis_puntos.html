@@ -167,7 +167,7 @@
               <div class="accordion-body text-center">
                 <p class="small text-muted mb-3 text-start">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación. Tocalo para verlo en grande y descargarlo.</p>
                 <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
-                     class="img-fluid rounded-4 shadow mb-3 d-block mx-auto" style="max-width: 300px; cursor: zoom-in;" loading="lazy"
+                     class="img-fluid rounded-4 shadow mb-3" style="display: block; margin-left: auto; margin-right: auto; max-width: 300px; cursor: zoom-in;" loading="lazy"
                      data-bs-toggle="modal" data-bs-target="#modalCarnet" title="Tocá para ampliar">
                 <div class="d-grid gap-2">
                   <button type="button" id="btnCarnetWa" class="btn btn-success rounded-pill fw-bold"
