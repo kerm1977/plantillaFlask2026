@@ -97,6 +97,9 @@
         </div>
         <div class="mt-5">{% include 'partials/reglamento_puntos.html' %}</div>
 
+        {% include 'partials/mis_puntos_acciones.html' %}
+
+        <div class="border-top pt-4">
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
             <h2 class="accordion-header">
@@ -156,6 +159,7 @@
           {% set page_arg = request.args.get('page', '') %}
           {% include 'partials/mis_puntos_historial.html' %}
         </div>
+        </div>
           </div>
           <div class="col-12 col-lg-5">
 
@@ -204,8 +208,6 @@
           {% endif %}
         </div>
         {% endif %}
-
-        {% include 'partials/mis_puntos_acciones.html' %}
 
         {% include 'partials/mis_puntos_admin.html' %}
           </div>
