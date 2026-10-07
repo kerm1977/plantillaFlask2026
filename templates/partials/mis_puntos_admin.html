@@ -1,5 +1,5 @@
         {% if is_super %}
-        <div class="border-top pt-4 mt-4">
+        <div class="border-top pt-4{{ ' mt-4' if cumpleaneros else '' }}">
           <h4 class="fw-bold text-dark mb-3">Gestión de superusuario</h4>
           <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-dark rounded-pill fw-bold w-100 mb-3" target="_blank">Exportar todos los estados de cuenta</a>
           <div class="accordion" id="gestionAdminPuntosAccordion">
