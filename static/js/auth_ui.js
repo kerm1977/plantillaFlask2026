@@ -85,7 +85,8 @@ document.getElementById('registerForm')?.addEventListener('submit', async (e) =>
     }
     const userData = {
         name: document.getElementById('regName').value, last_name_1: document.getElementById('regLastName1').value,
-        last_name_2: document.getElementById('regLastName2').value, email: document.getElementById('regEmail').value, password: pass
+        last_name_2: document.getElementById('regLastName2').value, email: document.getElementById('regEmail').value, password: pass,
+        phone: document.getElementById('regPhone').value.replace(/[^0-9]/g, '')
     };
     try {
         const response = await fetch('/api/register', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(userData) });

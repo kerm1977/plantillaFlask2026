@@ -47,7 +47,10 @@ def register():
     valid, msg = validate_password_strength(password)
     if not valid:
         return jsonify({'error': msg}), 400
-    
+
+    if not data.get('name') or not data.get('last_name_1') or not data.get('email') or not data.get('phone'):
+        return jsonify({'error': 'Nombre, 1° apellido, correo y teléfono son obligatorios'}), 400
+
     if User.query.filter_by(email=data.get('email').lower()).first():
         return jsonify({'error': 'Email ya registrado'}), 400
         
@@ -55,7 +58,7 @@ def register():
         new_user = User(
             name=data.get('name'),
             last_name_1=data.get('last_name_1'),
-            last_name_2=data.get('last_name_2'),
+            last_name_2=(data.get('last_name_2') or '').strip(),
             email=data.get('email').lower(),
             password_hash=hash_password(password)
         )

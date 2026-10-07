@@ -58,8 +58,8 @@
                             <input type="text" name="last_name_1" class="input-bulma validate-lastname field-border" id="cuLastName1" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="label-bulma">2° Apellido</label>
-                            <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="cuLastName2" required>
+                            <label class="label-bulma">2° Apellido (Opcional)</label>
+                            <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="cuLastName2">
                         </div>
                         {% if session.get('role') == 'Superusuario' %}
                         <div class="col-md-12 mt-3">
@@ -77,6 +77,11 @@
                     <div class="mb-4">
                         <label class="label-bulma">Email Principal</label>
                         <input type="email" name="email" class="input-bulma force-lowercase" id="cuEmail" required>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="label-bulma">Teléfono (WhatsApp)</label>
+                        <input type="tel" name="phone" class="input-bulma field-border" id="cuPhone" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="88889999">
                     </div>
 
                     <!-- Información Adicional Dinámica -->

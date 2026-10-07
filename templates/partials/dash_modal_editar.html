@@ -58,8 +58,8 @@
                             <input type="text" name="last_name_1" class="input-bulma validate-lastname field-border" id="editLastName1" required>
                         </div>
                         <div class="col-md-4">
-                            <label class="label-bulma">2° Apellido</label>
-                            <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="editLastName2" required>
+                            <label class="label-bulma">2° Apellido (Opcional)</label>
+                            <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="editLastName2">
                         </div>
                         {% if session.get('role') == 'Superusuario' %}
                         <div class="col-md-12 mt-3">

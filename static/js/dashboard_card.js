@@ -60,7 +60,7 @@ async function mostrarQRUsuario() {
 const _formFieldMap = {
     'crearUsuarioForm': {
         name: 'cuName', last_name_1: 'cuLastName1', last_name_2: 'cuLastName2',
-        email: 'cuEmail', phone_select: 'cuDynamicSelect', phone_container: 'cuDynamicContainer',
+        email: 'cuEmail', phone_input: 'cuPhone', phone_select: 'cuDynamicSelect', phone_container: 'cuDynamicContainer',
         pasaporte: 'cuPasaporte', tipo_sangre: 'cuSangre',
         dia: 'cuDia', mes: 'cuMes', anio: 'cuAnio',
         alergias: 'cuAlergias', enfermedades: 'cuEnfermedades',
@@ -77,8 +77,15 @@ const _formFieldMap = {
 };
 
 function _setPhoneField(phone, map) {
+    const direct = map.phone_input ? document.getElementById(map.phone_input) : null;
     const select = document.getElementById(map.phone_select);
     const container = document.getElementById(map.phone_container);
+    if (direct) {
+        direct.value = phone ? phone.replace(/[^0-9]/g, '') : '';
+        if (select) select.value = '';
+        if (container) container.innerHTML = '';
+        return;
+    }
     if (!select || !container) return;
     if (phone) {
         select.value = 'Telefono';
@@ -114,6 +121,7 @@ function _marcarCamposFaltantes(formId) {
     const campos = form.querySelectorAll('.input-bulma, .select-bulma, .textarea-bulma');
     campos.forEach(function(el) {
         if (el.id === 'cuCedula' || el.id === 'editCedula') return;
+        if (el.id === 'cuDynamicSelect' || el.id === 'editDynamicSelect') return;
         const val = (el.value || '').trim();
         const isSelect = el.tagName === 'SELECT';
         const empty = !val || (isSelect && val === '');

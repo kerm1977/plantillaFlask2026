@@ -134,10 +134,11 @@ def admin_create_user():
     name = request.form.get('name', '').strip()
     last_name_1 = request.form.get('last_name_1', '').strip()
     last_name_2 = request.form.get('last_name_2', '').strip()
+    phone = re.sub(r'\D', '', request.form.get('phone', '').strip())
     password = request.form.get('password', '')
 
-    if not name or not email or not last_name_1:
-        return jsonify({'error': 'Nombre, 1° apellido y email son obligatorios'}), 400
+    if not name or not email or not last_name_1 or not phone:
+        return jsonify({'error': 'Nombre, 1° apellido, correo y teléfono son obligatorios'}), 400
     if cedula and not cedula.isdigit():
         return jsonify({'error': 'La cédula solo debe contener números'}), 400
     if not password or len(password) < 6:
@@ -161,8 +162,8 @@ def admin_create_user():
         email=email,
         password_hash=hash_password(password),
         role=request.form.get('role', 'Usuario'),
-        phone=re.sub(r'\D', '', request.form.get('phone', '').strip()),
-        whatsapp=re.sub(r'\D', '', request.form.get('phone', '').strip()),
+        phone=phone,
+        whatsapp=phone,
         dob=datetime.strptime(request.form.get('dob'), '%Y-%m-%d').date() if request.form.get('dob') else None,
         facebook=request.form.get('facebook', '').strip(),
         instagram=request.form.get('instagram', '').strip(),

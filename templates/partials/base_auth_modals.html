@@ -117,13 +117,18 @@
                                 <input type="text" class="form-control glass-input validate-lastname" id="regLastName1" required>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-semibold text-secondary">Segundo Apellido</label>
-                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName2" required>
+                                <label class="form-label fw-semibold text-secondary">Segundo Apellido (Opcional)</label>
+                                <input type="text" class="form-control glass-input validate-lastname" id="regLastName2">
                             </div>
                         </div>
                         <div class="mb-4">
                             <label class="form-label fw-semibold text-secondary">Email</label>
                             <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Teléfono (WhatsApp)</label>
+                            <input type="tel" class="form-control glass-input rounded-3" id="regPhone" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="88889999">
                         </div>
                         
                         <div class="mb-4 p-4 rounded-4" style="background: rgba(255,140,0,0.1); border: 1px solid rgba(255,140,0,0.2);">
