@@ -30,8 +30,8 @@
     var m = parseInt(monto.value, 10);
     if (!sel.value) { sel.reportValidity(); return; }
     if (isNaN(m) || m < 1) { monto.setCustomValidity('Ingresá los puntos a donar'); monto.reportValidity(); return; }
-    if (modo === 'parcial' && m > tope) {
-      monto.setCustomValidity('Podés donar hasta ' + fmt(tope) + ' puntos (80%)');
+    if (modo === 'parcial' && (m > tope || m % 1000 !== 0)) {
+      monto.setCustomValidity('Podés donar de 1.000 en 1.000, hasta ' + fmt(tope) + ' puntos (80%)');
       monto.reportValidity();
       return;
     }

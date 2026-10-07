@@ -20,14 +20,21 @@
                   </div>
                   {% else %}
                   <div class="alert alert-info small rounded-4">
-                    <i class="bi bi-info-circle-fill me-1"></i>Tenés <strong>{{ result.total }}</strong> puntos. Podés donar de 1 hasta <strong>{{ r.max }}</strong> puntos (el 80%); no te podés quedar en cero.
+                    {% set ops = range(r.min, r.max + 1, r.paso) | list %}
+                    <i class="bi bi-info-circle-fill me-1"></i>Tenés <strong>{{ '{:,}'.format(result.total).replace(',', '.') }}</strong> puntos. Podés donar
+                    {% if ops | length <= 6 %}
+                    {% for n in ops %}<strong>{{ '{:,}'.format(n).replace(',', '.') }}</strong>{{ ', ' if not loop.last and loop.revindex > 2 else (' o ' if loop.revindex == 2 else '') }}{% endfor %} puntos
+                    {% else %}
+                    desde <strong>1.000</strong> hasta <strong>{{ '{:,}'.format(r.max).replace(',', '.') }}</strong> puntos, de 1.000 en 1.000
+                    {% endif %}
+                    (hasta el 80% de tus puntos). No te podés quedar en cero.
                   </div>
                   {% endif %}
                   <form id="formDonarCausa" method="post" action="{{ url_for('main.donar_causa') }}" data-total="{{ result.total }}" data-modo="{{ r.modo }}" data-max="{{ r.max }}">
                     <input type="hidden" name="cedula" value="{{ result.cedula }}">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Puntos a donar</label>
-                      <input type="number" id="donarMonto" name="monto" class="form-control" min="{{ r.min }}" max="{{ r.max }}"{% if r.modo == 'total' %} value="{{ r.max }}" readonly{% else %} placeholder="Ej. 2000"{% endif %} required>
+                      <input type="number" id="donarMonto" name="monto" class="form-control" min="{{ r.min }}" max="{{ r.max }}"{% if r.modo == 'total' %} value="{{ r.max }}" readonly{% else %} step="{{ r.paso }}" placeholder="Ej. 2000"{% endif %} required>
                     </div>
                     <div class="mb-3">
                       <label class="form-label fw-bold">Finalidad de la donación</label>

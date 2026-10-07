@@ -12,6 +12,7 @@ from models import Hiker, HikerPoints, DonacionFinalidad
 
 MIN_TOTAL = 5000
 TOPE = 0.8
+PASO = 1000
 TIPO = 'donacion_benefica'
 
 
@@ -21,7 +22,7 @@ def reglas(total):
         return {'modo': 'sin_puntos', 'min': 0, 'max': 0}
     if total < MIN_TOTAL:
         return {'modo': 'total', 'min': total, 'max': total}
-    return {'modo': 'parcial', 'min': 1, 'max': int(total * TOPE)}
+    return {'modo': 'parcial', 'min': PASO, 'max': int(total * TOPE) // PASO * PASO, 'paso': PASO}
 
 
 def finalidades_activas():
@@ -62,8 +63,8 @@ def donar(cedula, finalidad_id, monto, operator):
         return {'ok': False, 'error': 'Seleccioná una finalidad de donación válida.'}
     if r['modo'] == 'total' and monto != total:
         return {'ok': False, 'error': f'Con menos de 5.000 puntos la donación es por la totalidad de tus {total} puntos.'}
-    if r['modo'] == 'parcial' and not 1 <= monto <= r['max']:
-        return {'ok': False, 'error': f'Tenés {total} puntos. Podés donar de 1 hasta {r["max"]} puntos (80% de tus puntos).'}
+    if r['modo'] == 'parcial' and (monto % PASO or not r['min'] <= monto <= r['max']):
+        return {'ok': False, 'error': f'Tenés {total} puntos. Podés donar de {PASO} en {PASO} (1.000, 2.000, 3.000...) hasta {r["max"]} puntos (80% de tus puntos).'}
     hiker = Hiker.query.filter_by(cedula=cedula).first()
     db.session.add(HikerPoints(
         cedula=cedula, hiker_id=hiker.id if hiker else None, points=-monto, tipo=TIPO,
