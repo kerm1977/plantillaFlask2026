@@ -14,7 +14,7 @@
                     <input type="hidden" name="cedula" value="{{ result.cedula }}">
                     <input type="hidden" name="accion" value="transferir">
                     <div class="mb-3">
-                      <select name="cedula_destino" class="form-select" data-searchable required>
+                      <select name="cedula_destino" class="form-select" data-searchable data-modal-picker required>
                         <option value="" disabled selected>Usuario destino</option>
                         {% for p in todos_hikers %}
                         {% if p.cedula != result.cedula %}
