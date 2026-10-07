@@ -9,6 +9,8 @@
 # ganados y puntos perdidos.
 from models import Event, Hiker, HikerPoints, User
 
+MOV_VACIO = {'ganados': 0, 'perdidos': 0, 'participo': set(), 'retiro': set()}
+
 
 def _superuser_emails():
     """Correos (en minuscula) de usuarios con rol Superusuario."""
@@ -41,32 +43,46 @@ def _movimientos_por_cedula():
     return por_cedula
 
 
+def _fila_persona(h, mov, eventos, supers):
+    """Dict con el resumen de una persona para la lista y el detalle."""
+    participo_ids = mov['participo'] - mov['retiro']
+    caminatas_ok = sorted(eventos[eid] for eid in participo_ids if eid in eventos)
+    # Participaciones en eventos no marcados 'Visitados' igual cuentan y se listan.
+    otros_ids = participo_ids - set(eventos.keys())
+    if otros_ids:
+        nombres_extra = {e.id: (e.nombre_lugar or 'Sin nombre')
+                         for e in Event.query.filter(Event.id.in_(otros_ids)).all()}
+        caminatas_ok += sorted(nombres_extra.values())
+    caminatas_no = sorted(nombre for eid, nombre in eventos.items() if eid not in participo_ids)
+    email = (h.card_email or '').strip().lower()
+    return {
+        'cedula': h.cedula,
+        'nombre': h.nombre_completo or '(Sin nombre)',
+        'es_super': email in supers,
+        'total': mov['ganados'] - mov['perdidos'],
+        'ganados': mov['ganados'],
+        'perdidos': mov['perdidos'],
+        'caminatas_ok': caminatas_ok,
+        'caminatas_no': caminatas_no,
+    }
+
+
 def resumen_global():
-    """Lista de dicts por hiker (ordenada por nombre) para la tabla de gestion."""
+    """Lista de resumenes por hiker (ordenada por nombre) para el modal de gestion."""
     eventos = _eventos_realizados()
     movimientos = _movimientos_por_cedula()
     supers = _superuser_emails()
-    resumen = []
-    for h in Hiker.query.order_by(Hiker.nombre_completo).all():
-        mov = movimientos.get(h.cedula, {'ganados': 0, 'perdidos': 0, 'participo': set(), 'retiro': set()})
-        participo_ids = mov['participo'] - mov['retiro']
-        caminatas_ok = sorted(eventos[eid] for eid in participo_ids if eid in eventos)
-        # Participaciones en eventos no marcados 'Visitados' igual cuentan y se listan.
-        otros_ids = participo_ids - set(eventos.keys())
-        if otros_ids:
-            nombres_extra = {e.id: (e.nombre_lugar or 'Sin nombre')
-                             for e in Event.query.filter(Event.id.in_(otros_ids)).all()}
-            caminatas_ok += sorted(nombres_extra.values())
-        caminatas_no = sorted(nombre for eid, nombre in eventos.items() if eid not in participo_ids)
-        email = (h.card_email or '').strip().lower()
-        resumen.append({
-            'cedula': h.cedula,
-            'nombre': h.nombre_completo or '(Sin nombre)',
-            'es_super': email in supers,
-            'total': mov['ganados'] - mov['perdidos'],
-            'ganados': mov['ganados'],
-            'perdidos': mov['perdidos'],
-            'caminatas_ok': caminatas_ok,
-            'caminatas_no': caminatas_no,
-        })
-    return resumen
+    return [_fila_persona(h, movimientos.get(h.cedula, MOV_VACIO), eventos, supers)
+            for h in Hiker.query.order_by(Hiker.nombre_completo).all()]
+
+
+def detalle_persona(cedula):
+    """Resumen completo de una persona + info de fidelidad, para la ventana de detalle."""
+    from modules import fidelidad
+    h = Hiker.query.filter_by(cedula=cedula).first()
+    if not h:
+        return None
+    fila = _fila_persona(h, _movimientos_por_cedula().get(cedula, MOV_VACIO),
+                         _eventos_realizados(), _superuser_emails())
+    fila['fidelidad'] = fidelidad.info(cedula)
+    return fila

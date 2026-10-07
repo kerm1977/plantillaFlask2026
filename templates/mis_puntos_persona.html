@@ -1,0 +1,94 @@
+<!-- ==============================================================
+    BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+    Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+{# Estado de cuenta individual — ventana de detalle (solo superusuario). #}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Estado de cuenta - {{ p.nombre }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}">
+  <style>
+    @keyframes vipBrillo {
+      0%, 100% { background-position: 0% 50%; box-shadow: 0 0 0 1px rgba(184,134,11,.45), 0 2px 8px rgba(212,175,55,.35); }
+      50% { background-position: 100% 50%; box-shadow: 0 0 0 1px rgba(184,134,11,.6), 0 2px 14px rgba(212,175,55,.7); }
+    }
+    .vip-badge {
+      display: inline-block; font-size: .8rem; font-weight: 800; letter-spacing: .1em; line-height: 1;
+      padding: .45em .8em; border-radius: 999px;
+      background: linear-gradient(120deg, #f7e08b 0%, #d4af37 35%, #b8860b 55%, #f7e08b 100%);
+      background-size: 220% 220%; color: #4d3800;
+      animation: vipBrillo 2.8s ease-in-out infinite;
+    }
+    body { background: #f4f6f8; }
+  </style>
+</head>
+<body>
+  <div class="container py-4" style="max-width: 640px;">
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+      <div class="card-body p-4">
+        <div class="text-center mb-4">
+          <h4 class="fw-bold mb-1">{{ p.nombre }}</h4>
+          <p class="text-muted mb-2">Cédula: {{ p.cedula }}</p>
+          <div>
+            {% if p.es_super %}
+            <span class="badge bg-warning text-dark me-1">SUPERUSUARIO</span>
+            {% else %}
+            <span class="badge bg-secondary me-1">Regular</span>
+            {% endif %}
+            {% if p.fidelidad.nivel == 'exclusivo' %}
+            <span class="vip-badge">GOLD · Exclusivo VIP</span>
+            {% elif p.fidelidad.nivel == 'activo' %}
+            <span class="vip-badge">VIP-1 · Activo VIP</span>
+            {% else %}
+            <span class="badge bg-light text-dark border">Sin nivel VIP</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="row g-2 text-center mb-4">
+          <div class="col-4">
+            <div class="border rounded-4 py-3 bg-light">
+              <div class="fs-4 fw-bold text-warning-emphasis">{{ '{:,}'.format(p.total).replace(',', '.') }}</div>
+              <div class="small text-muted">Puntos</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded-4 py-3 bg-success bg-opacity-10">
+              <div class="fs-4 fw-bold text-success">+{{ '{:,}'.format(p.ganados).replace(',', '.') }}</div>
+              <div class="small text-muted">Ganados</div>
+            </div>
+          </div>
+          <div class="col-4">
+            <div class="border rounded-4 py-3 bg-danger bg-opacity-10">
+              <div class="fs-4 fw-bold text-danger">-{{ '{:,}'.format(p.perdidos).replace(',', '.') }}</div>
+              <div class="small text-muted">Perdidos</div>
+            </div>
+          </div>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <div class="border rounded-4 p-3 h-100">
+              <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle-fill me-1"></i>Caminatas participadas ({{ p.caminatas_ok | length }})</h6>
+              <ul class="small mb-0 ps-3">
+                {% for c in p.caminatas_ok %}<li>{{ c }}</li>{% else %}<li class="text-muted">Sin caminatas participadas.</li>{% endfor %}
+              </ul>
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <div class="border rounded-4 p-3 h-100">
+              <h6 class="fw-bold text-danger mb-2"><i class="bi bi-x-circle-fill me-1"></i>Caminatas ausentes ({{ p.caminatas_no | length }})</h6>
+              <ul class="small mb-0 ps-3">
+                {% for c in p.caminatas_no %}<li>{{ c }}</li>{% else %}<li class="text-muted">Ha participado en todas las caminatas.</li>{% endfor %}
+              </ul>
+            </div>
+          </div>
+        </div>
+        <p class="small text-muted text-center mt-4 mb-0">La Tribu de los Libres · Estado de cuenta de puntos</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

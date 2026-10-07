@@ -37,7 +37,7 @@
                     <input type="hidden" name="accion" value="regalar">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Usuario</label>
-                      <select name="cedula_destino" class="form-select" data-searchable required>
+                      <select name="cedula_destino" class="form-select" data-searchable data-modal-picker required>
                         <option value="" disabled selected>Seleccioná un usuario</option>
                         {% for p in todos_hikers %}
                         <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
@@ -74,7 +74,7 @@
                     <input type="hidden" name="accion" value="restar">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Usuario</label>
-                      <select name="cedula_destino" class="form-select" data-searchable required>
+                      <select name="cedula_destino" class="form-select" data-searchable data-modal-picker required>
                         <option value="" disabled selected>Seleccioná un usuario</option>
                         {% for p in todos_hikers %}
                         <option value="{{ p.cedula }}" data-search="{{ ((p.nombre_completo or '') ~ ' ' ~ (p.cedula or '') ~ ' ' ~ (p.pasaporte or '') ~ ' ' ~ (p.tipo_sangre or '') ~ ' ' ~ (p.telefono or '') ~ ' ' ~ (p.contacto_emergencia_nombre or '') ~ ' ' ~ (p.contacto_emergencia_telefono or '') ~ ' ' ~ (p.alergias or '') ~ ' ' ~ (p.enfermedades_cronicas or '') ~ ' ' ~ (p.pin_secreto or '')) | replace('"', '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>

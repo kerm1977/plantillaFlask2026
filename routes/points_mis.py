@@ -13,7 +13,7 @@ from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
 from modules.points_donations import birthday_hikers, donate
 from modules import fidelidad
-from modules.estado_global import resumen_global
+from modules.estado_global import resumen_global, detalle_persona
 from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
                                     get_notif_cutoff, build_estado_cuenta_whatsapp)
 from routes import bp
@@ -26,6 +26,17 @@ def mis_puntos_salida():
     # la próxima entrada cuente como nueva consulta (no toca la sesión de acceso).
     session.pop('mis_puntos_counted', None)
     return ('', 204)
+
+
+@bp.route('/mis-puntos/persona/<cedula>')
+def mis_puntos_persona(cedula):
+    # BLINDADO: detalle individual del estado global — solo superusuario.
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.mis_puntos'))
+    persona = detalle_persona(cedula)
+    if not persona:
+        return redirect(url_for('main.mis_puntos'))
+    return render_template('mis_puntos_persona.html', p=persona)
 
 
 @bp.route('/mis-puntos', methods=['GET', 'POST'])
