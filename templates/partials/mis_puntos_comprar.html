@@ -42,4 +42,27 @@
                 </div>
               </div>
             </div>
+            <div class="modal fade" id="modalCompraPuntos" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold w-100 text-center"><i class="bi bi-cart-check-fill text-success me-2"></i>Confirmar compra</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body px-4">
+                    <p class="text-center mb-3">Vas a comprar <strong id="cmTitulo"></strong></p>
+                    <ul class="list-group list-group-flush mb-3">
+                      <li class="list-group-item d-flex justify-content-between bg-transparent px-0"><span>Para tu uso</span><strong id="cmPuntos"></strong></li>
+                      <li class="list-group-item d-flex justify-content-between bg-transparent px-0"><span>Donaciones, administración y hosting</span><strong>₡{{ compra_fee }}</strong></li>
+                      <li class="list-group-item d-flex justify-content-between bg-transparent px-0 fs-5"><span class="fw-bold">Total a transferir</span><strong class="text-success" id="cmTotal"></strong></li>
+                    </ul>
+                    <div class="alert alert-info small rounded-4 mb-0"><i class="bi bi-hourglass-split me-1"></i>Los puntos se acreditan cuando un superusuario apruebe tu pago. Luego de confirmar, avisá por WhatsApp para coordinar la transferencia.</div>
+                  </div>
+                  <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="cmConfirmar" class="btn btn-success rounded-pill px-4 fw-bold">Confirmar compra</button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <script src="{{ url_for('static', filename='js/comprar_puntos.js') }}"></script>

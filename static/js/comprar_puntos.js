@@ -11,6 +11,7 @@
   var sel = document.getElementById('compraSelect');
   var input = document.getElementById('compraPuntos');
   var resumen = document.getElementById('compraResumen');
+  var modalEl = document.getElementById('modalCompraPuntos');
   var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
 
   function pintar() {
@@ -30,8 +31,17 @@
     var p = parseInt(input.value, 10);
     if (isNaN(p) || p < minimo) { e.preventDefault(); input.setCustomValidity('La compra mínima es de ' + fmt(minimo) + ' puntos'); input.reportValidity(); return; }
     input.setCustomValidity('');
-    if (!confirm('Vas a comprar ' + fmt(p) + ' puntos y transferir ₡' + fmt(p + fee) + ' (incluye ₡' + fee + ' para donaciones, administración y hosting). ¿Continuar?')) e.preventDefault();
+    e.preventDefault();
+    document.getElementById('cmPuntos').textContent = '₡' + fmt(p);
+    document.getElementById('cmTotal').textContent = '₡' + fmt(p + fee);
+    document.getElementById('cmTitulo').textContent = fmt(p) + ' puntos';
+    bootstrap.Modal.getOrCreateInstance(modalEl).show();
   });
+  if (modalEl) {
+    document.body.appendChild(modalEl);
+    document.getElementById('cmConfirmar').addEventListener('click', function () { this.disabled = true; form.submit(); });
+    modalEl.addEventListener('hidden.bs.modal', function () { document.getElementById('cmConfirmar').disabled = false; });
+  }
   input.addEventListener('input', function () { input.setCustomValidity(''); });
   if (location.hash === '#accComprar') {
     var el = document.getElementById('accComprar');

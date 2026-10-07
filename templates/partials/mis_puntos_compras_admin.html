@@ -14,14 +14,11 @@
                     <div>{{ compra_miles(c.puntos) }} puntos · cobrar <strong>₡{{ compra_miles(c.pagar) }}</strong></div>
                     <small class="text-muted d-block mb-2">{{ c.fecha }}</small>
                     <div class="d-flex gap-2">
-                      <form method="post" action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='aprobar') }}" data-confirm="¿Confirmás que recibiste ₡{{ compra_miles(c.pagar) }} de {{ c.nombre }} y querés acreditar {{ compra_miles(c.puntos) }} puntos?" onsubmit="return confirm(this.dataset.confirm);">
-                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
-                        <button class="btn btn-success btn-sm rounded-pill fw-bold"><i class="bi bi-check-circle me-1"></i>Aprobar pago</button>
-                      </form>
-                      <form method="post" action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='rechazar') }}" onsubmit="return confirm('¿Rechazar esta solicitud de compra?');">
-                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
-                        <button class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-x-circle me-1"></i>Rechazar</button>
-                      </form>
+                      {% for acc, label, cls, icon in [('aprobar', 'Aprobar pago', 'btn-success fw-bold', 'check-circle'), ('rechazar', 'Rechazar', 'btn-outline-danger', 'x-circle')] %}
+                      <button type="button" class="btn {{ cls }} btn-sm rounded-pill btn-compra-accion" data-accion="{{ acc }}"
+                              data-action="{{ url_for('main.compra_resolver', compra_id=c.id, accion=acc) }}" data-nombre="{{ c.nombre }}" data-cedula="{{ c.cedula }}"
+                              data-puntos="{{ compra_miles(c.puntos) }}" data-pagar="{{ compra_miles(c.pagar) }}"><i class="bi bi-{{ icon }} me-1"></i>{{ label }}</button>
+                      {% endfor %}
                     </div>
                   </div>
                   {% else %}
@@ -30,3 +27,28 @@
                 </div>
               </div>
             </div>
+            <div class="modal fade" id="modalCompraAdmin" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <form method="post" id="caForm">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="modal-header border-0 pb-0">
+                      <h5 class="modal-title fw-bold w-100 text-center" id="caTitulo"></h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body px-4">
+                      <p class="text-center mb-3" id="caTexto"></p>
+                      <div class="form-check d-none" id="caCheckBox">
+                        <input class="form-check-input" type="checkbox" id="caCheck">
+                        <label class="form-check-label small" for="caCheck">Confirmo que ya recibí el pago completo por transferencia.</label>
+                      </div>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                      <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" id="caEnviar" class="btn rounded-pill px-4 fw-bold"></button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <script src="{{ url_for('static', filename='js/compras_admin.js') }}"></script>
