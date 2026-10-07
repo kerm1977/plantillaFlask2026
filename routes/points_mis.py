@@ -32,7 +32,6 @@ def mis_puntos():
     cedula = ''
     result = None
     is_super = session.get('role') == 'Superusuario'
-    admin_vista = is_super
     admin_message = session.pop('admin_message', None)
     admin_error = session.pop('admin_error', None)
     donacion_message = session.pop('donacion_message', None)
@@ -167,10 +166,6 @@ def mis_puntos():
     else:
         cedula = (request.args.get('cedula') or '').strip()
         clave = (request.args.get('clave') or '').strip()
-        # Quien entra con cédula + PIN ve solo su estado de cuenta, sin gestión de
-        # superusuario. El superusuario que consulta sin PIN recupera su vista de gestión.
-        if is_super and cedula and not clave and session.get('mis_puntos_ok') == cedula:
-            session.pop('mis_puntos_ok', None)
     whatsapp_url = ''
     registro_whatsapp_url = ''
     estado_whatsapp_url = ''
@@ -193,14 +188,11 @@ def mis_puntos():
             nombre_bienvenida = hiker_found.nombre_completo or ''
             bloqueado = (hiker_found.status or 'Activo') == 'Bloqueado'
             pwd_global = get_puntos_password()
-            # Entrar con cédula + PIN marca la visita como vista personal de la
-            # persona: nunca muestra herramientas de superusuario aunque haya
-            # sesión de superusuario en el navegador.
+            # La gestión solo depende del rol de superusuario. Quien no es
+            # superusuario entra con cédula + PIN y ve solo su estado de cuenta.
             if pwd_global and clave == pwd_global:
                 session['mis_puntos_ok'] = cedula
-            vista_personal = session.get('mis_puntos_ok') == cedula
-            verificado = (is_super or vista_personal) and not bloqueado
-            admin_vista = is_super and not vista_personal
+            verificado = (is_super or session.get('mis_puntos_ok') == cedula) and not bloqueado
             if bloqueado:
                 admin_error = 'Tu acceso está bloqueado. Contactá a los coordinadores de La Tribu.'
             elif not verificado:
@@ -237,7 +229,7 @@ def mis_puntos():
                     'consultas_puntos_count': hiker_found.consultas_puntos_count or 0,
                     'fidelidad': fidelidad.info(cedula)
                 }
-                if admin_vista:
+                if is_super:
                     for r in EventRegistration.query.filter_by(hiker_id=hiker_found.id).all():
                         ev = Event.query.get(r.event_id)
                         if ev:
@@ -250,5 +242,5 @@ def mis_puntos():
                 estado_txt = build_estado_cuenta_whatsapp(cedula, hiker_found)
                 estado_whatsapp_url = ('https://wa.me/' + telefono_registrado if telefono_registrado else 'https://wa.me/') + '?text=' + quote(estado_txt)
                 estado_coordinador_url = 'https://wa.me/50686529837?text=' + quote('Hola Jenny, este es mi estado de cuenta\n\n' + estado_txt)
-    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=admin_vista, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado)
+    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado)
 

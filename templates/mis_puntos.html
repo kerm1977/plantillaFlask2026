@@ -94,7 +94,7 @@
             {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
           </p>
         </div>
-        {% include 'partials/reglamento_puntos.html' %}
+        <div class="mt-4">{% include 'partials/reglamento_puntos.html' %}</div>
 
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
