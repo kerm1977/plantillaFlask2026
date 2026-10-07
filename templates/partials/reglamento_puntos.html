@@ -9,6 +9,12 @@
   .reglamento-contenido h6 { font-weight: 700; color: var(--primary-orange, #ff8c00); margin-top: 1rem; }
   .reglamento-contenido b, .reglamento-contenido strong { font-weight: 700; }
   .reglamento-contenido.editando { outline: 2px dashed #ff8c00; border-radius: .75rem; padding: .75rem; background: #fffaf2; min-height: 200px; }
+  .reglamento-contenido .rg-articulo { margin-bottom: .35rem; }
+  .reglamento-contenido .rg-art-titulo { cursor: pointer; margin-bottom: .15rem; user-select: none; -webkit-user-select: none; }
+  .reglamento-contenido .rg-art-titulo::before { content: '▸'; color: var(--primary-orange, #ff8c00); margin-right: .35rem; font-weight: 700; }
+  .reglamento-contenido .rg-art-titulo:not(.rg-cerrado)::before { content: '▾'; }
+  .reglamento-contenido .rg-art-cuerpo { padding-left: .9rem; border-left: 2px solid rgba(255,140,0,.25); margin-bottom: .6rem; }
+  .reglamento-contenido .rg-art-cuerpo.rg-cerrado { display: none; }
 </style>
 <div class="accordion mb-4" id="reglamentoPuntosAcc">
   <div class="accordion-item border-0 rounded-4 overflow-hidden shadow-sm">
@@ -50,4 +56,5 @@
     </div>
   </div>
 </div>
+<script src="{{ url_for('static', filename='js/reglamento_acordeon.js') }}"></script>
 {% if is_super %}<script src="{{ url_for('static', filename='js/reglamento_editor.js') }}"></script>{% endif %}
