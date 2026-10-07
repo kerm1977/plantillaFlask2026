@@ -35,5 +35,6 @@ def mis_puntos_carnet(fmt):
     tarjeta_url = url_for('main.tarjeta', cedula=cedula, email=email, _external=True)
     img = build_carnet_image(hiker, get_points_engine().total_by_cedula(cedula), tarjeta_url)
     buf, mime, ext = carnet_bytes(img, fmt)
-    return send_file(buf, mimetype=mime, as_attachment=True,
+    inline = request.args.get('inline') == '1'
+    return send_file(buf, mimetype=mime, as_attachment=not inline,
                      download_name=f'carnet_{cedula}.{ext}')

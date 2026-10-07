@@ -164,15 +164,19 @@
               </button>
             </h2>
             <div id="accCarnet" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
-              <div class="accordion-body">
-                <p class="small text-muted mb-2">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación.</p>
+              <div class="accordion-body text-center">
+                <p class="small text-muted mb-3 text-start">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación.</p>
+                <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
+                     class="img-fluid rounded-4 shadow mb-3" style="max-width: 300px;" loading="lazy">
                 <div class="d-grid gap-2">
                   <a href="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}" class="btn btn-primary rounded-pill fw-bold"><i class="bi bi-file-earmark-image me-2"></i>Descargar PNG</a>
-                  <a href="{{ url_for('main.mis_puntos_carnet', fmt='jpg', cedula=result.cedula) }}" class="btn btn-outline-primary rounded-pill fw-bold"><i class="bi bi-file-earmark-image me-2"></i>Descargar JPG</a>
-                  <a href="{{ url_for('main.mis_puntos_carnet', fmt='pdf', cedula=result.cedula) }}" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF</a>
+                  <button type="button" id="btnCarnetWa" class="btn btn-success rounded-pill fw-bold"
+                          data-url="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}"
+                          data-wa="{{ carnet_wa_url }}"><i class="bi bi-whatsapp me-2"></i>Enviar mi carnet por WhatsApp</button>
                 </div>
               </div>
             </div>
+            <script src="{{ url_for('static', filename='js/carnet.js') }}?v=1"></script>
           </div>
 
           {% set page_arg = request.args.get('page', '') %}

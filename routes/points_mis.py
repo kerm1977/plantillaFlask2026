@@ -206,6 +206,7 @@ def mis_puntos():
     estado_whatsapp_url = ''
     estado_coordinador_url = ''
     telefono_registrado = ''
+    carnet_wa_url = ''
     registros = []
     no_registrado = False
     pendiente_password = False
@@ -274,8 +275,11 @@ def mis_puntos():
                     wa_lines.append(f'{(row.get("creado_at") or "")[:10]} | {row.get("tipo")} | {row.get("puntos")} | {row.get("detalle") or ""}')
                 whatsapp_url = 'https://wa.me/?text=' + quote("\n".join(wa_lines), safe='')
                 telefono_registrado = re.sub(r'\D', '', hiker_found.telefono or '')
+                tel_wa = ('506' + telefono_registrado) if telefono_registrado and len(telefono_registrado) <= 8 else telefono_registrado
+                carnet_wa_url = ('https://wa.me/' + tel_wa if tel_wa else 'https://wa.me/') + '?text=' + quote(
+                    'Te comparto el carnet de La Tribu de los Libres de ' + (hiker_found.nombre_completo or '') + '.')
                 estado_txt = build_estado_cuenta_whatsapp(cedula, hiker_found)
                 estado_whatsapp_url = ('https://wa.me/' + telefono_registrado if telefono_registrado else 'https://wa.me/') + '?text=' + quote(estado_txt)
                 estado_coordinador_url = 'https://wa.me/50686529837?text=' + quote('Hola Jenny, este es mi estado de cuenta\n\n' + estado_txt)
-    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [])
+    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url)
 
