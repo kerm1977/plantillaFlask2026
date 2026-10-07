@@ -18,3 +18,4 @@ class CompraPuntos(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     resuelto_at = db.Column(db.DateTime)
     resuelto_por = db.Column(db.String(100))
+    rechazado_at = db.Column(db.DateTime)

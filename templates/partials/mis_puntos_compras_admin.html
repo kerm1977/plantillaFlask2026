@@ -1,4 +1,4 @@
-            {# BLINDADO: compras de puntos pendientes de aprobación de pago (solo superusuario) #}
+            {# BLINDADO: compras de puntos por verificar (solo superusuario). pendiente -> aprobada -> "Confirmado" #}
             {% set compras = compra_pendientes_admin() %}
             <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
               <h2 class="accordion-header">
@@ -12,13 +12,24 @@
                   <div class="border rounded-4 p-3 mb-2 bg-white bg-opacity-50">
                     <div class="fw-bold">{{ c.nombre }} <small class="text-muted">({{ c.cedula }})</small></div>
                     <div>{{ compra_miles(c.puntos) }} puntos · cobrar <strong>₡{{ compra_miles(c.pagar) }}</strong></div>
-                    <small class="text-muted d-block mb-2">{{ c.fecha }}</small>
-                    <div class="d-flex gap-2">
+                    <small class="text-muted d-block">Solicitada: {{ c.fecha }} (hora de Costa Rica)</small>
+                    {% if c.estado == 'aprobada' %}
+                    <div class="alert alert-success small rounded-4 py-2 my-2"><i class="bi bi-check-circle-fill me-1"></i>Pago aprobado el {{ c.aprobado }} · los puntos ya fueron acreditados. Tocá «Confirmado» cuando verifiques definitivamente el dinero.</div>
+                    {% elif c.rechazado %}
+                    <div class="alert alert-warning small rounded-4 py-2 my-2"><i class="bi bi-exclamation-triangle-fill me-1"></i>Pago no verificado el {{ c.rechazado }} · sigue pendiente, esperando que se confirme el pago.</div>
+                    {% endif %}
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                      {% if c.estado == 'aprobada' %}
+                      <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold btn-compra-accion" data-accion="confirmar"
+                              data-action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='confirmar') }}" data-nombre="{{ c.nombre }}" data-cedula="{{ c.cedula }}"
+                              data-puntos="{{ compra_miles(c.puntos) }}" data-pagar="{{ compra_miles(c.pagar) }}"><i class="bi bi-patch-check me-1"></i>Confirmado</button>
+                      {% else %}
                       {% for acc, label, cls, icon in [('aprobar', 'Aprobar pago', 'btn-success fw-bold', 'check-circle'), ('rechazar', 'Rechazar', 'btn-outline-danger', 'x-circle')] %}
                       <button type="button" class="btn {{ cls }} btn-sm rounded-pill btn-compra-accion" data-accion="{{ acc }}"
                               data-action="{{ url_for('main.compra_resolver', compra_id=c.id, accion=acc) }}" data-nombre="{{ c.nombre }}" data-cedula="{{ c.cedula }}"
                               data-puntos="{{ compra_miles(c.puntos) }}" data-pagar="{{ compra_miles(c.pagar) }}"><i class="bi bi-{{ icon }} me-1"></i>{{ label }}</button>
                       {% endfor %}
+                      {% endif %}
                     </div>
                   </div>
                   {% else %}
@@ -27,7 +38,7 @@
                 </div>
               </div>
             </div>
-            <div class="modal fade" id="modalCompraAdmin" tabindex="-1" aria-hidden="true">
+            <div class="modal fade" id="modalCompraAdmin" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
               <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content border-0 shadow-lg rounded-4">
                   <form method="post" id="caForm">
@@ -37,15 +48,14 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body px-4">
-                      <p class="text-center mb-3" id="caTexto"></p>
-                      <div class="form-check d-none" id="caCheckBox">
-                        <input class="form-check-input" type="checkbox" id="caCheck">
-                        <label class="form-check-label small" for="caCheck">Confirmo que ya recibí el pago completo por transferencia.</label>
-                      </div>
+                      <div class="text-center small fw-bold text-muted mb-2" id="caPaso"></div>
+                      <div class="progress mb-3" style="height:6px;"><div class="progress-bar" id="caBarra" style="width:0%"></div></div>
+                      <div id="caAlerta" class="alert rounded-4 mb-0"></div>
                     </div>
                     <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
                       <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                      <button type="submit" id="caEnviar" class="btn rounded-pill px-4 fw-bold"></button>
+                      <button type="button" id="caSiguiente" class="btn rounded-pill px-4 fw-bold">Sí, continuar</button>
+                      <button type="submit" id="caEnviar" class="btn rounded-pill px-4 fw-bold d-none"></button>
                     </div>
                   </form>
                 </div>

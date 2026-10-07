@@ -45,12 +45,15 @@ def comprar_puntos():
 @bp.route('/admin/compras/<int:compra_id>/<accion>', methods=['POST'])
 def compra_resolver(compra_id, accion):
     cedula = (request.form.get('cedula') or '').strip()
-    if not _es_super() or accion not in ('aprobar', 'rechazar'):
+    if not _es_super() or accion not in ('aprobar', 'rechazar', 'confirmar'):
         return redirect(url_for('main.home'))
-    res = pp.resolver(compra_id, accion == 'aprobar', _current_user())
+    res = pp.resolver(compra_id, accion, _current_user())
     if res.get('ok'):
-        verbo = 'aprobada: se acreditaron' if accion == 'aprobar' else 'rechazada:'
-        session['admin_message'] = f'Compra {verbo} {pp.miles(res["puntos"])} puntos (cédula {res["cedula"]}).'
+        puntos, ced = pp.miles(res['puntos']), res['cedula']
+        session['admin_message'] = {
+            'aprobar': f'Pago aprobado: se acreditaron {puntos} puntos a la cédula {ced}. Seguirá en la lista hasta que toques «Confirmado».',
+            'rechazar': f'Pago no verificado: la solicitud de {puntos} puntos (cédula {ced}) sigue pendiente, esperando que se confirme el pago.',
+            'confirmar': f'Compra de {puntos} puntos (cédula {ced}) confirmada y cerrada.'}[accion]
     else:
         session['admin_error'] = res.get('error')
     return _volver(cedula)

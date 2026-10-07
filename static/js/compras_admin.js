@@ -2,43 +2,67 @@
 //   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
 //   Explicar antes de editar. Contenido sagrado protegido.
 // ==============================================================
-// compras_admin.js - Modal para aprobar o rechazar compras de puntos (superusuario)
+// compras_admin.js - Aprobar / rechazar / confirmar compras de puntos con confirmaciones en pasos
 (function () {
   var modalEl = document.getElementById('modalCompraAdmin');
   if (!modalEl) return;
   document.body.appendChild(modalEl);
-  var form = document.getElementById('caForm');
-  var titulo = document.getElementById('caTitulo');
-  var texto = document.getElementById('caTexto');
-  var check = document.getElementById('caCheck');
-  var checkBox = document.getElementById('caCheckBox');
-  var enviar = document.getElementById('caEnviar');
-  var aprobar = false;
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('caForm'), siguiente = $('caSiguiente'), enviar = $('caEnviar'), alerta = $('caAlerta');
+  var pasos = [], paso = 0, datos = null;
 
-  var validar = function () { enviar.disabled = aprobar && !check.checked; };
-  check.addEventListener('change', validar);
-  modalEl.addEventListener('hidden.bs.modal', function () { check.checked = false; });
+  var FLUJOS = {
+    aprobar: {
+      titulo: '<i class="bi bi-check-circle-fill text-success me-2"></i>Aprobar pago', btn: 'btn-success', final: 'Continuar y acreditar los puntos',
+      pasos: [
+        ['alert-info', '¿Confirmás realmente que <strong class="ca-nombre"></strong> canceló la cantidad de <strong>₡{pagar}</strong>?'],
+        ['alert-warning', '¿Estás seguro de que deseás proseguir? Revisá el comprobante y que el monto coincida exactamente con <strong>₡{pagar}</strong>.'],
+        ['alert-danger', '<strong>Atención:</strong> puede que sumes dinero que no ha ingresado a tu cuenta. Revisá bien. Si das continuar, aceptás las condiciones y se sumarán <strong>{puntos}</strong> puntos a la cédula {cedula}.']
+      ]
+    },
+    rechazar: {
+      titulo: '<i class="bi bi-x-circle-fill text-danger me-2"></i>Rechazar pago', btn: 'btn-danger', final: 'Sí, el pago no fue realizado',
+      pasos: [
+        ['alert-info', '¿Estás seguro de que <strong class="ca-nombre"></strong> <strong>no hizo el depósito</strong> de <strong>₡{pagar}</strong>?'],
+        ['alert-warning', '¿Revisaste bien tu cuenta y tus notificaciones del banco? Puede haber un error de depósito o una transferencia que aún está en proceso.'],
+        ['alert-danger', '<strong>Última confirmación:</strong> ¿estás completamente seguro? La solicitud no se elimina: queda pendiente, esperando que se confirme el pago nuevamente.']
+      ]
+    },
+    confirmar: {
+      titulo: '<i class="bi bi-patch-check-fill text-primary me-2"></i>Confirmado', btn: 'btn-primary', final: 'Sí, realmente confirmado',
+      pasos: [
+        ['alert-success', '¿Confirmás que el dinero de <strong>₡{pagar}</strong> de <strong class="ca-nombre"></strong> ya ingresó definitivamente a tu cuenta? Al confirmar, esta solicitud desaparece de «Compras pendientes de pago».']
+      ]
+    }
+  };
+
+  function pintar() {
+    var f = FLUJOS[datos.accion], p = pasos[paso];
+    $('caTitulo').innerHTML = f.titulo;
+    $('caPaso').textContent = pasos.length > 1 ? 'Confirmación ' + (paso + 1) + ' de ' + pasos.length : 'Confirmación final';
+    $('caBarra').style.width = ((paso + 1) / pasos.length * 100) + '%';
+    $('caBarra').className = 'progress-bar bg-' + (paso === pasos.length - 1 && datos.accion !== 'confirmar' ? 'danger' : 'success');
+    alerta.className = 'alert rounded-4 mb-0 ' + p[0];
+    alerta.innerHTML = p[1].replace('{pagar}', datos.pagar).replace('{puntos}', datos.puntos).replace('{cedula}', datos.cedula);
+    var n = alerta.querySelector('.ca-nombre');
+    if (n) n.textContent = datos.nombre;
+    var ultimo = paso === pasos.length - 1;
+    siguiente.classList.toggle('d-none', ultimo);
+    enviar.classList.toggle('d-none', !ultimo);
+    siguiente.className = 'btn rounded-pill px-4 fw-bold ' + f.btn + (ultimo ? ' d-none' : '');
+    enviar.className = 'btn rounded-pill px-4 fw-bold ' + f.btn + (ultimo ? '' : ' d-none');
+    enviar.textContent = f.final;
+  }
+
+  siguiente.addEventListener('click', function () { if (paso < pasos.length - 1) { paso++; pintar(); } });
 
   document.querySelectorAll('.btn-compra-accion').forEach(function (b) {
     b.addEventListener('click', function () {
-      aprobar = b.dataset.accion === 'aprobar';
+      datos = { accion: b.dataset.accion, nombre: b.dataset.nombre, cedula: b.dataset.cedula, puntos: b.dataset.puntos, pagar: b.dataset.pagar };
+      pasos = FLUJOS[datos.accion].pasos;
+      paso = 0;
       form.action = b.dataset.action;
-      check.checked = false;
-      checkBox.classList.toggle('d-none', !aprobar);
-      if (aprobar) {
-        titulo.innerHTML = '<i class="bi bi-check-circle-fill text-success me-2"></i>Aprobar pago';
-        texto.innerHTML = '¿Recibiste <strong>₡' + b.dataset.pagar + '</strong> de <strong class="ca-nombre"></strong>?<br>Se acreditarán <strong>' +
-          b.dataset.puntos + '</strong> puntos a la cédula ' + b.dataset.cedula + '.';
-        enviar.className = 'btn btn-success rounded-pill px-4 fw-bold';
-        enviar.textContent = 'Aprobar y acreditar';
-      } else {
-        titulo.innerHTML = '<i class="bi bi-x-circle-fill text-danger me-2"></i>Rechazar solicitud';
-        texto.innerHTML = '¿Rechazar la compra de <strong>' + b.dataset.puntos + '</strong> puntos de <strong class="ca-nombre"></strong>?<br>No se acreditará ningún punto.';
-        enviar.className = 'btn btn-danger rounded-pill px-4 fw-bold';
-        enviar.textContent = 'Rechazar solicitud';
-      }
-      texto.querySelector('.ca-nombre').textContent = b.dataset.nombre;
-      validar();
+      pintar();
       bootstrap.Modal.getOrCreateInstance(modalEl).show();
     });
   });
