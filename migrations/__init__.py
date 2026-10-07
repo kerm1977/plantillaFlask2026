@@ -20,6 +20,7 @@ from .points import _migrate_event_puntos, _migrate_hiker_points
 from .bitacora import _migrate_bitacora
 from .puntos_evento import _migrate_puntos_evento, _migrate_hiker_points_puntos_evento
 from .donacion import _migrate_donacion_finalidad, _migrate_hiker_points_donacion
+from .compra import _migrate_compra_puntos
 
 
 def run_migrations():
@@ -58,4 +59,5 @@ def run_migrations():
     _migrate_hiker_points_puntos_evento()
     _migrate_donacion_finalidad()
     _migrate_hiker_points_donacion()
+    _migrate_compra_puntos()
 

@@ -9,7 +9,7 @@
   if (!mDon || !mEli) return;
   document.body.appendChild(mDon);
   document.body.appendChild(mEli);
-  var fmt = function (n) { return Number(n).toLocaleString('es-CR'); };
+  var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
   var celda = function (tr, texto, cls) {
     var td = document.createElement('td');
     td.textContent = texto;

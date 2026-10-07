@@ -17,7 +17,7 @@
   var total = parseInt(form.dataset.total, 10) || 0;
   var modo = form.dataset.modo;
   var tope = parseInt(form.dataset.max, 10) || 0;
-  var fmt = function (n) { return Number(n).toLocaleString('es-CR'); };
+  var fmt = function (n) { return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
 
   sel.addEventListener('change', function () {
     var o = sel.options[sel.selectedIndex];

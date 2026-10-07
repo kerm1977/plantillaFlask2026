@@ -1,0 +1,32 @@
+            {# BLINDADO: compras de puntos pendientes de aprobación de pago (solo superusuario) #}
+            {% set compras = compra_pendientes_admin() %}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accComprasAdmin">
+                  <i class="bi bi-cash-stack me-2 text-success"></i>Compras pendientes de pago{% if compras %} <span class="badge bg-danger rounded-pill ms-2">{{ compras | length }}</span>{% endif %}
+                </button>
+              </h2>
+              <div id="accComprasAdmin" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  {% for c in compras %}
+                  <div class="border rounded-4 p-3 mb-2 bg-white bg-opacity-50">
+                    <div class="fw-bold">{{ c.nombre }} <small class="text-muted">({{ c.cedula }})</small></div>
+                    <div>{{ compra_miles(c.puntos) }} puntos · cobrar <strong>₡{{ compra_miles(c.pagar) }}</strong></div>
+                    <small class="text-muted d-block mb-2">{{ c.fecha }}</small>
+                    <div class="d-flex gap-2">
+                      <form method="post" action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='aprobar') }}" data-confirm="¿Confirmás que recibiste ₡{{ compra_miles(c.pagar) }} de {{ c.nombre }} y querés acreditar {{ compra_miles(c.puntos) }} puntos?" onsubmit="return confirm(this.dataset.confirm);">
+                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                        <button class="btn btn-success btn-sm rounded-pill fw-bold"><i class="bi bi-check-circle me-1"></i>Aprobar pago</button>
+                      </form>
+                      <form method="post" action="{{ url_for('main.compra_resolver', compra_id=c.id, accion='rechazar') }}" onsubmit="return confirm('¿Rechazar esta solicitud de compra?');">
+                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                        <button class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-x-circle me-1"></i>Rechazar</button>
+                      </form>
+                    </div>
+                  </div>
+                  {% else %}
+                  <p class="small text-muted mb-0">No hay compras pendientes de pago.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>

@@ -12,6 +12,7 @@ from models_home_media import HomeMedia
 from models_tracking import LiveSession, LivePoint
 from models_puntos_evento import PuntosEvento
 from models_donacion import DonacionFinalidad
+from models_compra import CompraPuntos
 
 __all__ = [
     'User', 'Event', 'Notification', 'SiteContent', 'CaminataBlock', 'Hiker', 'EventRegistration', 'PaymentMethod', 'HikerPoints',
