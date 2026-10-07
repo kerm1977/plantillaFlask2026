@@ -37,20 +37,17 @@
       titulo.className = 'rg-art-titulo rg-cerrado';
       var strong = el.firstElementChild;
       var full = strong.textContent || '';
-      var mNum = full.match(/^art[ií]culo\s*\d+\./i);
+      var mNum = full.match(/^art[ií]culo\s*(\d+)\./i);
+      var sub = mNum ? full.slice(mNum[0].length).trim() : '';
       var tNum = document.createElement('strong');
-      tNum.textContent = (mNum ? mNum[0] : full.trim()).replace(/\s+/g, ' ');
+      tNum.textContent = mNum
+        ? (mNum[1] + '.' + (sub ? ' ' + sub : ''))
+        : full.trim();
       titulo.appendChild(tNum);
+      el.removeChild(strong);
       var cuerpo = document.createElement('div');
       cuerpo.className = 'rg-art-cuerpo rg-cerrado';
       var resto = document.createElement('p');
-      var sub = mNum ? full.slice(mNum[0].length).trim() : '';
-      if (sub) {
-        var sSub = document.createElement('strong');
-        sSub.textContent = sub;
-        resto.appendChild(sSub);
-      }
-      el.removeChild(strong);
       while (el.firstChild) resto.appendChild(el.firstChild);
       if (resto.textContent.trim() || resto.querySelector('br, a')) cuerpo.appendChild(resto);
       var sib = el.nextSibling;
