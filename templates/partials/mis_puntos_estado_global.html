@@ -1,0 +1,65 @@
+            {# BLINDADO: Estado de cuenta global de todas las personas (solo superusuario) #}
+            <div class="mt-3">
+              <button class="btn btn-outline-info w-100 rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#estadoGlobal" aria-expanded="false">
+                <i class="bi bi-table me-1"></i>Estado de cuenta de todas las personas
+              </button>
+              <div id="estadoGlobal" class="collapse mt-2">
+                <input type="search" id="egBuscar" class="form-control form-control-sm mb-2" placeholder="Buscar por nombre o cédula..." autocomplete="off">
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-0" id="egTabla">
+                    <thead>
+                      <tr class="small text-muted">
+                        <th>Persona</th>
+                        <th>Estatus</th>
+                        <th class="text-end">Puntos</th>
+                        <th class="text-center" title="Caminatas participadas">✔ Caminatas</th>
+                        <th class="text-center" title="Caminatas no participadas">✘ Ausencias</th>
+                        <th class="text-end">Ganados</th>
+                        <th class="text-end">Perdidos</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for p in estado_global %}
+                      <tr class="eg-fila" data-owner="{{ loop.index }}" data-search="{{ (p.nombre ~ ' ' ~ p.cedula) | lower | replace('"', '') }}">
+                        <td><strong class="small">{{ p.nombre }}</strong><br><small class="text-muted">{{ p.cedula }}</small></td>
+                        <td>
+                          {% if p.es_super %}
+                          <span class="badge bg-warning text-dark">SUPERUSUARIO</span>
+                          {% else %}
+                          <span class="badge bg-secondary">Regular</span>
+                          {% endif %}
+                        </td>
+                        <td class="text-end fw-bold">{{ '{:,}'.format(p.total).replace(',', '.') }}</td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-2" data-bs-toggle="collapse" data-bs-target="#egOk{{ loop.index }}" title="Ver caminatas participadas">{{ p.caminatas_ok | length }}</button>
+                        </td>
+                        <td class="text-center">
+                          <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-2" data-bs-toggle="collapse" data-bs-target="#egNo{{ loop.index }}" title="Ver caminatas no participadas">{{ p.caminatas_no | length }}</button>
+                        </td>
+                        <td class="text-end text-success">+{{ '{:,}'.format(p.ganados).replace(',', '.') }}</td>
+                        <td class="text-end text-danger">-{{ '{:,}'.format(p.perdidos).replace(',', '.') }}</td>
+                      </tr>
+                      <tr class="collapse eg-detalle" id="egOk{{ loop.index }}" data-owner="{{ loop.index }}">
+                        <td colspan="7" class="bg-success bg-opacity-10">
+                          <strong class="small">Caminatas participadas:</strong>
+                          <ul class="mb-0 small">
+                            {% for c in p.caminatas_ok %}<li>{{ c }}</li>{% else %}<li class="text-muted">Sin caminatas participadas.</li>{% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      <tr class="collapse eg-detalle" id="egNo{{ loop.index }}" data-owner="{{ loop.index }}">
+                        <td colspan="7" class="bg-danger bg-opacity-10">
+                          <strong class="small">Caminatas no participadas:</strong>
+                          <ul class="mb-0 small">
+                            {% for c in p.caminatas_no %}<li>{{ c }}</li>{% else %}<li class="text-muted">Ha participado en todas las caminatas.</li>{% endfor %}
+                          </ul>
+                        </td>
+                      </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+                <p id="egVacio" class="small text-muted text-center d-none mt-2 mb-0">Sin resultados.</p>
+              </div>
+            </div>
+            <script src="{{ url_for('static', filename='js/estado_global.js') }}?v=1"></script>
