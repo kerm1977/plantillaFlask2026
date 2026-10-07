@@ -27,6 +27,11 @@
     animation: vipBrillo 2.8s ease-in-out infinite;
   }
   .vip-badge.vip-gold { font-size: 1.15rem; letter-spacing: .14em; }
+  @keyframes puntosGlow {
+    0%, 100% { text-shadow: 0 0 8px rgba(255, 140, 0, .3); transform: scale(1); }
+    50% { text-shadow: 0 0 22px rgba(255, 140, 0, .65); transform: scale(1.03); }
+  }
+  .puntos-total { font-size: 3.2rem; line-height: 1.1; animation: puntosGlow 2.6s ease-in-out infinite; }
 </style>
 <section class="container py-5">
   <div class="row justify-content-center">
@@ -44,7 +49,7 @@
           <p class="small text-muted text-center mb-4">Formato: solo números, sin guiones ni espacios. En vez de guiones usá ceros (ej: 1-0984-0935 → 109840935).</p>
         </form>
         {% endif %}
-        {% include 'partials/reglamento_puntos.html' %}
+        {% if not result %}{% include 'partials/reglamento_puntos.html' %}{% endif %}
         {% if no_registrado %}
         <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 text-center">
           <i class="bi bi-person-x fs-1 text-danger"></i>
@@ -83,12 +88,13 @@
         <div class="row g-4">
           <div class="col-12 col-lg-7">
         <div class="text-center mb-4">
-          <h2 class="fw-bold text-warning-custom" id="puntosTotal">{{ result.total }} puntos{% if result.fidelidad.nivel == 'exclusivo' %} <span class="vip-badge vip-gold" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">GOLD</span>{% elif result.fidelidad.nivel == 'activo' %} <span class="vip-badge" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">VIP-1</span>{% endif %}</h2>
+          <h2 class="fw-bold text-warning-custom puntos-total" id="puntosTotal">{{ result.total }} puntos{% if result.fidelidad.nivel == 'exclusivo' %} <span class="vip-badge vip-gold" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">GOLD</span>{% elif result.fidelidad.nivel == 'activo' %} <span class="vip-badge" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">VIP-1</span>{% endif %}</h2>
           <p class="text-muted">
             {{ result.nombre_completo }} ({{ result.cedula }})
             {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
           </p>
         </div>
+        {% include 'partials/reglamento_puntos.html' %}
 
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
