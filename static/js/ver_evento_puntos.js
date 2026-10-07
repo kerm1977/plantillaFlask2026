@@ -13,7 +13,7 @@
   if (!eventId || !modalEl || !input || !target || typeof bootstrap === 'undefined') return;
 
   var modal = new bootstrap.Modal(modalEl);
-  var LONG_PRESS_MS = 600;
+  var LONG_PRESS_MS = 1000;
   var MOVE_TOLERANCE = 12;
   var timer = null;
   var startX = 0, startY = 0;
@@ -27,19 +27,49 @@
     setTimeout(function () { input.focus(); input.select(); }, 350);
   }
   function cancelar() { if (timer) { clearTimeout(timer); timer = null; } }
-
-  target.addEventListener('pointerdown', function (e) {
+  function iniciar(x, y) {
     cancelar();
-    startX = e.clientX; startY = e.clientY;
+    startX = x; startY = y;
     timer = setTimeout(function () { timer = null; abrir(); }, LONG_PRESS_MS);
+  }
+  function movio(x, y) {
+    if (timer && Math.hypot(x - startX, y - startY) > MOVE_TOLERANCE) cancelar();
+  }
+
+  // Computadora: doble clic sobre los puntos
+  target.addEventListener('dblclick', function (e) {
+    e.preventDefault();
+    cancelar();
+    abrir();
+  });
+
+  // Táctil (Android/iPhone): mantener 1 segundo.
+  // preventDefault en touchstart bloquea el menú nativo de Android (copiar/
+  // seleccionar) y el scroll que arranque sobre el indicador.
+  target.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    var t = e.touches[0];
+    if (t) iniciar(t.clientX, t.clientY);
+  }, { passive: false });
+  target.addEventListener('touchmove', function (e) {
+    var t = e.touches[0];
+    if (t) movio(t.clientX, t.clientY);
+  }, { passive: true });
+  ['touchend', 'touchcancel'].forEach(function (ev) {
+    target.addEventListener(ev, cancelar);
+  });
+
+  // Respaldo: long-press con mouse (mismo 1 segundo)
+  target.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse' && e.button === 0) iniciar(e.clientX, e.clientY);
   });
   target.addEventListener('pointermove', function (e) {
-    if (timer && Math.hypot(e.clientX - startX, e.clientY - startY) > MOVE_TOLERANCE) cancelar();
+    if (e.pointerType === 'mouse') movio(e.clientX, e.clientY);
   });
   ['pointerup', 'pointerleave', 'pointercancel'].forEach(function (ev) {
     target.addEventListener(ev, cancelar);
   });
-  // Evita el menú contextual del long-press en móviles sobre ese elemento
+  // Evita el menú contextual nativo sobre ese elemento
   target.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
   btnGuardar.addEventListener('click', function () {

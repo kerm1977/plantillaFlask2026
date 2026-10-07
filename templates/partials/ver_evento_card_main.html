@@ -82,7 +82,7 @@ Enlace: {{ url_for('main.ver_caminata_2027', event_id=evento.id, _external=True)
                                   }
                                   .puntos-heartbeat { display: inline-block; animation: puntosHeartbeat 1.5s ease-in-out infinite; }
                                 </style>
-                                <div id="hbPuntos" class="text-center w-100 mt-3 {{ 'd-none' if not (evento.puntos and evento.puntos > 0) }}"{% if is_super_user %} data-puntos-edit title="Mantené presionado para editar los puntos" style="cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;"{% endif %}>
+                                <div id="hbPuntos" class="text-center w-100 mt-3 {{ 'd-none' if not (evento.puntos and evento.puntos > 0) }}"{% if is_super_user %} data-puntos-edit title="Doble clic o mantené presionado para editar los puntos" style="cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; touch-action: none;"{% endif %}>
                                     <span class="puntos-heartbeat fw-bold text-dark" style="font-size:1.9rem; letter-spacing:-0.5px;">
                                         <i class="bi bi-star-fill text-warning me-1" style="font-size:1.35rem;"></i><span id="hbPuntosVal">{{ evento.puntos or 0 }}</span><small class="ms-1 fw-bold text-muted" style="font-size:0.6em;">PTS</small>
                                     </span>
