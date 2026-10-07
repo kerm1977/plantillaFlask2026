@@ -35,10 +35,22 @@
       art.className = 'rg-articulo';
       var titulo = document.createElement('p');
       titulo.className = 'rg-art-titulo rg-cerrado';
-      titulo.appendChild(el.firstElementChild);
+      var strong = el.firstElementChild;
+      var full = strong.textContent || '';
+      var mNum = full.match(/^art[ií]culo\s*\d+\./i);
+      var tNum = document.createElement('strong');
+      tNum.textContent = (mNum ? mNum[0] : full.trim()).replace(/\s+/g, ' ');
+      titulo.appendChild(tNum);
       var cuerpo = document.createElement('div');
       cuerpo.className = 'rg-art-cuerpo rg-cerrado';
       var resto = document.createElement('p');
+      var sub = mNum ? full.slice(mNum[0].length).trim() : '';
+      if (sub) {
+        var sSub = document.createElement('strong');
+        sSub.textContent = sub;
+        resto.appendChild(sSub);
+      }
+      el.removeChild(strong);
       while (el.firstChild) resto.appendChild(el.firstChild);
       if (resto.textContent.trim() || resto.querySelector('br, a')) cuerpo.appendChild(resto);
       var sib = el.nextSibling;
