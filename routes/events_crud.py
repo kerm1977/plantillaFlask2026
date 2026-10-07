@@ -113,6 +113,7 @@ def update_event(event_id):
             os.makedirs(upload_path, exist_ok=True)
             file.save(os.path.join(upload_path, filename))
             evento.poster = filename
+            evento.flyer_bg = None  # el póster nuevo manda en detalle y generador de flyer
 
         destino_db = request.form.get('destinoInternacional') if request.form.get('actividad') == 'Internacional' else request.form.get('lugarSalida')
 
