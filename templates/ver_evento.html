@@ -107,7 +107,7 @@
                         </div>
                         <script>
                             async function generarEnlacePuntos() {
-                                const url = '{{ url_for('main.evento_puntos', event_id=evento.id, _external=True) }}';
+                                const url = "{{ url_for('main.evento_puntos', event_id=evento.id, _external=True) }}";
                                 try {
                                     await navigator.clipboard.writeText(url);
                                     const el = document.getElementById('enlacePuntosFeedback');
