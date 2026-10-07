@@ -84,6 +84,32 @@
     }).catch(function () { aviso('Error de conexión.', false); });
   });
 
+  function demoInsignia(nivel) {
+    var viejo = document.getElementById('fidDemoBadge');
+    var mismo = viejo && viejo.dataset.nivel === nivel;
+    if (viejo) viejo.remove();
+    var caja = $('fidDemoBox');
+    if (mismo) { if (caja) caja.classList.add('d-none'); return; }
+    var b = document.createElement('span');
+    b.id = 'fidDemoBadge';
+    b.dataset.nivel = nivel;
+    b.className = 'vip-badge' + (nivel === 'exclusivo' ? ' vip-gold' : '');
+    b.textContent = nivel === 'exclusivo' ? 'GOLD' : 'VIP-1';
+    b.title = 'Muestra de la insignia ' + (nivel === 'exclusivo' ? 'Exclusivo VIP' : 'Activo VIP');
+    var h2 = document.getElementById('puntosTotal');
+    if (h2) { h2.appendChild(b); return; }
+    if (caja) {
+      caja.classList.remove('d-none');
+      caja.innerHTML = '<span class="text-muted small d-block mb-1">Así se vería junto a los puntos:</span>' +
+        '<span class="fw-bold" style="font-size:1.6rem">1 250 puntos</span> ';
+      caja.appendChild(b);
+    }
+  }
+
+  document.querySelectorAll('.fid-demo-nivel').forEach(function (el) {
+    el.addEventListener('click', function () { demoInsignia(el.dataset.nivel); });
+  });
+
   document.getElementById('accFidelidad').addEventListener('shown.bs.collapse', function () {
     cargarLista(); cargarHistorial();
   });

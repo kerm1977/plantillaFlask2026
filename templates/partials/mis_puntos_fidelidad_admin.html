@@ -8,10 +8,11 @@
               <div id="accFidelidad" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
                 <div class="accordion-body">
                   <p class="small text-muted">
-                    <strong>Activo VIP</strong> (12+ caminatas) suma ×1.2 · <strong>Exclusivo VIP</strong> (20+ caminatas) suma ×1.5
+                    <strong class="fid-demo-nivel" data-nivel="activo" style="cursor:pointer; text-decoration:underline dotted #b8860b;" title="Tocá para ver cómo se vería la insignia junto a los puntos">Activo VIP</strong> (12+ caminatas) suma ×1.2 · <strong class="fid-demo-nivel" data-nivel="exclusivo" style="cursor:pointer; text-decoration:underline dotted #b8860b;" title="Tocá para ver cómo se vería la insignia junto a los puntos">Exclusivo VIP</strong> (20+ caminatas) suma ×1.5
                     en todo lo que acumula puntos (no aplica a compras ni obsequios). El nivel se calcula solo; aquí podés
                     ascender o degradar manualmente, siempre con nota si el nivel baja.
                   </p>
+                  <div id="fidDemoBox" class="d-none text-center border rounded-3 py-2 px-2 mb-2 bg-light"></div>
                   <div class="mb-3">
                     <label class="form-label fw-bold small" for="fidPersona">Persona</label>
                     <select id="fidPersona" class="form-select" data-searchable>
