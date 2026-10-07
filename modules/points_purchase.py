@@ -2,15 +2,17 @@
 #   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
-# modules/points_purchase.py - Compra de puntos: monto + 200 colones fijos.
+# modules/points_purchase.py - Compra de puntos: monto + comisión fija (configurable por el superusuario).
 # Flujo: pendiente -> (aprobar: acredita puntos) aprobada -> (confirmar) confirmada.
 # Rechazar deja la solicitud pendiente, esperando que se confirme el pago de nuevo.
 from datetime import datetime, timezone, timedelta
 from urllib.parse import quote
 from db import db
-from models import Hiker, CompraPuntos
+from models import Hiker, CompraPuntos, SiteContent
 
-FEE = 200
+FEE_DEFECTO = 200
+FEE_MAXIMO = 100000
+KEY_FEE = 'compra_comision'
 MINIMO = 1000
 MAXIMO = 1000000
 MAX_PENDIENTES = 3
@@ -29,13 +31,35 @@ def fecha_cr(dt):
     return dt.replace(tzinfo=timezone.utc).astimezone(CR).strftime('%d/%m/%Y %I:%M %p')
 
 
+def fee():
+    """Comisión vigente por compra (colones). Se cambia en Gestión de superusuario."""
+    fila = SiteContent.query.filter_by(key=KEY_FEE).first()
+    try:
+        return max(0, int(fila.value)) if fila else FEE_DEFECTO
+    except (TypeError, ValueError):
+        return FEE_DEFECTO
+
+
+def guardar_fee(valor):
+    if not 0 <= valor <= FEE_MAXIMO:
+        return {'ok': False, 'error': f'La comisión debe estar entre 0 y {miles(FEE_MAXIMO)} colones.'}
+    fila = SiteContent.query.filter_by(key=KEY_FEE).first()
+    if fila:
+        fila.value = str(valor)
+    else:
+        db.session.add(SiteContent(key=KEY_FEE, value=str(valor)))
+    db.session.commit()
+    return {'ok': True, 'fee': valor}
+
+
 def costo(puntos):
-    return int(puntos) + FEE
+    return int(puntos) + fee()
 
 
-def url_whatsapp(c, nombre=''):
-    texto = (f'Hola, he comprado {miles(c.puntos)} puntos. Voy a transferir el dinero por ₡{miles(c.monto_pagar)} '
-             f'({miles(c.puntos)} para mi uso + ₡{FEE} para donaciones, administración y hosting del sitio). '
+def url_whatsapp(c, nombre='', pagar=None):
+    pagar = pagar or c.monto_pagar
+    texto = (f'Hola, he comprado {miles(c.puntos)} puntos. Voy a transferir el dinero por ₡{miles(pagar)} '
+             f'({miles(c.puntos)} para mi uso + ₡{miles(pagar - c.puntos)} para donaciones, administración y hosting del sitio). '
              f'Cédula: {c.cedula}{" - " + nombre if nombre else ""}. Quedo atento a la aprobación del pago.')
     return f'https://wa.me/{WHATSAPP}?text=' + quote(texto)
 
@@ -56,16 +80,18 @@ def pendientes_usuario(cedula):
     hiker = Hiker.query.filter_by(cedula=cedula).first()
     nombre = hiker.nombre_completo if hiker else ''
     filas = CompraPuntos.query.filter_by(cedula=cedula, estado='pendiente').order_by(CompraPuntos.created_at.desc()).all()
-    return [{'puntos': c.puntos, 'pagar': c.monto_pagar, 'fecha': fecha_cr(c.created_at),
-             'wa': url_whatsapp(c, nombre)} for c in filas]
+    comision = fee()
+    return [{'puntos': c.puntos, 'pagar': c.puntos + comision, 'fecha': fecha_cr(c.created_at),
+             'wa': url_whatsapp(c, nombre, c.puntos + comision)} for c in filas]
 
 
 def pendientes_admin():
     """Solicitudes que siguen en la lista: pendientes de pago y aprobadas sin 'Confirmado'."""
     filas = CompraPuntos.query.filter(CompraPuntos.estado.in_(['pendiente', 'aprobada'])).order_by(CompraPuntos.created_at).all()
     nombres = {h.cedula: h.nombre_completo for h in Hiker.query.filter(Hiker.cedula.in_([c.cedula for c in filas])).all()}
+    comision = fee()
     return [{'id': c.id, 'cedula': c.cedula, 'nombre': nombres.get(c.cedula) or 'Sin nombre', 'puntos': c.puntos,
-             'pagar': c.monto_pagar, 'fecha': fecha_cr(c.created_at), 'estado': c.estado,
+             'pagar': c.puntos + comision if c.estado == 'pendiente' else c.monto_pagar, 'fecha': fecha_cr(c.created_at), 'estado': c.estado,
              'aprobado': fecha_cr(c.resuelto_at) if c.estado == 'aprobada' else '',
              'rechazado': fecha_cr(c.rechazado_at)} for c in filas]
 
@@ -80,8 +106,9 @@ def resolver(compra_id, accion, operator):
         if c.estado != 'pendiente':
             return {'ok': False, 'error': 'La solicitud ya fue aprobada o cerrada.'}
         c.estado, c.resuelto_at, c.resuelto_por = 'aprobada', ahora, operator
+        c.monto_pagar = c.puntos + fee()  # se fija la comisión vigente al aprobar
         detalle = (f'Compra de {c.puntos} puntos. Pago de {c.monto_pagar} colones confirmado '
-                   f'({FEE} colones para donaciones, administración y hosting).')
+                   f'({c.monto_pagar - c.puntos} colones para donaciones, administración y hosting).')
         get_points_engine()._add_record(c.cedula, c.hiker_id, None, c.puntos, 'compra', detalle, operator)
     elif accion == 'rechazar':
         if c.estado != 'pendiente':

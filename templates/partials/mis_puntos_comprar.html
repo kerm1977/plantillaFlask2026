@@ -1,5 +1,6 @@
-            {# BLINDADO: Comprar puntos. Siempre se suman 200 colones al monto; los puntos se acreditan al aprobar el pago #}
+            {# BLINDADO: Comprar puntos. Siempre se suma la comisión configurada al monto; los puntos se acreditan al aprobar el pago #}
             {% set pend = compra_pendientes_usuario(result.cedula) %}
+            {% set fee = compra_fee() %}
             <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accComprar">
@@ -9,15 +10,15 @@
               <div id="accComprar" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
                 <div class="accordion-body">
                   <div class="alert alert-info small rounded-4">
-                    <i class="bi bi-info-circle-fill me-1"></i>A todo monto se le suman siempre <strong>₡{{ compra_fee }}</strong>, que se destinan a donaciones, administración y pago de servicios del hosting del sitio web. Se aplica el monto cerrado: si comprás <strong>10.200</strong> son para La Tribu <strong>₡{{ compra_fee }}</strong> y <strong>10.000</strong> son para tu uso.
+                    <i class="bi bi-info-circle-fill me-1"></i>A todo monto se le suman siempre <strong>₡{{ fee }}</strong>, que se destinan a donaciones, administración y pago de servicios del hosting del sitio web. Se aplica el monto cerrado: si comprás <strong>{{ compra_miles(10000 + fee) }}</strong> son para La Tribu <strong>₡{{ fee }}</strong> y <strong>{{ compra_miles(10000) }}</strong> son para tu uso.
                   </div>
-                  <form id="formComprar" method="post" action="{{ url_for('main.comprar_puntos') }}" data-fee="{{ compra_fee }}" data-minimo="{{ compra_minimo }}">
+                  <form id="formComprar" method="post" action="{{ url_for('main.comprar_puntos') }}" data-fee="{{ fee }}" data-minimo="{{ compra_minimo }}">
                     <input type="hidden" name="cedula" value="{{ result.cedula }}">
                     <div class="mb-3">
                       <label class="form-label fw-bold">Elegí un monto</label>
                       <select id="compraSelect" class="form-select">
                         <option value="">Otro monto (escribilo abajo)</option>
-                        {% for n in range(1000, 10001, 1000) %}<option value="{{ n }}">{{ compra_miles(n) }} puntos — pagás ₡{{ compra_miles(n + compra_fee) }}</option>{% endfor %}
+                        {% for n in range(1000, 10001, 1000) %}<option value="{{ n }}">{{ compra_miles(n) }} puntos — pagás ₡{{ compra_miles(n + fee) }}</option>{% endfor %}
                       </select>
                     </div>
                     <div class="mb-3">
@@ -53,7 +54,7 @@
                     <p class="text-center mb-3">Vas a comprar <strong id="cmTitulo"></strong></p>
                     <ul class="list-group list-group-flush mb-3">
                       <li class="list-group-item d-flex justify-content-between bg-transparent px-0"><span>Para tu uso</span><strong id="cmPuntos"></strong></li>
-                      <li class="list-group-item d-flex justify-content-between bg-transparent px-0"><span>Donaciones, administración y hosting</span><strong>₡{{ compra_fee }}</strong></li>
+                      <li class="list-group-item d-flex justify-content-between bg-transparent px-0"><span>Donaciones, administración y hosting</span><strong>₡{{ fee }}</strong></li>
                       <li class="list-group-item d-flex justify-content-between bg-transparent px-0 fs-5"><span class="fw-bold">Total a transferir</span><strong class="text-success" id="cmTotal"></strong></li>
                     </ul>
                     <div class="alert alert-info small rounded-4 mb-0"><i class="bi bi-hourglass-split me-1"></i>Los puntos se acreditan cuando un superusuario apruebe tu pago. Luego de confirmar, avisá por WhatsApp para coordinar la transferencia.</div>

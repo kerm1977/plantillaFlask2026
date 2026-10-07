@@ -11,7 +11,7 @@ from routes.points import _current_user
 
 @bp.app_context_processor
 def _inject_compra():
-    return {'compra_fee': pp.FEE, 'compra_minimo': pp.MINIMO, 'compra_miles': pp.miles,
+    return {'compra_fee': pp.fee, 'compra_minimo': pp.MINIMO, 'compra_miles': pp.miles,
             'compra_pendientes_usuario': pp.pendientes_usuario, 'compra_pendientes_admin': pp.pendientes_admin}
 
 
@@ -21,6 +21,23 @@ def _volver(cedula, ancla=''):
 
 def _es_super():
     return session.get('role') == 'Superusuario'
+
+
+@bp.route('/admin/compras/comision', methods=['POST'])
+def compra_comision():
+    cedula = (request.form.get('cedula') or '').strip()
+    if not _es_super():
+        return redirect(url_for('main.home'))
+    try:
+        valor = int((request.form.get('comision') or '').strip())
+    except ValueError:
+        valor = -1
+    res = pp.guardar_fee(valor)
+    if res.get('ok'):
+        session['admin_message'] = f'Comisión por compra de puntos actualizada a ₡{pp.miles(res["fee"])}. Se aplica a las compras nuevas y a las solicitudes pendientes.'
+    else:
+        session['admin_error'] = res.get('error')
+    return _volver(cedula)
 
 
 @bp.route('/mis-puntos/comprar', methods=['POST'])

@@ -1,0 +1,28 @@
+            {# BLINDADO: comisión por compra de puntos, un solo lugar para cambiarla (solo superusuario) #}
+            {% set fee = compra_fee() %}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accComision">
+                  <i class="bi bi-percent me-2 text-warning"></i>Comisión por compra de puntos <span class="badge bg-light text-dark border rounded-pill ms-2">₡{{ compra_miles(fee) }}</span>
+                </button>
+              </h2>
+              <div id="accComision" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <p class="small text-muted">Monto fijo que se suma a cada compra de puntos (sin importar cuántos puntos compre la persona), para donaciones, administración y hosting. Al cambiarlo se actualizan todos los textos y montos de compra, incluidas las solicitudes pendientes.</p>
+                  <form method="post" action="{{ url_for('main.compra_comision') }}" class="row g-2 align-items-end">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="col-8">
+                      <label class="form-label fw-bold small" for="comisionCompra">Comisión (colones)</label>
+                      <div class="input-group">
+                        <span class="input-group-text">₡</span>
+                        <input type="number" id="comisionCompra" name="comision" class="form-control" min="0" max="100000" step="1" value="{{ fee }}" required>
+                      </div>
+                    </div>
+                    <div class="col-4">
+                      <button type="submit" class="btn btn-warning w-100 fw-bold text-dark rounded-pill">Guardar</button>
+                    </div>
+                  </form>
+                  <p class="small text-muted mt-2 mb-0">Ejemplo con la comisión actual: 1.000 puntos = <strong>₡{{ compra_miles(1000 + fee) }}</strong> · 10.000 puntos = <strong>₡{{ compra_miles(10000 + fee) }}</strong>.</p>
+                </div>
+              </div>
+            </div>
