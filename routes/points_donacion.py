@@ -3,10 +3,10 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 # routes/points_donacion.py - Donar puntos (usuario) y gestionar finalidades (superusuario)
-from flask import request, session, redirect, url_for
+from flask import request, session, redirect, url_for, jsonify
 from db import db
 from models import DonacionFinalidad, HikerPoints
-from modules.points_charity import reglas, finalidades_activas, finalidades_admin, donar
+from modules.points_charity import reglas, finalidades_activas, finalidades_admin, donar, donantes
 from routes import bp
 from routes.points import _current_user
 
@@ -69,10 +69,22 @@ def donacion_finalidad_accion(fid, accion):
         fin.activo = not fin.activo
         session['admin_message'] = f'«{fin.nombre}» ahora está {"activa" if fin.activo else "inactiva"}.'
     elif accion == 'eliminar':
-        if HikerPoints.query.filter_by(donacion_finalidad_id=fid).first():
-            session['admin_error'] = 'Ya recibió donaciones; no se puede eliminar, solo desactivar.'
+        if (request.form.get('confirmar_nombre') or '').strip() != fin.nombre.strip():
+            session['admin_error'] = 'No se eliminó: el nombre escrito no coincide con la finalidad.'
             return _volver(cedula)
+        nombre = fin.nombre
+        # Los movimientos quedan en el historial de cada persona; solo se desvincula la finalidad.
+        HikerPoints.query.filter_by(donacion_finalidad_id=fid).update({'donacion_finalidad_id': None})
         db.session.delete(fin)
-        session['admin_message'] = f'Finalidad «{fin.nombre}» eliminada.'
+        session['admin_message'] = f'Finalidad «{nombre}» eliminada.'
     db.session.commit()
     return _volver(cedula)
+
+
+@bp.route('/admin/donacion/finalidad/<int:fid>/donantes', methods=['GET'])
+def donacion_finalidad_donantes(fid):
+    if not _es_super():
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    fin = DonacionFinalidad.query.get_or_404(fid)
+    lista = donantes(fid)
+    return jsonify({'ok': True, 'nombre': fin.nombre, 'total': sum(d['puntos'] for d in lista), 'donantes': lista})

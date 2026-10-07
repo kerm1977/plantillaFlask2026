@@ -29,12 +29,26 @@ def finalidades_activas():
 
 
 def finalidades_admin():
-    donado = dict(db.session.query(HikerPoints.donacion_finalidad_id, func.coalesce(-func.sum(HikerPoints.points), 0))
-                  .filter(HikerPoints.donacion_finalidad_id.isnot(None))
-                  .group_by(HikerPoints.donacion_finalidad_id).all())
+    filas = (db.session.query(HikerPoints.donacion_finalidad_id, func.coalesce(-func.sum(HikerPoints.points), 0),
+                              func.count(func.distinct(HikerPoints.cedula)))
+             .filter(HikerPoints.donacion_finalidad_id.isnot(None))
+             .group_by(HikerPoints.donacion_finalidad_id).all())
+    donado = {fid: (int(pts), int(n)) for fid, pts, n in filas}
     return [{'id': f.id, 'nombre': f.nombre, 'descripcion': f.descripcion or '', 'activo': f.activo,
-             'donado': int(donado.get(f.id, 0))}
+             'donado': donado.get(f.id, (0, 0))[0], 'donantes': donado.get(f.id, (0, 0))[1]}
             for f in DonacionFinalidad.query.order_by(DonacionFinalidad.created_at.desc()).all()]
+
+
+def donantes(finalidad_id):
+    """Personas que donaron a una finalidad: nombre, cédula y total de puntos (de mayor a menor)."""
+    filas = (db.session.query(HikerPoints.cedula, func.coalesce(-func.sum(HikerPoints.points), 0),
+                              func.max(HikerPoints.created_at))
+             .filter(HikerPoints.donacion_finalidad_id == finalidad_id)
+             .group_by(HikerPoints.cedula).all())
+    nombres = {h.cedula: h.nombre_completo for h in Hiker.query.filter(Hiker.cedula.in_([f[0] for f in filas])).all()}
+    lista = [{'nombre': nombres.get(ced) or 'Sin nombre', 'cedula': ced, 'puntos': int(pts),
+              'fecha': ult.strftime('%d/%m/%Y') if ult else ''} for ced, pts, ult in filas]
+    return sorted(lista, key=lambda d: d['puntos'], reverse=True)
 
 
 def donar(cedula, finalidad_id, monto, operator):

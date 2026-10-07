@@ -23,7 +23,7 @@
                   <div class="border rounded-4 p-2 mb-2 bg-white bg-opacity-50">
                     <div class="d-flex justify-content-between align-items-start gap-2">
                       <div>
-                        <span class="fw-bold">{{ f.nombre }}</span>
+                        <a href="#" class="fw-bold text-dark text-decoration-underline btn-ver-donantes" data-url="{{ url_for('main.donacion_finalidad_donantes', fid=f.id) }}" title="Ver quiénes donaron">{{ f.nombre }}</a>
                         <span class="badge rounded-pill {{ 'bg-success' if f.activo else 'bg-secondary' }}">{{ 'Activa' if f.activo else 'Inactiva' }}</span>
                         <small class="d-block text-muted">Donado: <strong>{{ f.donado }}</strong> puntos</small>
                         {% if f.descripcion %}<small class="d-block text-muted">{{ f.descripcion }}</small>{% endif %}
@@ -33,10 +33,9 @@
                           <input type="hidden" name="cedula" value="{{ result.cedula }}">
                           <button class="btn btn-sm btn-outline-secondary rounded-pill" title="Activar / desactivar"><i class="bi bi-power"></i></button>
                         </form>
-                        <form method="post" action="{{ url_for('main.donacion_finalidad_accion', fid=f.id, accion='eliminar') }}" onsubmit="return confirm('¿Eliminar esta finalidad?');">
-                          <input type="hidden" name="cedula" value="{{ result.cedula }}">
-                          <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar"><i class="bi bi-trash"></i></button>
-                        </form>
+                        <button type="button" class="btn btn-sm btn-outline-danger rounded-pill btn-eliminar-finalidad" title="Eliminar"
+                                data-action="{{ url_for('main.donacion_finalidad_accion', fid=f.id, accion='eliminar') }}"
+                                data-nombre="{{ f.nombre }}" data-donado="{{ f.donado }}" data-donantes="{{ f.donantes }}"><i class="bi bi-trash"></i></button>
                       </div>
                     </div>
                   </div>
@@ -46,3 +45,49 @@
                 </div>
               </div>
             </div>
+            <div class="modal fade" id="modalDonantes" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold w-100 text-center"><i class="bi bi-people-fill text-danger me-2"></i><span id="dnTitulo"></span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body px-3">
+                    <p class="text-center small text-muted mb-2" id="dnResumen"></p>
+                    <div class="table-responsive">
+                      <table class="table table-sm align-middle mb-0">
+                        <thead><tr><th>Nombre</th><th>Cédula</th><th class="text-end">Puntos</th></tr></thead>
+                        <tbody id="dnLista"></tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal fade" id="modalEliminarFinalidad" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <form method="post" id="efForm">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="modal-header border-0 pb-0">
+                      <h5 class="modal-title fw-bold w-100 text-center text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Eliminar finalidad</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body px-4">
+                      <p class="text-center mb-2">Vas a eliminar la finalidad:</p>
+                      <p class="text-center fw-bold fs-5 mb-3" id="efNombre"></p>
+                      <div id="efAviso" class="alert alert-warning small rounded-4 d-none"></div>
+                      <div class="form-check mb-2"><input class="form-check-input ef-check" type="checkbox" id="ef1"><label class="form-check-label small" for="ef1">1. Entiendo que se eliminará esta finalidad.</label></div>
+                      <div class="form-check mb-3"><input class="form-check-input ef-check" type="checkbox" id="ef2"><label class="form-check-label small" for="ef2">2. Entiendo que esta acción no se puede deshacer.</label></div>
+                      <label class="form-label small fw-bold" for="efTexto">3. Escribí el nombre exacto de la finalidad para confirmar:</label>
+                      <input type="text" class="form-control" id="efTexto" name="confirmar_nombre" autocomplete="off">
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                      <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" id="efEnviar" class="btn btn-danger rounded-pill px-4 fw-bold" disabled>Eliminar definitivamente</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+            <script src="{{ url_for('static', filename='js/donacion_admin.js') }}"></script>
