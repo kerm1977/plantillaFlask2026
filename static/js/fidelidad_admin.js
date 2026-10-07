@@ -1,3 +1,7 @@
+// ==============================================================
+//   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+//   Explicar antes de editar. Contenido sagrado protegido.
+// ==============================================================
 // static/js/fidelidad_admin.js - Programa de fidelidad (solo superusuario)
 (function () {
   'use strict';

@@ -32,6 +32,7 @@
     50% { text-shadow: 0 0 22px rgba(255, 140, 0, .65); transform: scale(1.03); }
   }
   .puntos-total { font-size: 3.2rem; line-height: 1.1; animation: puntosGlow 2.6s ease-in-out infinite; }
+  .puntos-total .puntos-label { font-size: .5em; font-weight: 700; }
 </style>
 <section class="container py-5">
   <div class="row justify-content-center">
@@ -88,13 +89,13 @@
         <div class="row g-4">
           <div class="col-12 col-lg-7">
         <div class="text-center mb-4">
-          <h2 class="fw-bold text-warning-custom puntos-total" id="puntosTotal">{{ result.total }} puntos{% if result.fidelidad.nivel == 'exclusivo' %} <span class="vip-badge vip-gold" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">GOLD</span>{% elif result.fidelidad.nivel == 'activo' %} <span class="vip-badge" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">VIP-1</span>{% endif %}</h2>
-          <p class="text-muted">
+          <h2 class="fw-bold text-warning-custom puntos-total" id="puntosTotal">{{ result.total }} <span class="puntos-label">puntos</span>{% if result.fidelidad.nivel == 'exclusivo' %} <span class="vip-badge vip-gold" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">GOLD</span>{% elif result.fidelidad.nivel == 'activo' %} <span class="vip-badge" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">VIP-1</span>{% endif %}</h2>
+          <p class="text-muted mt-3 mb-4">
             {{ result.nombre_completo }} ({{ result.cedula }})
             {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
           </p>
         </div>
-        <div class="mt-4">{% include 'partials/reglamento_puntos.html' %}</div>
+        <div class="mt-5">{% include 'partials/reglamento_puntos.html' %}</div>
 
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">

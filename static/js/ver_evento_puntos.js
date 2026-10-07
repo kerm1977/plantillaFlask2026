@@ -1,3 +1,7 @@
+// ==============================================================
+//   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+//   Explicar antes de editar. Contenido sagrado protegido.
+// ==============================================================
 // static/js/ver_evento_puntos.js - Long-press sobre los puntos que parpadean:
 // abre un modal para editar los puntos del evento y guardarlos en la BD
 // (solo superusuario; el elemento lleva data-puntos-edit solo para ese rol).
