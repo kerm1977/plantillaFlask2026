@@ -1,0 +1,119 @@
+            {# BLINDADO: Ganar puntos desde casa - actualizar datos (+200) y foto de perfil FB (+200), una sola vez cada uno #}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accGanar">
+                  <i class="bi bi-house-heart me-2 text-success"></i>Ganar puntos desde casa
+                </button>
+              </h2>
+              <div id="accGanar" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  <div class="border rounded-4 p-3 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong><i class="bi bi-pencil-square me-1 text-primary"></i>Actualizar mis datos</strong>
+                      <span class="badge bg-success rounded-pill">+200 pts</span>
+                    </div>
+                    <p class="small text-muted mb-2">Completá <strong>todos los campos</strong> de tu registro (teléfono, correo, tipo de sangre, contacto de emergencia...) y ganás <strong>200 puntos</strong>. El premio se acredita una sola vez.</p>
+                    {% if result.premio_datos %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste estos puntos. Podés actualizar tus datos cuando quieras.</p>
+                    {% endif %}
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 mt-2" data-bs-toggle="modal" data-bs-target="#modalDatos">
+                      <i class="bi bi-pencil me-1"></i>Actualizar mis datos
+                    </button>
+                  </div>
+                  <div class="border rounded-4 p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong><i class="bi bi-facebook me-1 text-primary"></i>Foto de perfil con la camisa</strong>
+                      <span class="badge bg-success rounded-pill">+200 pts</span>
+                    </div>
+                    <p class="small text-muted mb-2">Poné tu <strong>foto de perfil de Facebook</strong> con la camisa de La Tribu de los Libres durante <strong>una semana</strong> y ganás <strong>200 puntos</strong>. Se acredita una sola vez.</p>
+                    {% if result.premio_foto %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste estos puntos.</p>
+                    {% else %}
+                    <form method="post" action="{{ url_for('main.foto_fb') }}">
+                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                      <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="confirma" value="si" id="confirmaFoto" required>
+                        <label class="form-check-label small" for="confirmaFoto">Confirmo que ya puse mi foto de perfil con la camisa.</label>
+                      </div>
+                      <button type="submit" class="btn btn-primary btn-sm rounded-pill fw-bold w-100"><i class="bi bi-check2-circle me-1"></i>Ya lo hice, acreditar puntos</button>
+                    </form>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal fade" id="modalDatos" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <form method="post" action="{{ url_for('main.actualizar_datos') }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="modal-header border-0 pb-0">
+                      <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square me-2 text-primary"></i>Actualizar mis datos</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body px-4">
+                      <div class="alert alert-info small rounded-4"><i class="bi bi-info-circle-fill me-1"></i>Llená <strong>todos los campos obligatorios (*)</strong> para ganar <strong>200 puntos</strong>.</div>
+                      <div class="mb-2">
+                        <label class="form-label fw-bold small">Nombre completo * <small class="text-muted fw-normal">(incluí ambos apellidos)</small></label>
+                        <input type="text" name="nombre_completo" class="form-control form-control-sm" value="{{ result.perfil.nombre_completo }}" required>
+                      </div>
+                      <div class="mb-2">
+                        <label class="form-label fw-bold small">Número de cédula *</label>
+                        <input type="text" class="form-control form-control-sm" value="{{ result.cedula }}" readonly>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Número de teléfono *</label>
+                          <input type="tel" name="telefono" class="form-control form-control-sm" value="{{ result.perfil.telefono }}" required>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Tipo de sangre *</label>
+                          <select name="tipo_sangre" class="form-select form-select-sm" required>
+                            <option value="" disabled{% if not result.perfil.tipo_sangre %} selected{% endif %}>Elegí</option>
+                            {% for t in ['O+', 'O-', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-'] %}
+                            <option value="{{ t }}"{% if result.perfil.tipo_sangre == t %} selected{% endif %}>{{ t }}</option>
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                      <div class="mb-2">
+                        <label class="form-label fw-bold small">Correo electrónico *</label>
+                        <input type="email" name="correo" class="form-control form-control-sm" value="{{ result.perfil.email if '@' in (result.perfil.email or '') else '' }}" required>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Contacto de emergencia *</label>
+                          <input type="text" name="contacto_emergencia_nombre" class="form-control form-control-sm" value="{{ result.perfil.contacto_emergencia_nombre }}" placeholder="Nombre" required>
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Teléfono de emergencia *</label>
+                          <input type="tel" name="contacto_emergencia_telefono" class="form-control form-control-sm" value="{{ result.perfil.contacto_emergencia_telefono }}" required>
+                        </div>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Pasaporte</label>
+                          <input type="text" name="pasaporte" class="form-control form-control-sm" value="{{ result.perfil.pasaporte }}">
+                        </div>
+                        <div class="col-6 mb-2">
+                          <label class="form-label fw-bold small">Fecha de nacimiento</label>
+                          <input type="date" name="fecha_nacimiento" class="form-control form-control-sm" value="{{ result.perfil.fecha_nacimiento }}">
+                        </div>
+                      </div>
+                      <div class="mb-2">
+                        <label class="form-label fw-bold small">Alergias</label>
+                        <input type="text" name="alergias" class="form-control form-control-sm" value="{{ result.perfil.alergias }}" placeholder="Ninguna">
+                      </div>
+                      <div class="mb-1">
+                        <label class="form-label fw-bold small">Enfermedades crónicas</label>
+                        <input type="text" name="enfermedades_cronicas" class="form-control form-control-sm" value="{{ result.perfil.enfermedades_cronicas }}" placeholder="Ninguna">
+                      </div>
+                    </div>
+                    <div class="modal-footer border-0 justify-content-center pt-0 pb-4 gap-2">
+                      <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                      <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Guardar datos</button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>

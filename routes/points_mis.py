@@ -7,7 +7,7 @@ import re
 from urllib.parse import quote
 from flask import request, session, render_template, redirect, url_for
 from db import db
-from models import Hiker, Event, User, EventRegistration
+from models import Hiker, Event, User, EventRegistration, HikerPoints
 from modules.points_engine import get_points_engine
 from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
@@ -264,6 +264,23 @@ def mis_puntos():
                     'notificaciones': notificaciones,
                     'consultas_puntos_count': hiker_found.consultas_puntos_count or 0,
                     'fidelidad': fidelidad.info(cedula)
+                }
+                premios = {r.tipo for r in HikerPoints.query.filter(
+                    HikerPoints.cedula == cedula,
+                    HikerPoints.tipo.in_(['datos_actualizados', 'foto_facebook'])).all()}
+                result['premio_datos'] = 'datos_actualizados' in premios
+                result['premio_foto'] = 'foto_facebook' in premios
+                result['perfil'] = {
+                    'nombre_completo': hiker_found.nombre_completo or '',
+                    'telefono': hiker_found.telefono or '',
+                    'email': hiker_found.card_email or '',
+                    'tipo_sangre': hiker_found.tipo_sangre or '',
+                    'pasaporte': hiker_found.pasaporte or '',
+                    'fecha_nacimiento': hiker_found.fecha_nacimiento.strftime('%Y-%m-%d') if hiker_found.fecha_nacimiento else '',
+                    'alergias': hiker_found.alergias or '',
+                    'enfermedades_cronicas': hiker_found.enfermedades_cronicas or '',
+                    'contacto_emergencia_nombre': hiker_found.contacto_emergencia_nombre or '',
+                    'contacto_emergencia_telefono': hiker_found.contacto_emergencia_telefono or '',
                 }
                 if is_super:
                     for r in EventRegistration.query.filter_by(hiker_id=hiker_found.id).all():
