@@ -149,7 +149,7 @@
             {% endif %}
             {% endfor %}
           </ul>
-          {% if result and result.total >= 1000 %}
+          {% if result and result.total >= 5000 %}
           {% if donacion_message %}
           <div class="alert alert-success rounded-pill flash-msg">{{ donacion_message }}</div>
           {% endif %}
@@ -178,7 +178,7 @@
           </form>
           <p class="small text-muted mt-2">Tenés {{ result.total }} puntos. Podés donar hasta {{ (result.total * 0.8) | int }} puntos (el 80% de tus puntos); no te podés quedar en cero.</p>
           {% else %}
-          <p class="small text-muted">Tenés {{ result.total }} puntos. Necesitás al menos 1.000 puntos para donar, y no podés donar el total.</p>
+          <p class="small text-muted">Tenés {{ result.total }} puntos. Necesitás al menos 5.000 puntos para donar a un cumpleañero. Con menos podés donar la totalidad con un fin benéfico en "Donar puntos".</p>
           {% endif %}
         </div>
         {% endif %}

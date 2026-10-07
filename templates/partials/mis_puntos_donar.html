@@ -1,0 +1,71 @@
+            {# BLINDADO: Donar puntos con fin benéfico. <5.000 pts = totalidad; >=5.000 = hasta 80% #}
+            {% set r = donacion_reglas(result.total) %}
+            {% set fins = donacion_finalidades() %}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accDonar">
+                  <i class="bi bi-heart-fill me-2 text-danger"></i>Donar puntos
+                </button>
+              </h2>
+              <div id="accDonar" class="accordion-collapse collapse" data-bs-parent="#accionesPuntosAccordion">
+                <div class="accordion-body">
+                  {% if r.modo == 'sin_puntos' %}
+                  <p class="small text-muted mb-0">No tenés puntos para donar.</p>
+                  {% elif not fins %}
+                  <p class="small text-muted mb-0">Por el momento no hay finalidades de donación activas. Los coordinadores las publicarán aquí.</p>
+                  {% else %}
+                  {% if r.modo == 'total' %}
+                  <div class="alert alert-warning small rounded-4">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i>Tenés <strong>{{ result.total }}</strong> puntos (menos de 5.000). Con un fin benéfico solo podés donar la <strong>totalidad</strong> de tus puntos y te quedarías con <strong>0</strong>.
+                  </div>
+                  {% else %}
+                  <div class="alert alert-info small rounded-4">
+                    <i class="bi bi-info-circle-fill me-1"></i>Tenés <strong>{{ result.total }}</strong> puntos. Podés donar de 1 hasta <strong>{{ r.max }}</strong> puntos (el 80%); no te podés quedar en cero.
+                  </div>
+                  {% endif %}
+                  <form id="formDonarCausa" method="post" action="{{ url_for('main.donar_causa') }}" data-total="{{ result.total }}" data-modo="{{ r.modo }}" data-max="{{ r.max }}">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Puntos a donar</label>
+                      <input type="number" id="donarMonto" name="monto" class="form-control" min="{{ r.min }}" max="{{ r.max }}"{% if r.modo == 'total' %} value="{{ r.max }}" readonly{% else %} placeholder="Ej. 2000"{% endif %} required>
+                    </div>
+                    <div class="mb-3">
+                      <label class="form-label fw-bold">Finalidad de la donación</label>
+                      <select id="donarFinalidad" name="finalidad_id" class="form-select" required>
+                        <option value="" disabled selected>Seleccioná una finalidad</option>
+                        {% for f in fins %}<option value="{{ f.id }}" data-desc="{{ f.descripcion or '' }}">{{ f.nombre }}</option>{% endfor %}
+                      </select>
+                      <small id="donarDesc" class="text-muted"></small>
+                    </div>
+                    <button type="button" id="btnAbrirDonar" class="btn btn-danger w-100 rounded-pill fw-bold"><i class="bi bi-heart me-1"></i>Donar puntos</button>
+                  </form>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+            {% if fins and r.modo != 'sin_puntos' %}
+            <div class="modal fade" id="modalDonarCausa" tabindex="-1" aria-hidden="true">
+              <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                  <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold w-100 text-center"><i class="bi bi-heart-fill text-danger me-2"></i>Confirmar donación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                  </div>
+                  <div class="modal-body px-4">
+                    <p class="text-center mb-2">Vas a donar <strong id="dcMonto"></strong> puntos a:</p>
+                    <p class="text-center fw-bold fs-5 text-danger mb-3" id="dcFinalidad"></p>
+                    <div id="dcAviso" class="alert small rounded-4 mb-3"></div>
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="dcConfirma">
+                      <label class="form-check-label small" for="dcConfirma">Entiendo que esta donación no se puede deshacer.</label>
+                    </div>
+                  </div>
+                  <div class="modal-footer border-0 justify-content-center pt-0 pb-4">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formDonarCausa" id="dcEnviar" class="btn btn-danger rounded-pill px-4 fw-bold" disabled>Sí, donar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <script src="{{ url_for('static', filename='js/donar_puntos.js') }}"></script>
+            {% endif %}

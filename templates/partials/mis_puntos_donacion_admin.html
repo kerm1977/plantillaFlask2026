@@ -1,0 +1,48 @@
+            {# BLINDADO: finalidades de donación (solo superusuario) #}
+            {% set fins_admin = donacion_finalidades_admin() %}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accFinalidades">
+                  <i class="bi bi-heart-pulse me-2 text-danger"></i>Finalidades de donación
+                </button>
+              </h2>
+              <div id="accFinalidades" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <form method="post" action="{{ url_for('main.donacion_finalidad_crear') }}" class="mb-3">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <div class="mb-2">
+                      <label class="form-label fw-bold">Finalidad o evento de donación</label>
+                      <input type="text" name="nombre" class="form-control" maxlength="200" placeholder="Ej. Ayuda para familia afectada" required>
+                    </div>
+                    <div class="mb-2">
+                      <textarea name="descripcion" class="form-control" rows="2" placeholder="Descripción (opcional)"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold">Agregar finalidad</button>
+                  </form>
+                  {% for f in fins_admin %}
+                  <div class="border rounded-4 p-2 mb-2 bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+                      <div>
+                        <span class="fw-bold">{{ f.nombre }}</span>
+                        <span class="badge rounded-pill {{ 'bg-success' if f.activo else 'bg-secondary' }}">{{ 'Activa' if f.activo else 'Inactiva' }}</span>
+                        <small class="d-block text-muted">Donado: <strong>{{ f.donado }}</strong> puntos</small>
+                        {% if f.descripcion %}<small class="d-block text-muted">{{ f.descripcion }}</small>{% endif %}
+                      </div>
+                      <div class="d-flex gap-1 flex-shrink-0">
+                        <form method="post" action="{{ url_for('main.donacion_finalidad_accion', fid=f.id, accion='toggle') }}">
+                          <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                          <button class="btn btn-sm btn-outline-secondary rounded-pill" title="Activar / desactivar"><i class="bi bi-power"></i></button>
+                        </form>
+                        <form method="post" action="{{ url_for('main.donacion_finalidad_accion', fid=f.id, accion='eliminar') }}" onsubmit="return confirm('¿Eliminar esta finalidad?');">
+                          <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                          <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar"><i class="bi bi-trash"></i></button>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                  {% else %}
+                  <p class="small text-muted mb-0">Aún no hay finalidades creadas.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>

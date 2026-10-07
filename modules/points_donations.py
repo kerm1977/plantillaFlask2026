@@ -44,8 +44,8 @@ def donate(donor_cedula, recipient_cedula, monto, created_by='donante', detalle=
     if not monto or monto <= 0:
         return {'ok': False, 'error': 'El monto debe ser mayor a 0.'}
     total = _total(donor_cedula)
-    if total < 1000:
-        return {'ok': False, 'error': f'Tenés {total} puntos. Necesitás al menos 1.000 puntos para obsequiar o transferir; no podés transferir el total.'}
+    if total < 5000:
+        return {'ok': False, 'error': f'Tenés {total} puntos. Necesitás al menos 5.000 puntos para obsequiar, transferir o donar a un cumpleañero. Con menos podés donar la totalidad con un fin benéfico ("Donar puntos").'}
     tope = int(total * 0.8)
     if monto > tope:
         return {'ok': False, 'error': f'Tenés {total} puntos. Podés obsequiar o transferir hasta {tope} puntos (80% de tus puntos); no te podés quedar en cero.'}

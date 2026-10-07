@@ -195,6 +195,7 @@ class HikerPoints(db.Model):
     hiker_id = db.Column(db.Integer, db.ForeignKey('hiker.id'), nullable=True)
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
     puntos_evento_id = db.Column(db.Integer, db.ForeignKey('puntos_evento.id'), nullable=True)
+    donacion_finalidad_id = db.Column(db.Integer, db.ForeignKey('donacion_finalidad.id'), nullable=True)
     points = db.Column(db.Integer, default=0)
     tipo = db.Column(db.String(20), default='participacion')
     detalle = db.Column(db.String(255))
