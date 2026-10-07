@@ -115,14 +115,17 @@
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
             <h2 class="accordion-header">
               <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accExportar">
-                <i class="bi bi-share me-2 text-primary"></i>Descargar y compartir
+                <i class="bi bi-share me-2 text-primary"></i>Descargar y compartir estado de cuenta
               </button>
             </h2>
             <div id="accExportar" class="accordion-collapse collapse" data-bs-parent="#resultadoPuntosAccordion">
               <div class="accordion-body">
                 <div class="d-grid gap-2">
-                  <a href="{{ estado_whatsapp_url }}" class="btn btn-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar mi estado de cuenta por WhatsApp</a>
-                  <p class="small text-muted mb-0">Se enviará al teléfono registrado de tu cédula{% if telefono_registrado %} ({{ telefono_registrado }}){% endif %}.</p>
+                  <a href="{{ estado_coordinador_url }}" class="btn btn-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar mi estado de cuenta a un coordinador</a>
+                  <a href="{{ estado_whatsapp_url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviarme a WhatsApp mi estado de cuenta</a>
+                  <p class="small text-muted mb-1">"Enviarme" va al teléfono registrado de tu cédula{% if telefono_registrado %} ({{ telefono_registrado }}){% endif %}.</p>
+                  <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula) }}" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF</a>
+                  <a href="{{ url_for('main.estado_cuenta_txt', cedula=result.cedula) }}" class="btn btn-secondary rounded-pill fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Descargar TXT</a>
                 </div>
               </div>
             </div>
@@ -130,7 +133,6 @@
 
           {% set page_arg = request.args.get('page', '') %}
           {% include 'partials/mis_puntos_historial.html' %}
-          {% include 'partials/mis_puntos_exportar.html' %}
         </div>
           </div>
           <div class="col-12 col-lg-5">

@@ -168,6 +168,7 @@ def mis_puntos():
     whatsapp_url = ''
     registro_whatsapp_url = ''
     estado_whatsapp_url = ''
+    estado_coordinador_url = ''
     telefono_registrado = ''
     registros = []
     no_registrado = False
@@ -212,6 +213,8 @@ def mis_puntos():
                     # para que el template no reciba instancias expiradas.
                     hiker_found = Hiker.query.get(hiker_found.id)
                     todos_hikers = Hiker.query.order_by(Hiker.nombre_completo).all()
+                    cumpleaneros = birthday_hikers()
+                    eventos_redimir = [e for e in Event.query.order_by(Event.id.desc()).all() if not is_past_event(e) and (e.visitado in ('Programados', 'Por programar'))]
                 history = engine.history_with_names(cedula)
                 cutoff = get_notif_cutoff(cedula)
                 notificaciones = [r for r in history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > cutoff]
@@ -235,5 +238,6 @@ def mis_puntos():
                 telefono_registrado = re.sub(r'\D', '', hiker_found.telefono or '')
                 estado_txt = build_estado_cuenta_whatsapp(cedula, hiker_found)
                 estado_whatsapp_url = ('https://wa.me/' + telefono_registrado if telefono_registrado else 'https://wa.me/') + '?text=' + quote(estado_txt)
-    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, telefono_registrado=telefono_registrado)
+                estado_coordinador_url = 'https://wa.me/50686529837?text=' + quote('Hola Jenny, este es mi estado de cuenta\n\n' + estado_txt)
+    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado)
 

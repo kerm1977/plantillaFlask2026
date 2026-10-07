@@ -6,26 +6,29 @@
 from datetime import datetime, date
 
 
-def build_estado_cuenta_whatsapp(cedula, hiker=None):
-    """Estado de cuenta de puntos para WhatsApp (reutilizable)."""
+def build_estado_cuenta_whatsapp(cedula, hiker=None, plain=False):
+    """Estado de cuenta de puntos para WhatsApp (reutilizable). plain=True: sin marcas de formato (TXT)."""
     from modules.points_engine import get_points_engine
     engine = get_points_engine()
+    b = (lambda s: s) if plain else (lambda s: f'*{s}*')
+    i = (lambda s: s) if plain else (lambda s: f'_{s}_')
     sep = '-' * 30
     history = engine.history_with_names(cedula)
     ganados = sum(r['puntos'] for r in history if r['puntos'] > 0)
     usados = -sum(r['puntos'] for r in history if r['puntos'] < 0)
-    lines = ['*ESTADO DE CUENTA DE PUNTOS*', '_La Tribu de los Libres_', sep,
-             f'*Nombre:* {hiker.nombre_completo if hiker else ""}', f'*Cédula:* {cedula}',
-             f'*TOTAL: {engine.total_by_cedula(cedula)} puntos*',
+    lines = [b('ESTADO DE CUENTA DE PUNTOS'), i('La Tribu de los Libres'), sep,
+             f'{b("Nombre:")} {hiker.nombre_completo if hiker else ""}', f'{b("Cédula:")} {cedula}',
+             b(f'TOTAL: {engine.total_by_cedula(cedula)} puntos'),
              f'Ganados: {ganados} | Usados: {usados}',
-             f'Generado: {datetime.now().strftime("%d/%m/%Y %H:%M")}', sep, '*MOVIMIENTOS*']
+             f'Generado: {datetime.now().strftime("%d/%m/%Y %H:%M")}', sep, b('MOVIMIENTOS')]
     for row in history:
         f = (row.get('creado_at') or '')[:10]
         f = f'{f[8:10]}/{f[5:7]}/{f[0:4]}' if len(f) == 10 else 'Sin fecha'
         actividad = row.get('evento_nombre') or (row.get('tipo') or '').replace('_', ' ').capitalize()
-        lines.append(f'{f} | {actividad} | *{row.get("puntos", 0):+d}*')
+        pts = f'{row.get("puntos", 0):+d}'
+        lines.append(f'{f} | {actividad} | {b(pts)}')
         if row.get('detalle'):
-            lines.append(f'   _{row["detalle"]}_')
+            lines.append(f'   {i(row["detalle"])}')
     if not history:
         lines.append('Sin movimientos registrados.')
     return '\n'.join(lines)
