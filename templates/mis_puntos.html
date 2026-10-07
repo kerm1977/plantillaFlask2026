@@ -32,6 +32,7 @@
   <div class="row justify-content-center">
     <div class="col-12">
         <h1 class="fw-bold text-dark text-center mb-4"><i class="bi bi-trophy text-orange me-2"></i>Mis puntos ganados</h1>
+        {% if is_super %}
         <p class="text-muted text-center mb-4">Ingresá tu número de cédula para ver tu historial de puntos.</p>
         <div class="row justify-content-center">
           <div class="col-12 col-md-8 col-lg-6">
@@ -42,6 +43,7 @@
           </div>
           <p class="small text-muted text-center mb-4">Formato: solo números, sin guiones ni espacios. En vez de guiones usá ceros (ej: 1-0984-0935 → 109840935).</p>
         </form>
+        {% endif %}
         {% include 'partials/reglamento_puntos.html' %}
         {% if no_registrado %}
         <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 text-center">
