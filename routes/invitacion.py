@@ -52,5 +52,6 @@ def invitacion_png():
         return jsonify({'ok': False, 'error': 'Evento no encontrado'}), 404
     if not hiker:
         return jsonify({'ok': False, 'error': 'Persona no encontrada'}), 404
-    img = build_invitacion_image(event, hiker)
+    params = {k: request.args.get(k) for k in ('pos', 'band', 'blur', 'fnombre', 'finfo', 'fboton')}
+    img = build_invitacion_image(event, hiker, params)
     return send_file(invitacion_bytes(img), mimetype='image/png')

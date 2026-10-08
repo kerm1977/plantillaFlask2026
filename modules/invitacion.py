@@ -7,12 +7,34 @@
 import io
 import os
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H = 1080, 1920
 NARANJA = (255, 140, 0)
 BLANCO = (255, 255, 255)
 BASE = os.path.dirname(os.path.dirname(__file__))
+
+# Parámetros ajustables (en %): posición del texto, inicio del difuminado,
+# desenfoque del flyer y escala de fuentes.
+DEF_PARAMS = {
+    'pos': 62,        # % de alto donde empieza el bloque de texto
+    'band': 58,       # % de alto donde inicia el difuminado naranja
+    'blur': 0,        # % de desenfoque del fondo (0-100 -> 0-12px)
+    'fnombre': 100,   # % tamaño del nombre
+    'finfo': 100,     # % tamaño de la información
+    'fboton': 100,    # % tamaño del botón de puntos
+}
+
+
+def _params(p):
+    out = dict(DEF_PARAMS)
+    if p:
+        for k in DEF_PARAMS:
+            try:
+                out[k] = max(0, min(200, float(p.get(k, DEF_PARAMS[k]))))
+            except (TypeError, ValueError):
+                pass
+    return out
 
 
 def _font(size, bold=False):
@@ -72,69 +94,83 @@ def _cover(img, ancho, alto):
     return img.crop((x, y, x + ancho, y + alto))
 
 
-def build_invitacion_image(event, hiker):
-    """PNG 9:16: flyer del evento + invitación personalizada."""
+def build_invitacion_image(event, hiker, params=None):
+    """PNG 9:16: flyer del evento + invitación personalizada.
+
+    params (en %): pos, band, blur, fnombre, finfo, fboton."""
+    p = _params(params)
     img = Image.new('RGB', (W, H), (18, 18, 24))
     flyer = _flyer_path(event)
     if flyer:
         try:
             f = Image.open(flyer).convert('RGB')
-            img.paste(_cover(f, W, H), (0, 0))
+            f = _cover(f, W, H)
+            if p['blur'] > 0:
+                f = f.filter(ImageFilter.GaussianBlur(p['blur'] / 100 * 12))
+            img.paste(f, (0, 0))
         except (OSError, IOError):
             pass
 
-    # Banda oscura inferior: los flyers ya traen su propio texto,
-    # así que el mensaje va sobre una base casi opaca y legible.
+    # Difuminado naranja inferior ajustable: los flyers ya traen su propio
+    # texto, así que el mensaje va sobre una base casi opaca y legible.
     overlay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    y0 = int(H * 0.58)
+    y0 = int(H * min(p['band'], 95) / 100)
     for y in range(y0, H):
-        a = min(250, int(255 * (y - y0) / 150))
-        od.line([(0, y), (W, y)], fill=(10, 10, 16, a))
+        a = min(245, int(255 * (y - y0) / 150))
+        od.line([(0, y), (W, y)], fill=(230, 110, 0, a))
     img = Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
     draw = ImageDraw.Draw(img)
+
+    y = int(H * min(p['pos'], 95) / 100)
 
     # Marca
     try:
         logo = Image.open(os.path.join(BASE, 'static', 'logo.png')).convert('RGBA')
         r = 76 / logo.height
         logo = logo.resize((int(logo.width * r), 76))
-        img.paste(logo, ((W - logo.width) // 2, y0 - 96), logo)
+        img.paste(logo, ((W - logo.width) // 2, y - 92), logo)
         draw = ImageDraw.Draw(img)
     except (OSError, IOError):
         pass
 
-    y = y0 + 16
-    y += _center(draw, y, '¡ESTÁS INVITADO(A)!', _font(56, bold=True), NARANJA) + 26
+    y += _center(draw, y, '¡ESTÁS INVITADO(A)!', _font(56, bold=True), BLANCO) + 26
+    fn = int(58 * p['fnombre'] / 100)
     nombre = (hiker.nombre_completo or '').strip() if hiker else ''
-    for ln in _wrap(draw, nombre, _font(58, bold=True), W - 120):
-        y += _center(draw, y, ln, _font(58, bold=True), BLANCO) + 10
+    for ln in _wrap(draw, nombre, _font(fn, bold=True), W - 120):
+        y += _center(draw, y, ln, _font(fn, bold=True), BLANCO) + 10
     y += 18
-    for ln in _wrap(draw, event.nombre_lugar or '', _font(44, bold=True), W - 140)[:2]:
-        y += _center(draw, y, ln, _font(44, bold=True), (255, 205, 130)) + 8
+    fe = int(44 * p['finfo'] / 100)
+    for ln in _wrap(draw, event.nombre_lugar or '', _font(fe, bold=True), W - 140)[:2]:
+        y += _center(draw, y, ln, _font(fe, bold=True), (255, 255, 255)) + 8
 
     detalle = ' · '.join(x for x in [
         getattr(event, 'fecha_unica', None) or getattr(event, 'fecha_inicio', None) or '',
         getattr(event, 'lugar_salida', None) or '',
         getattr(event, 'provincia', None) or ''] if x)
     if detalle:
-        for ln in _wrap(draw, detalle, _font(30), W - 160)[:2]:
-            y += _center(draw, y + 4, ln, _font(30), (215, 215, 225)) + 4
+        fd = int(30 * p['finfo'] / 100)
+        for ln in _wrap(draw, detalle, _font(fd), W - 160)[:2]:
+            y += _center(draw, y + 4, ln, _font(fd), (255, 240, 220)) + 4
 
     # Badge de puntos
     pts = getattr(event, 'puntos', 0) or 0
     if pts > 0:
         y += 34
+        fb = p['fboton'] / 100
         txt = f'Ganá {pts} puntos al participar'
-        f_p = _font(36, bold=True)
+        f_p = _font(max(10, int(36 * fb)), bold=True)
         bb = draw.textbbox((0, 0), txt, font=f_p)
         pw = bb[2] - bb[0]
-        x0 = (W - pw) / 2 - 34
-        draw.rounded_rectangle([x0, y - 12, x0 + pw + 68, y + 60], radius=36, fill=NARANJA)
-        draw.text((x0 + 34, y), txt, font=f_p, fill=BLANCO)
-        y += 96
+        pad_x, box_h = int(34 * fb), int(72 * fb)
+        x0 = (W - pw) / 2 - pad_x
+        draw.rounded_rectangle([x0, y - int(12 * fb), x0 + pw + pad_x * 2, y + box_h - int(12 * fb)],
+                               radius=int(36 * fb), fill=BLANCO)
+        draw.text((x0 + pad_x, y - int(12 * fb) + (box_h - (bb[3] - bb[1])) / 2 - bb[1]), txt,
+                  font=f_p, fill=(190, 85, 0))
+        y += box_h + 24
 
-    _center(draw, H - 72, 'latribu.top', _font(24, bold=True), (200, 200, 210))
+    _center(draw, H - 72, 'latribu.top', _font(24, bold=True), (255, 235, 215))
     return img
 
 

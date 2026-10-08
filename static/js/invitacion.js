@@ -8,13 +8,43 @@ const Invitacion = (function () {
     let eventos = [];
     const FAV_KEY = 'inv_favs_v1';
 
+    const PARAM_KEY = 'inv_params_v1';
+    const PARAM_IDS = { pos: 'invPos', band: 'invBand', blur: 'invBlur',
+                        fnombre: 'invFnombre', finfo: 'invFinfo', fboton: 'invFboton' };
+    let _ajusteTimer = null;
+
     function norm(s) {
         return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+    function params() {
+        const p = {};
+        for (const k in PARAM_IDS) p[k] = document.getElementById(PARAM_IDS[k]).value;
+        return p;
     }
     function urlPng() {
         const ev = document.getElementById('invEvento').value;
         const ced = document.getElementById('invCedula').value;
-        return (ev && ced) ? `/api/invitacion.png?evento=${ev}&cedula=${ced}` : '';
+        if (!(ev && ced)) return '';
+        const q = new URLSearchParams(params()).toString();
+        return `/api/invitacion.png?evento=${ev}&cedula=${ced}&${q}`;
+    }
+    // Persistir ajustes + refrescar vista previa (con debounce)
+    function ajuste() {
+        for (const k in PARAM_IDS)
+            document.getElementById(PARAM_IDS[k] + 'Val').textContent =
+                document.getElementById(PARAM_IDS[k]).value + '%';
+        localStorage.setItem(PARAM_KEY, JSON.stringify(params()));
+        if (_ajusteTimer) clearTimeout(_ajusteTimer);
+        _ajusteTimer = setTimeout(actualizar, 350);
+    }
+    function cargarParams() {
+        let saved = {};
+        try { saved = JSON.parse(localStorage.getItem(PARAM_KEY)) || {}; } catch (e) {}
+        for (const k in PARAM_IDS) {
+            if (saved[k] !== undefined) document.getElementById(PARAM_IDS[k]).value = saved[k];
+            document.getElementById(PARAM_IDS[k] + 'Val').textContent =
+                document.getElementById(PARAM_IDS[k]).value + '%';
+        }
     }
 
     function pintarLista() {
@@ -115,6 +145,7 @@ const Invitacion = (function () {
         // Preselección: la persona del expediente abierto
         const ced = (window.currentSelectedUserObj && currentSelectedUserObj.crm_cedula) || '';
         if (ced) elegir(ced);
+        cargarParams();
         pintarLista();
         pintarFavs();
         actualizar();
@@ -148,7 +179,8 @@ const Invitacion = (function () {
     }
 
     return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar,
-             whatsapp: whatsapp, usarFav: usarFav, borrarFav: borrarFav, usada: usada };
+             whatsapp: whatsapp, usarFav: usarFav, borrarFav: borrarFav, usada: usada,
+             ajuste: ajuste };
 })();
 
 function mostrarInvitacion() { Invitacion.abrir(); }

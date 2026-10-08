@@ -30,6 +30,25 @@
             <div id="invPreview" class="border rounded-4 bg-light d-flex align-items-center justify-content-center" style="min-height:340px;overflow:hidden;">
               <span class="text-muted small">Elegí evento y persona para ver la invitación</span>
             </div>
+            <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mt-2" data-bs-toggle="collapse" data-bs-target="#invAjustes">
+              <i class="bi bi-sliders me-1"></i>Ajustar diseño
+            </button>
+            <div class="collapse text-start" id="invAjustes">
+              <div class="border rounded-3 mt-2 p-2 small" style="max-height:200px;overflow-y:auto;">
+                <label class="form-label mb-0 d-flex justify-content-between">Posición del texto <span id="invPosVal">62%</span></label>
+                <input type="range" class="form-range" id="invPos" min="30" max="92" value="62" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Difuminado (inicio) <span id="invBandVal">58%</span></label>
+                <input type="range" class="form-range" id="invBand" min="10" max="92" value="58" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Desenfoque del fondo <span id="invBlurVal">0%</span></label>
+                <input type="range" class="form-range" id="invBlur" min="0" max="100" value="0" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Tamaño del nombre <span id="invFnombreVal">100%</span></label>
+                <input type="range" class="form-range" id="invFnombre" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Tamaño de la información <span id="invFinfoVal">100%</span></label>
+                <input type="range" class="form-range" id="invFinfo" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Tamaño del botón de puntos <span id="invFbotonVal">100%</span></label>
+                <input type="range" class="form-range" id="invFboton" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+              </div>
+            </div>
           </div>
         </div>
       </div>
