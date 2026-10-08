@@ -3,7 +3,9 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 # routes/invitacion.py - Invitación personalizada 9:16 (solo superusuario).
-from flask import request, session, jsonify, send_file
+import os
+
+from flask import request, session, jsonify, send_file, current_app
 
 from models import Event, Hiker
 from modules.invitacion import build_invitacion_image, invitacion_bytes
@@ -13,6 +15,18 @@ from routes import bp
 
 def _is_super():
     return session.get('role') == 'Superusuario'
+
+
+def _flyer_url(ev):
+    """URL pública del flyer (para la vista previa DOM del modal)."""
+    for nombre in (ev.flyer_bg, ev.poster):
+        if not nombre:
+            continue
+        if os.path.exists(os.path.join(current_app.static_folder, 'uploads', nombre)):
+            return '/static/uploads/' + nombre
+        if os.path.exists(os.path.join(current_app.static_folder, nombre)):
+            return '/static/' + nombre
+    return '/static/default.png'
 
 
 @bp.route('/api/invitacion/eventos')
@@ -32,6 +46,7 @@ def invitacion_eventos():
             'fecha': ev.fecha_unica or ev.fecha_inicio or '',
             'lugar': ev.lugar_salida or ev.provincia or '',
             'puntos': ev.puntos or 0,
+            'flyer': _flyer_url(ev),
         })
     return jsonify({'ok': True, 'eventos': salida})
 

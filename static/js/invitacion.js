@@ -2,54 +2,110 @@
 //   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
 //   Explicar antes de editar. Contenido sagrado protegido.
 // ==============================================================
-// invitacion.js - Invitación personalizada 9:16 por WhatsApp (dashboard)
+// invitacion.js - Invitación personalizada 9:16 por WhatsApp.
+// Vista previa DOM + html2canvas (misma técnica del editor de flyers):
+// los controles mueven CSS en vivo, sin recargar imágenes del servidor.
 const Invitacion = (function () {
     let personas = [];
     let eventos = [];
     const FAV_KEY = 'inv_favs_v1';
-
     const PARAM_KEY = 'inv_params_v1';
-    const PARAM_IDS = { pos: 'invPos', band: 'invBand', blur: 'invBlur',
+    // Sliders -> ids; los de fuente tienen su tamaño base en em.
+    const PARAM_IDS = { fglobal: 'invFglobal', pos: 'invPos', band: 'invBand', blur: 'invBlur',
                         fnombre: 'invFnombre', finfo: 'invFinfo', fboton: 'invFboton' };
-    let _ajusteTimer = null;
+    let _msgAuto = '';   // último mensaje generado (si el usuario no editó, se regenera)
 
+    function $(id) { return document.getElementById(id); }
     function norm(s) {
         return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
     }
     function params() {
         const p = {};
-        for (const k in PARAM_IDS) p[k] = document.getElementById(PARAM_IDS[k]).value;
+        for (const k in PARAM_IDS) p[k] = parseInt($(PARAM_IDS[k]).value, 10) || 0;
         return p;
     }
-    function urlPng() {
-        const ev = document.getElementById('invEvento').value;
-        const ced = document.getElementById('invCedula').value;
-        if (!(ev && ced)) return '';
-        const q = new URLSearchParams(params()).toString();
-        return `/api/invitacion.png?evento=${ev}&cedula=${ced}&${q}`;
+    function eventoSel() {
+        const v = $('invEvento').value;
+        return eventos.find(function (e) { return String(e.id) === v; }) || null;
     }
-    // Persistir ajustes + refrescar vista previa (con debounce)
+    function personaSel() {
+        const v = $('invCedula').value;
+        return personas.find(function (x) { return x.cedula === v; }) || null;
+    }
+
+    // ── Diseño en vivo (CSS, sin parpadeo) ─────────────────────
+    function renderDiseno() {
+        const p = params();
+        $('invPosVal').textContent = p.pos + '%';
+        $('invBandVal').textContent = p.band + '%';
+        $('invBlurVal').textContent = p.blur + '%';
+        $('invFglobalVal').textContent = p.fglobal + '%';
+        $('invFnombreVal').textContent = p.fnombre + '%';
+        $('invFinfoVal').textContent = p.finfo + '%';
+        $('invFbotonVal').textContent = p.fboton + '%';
+
+        $('invBlock').style.top = p.pos + '%';
+        $('invBlock').style.fontSize = (10 * p.fglobal / 100) + 'px';
+        $('invBand').style.top = p.band + '%';
+        const blurPx = p.blur / 100 * 12;
+        const img = $('invBgImg');
+        img.style.filter = blurPx ? 'blur(' + blurPx + 'px)' : 'none';
+        img.style.transform = blurPx ? 'scale(' + (1 + blurPx * 0.02) + ')' : 'none';
+        $('invTxtNombre').style.fontSize = (2.9 * p.fnombre / 100) + 'em';
+        $('invTxtEvento').style.fontSize = (2.2 * p.finfo / 100) + 'em';
+        $('invTxtDetalle').style.fontSize = (1.5 * p.finfo / 100) + 'em';
+        $('invTxtPuntos').style.fontSize = (1.8 * p.fboton / 100) + 'em';
+    }
     function ajuste() {
-        for (const k in PARAM_IDS)
-            document.getElementById(PARAM_IDS[k] + 'Val').textContent =
-                document.getElementById(PARAM_IDS[k]).value + '%';
+        renderDiseno();
         localStorage.setItem(PARAM_KEY, JSON.stringify(params()));
-        if (_ajusteTimer) clearTimeout(_ajusteTimer);
-        _ajusteTimer = setTimeout(actualizar, 350);
     }
     function cargarParams() {
         let saved = {};
         try { saved = JSON.parse(localStorage.getItem(PARAM_KEY)) || {}; } catch (e) {}
         for (const k in PARAM_IDS) {
-            if (saved[k] !== undefined) document.getElementById(PARAM_IDS[k]).value = saved[k];
-            document.getElementById(PARAM_IDS[k] + 'Val').textContent =
-                document.getElementById(PARAM_IDS[k]).value + '%';
+            if (saved[k] !== undefined) $(PARAM_IDS[k]).value = saved[k];
         }
     }
 
+    // Escala el canvas 540x960 al espacio del modal (patrón flyer_setup)
+    function scalePreview() {
+        const wrap = $('invPreviewWrap'), area = $('invCanvas');
+        if (!wrap || !area) return;
+        const s = Math.min((wrap.clientWidth - 10) / 540, (wrap.clientHeight - 10) / 960);
+        area.style.transform = 'scale(' + s + ')';
+    }
+
+    // ── Datos en la invitación ─────────────────────────────────
+    function mensajeAuto(ev, p) {
+        return '¡' + (p ? p.nombre_completo : 'Hola') + ', estás invitado(a) a "' +
+            (ev ? ev.nombre : 'nuestra actividad') + '"' +
+            (ev && ev.fecha ? ' el ' + ev.fecha : '') +
+            (ev && ev.puntos ? '. ¡Ganás ' + ev.puntos + ' puntos por participar!' : '.') +
+            ' Te adjuntamos tu invitación personalizada. — latribu.top';
+    }
+    function actualizar() {
+        const ev = eventoSel(), p = personaSel();
+        $('invBgImg').src = (ev && ev.flyer) ? ev.flyer : '/static/default.png';
+        $('invTxtNombre').textContent = p ? p.nombre_completo : 'Nombre de la persona';
+        $('invTxtEvento').textContent = ev ? ev.nombre : '';
+        $('invTxtDetalle').textContent = ev ? [ev.fecha, ev.lugar].filter(Boolean).join(' · ') : '';
+        const pill = $('invTxtPuntos');
+        if (ev && ev.puntos) { pill.textContent = 'Ganá ' + ev.puntos + ' puntos al participar'; pill.parentElement.style.display = ''; }
+        else { pill.parentElement.style.display = 'none'; }
+        $('invResumen').textContent = ev ? (ev.nombre + (ev.puntos ? ' · +' + ev.puntos + ' puntos' : '')) : '';
+        // Mensaje: solo se regenera si el usuario no lo personalizó
+        const msg = $('invMsg');
+        const nuevo = (ev && p) ? mensajeAuto(ev, p) : '';
+        if (!msg.value || msg.value === _msgAuto) { msg.value = nuevo; }
+        _msgAuto = nuevo;
+        renderDiseno();
+    }
+
+    // ── Persona (buscador en vivo) ─────────────────────────────
     function pintarLista() {
-        const lista = document.getElementById('invLista');
-        const t = norm(document.getElementById('invBuscar').value);
+        const lista = $('invLista');
+        const t = norm($('invBuscar').value);
         const res = personas.filter(function (p) {
             return !t || norm(p.nombre_completo + ' ' + p.cedula + ' ' + (p.telefono || '')).indexOf(t) !== -1;
         }).slice(0, 25);
@@ -59,14 +115,21 @@ const Invitacion = (function () {
                 (p.nombre_completo || '') + ' <span class="text-muted">(' + p.cedula + ')</span></button>';
         }).join('');
     }
+    function elegir(cedula) {
+        const p = personas.find(function (x) { return x.cedula === cedula; });
+        $('invCedula').value = cedula;
+        $('invBuscar').value = p ? (p.nombre_completo + ' (' + p.cedula + ')') : cedula;
+        $('invLista').innerHTML = '';
+        actualizar();
+    }
 
-    // ── Invitaciones recientes (localStorage): evento reutilizable ──
+    // ── Invitaciones recientes (localStorage) ──────────────────
     function favs() {
         try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
         catch (e) { return []; }
     }
     function pintarFavs() {
-        const c = document.getElementById('invFavs');
+        const c = $('invFavs');
         const f = favs();
         c.innerHTML = f.length ? f.map(function (x) {
             return '<span class="btn-group btn-group-sm">' +
@@ -78,19 +141,18 @@ const Invitacion = (function () {
         }).join('') : '<span class="text-muted small">Las invitaciones que envíes o descargues quedan aquí para reutilizarlas.</span>';
     }
     function usarFav(id) {
-        document.getElementById('invEvento').value = id;
-        document.getElementById('invCedula').value = '';
-        document.getElementById('invBuscar').value = '';
+        $('invEvento').value = id;
+        $('invCedula').value = '';
+        $('invBuscar').value = '';
         actualizar();
-        document.getElementById('invBuscar').focus();
+        $('invBuscar').focus();
     }
     function borrarFav(id) {
         localStorage.setItem(FAV_KEY, JSON.stringify(favs().filter(function (x) { return String(x.id) !== String(id); })));
         pintarFavs();
     }
     function usada() {
-        const sel = document.getElementById('invEvento');
-        const ev = eventos.find(function (e) { return String(e.id) === sel.value; });
+        const ev = eventoSel();
         if (!ev) return;
         const f = favs().filter(function (x) { return String(x.id) !== String(ev.id); });
         f.unshift({ id: ev.id, nombre: ev.nombre, puntos: ev.puntos, fecha: ev.fecha });
@@ -98,33 +160,9 @@ const Invitacion = (function () {
         pintarFavs();
     }
 
-    function elegir(cedula) {
-        const p = personas.find(function (x) { return x.cedula === cedula; });
-        document.getElementById('invCedula').value = cedula;
-        document.getElementById('invBuscar').value = p ? (p.nombre_completo + ' (' + p.cedula + ')') : cedula;
-        document.getElementById('invLista').innerHTML = '';
-        actualizar();
-    }
-
-    function actualizar() {
-        const url = urlPng();
-        const evSel = document.getElementById('invEvento');
-        const ev = eventos.find(function (e) { return String(e.id) === evSel.value; });
-        const prev = document.getElementById('invPreview');
-        const res = document.getElementById('invResumen');
-        if (url) {
-            prev.innerHTML = '<img src="' + url + '" class="img-fluid rounded-4" style="max-height:420px;" alt="Invitación">';
-            res.textContent = ev ? (ev.nombre + (ev.puntos ? ' · +' + ev.puntos + ' puntos' : '')) : '';
-        } else {
-            prev.innerHTML = '<span class="text-muted small">Elegí evento y persona para ver la invitación</span>';
-            res.textContent = '';
-        }
-        document.getElementById('invDescargar').href = url || '#';
-        document.getElementById('invDescargar').classList.toggle('disabled', !url);
-    }
-
+    // ── Abrir modal ────────────────────────────────────────────
     async function abrir() {
-        const modal = new bootstrap.Modal(document.getElementById('invitacionModal'));
+        const modal = new bootstrap.Modal($('invitacionModal'));
         modal.show();
         if (!eventos.length) {
             try {
@@ -135,52 +173,85 @@ const Invitacion = (function () {
                 eventos = r1.eventos || [];
                 personas = r2.hikers || r2 || [];
             } catch (e) { /* sin datos */ }
-            const sel = document.getElementById('invEvento');
+            const sel = $('invEvento');
             sel.innerHTML = '<option value="">Elegí el evento...</option>' +
                 eventos.map(function (e) {
                     return '<option value="' + e.id + '">' + e.nombre +
                         (e.puntos ? ' (+' + e.puntos + ' pts)' : '') + '</option>';
                 }).join('');
         }
-        // Preselección: la persona del expediente abierto
+        // Preselección: la persona del expediente abierto (si viene del dashboard)
         const ced = (window.currentSelectedUserObj && currentSelectedUserObj.crm_cedula) || '';
         if (ced) elegir(ced);
         cargarParams();
         pintarLista();
         pintarFavs();
         actualizar();
+        setTimeout(scalePreview, 60);
+        if (!window._invResizeBound) {
+            window.addEventListener('resize', scalePreview);
+            $('invitacionModal').addEventListener('shown.bs.modal', scalePreview);
+            window._invResizeBound = true;
+        }
+    }
+
+    // ── Captura html2canvas a 1080x1920 ────────────────────────
+    function capturar() {
+        const area = $('invCanvas');
+        const t = area.style.transform;
+        area.style.transform = 'none';   // capturar a tamaño real
+        return html2canvas(area, { scale: 2, useCORS: true, backgroundColor: '#121218' })
+            .then(function (canvas) { area.style.transform = t; return canvas; })
+            .catch(function (e) { area.style.transform = t; throw e; });
+    }
+    function canvasBlob(canvas) {
+        return new Promise(function (res) { canvas.toBlob(res, 'image/png'); });
+    }
+    function listo() {
+        if (!$('invEvento').value || !$('invCedula').value) {
+            alert('Elegí evento y persona primero.');
+            return false;
+        }
+        return true;
+    }
+
+    async function descargar() {
+        if (!listo()) return;
+        usada();
+        const blob = await canvasBlob(await capturar());
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'invitacion.png';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
     }
 
     async function whatsapp() {
-        const url = urlPng();
-        if (!url) { alert('Elegí evento y persona primero.'); return; }
-        const ev = eventos.find(function (e) { return String(e.id) === document.getElementById('invEvento').value; });
-        const p = personas.find(function (x) { return x.cedula === document.getElementById('invCedula').value; });
+        if (!listo()) return;
         usada();
+        const p = personaSel();
         const tel = p && p.telefono ? '506' + String(p.telefono).replace(/\D/g, '') : '';
-        const texto = '¡' + (p ? p.nombre_completo : '') + ', estás invitado(a) a "' +
-            (ev ? ev.nombre : 'nuestra actividad') + '"' +
-            (ev && ev.fecha ? ' el ' + ev.fecha : '') +
-            (ev && ev.puntos ? '. ¡Ganás ' + ev.puntos + ' puntos por participar!' : '.') +
-            ' Te adjuntamos tu invitación personalizada.';
+        const texto = $('invMsg').value || _msgAuto || '';
+        const blob = await canvasBlob(await capturar());
+        const file = new File([blob], 'invitacion.png', { type: 'image/png' });
         try {
-            const blob = await (await fetch(url)).blob();
-            const file = new File([blob], 'invitacion.png', { type: 'image/png' });
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({ files: [file], text: texto });
                 return;
             }
         } catch (e) { /* fallback abajo */ }
-        // Fallback: descarga la imagen y abre el chat de WhatsApp
+        // Fallback: descarga la imagen y abre WhatsApp (wa.me sin número = elegir contacto)
         const a = document.createElement('a');
-        a.href = url; a.download = 'invitacion.png';
+        a.href = URL.createObjectURL(blob);
+        a.download = 'invitacion.png';
         document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
         window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank');
     }
 
     return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar,
-             whatsapp: whatsapp, usarFav: usarFav, borrarFav: borrarFav, usada: usada,
-             ajuste: ajuste };
+             whatsapp: whatsapp, descargar: descargar, usarFav: usarFav,
+             borrarFav: borrarFav, usada: usada, ajuste: ajuste };
 })();
 
 function mostrarInvitacion() { Invitacion.abrir(); }

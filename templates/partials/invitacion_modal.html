@@ -2,7 +2,8 @@
      BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
-<!-- Modal: invitación personalizada 9:16 por WhatsApp (superusuario) -->
+<!-- Modal: invitación personalizada 9:16 por WhatsApp (superusuario)
+     Vista previa DOM + html2canvas (misma técnica del editor de flyers) -->
 <div class="modal fade" id="invitacionModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content border-0 shadow-lg rounded-4">
@@ -21,22 +22,46 @@
             <input type="search" id="invBuscar" class="form-control" placeholder="Buscar por nombre o cédula..."
                    autocomplete="off" oninput="Invitacion.filtrar()">
             <input type="hidden" id="invCedula">
-            <div id="invLista" class="list-group mt-1" style="max-height:180px;overflow-y:auto;"></div>
+            <div id="invLista" class="list-group mt-1" style="max-height:150px;overflow-y:auto;"></div>
             <label class="form-label fw-bold small mt-3">Invitaciones recientes</label>
             <div id="invFavs" class="d-flex flex-wrap gap-1"></div>
+            <label class="form-label fw-bold small mt-3">Mensaje de WhatsApp <span class="fw-normal text-muted">(editable)</span></label>
+            <textarea id="invMsg" class="form-control small" rows="4"
+                      placeholder="El mensaje se arma solo al elegir evento y persona..."></textarea>
             <p class="small text-muted mt-2 mb-0" id="invResumen"></p>
           </div>
           <div class="col-12 col-md-6 text-center">
-            <div id="invPreview" class="border rounded-4 bg-light d-flex align-items-center justify-content-center" style="min-height:340px;overflow:hidden;">
-              <span class="text-muted small">Elegí evento y persona para ver la invitación</span>
+            <div id="invPreviewWrap" class="border rounded-4 bg-dark d-flex align-items-center justify-content-center"
+                 style="height:420px;overflow:hidden;position:relative;">
+              <!-- Canvas 9:16 (540x960) escalado al espacio; html2canvas lo captura a 1080x1920 -->
+              <div id="invCanvas" style="width:540px;height:960px;position:relative;overflow:hidden;flex:none;
+                   background:#121218;font-family:Arial,Helvetica,sans-serif;transform-origin:center center;">
+                <img id="invBgImg" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+                <div id="invBand" style="position:absolute;left:0;right:0;bottom:0;top:58%;
+                     background:linear-gradient(to bottom, rgba(230,110,0,0) 0%, rgba(230,110,0,0.96) 20%, rgba(230,110,0,0.97) 100%);"></div>
+                <div id="invBlock" style="position:absolute;left:0;right:0;top:62%;text-align:center;font-size:10px;">
+                  <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="width:38px;margin-bottom:.8em;">
+                  <div id="invTitulo" style="font-weight:bold;color:#fff;font-size:2.8em;letter-spacing:.02em;">¡ESTÁS INVITADO(A)!</div>
+                  <div id="invTxtNombre" style="font-weight:bold;color:#fff;font-size:2.9em;line-height:1.15;margin-top:.35em;padding:0 .4em;"></div>
+                  <div id="invTxtEvento" style="font-weight:bold;color:#fff;font-size:2.2em;line-height:1.15;margin-top:.4em;padding:0 .4em;"></div>
+                  <div id="invTxtDetalle" style="color:#ffe8d6;font-size:1.5em;margin-top:.45em;padding:0 .4em;"></div>
+                  <div style="margin-top:1.4em;"><span id="invTxtPuntos"
+                       style="display:inline-block;background:#fff;color:#be5500;font-weight:bold;
+                              font-size:1.8em;border-radius:2em;padding:.35em 1.1em;"></span></div>
+                </div>
+                <div style="position:absolute;left:0;right:0;bottom:14px;text-align:center;color:#ffeedf;
+                            font-weight:bold;font-size:12px;">latribu.top</div>
+              </div>
             </div>
             <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill mt-2" data-bs-toggle="collapse" data-bs-target="#invAjustes">
               <i class="bi bi-sliders me-1"></i>Ajustar diseño
             </button>
             <div class="collapse text-start" id="invAjustes">
               <div class="border rounded-3 mt-2 p-2 small" style="max-height:200px;overflow-y:auto;">
+                <label class="form-label mb-0 d-flex justify-content-between">Escala general <span id="invFglobalVal">100%</span></label>
+                <input type="range" class="form-range" id="invFglobal" min="50" max="170" value="100" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Posición del texto <span id="invPosVal">62%</span></label>
-                <input type="range" class="form-range" id="invPos" min="30" max="92" value="62" oninput="Invitacion.ajuste()">
+                <input type="range" class="form-range" id="invPos" min="20" max="92" value="62" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Difuminado (inicio) <span id="invBandVal">58%</span></label>
                 <input type="range" class="form-range" id="invBand" min="10" max="92" value="58" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Desenfoque del fondo <span id="invBlurVal">0%</span></label>
@@ -54,7 +79,7 @@
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold" data-bs-dismiss="modal">Cancelar</button>
-        <a href="#" id="invDescargar" class="btn btn-outline-primary rounded-pill fw-bold" download="invitacion.png" onclick="Invitacion.usada()"><i class="bi bi-download me-1"></i>Descargar</a>
+        <button type="button" id="invDescargar" class="btn btn-outline-primary rounded-pill fw-bold" onclick="Invitacion.descargar()"><i class="bi bi-download me-1"></i>Descargar</button>
         <button type="button" id="invWhatsapp" class="btn btn-success rounded-pill fw-bold" onclick="Invitacion.whatsapp()"><i class="bi bi-whatsapp me-1"></i>WhatsApp</button>
       </div>
     </div>
