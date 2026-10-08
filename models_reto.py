@@ -28,6 +28,7 @@ class Reto(db.Model):
     titulo = db.Column(db.String(120), nullable=False)
     texto = db.Column(db.String(500), nullable=False)
     puntos = db.Column(db.Integer, nullable=False, default=0)
+    frecuencia_dias = db.Column(db.Integer, default=30)  # días hasta poder repetir el reto
     enlace = db.Column(db.String(300), default='')
     activo = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

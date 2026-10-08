@@ -18,12 +18,14 @@ RETOS = {
     'datos': {
         'label': 'Actualizar mis datos',
         'puntos': 200,
+        'dias': 30,
         'wa': ('Hola, ya actualicé todos mis datos en el sistema de puntos de La Tribu de los '
                'Libres. Por favor confirmen el reto. Cédula: {cedula} - {nombre}.'),
     },
     'foto_perfil': {
         'label': 'Foto de perfil de Facebook con la camisa',
         'puntos': 200,
+        'dias': 30,
         'wa': ('Hola, ya puse mi foto de perfil en Facebook con la camisa de La Tribu de los '
                'Libres durante una semana. Envío el pantallazo para que lo confirmen. '
                'Cédula: {cedula} - {nombre}.'),
@@ -31,6 +33,7 @@ RETOS = {
     'foto_portada': {
         'label': 'Foto de portada de Facebook con la camisa y un paisaje',
         'puntos': 200,
+        'dias': 30,
         'wa': ('Hola, ya puse mi foto de portada de Facebook con la camisa de La Tribu de los '
                'Libres y un paisaje de fondo. Envío el pantallazo para que lo confirmen. '
                'Cédula: {cedula} - {nombre}.'),
@@ -38,13 +41,6 @@ RETOS = {
 }
 WHATSAPP_COORD = '50686529837'
 _CR = timezone(timedelta(hours=-6))
-
-
-def _mes(dt):
-    if not dt:
-        return ''
-    d = dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
-    return d.astimezone(_CR).strftime('%Y-%m')
 
 
 def _info_reto(key):
@@ -59,29 +55,48 @@ def _info_reto(key):
         r = Reto.query.get(rid)
         if not r:
             return None
-        return {'label': r.titulo, 'puntos': r.puntos or 0,
+        return {'label': r.titulo, 'puntos': r.puntos or 0, 'dias': r.frecuencia_dias or 30,
                 'wa': ('Hola, ya cumplí el reto «' + (r.titulo or '') + '». Envío el comprobante '
                        'para que lo confirmen. Cédula: {cedula} - {nombre}.'),
                 'reto_obj': r}
     return None
 
 
+def _ultima_aprobada(cedula, reto):
+    return (RetoSolicitud.query.filter_by(cedula=str(cedula), reto=reto, estado='aprobada')
+            .order_by(RetoSolicitud.resuelto_at.desc()).first())
+
+
 def estado_reto(cedula, reto):
-    """'pendiente' si hay solicitud sin resolver, 'ganado' si se aprobó este mes, 'ok' si puede hacerlo."""
-    if _info_reto(reto) is None:
+    """'pendiente' si hay solicitud sin resolver, 'ganado' si se aprobó dentro de la
+    frecuencia del reto (por defecto 30 días), 'ok' si puede volver a hacerlo."""
+    info = _info_reto(reto)
+    if info is None:
         return 'ok'
-    base = RetoSolicitud.query.filter_by(cedula=str(cedula), reto=reto)
-    if base.filter_by(estado='pendiente').first():
+    if RetoSolicitud.query.filter_by(cedula=str(cedula), reto=reto, estado='pendiente').first():
         return 'pendiente'
-    mes = _mes(datetime.now(timezone.utc))
-    for s in base.filter_by(estado='aprobada').all():
-        if _mes(s.resuelto_at) == mes:
-            return 'ganado'
+    ultima = _ultima_aprobada(cedula, reto)
+    if ultima and ultima.resuelto_at and \
+            ultima.resuelto_at >= datetime.utcnow() - timedelta(days=info.get('dias', 30)):
+        return 'ganado'
     return 'ok'
 
 
+def proximo_disponible(cedula, reto):
+    """Fecha (dd/mm/aaaa) en que el reto se vuelve a habilitar; '' si ya está disponible."""
+    info = _info_reto(reto) or {}
+    ultima = _ultima_aprobada(cedula, reto)
+    if not ultima or not ultima.resuelto_at:
+        return ''
+    fecha = ultima.resuelto_at + timedelta(days=info.get('dias', 30))
+    if fecha <= datetime.utcnow():
+        return ''
+    return fecha_cr(fecha).split(' ')[0]
+
+
 def estados_todos(cedula):
-    return {reto: estado_reto(cedula, reto) for reto in RETOS}
+    return {reto: {'estado': estado_reto(cedula, reto),
+                   'proximo': proximo_disponible(cedula, reto)} for reto in RETOS}
 
 
 def wa_coordinador(hiker, reto):

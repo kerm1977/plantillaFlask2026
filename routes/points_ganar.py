@@ -90,7 +90,7 @@ def reto_crear():
         return _volver(cedula)
     res = retos_builder.crear_custom(request.form.get('titulo'), request.form.get('texto'),
                                      request.form.get('puntos'), request.form.get('enlace'),
-                                     _current_user())
+                                     request.form.get('frecuencia'), _current_user())
     if res['ok']:
         session['admin_message'] = res['mensaje']
     else:

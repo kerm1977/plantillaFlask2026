@@ -13,10 +13,10 @@
                       <strong><i class="bi bi-pencil-square me-1 text-primary"></i>Actualizar mis datos</strong>
                       <span class="badge bg-success rounded-pill">+200 pts</span>
                     </div>
-                    <p class="small text-muted mb-2">Completá <strong>todos los campos</strong> de tu registro (teléfono, correo, tipo de sangre, contacto de emergencia...) y ganás <strong>200 puntos</strong> una vez por mes, luego de que los coordinadores lo comprueben.</p>
-                    {% if result.retos.datos == 'ganado' %}
-                    <p class="small text-success fw-bold mb-2"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes. Podés actualizar tus datos cuando quieras.</p>
-                    {% elif result.retos.datos == 'pendiente' %}
+                    <p class="small text-muted mb-2">Completá <strong>todos los campos</strong> de tu registro (teléfono, correo, tipo de sangre, contacto de emergencia...) y ganás <strong>200 puntos</strong> cada 30 días, luego de que los coordinadores lo comprueben.</p>
+                    {% if result.retos.datos.estado == 'ganado' %}
+                    <p class="small text-success fw-bold mb-2"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto. Podés repetirlo a partir del {{ result.retos.datos.proximo }}. Podés actualizar tus datos cuando quieras.</p>
+                    {% elif result.retos.datos.estado == 'pendiente' %}
                     <p class="small text-warning fw-bold mb-2"><i class="bi bi-hourglass-split me-1"></i>Tu reto está pendiente de aprobación por los coordinadores.</p>
                     {% endif %}
                     <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalDatos">
@@ -28,10 +28,10 @@
                       <strong><i class="bi bi-person-circle me-1 text-primary"></i>Foto de perfil con la camisa</strong>
                       <span class="badge bg-success rounded-pill">+200 pts</span>
                     </div>
-                    <p class="small text-muted mb-2">Poné tu <strong>foto de perfil de Facebook</strong> con la camisa de La Tribu de los Libres durante <strong>una semana</strong> y ganás <strong>200 puntos</strong>. Una vez por mes, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo a los coordinadores.</p>
-                    {% if result.retos.foto_perfil == 'ganado' %}
-                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
-                    {% elif result.retos.foto_perfil == 'pendiente' %}
+                    <p class="small text-muted mb-2">Poné tu <strong>foto de perfil de Facebook</strong> con la camisa de La Tribu de los Libres durante <strong>una semana</strong> y ganás <strong>200 puntos</strong>. Se repite cada 30 días, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo a los coordinadores.</p>
+                    {% if result.retos.foto_perfil.estado == 'ganado' %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto. Podés repetirlo a partir del {{ result.retos.foto_perfil.proximo }}.</p>
+                    {% elif result.retos.foto_perfil.estado == 'pendiente' %}
                     <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
                     {% else %}
                     <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 btn-reto"
@@ -45,10 +45,10 @@
                       <strong><i class="bi bi-image me-1 text-primary"></i>Foto de portada con la camisa</strong>
                       <span class="badge bg-success rounded-pill">+200 pts</span>
                     </div>
-                    <p class="small text-muted mb-2">Poné una <strong>foto tuya en el encabezado de Facebook</strong> con un paisaje detrás y la camisa de La Tribu de los Libres, durante <strong>una semana</strong>. Ganás <strong>200 puntos</strong>, una vez por mes, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo.</p>
-                    {% if result.retos.foto_portada == 'ganado' %}
-                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
-                    {% elif result.retos.foto_portada == 'pendiente' %}
+                    <p class="small text-muted mb-2">Poné una <strong>foto tuya en el encabezado de Facebook</strong> con un paisaje detrás y la camisa de La Tribu de los Libres, durante <strong>una semana</strong>. Ganás <strong>200 puntos</strong>, se repite cada 30 días, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo.</p>
+                    {% if result.retos.foto_portada.estado == 'ganado' %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto. Podés repetirlo a partir del {{ result.retos.foto_portada.proximo }}.</p>
+                    {% elif result.retos.foto_portada.estado == 'pendiente' %}
                     <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
                     {% else %}
                     <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 btn-reto"
@@ -63,12 +63,12 @@
                       <strong><i class="bi bi-star me-1 text-warning"></i>{{ rc.titulo }}</strong>
                       <span class="badge bg-success rounded-pill">+{{ rc.puntos }} pts</span>
                     </div>
-                    <p class="small text-muted mb-2">{{ rc.texto }}</p>
+                    <p class="small text-muted mb-2">{{ rc.texto }} <em>Se repite cada {{ rc.dias }} días, luego de comprobado.</em></p>
                     {% if rc.enlace %}
                     <a href="{{ rc.enlace }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill w-100 mb-2"><i class="bi bi-link-45deg me-1"></i>Abrir el enlace del reto</a>
                     {% endif %}
                     {% if rc.estado == 'ganado' %}
-                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto. Podés repetirlo a partir del {{ rc.proximo }}.</p>
                     {% elif rc.estado == 'pendiente' %}
                     <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
                     {% else %}
