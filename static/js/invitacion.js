@@ -84,7 +84,7 @@ const Invitacion = (function () {
 
     // ── Datos en la invitación ─────────────────────────────────
     function linkEvento(ev) {
-        return location.origin + '/caminatas-2027/' + ev.id + '?share=1';
+        return location.origin + '/puntos-scan/' + ev.id;
     }
     function mensajeAuto(ev, p) {
         return '¡' + (p ? p.nombre_completo : 'Hola') + ', estás invitado(a) a "' +
