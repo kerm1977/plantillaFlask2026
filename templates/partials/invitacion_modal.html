@@ -14,20 +14,58 @@
       <div class="modal-body">
         <div class="row g-3">
           <div class="col-12 col-md-6">
-            <label class="form-label fw-bold small">Evento</label>
-            <select id="invEvento" class="form-select" onchange="Invitacion.actualizar()">
-              <option value="">Cargando eventos...</option>
-            </select>
-            <label class="form-label fw-bold small mt-3">Persona a invitar</label>
-            <input type="search" id="invBuscar" class="form-control" placeholder="Buscar por nombre o cédula..."
-                   autocomplete="off" oninput="Invitacion.filtrar()">
-            <input type="hidden" id="invCedula">
-            <div id="invLista" class="list-group mt-1" style="max-height:150px;overflow-y:auto;"></div>
-            <label class="form-label fw-bold small mt-3">Invitaciones recientes</label>
-            <div id="invFavs" class="d-flex flex-wrap gap-1"></div>
-            <label class="form-label fw-bold small mt-3">Mensaje de WhatsApp <span class="fw-normal text-muted">(editable)</span></label>
-            <textarea id="invMsg" class="form-control small" rows="4"
-                      placeholder="El mensaje se arma solo al elegir evento y persona..."></textarea>
+            <div class="accordion accordion-flush" id="invAccordion">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button fw-bold py-2 px-0" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#invAccEvento">Evento</button>
+                </h2>
+                <div id="invAccEvento" class="accordion-collapse collapse show" data-bs-parent="#invAccordion">
+                  <div class="accordion-body px-0 pt-1">
+                    <select id="invEvento" class="form-select" onchange="Invitacion.actualizar()">
+                      <option value="">Cargando eventos...</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed fw-bold py-2 px-0" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#invAccPersona">Persona a invitar</button>
+                </h2>
+                <div id="invAccPersona" class="accordion-collapse collapse" data-bs-parent="#invAccordion">
+                  <div class="accordion-body px-0 pt-1">
+                    <input type="search" id="invBuscar" class="form-control" placeholder="Buscar por nombre o cédula..."
+                           autocomplete="off" oninput="Invitacion.filtrar()">
+                    <input type="hidden" id="invCedula">
+                    <div id="invLista" class="list-group mt-1" style="max-height:150px;overflow-y:auto;"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed fw-bold py-2 px-0" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#invAccFavs">Invitaciones recientes</button>
+                </h2>
+                <div id="invAccFavs" class="accordion-collapse collapse" data-bs-parent="#invAccordion">
+                  <div class="accordion-body px-0 pt-1">
+                    <div id="invFavs" class="d-flex flex-wrap gap-1"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed fw-bold py-2 px-0" type="button"
+                          data-bs-toggle="collapse" data-bs-target="#invAccMsg">Mensaje de WhatsApp</button>
+                </h2>
+                <div id="invAccMsg" class="accordion-collapse collapse" data-bs-parent="#invAccordion">
+                  <div class="accordion-body px-0 pt-1">
+                    <textarea id="invMsg" class="form-control small" rows="4"
+                              placeholder="El mensaje se arma solo al elegir evento y persona..."></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
             <p class="small text-muted mt-2 mb-0" id="invResumen"></p>
           </div>
           <div class="col-12 col-md-6 text-center">
@@ -63,7 +101,9 @@
                 <label class="form-label mb-0 d-flex justify-content-between">Posición del texto <span id="invPosVal">62%</span></label>
                 <input type="range" class="form-range" id="invPos" min="20" max="92" value="62" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Difuminado (inicio) <span id="invBandVal">58%</span></label>
-                <input type="range" class="form-range" id="invBand" min="10" max="92" value="58" oninput="Invitacion.ajuste()">
+                <input type="range" class="form-range" id="invBand" min="10" max="98" value="58" oninput="Invitacion.ajuste()">
+                <label class="form-label mb-0 d-flex justify-content-between">Suavidad del borde <span id="invSoftVal">20%</span></label>
+                <input type="range" class="form-range" id="invSoft" min="2" max="100" value="20" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Desenfoque del fondo <span id="invBlurVal">0%</span></label>
                 <input type="range" class="form-range" id="invBlur" min="0" max="100" value="0" oninput="Invitacion.ajuste()">
                 <label class="form-label mb-0 d-flex justify-content-between">Tamaño del nombre <span id="invFnombreVal">100%</span></label>

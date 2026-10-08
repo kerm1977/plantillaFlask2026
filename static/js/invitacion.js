@@ -11,8 +11,8 @@ const Invitacion = (function () {
     const FAV_KEY = 'inv_favs_v1';
     const PARAM_KEY = 'inv_params_v1';
     // Sliders -> ids; los de fuente tienen su tamaño base en em.
-    const PARAM_IDS = { fglobal: 'invFglobal', pos: 'invPos', band: 'invBand', blur: 'invBlur',
-                        fnombre: 'invFnombre', finfo: 'invFinfo', fboton: 'invFboton' };
+    const PARAM_IDS = { fglobal: 'invFglobal', pos: 'invPos', band: 'invBand', soft: 'invSoft',
+                        blur: 'invBlur', fnombre: 'invFnombre', finfo: 'invFinfo', fboton: 'invFboton' };
     let _msgAuto = '';   // último mensaje generado (si el usuario no editó, se regenera)
 
     function $(id) { return document.getElementById(id); }
@@ -38,6 +38,7 @@ const Invitacion = (function () {
         const p = params();
         $('invPosVal').textContent = p.pos + '%';
         $('invBandVal').textContent = p.band + '%';
+        $('invSoftVal').textContent = p.soft + '%';
         $('invBlurVal').textContent = p.blur + '%';
         $('invFglobalVal').textContent = p.fglobal + '%';
         $('invFnombreVal').textContent = p.fnombre + '%';
@@ -46,7 +47,11 @@ const Invitacion = (function () {
 
         $('invBlock').style.top = p.pos + '%';
         $('invBlock').style.fontSize = (10 * p.fglobal / 100) + 'px';
-        $('invBand').style.top = p.band + '%';
+        const band = $('invBand');
+        band.style.top = p.band + '%';
+        const soft = Math.max(2, Math.min(100, p.soft));
+        band.style.background = 'linear-gradient(to bottom, rgba(230,110,0,0) 0%, rgba(230,110,0,0.96) ' +
+            soft + '%, rgba(230,110,0,0.97) 100%)';
         const blurPx = p.blur / 100 * 12;
         const img = $('invBgImg');
         img.style.filter = blurPx ? 'blur(' + blurPx + 'px)' : 'none';
@@ -119,11 +124,32 @@ const Invitacion = (function () {
                 (p.nombre_completo || '') + ' <span class="text-muted">(' + p.cedula + ')</span></button>';
         }).join('');
     }
+    // Sliders: solo el punto de control mueve el valor; tocar la barra no hace nada
+    // (evita cambios accidentales al hacer scroll en el panel de ajustes).
+    function soloThumb(inp) {
+        inp.addEventListener('pointerdown', function (e) {
+            const r = inp.getBoundingClientRect();
+            const min = parseFloat(inp.min), max = parseFloat(inp.max), v = parseFloat(inp.value);
+            const thumbW = 20;
+            const cx = thumbW / 2 + (r.width - thumbW) * (v - min) / (max - min);
+            if (Math.abs(e.clientX - r.left - cx) > thumbW) e.preventDefault();
+        });
+    }
+    function bindSoloThumb() {
+        document.querySelectorAll('#invAjustes input[type=range]').forEach(soloThumb);
+    }
+
+    function colapsar(id, expandir) {
+        const el = document.getElementById(id);
+        if (el && window.bootstrap) bootstrap.Collapse.getOrCreateInstance(el)[expandir ? 'show' : 'hide']();
+    }
+
     function elegir(cedula) {
         const p = personas.find(function (x) { return x.cedula === cedula; });
         $('invCedula').value = cedula;
         $('invBuscar').value = p ? (p.nombre_completo + ' (' + p.cedula + ')') : cedula;
         $('invLista').innerHTML = '';
+        colapsar('invAccPersona', false);   // se colapsa solo al elegir
         actualizar();
     }
 
@@ -149,6 +175,7 @@ const Invitacion = (function () {
         $('invCedula').value = '';
         $('invBuscar').value = '';
         actualizar();
+        colapsar('invAccPersona', true);    // expande personas para elegir la nueva
         $('invBuscar').focus();
     }
     function borrarFav(id) {
@@ -195,6 +222,7 @@ const Invitacion = (function () {
         if (!window._invResizeBound) {
             window.addEventListener('resize', scalePreview);
             $('invitacionModal').addEventListener('shown.bs.modal', scalePreview);
+            bindSoloThumb();
             window._invResizeBound = true;
         }
     }

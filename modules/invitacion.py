@@ -19,6 +19,7 @@ BASE = os.path.dirname(os.path.dirname(__file__))
 DEF_PARAMS = {
     'pos': 62,        # % de alto donde empieza el bloque de texto
     'band': 58,       # % de alto donde inicia el difuminado naranja
+    'soft': 20,       # % de la banda que ocupa el fundido del borde
     'blur': 0,        # % de desenfoque del fondo (0-100 -> 0-12px)
     'fnombre': 100,   # % tamaño del nombre
     'finfo': 100,     # % tamaño de la información
@@ -115,9 +116,10 @@ def build_invitacion_image(event, hiker, params=None):
     # texto, así que el mensaje va sobre una base casi opaca y legible.
     overlay = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     od = ImageDraw.Draw(overlay)
-    y0 = int(H * min(p['band'], 95) / 100)
+    y0 = int(H * min(p['band'], 98) / 100)
+    fade = max(1, int((H - y0) * p['soft'] / 100))
     for y in range(y0, H):
-        a = min(245, int(255 * (y - y0) / 150))
+        a = min(245, int(255 * (y - y0) / fade))
         od.line([(0, y), (W, y)], fill=(230, 110, 0, a))
     img = Image.alpha_composite(img.convert('RGBA'), overlay).convert('RGB')
     draw = ImageDraw.Draw(img)
