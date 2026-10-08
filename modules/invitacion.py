@@ -59,7 +59,8 @@ def _flyer_path(event):
             p = os.path.join(BASE, 'static', nombre)
             if os.path.exists(p):
                 return p
-    return None
+    fallback = os.path.join(BASE, 'static', 'default.png')
+    return fallback if os.path.exists(fallback) else None
 
 
 def _cover(img, ancho, alto):

@@ -6,6 +6,7 @@
 const Invitacion = (function () {
     let personas = [];
     let eventos = [];
+    const FAV_KEY = 'inv_favs_v1';
 
     function norm(s) {
         return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -27,6 +28,44 @@ const Invitacion = (function () {
                 'onclick="Invitacion.elegir(\'' + p.cedula + '\')">' +
                 (p.nombre_completo || '') + ' <span class="text-muted">(' + p.cedula + ')</span></button>';
         }).join('');
+    }
+
+    // ── Invitaciones recientes (localStorage): evento reutilizable ──
+    function favs() {
+        try { return JSON.parse(localStorage.getItem(FAV_KEY)) || []; }
+        catch (e) { return []; }
+    }
+    function pintarFavs() {
+        const c = document.getElementById('invFavs');
+        const f = favs();
+        c.innerHTML = f.length ? f.map(function (x) {
+            return '<span class="btn-group btn-group-sm">' +
+                '<button type="button" class="btn btn-outline-success rounded-start-pill" ' +
+                'onclick="Invitacion.usarFav(\'' + x.id + '\')" title="Usar esta invitación">' +
+                '<i class="bi bi-envelope-paper me-1"></i>' + x.nombre + '</button>' +
+                '<button type="button" class="btn btn-outline-danger rounded-end-pill px-2" ' +
+                'onclick="Invitacion.borrarFav(\'' + x.id + '\')" title="Quitar">&times;</button></span>';
+        }).join('') : '<span class="text-muted small">Las invitaciones que envíes o descargues quedan aquí para reutilizarlas.</span>';
+    }
+    function usarFav(id) {
+        document.getElementById('invEvento').value = id;
+        document.getElementById('invCedula').value = '';
+        document.getElementById('invBuscar').value = '';
+        actualizar();
+        document.getElementById('invBuscar').focus();
+    }
+    function borrarFav(id) {
+        localStorage.setItem(FAV_KEY, JSON.stringify(favs().filter(function (x) { return String(x.id) !== String(id); })));
+        pintarFavs();
+    }
+    function usada() {
+        const sel = document.getElementById('invEvento');
+        const ev = eventos.find(function (e) { return String(e.id) === sel.value; });
+        if (!ev) return;
+        const f = favs().filter(function (x) { return String(x.id) !== String(ev.id); });
+        f.unshift({ id: ev.id, nombre: ev.nombre, puntos: ev.puntos, fecha: ev.fecha });
+        localStorage.setItem(FAV_KEY, JSON.stringify(f.slice(0, 10)));
+        pintarFavs();
     }
 
     function elegir(cedula) {
@@ -77,6 +116,7 @@ const Invitacion = (function () {
         const ced = (window.currentSelectedUserObj && currentSelectedUserObj.crm_cedula) || '';
         if (ced) elegir(ced);
         pintarLista();
+        pintarFavs();
         actualizar();
     }
 
@@ -85,6 +125,7 @@ const Invitacion = (function () {
         if (!url) { alert('Elegí evento y persona primero.'); return; }
         const ev = eventos.find(function (e) { return String(e.id) === document.getElementById('invEvento').value; });
         const p = personas.find(function (x) { return x.cedula === document.getElementById('invCedula').value; });
+        usada();
         const tel = p && p.telefono ? '506' + String(p.telefono).replace(/\D/g, '') : '';
         const texto = '¡' + (p ? p.nombre_completo : '') + ', estás invitado(a) a "' +
             (ev ? ev.nombre : 'nuestra actividad') + '"' +
@@ -106,7 +147,8 @@ const Invitacion = (function () {
         window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank');
     }
 
-    return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar, whatsapp: whatsapp };
+    return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar,
+             whatsapp: whatsapp, usarFav: usarFav, borrarFav: borrarFav, usada: usada };
 })();
 
 function mostrarInvitacion() { Invitacion.abrir(); }

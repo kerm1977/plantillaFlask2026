@@ -22,6 +22,8 @@
                    autocomplete="off" oninput="Invitacion.filtrar()">
             <input type="hidden" id="invCedula">
             <div id="invLista" class="list-group mt-1" style="max-height:180px;overflow-y:auto;"></div>
+            <label class="form-label fw-bold small mt-3">Invitaciones recientes</label>
+            <div id="invFavs" class="d-flex flex-wrap gap-1"></div>
             <p class="small text-muted mt-2 mb-0" id="invResumen"></p>
           </div>
           <div class="col-12 col-md-6 text-center">
@@ -33,7 +35,7 @@
       </div>
       <div class="modal-footer border-0 pt-0">
         <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold" data-bs-dismiss="modal">Cancelar</button>
-        <a href="#" id="invDescargar" class="btn btn-outline-primary rounded-pill fw-bold" download="invitacion.png"><i class="bi bi-download me-1"></i>Descargar</a>
+        <a href="#" id="invDescargar" class="btn btn-outline-primary rounded-pill fw-bold" download="invitacion.png" onclick="Invitacion.usada()"><i class="bi bi-download me-1"></i>Descargar</a>
         <button type="button" id="invWhatsapp" class="btn btn-success rounded-pill fw-bold" onclick="Invitacion.whatsapp()"><i class="bi bi-whatsapp me-1"></i>WhatsApp</button>
       </div>
     </div>
