@@ -250,41 +250,44 @@ const Invitacion = (function () {
     // ── Captura html2canvas a 1080x1920 ────────────────────────
     // html2canvas NO soporta filter:blur() — el blur se rasteriza antes
     // en un canvas offscreen y se restaura después de la captura.
+    function _pintarBlur(fuente, cv, blurPx) {
+        const cx = cv.getContext('2d');
+        const s = Math.max(cv.width / fuente.width, cv.height / fuente.height);
+        const w = fuente.width * s * (1 + blurPx * 0.02), h = fuente.height * s * (1 + blurPx * 0.02);
+        const dx = (cv.width - w) / 2, dy = (cv.height - h) / 2;
+        if (typeof cx.filter === 'string') {
+            cx.filter = 'blur(' + blurPx + 'px)';
+            cx.drawImage(fuente, dx, dy, w, h);
+        } else {
+            // Fallback universal (sin ctx.filter): bajar la resolución y
+            // subirla con suavizado produce un blur real en cualquier browser.
+            const f = Math.max(2, Math.round(blurPx * 0.7));
+            const tmp = document.createElement('canvas');
+            tmp.width = Math.max(4, Math.round(cv.width / f));
+            tmp.height = Math.max(4, Math.round(cv.height / f));
+            const tc = tmp.getContext('2d');
+            const s2 = Math.max(tmp.width / fuente.width, tmp.height / fuente.height);
+            const w2 = fuente.width * s2 * (1 + blurPx * 0.02), h2 = fuente.height * s2 * (1 + blurPx * 0.02);
+            tc.drawImage(fuente, (tmp.width - w2) / 2, (tmp.height - h2) / 2, w2, h2);
+            cx.imageSmoothingEnabled = true;
+            try { cx.imageSmoothingQuality = 'high'; } catch (e) {}
+            cx.drawImage(tmp, 0, 0, cv.width, cv.height);
+        }
+        try { return cv.toDataURL('image/png'); } catch (e) { return null; }
+    }
     function _rasterizarBlur() {
         const area = $('invCanvas'), img = $('invBgImg');
         const blurPx = params().blur / 100 * 12;
         if (blurPx <= 0 || !img.src) return Promise.resolve(null);
-        const im = new Image();
-        // crossOrigin solo para URLs http(s): en data:/blob: rompe la carga
-        if (/^https?:/i.test(img.src)) im.crossOrigin = 'anonymous';
+        const cv = document.createElement('canvas');
+        cv.width = area.offsetWidth || 540; cv.height = area.offsetHeight || 960;
+        // Si el <img> ya cargó el flyer se dibuja directo: sin recargar la
+        // imagen, sin CORS y sin pasar por el service worker (que podía
+        // romper la carga en silencio y exportar la foto nítida).
+        if (img.complete && img.naturalWidth) return Promise.resolve(_pintarBlur(img, cv, blurPx));
         return new Promise(function (res) {
-            im.onload = function () {
-                const cv = document.createElement('canvas');
-                cv.width = area.offsetWidth; cv.height = area.offsetHeight;
-                const cx = cv.getContext('2d');
-                const s = Math.max(cv.width / im.width, cv.height / im.height);
-                const w = im.width * s * (1 + blurPx * 0.02), h = im.height * s * (1 + blurPx * 0.02);
-                const dx = (cv.width - w) / 2, dy = (cv.height - h) / 2;
-                if (typeof cx.filter === 'string') {
-                    cx.filter = 'blur(' + blurPx + 'px)';
-                    cx.drawImage(im, dx, dy, w, h);
-                } else {
-                    // Fallback universal (iOS viejo / sin ctx.filter): bajar la
-                    // resolución y subirla con suavizado produce un blur real.
-                    const f = Math.max(2, Math.round(blurPx * 0.7));
-                    const tmp = document.createElement('canvas');
-                    tmp.width = Math.max(4, Math.round(cv.width / f));
-                    tmp.height = Math.max(4, Math.round(cv.height / f));
-                    const tc = tmp.getContext('2d');
-                    const s2 = Math.max(tmp.width / im.width, tmp.height / im.height);
-                    const w2 = im.width * s2 * (1 + blurPx * 0.02), h2 = im.height * s2 * (1 + blurPx * 0.02);
-                    tc.drawImage(im, (tmp.width - w2) / 2, (tmp.height - h2) / 2, w2, h2);
-                    cx.imageSmoothingEnabled = true;
-                    try { cx.imageSmoothingQuality = 'high'; } catch (e) {}
-                    cx.drawImage(tmp, 0, 0, cv.width, cv.height);
-                }
-                res(cv.toDataURL('image/png'));
-            };
+            const im = new Image();
+            im.onload = function () { res(_pintarBlur(im, cv, blurPx)); };
             im.onerror = function () { res(null); };
             im.src = img.src;
         });
