@@ -45,7 +45,8 @@ def mis_puntos_persona(cedula):
              f'Caminatas ausentes: {len(persona["caminatas_no"])}']
     estado_txt += '\n'.join(extra)
     wa_url = 'https://wa.me/?text=' + quote(estado_txt)
-    return render_template('mis_puntos_persona.html', p=persona, wa_url=wa_url)
+    return render_template('mis_puntos_persona.html', p=persona, wa_url=wa_url,
+                           retos_cumplidos=retos.cumplidos(cedula))
 
 
 @bp.route('/mis-puntos/persona/<cedula>/pdf')

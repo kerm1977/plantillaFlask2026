@@ -20,7 +20,7 @@ from routes.points import _current_user
 def inject_retos():
     # BLINDADO: helpers del panel "Retos" del superusuario (se consultan solo si se usa).
     return {'retos_pendientes': retos.pendientes, 'retos_resueltas': retos.resueltas,
-            'retos_todos': retos_builder.todos_custom}
+            'retos_todos': retos_builder.todos_custom, 'retos_fijos': retos_builder.fijos_con_dias}
 
 
 def _volver(cedula):
@@ -106,6 +106,21 @@ def reto_custom_toggle(rid):
         session['admin_error'] = 'Solo el superusuario puede gestionar retos.'
         return _volver(cedula)
     res = retos_builder.toggle_custom(rid)
+    if res['ok']:
+        session['admin_message'] = res['mensaje']
+    else:
+        session['admin_error'] = res['error']
+    return _volver(cedula)
+
+
+@bp.route('/admin/retos/frecuencia', methods=['POST'])
+def reto_frecuencia():
+    """Cambia la frecuencia (días) de un reto fijo o personalizado (solo superusuario)."""
+    cedula = (request.form.get('cedula') or '').strip()
+    if session.get('role') != 'Superusuario':
+        session['admin_error'] = 'Solo el superusuario puede gestionar retos.'
+        return _volver(cedula)
+    res = retos_builder.set_frecuencia(request.form.get('reto'), request.form.get('dias'))
     if res['ok']:
         session['admin_message'] = res['mensaje']
     else:

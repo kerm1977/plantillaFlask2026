@@ -43,10 +43,24 @@ WHATSAPP_COORD = '50686529837'
 _CR = timezone(timedelta(hours=-6))
 
 
+def dias_reto(key):
+    """Días de frecuencia de un reto fijo; el superusuario puede cambiarlos
+    (SiteContent 'reto_dias_<key>'). Por defecto 30."""
+    from models import SiteContent
+    fila = SiteContent.query.filter_by(key='reto_dias_' + key).first()
+    try:
+        valor = int(fila.value) if fila else 0
+    except (TypeError, ValueError):
+        valor = 0
+    return valor if valor > 0 else RETOS.get(key, {}).get('dias', 30)
+
+
 def _info_reto(key):
-    """{'label','puntos','wa'} de un reto builtin ('datos', 'foto_*') o personalizado ('custom_<id>')."""
+    """{'label','puntos','dias','wa'} de un reto builtin ('datos', 'foto_*') o personalizado ('custom_<id>')."""
     if key in RETOS:
-        return RETOS[key]
+        info = dict(RETOS[key])
+        info['dias'] = dias_reto(key)
+        return info
     if key.startswith('custom_'):
         try:
             rid = int(key.split('_', 1)[1])
@@ -196,3 +210,17 @@ def resolver(sid, accion, operador):
             wa = wa_aviso_rechazo(hiker, s.reto)
         return {'ok': True, 'mensaje': f"Reto rechazado a {h_name}. Avisale por WhatsApp.", 'wa': wa}
     return {'ok': False, 'error': 'Acción desconocida.'}
+
+
+def cumplidos(cedula):
+    """Retos aprobados de una persona (estado de cuenta de retos):
+    [{'label','puntos','fecha'}] más totales, del más reciente al más viejo."""
+    filas = (RetoSolicitud.query.filter_by(cedula=str(cedula), estado='aprobada')
+             .order_by(RetoSolicitud.resuelto_at.desc()).all())
+    lista, total_pts = [], 0
+    for s in filas:
+        info = _info_reto(s.reto) or {'label': s.reto, 'puntos': 0}
+        lista.append({'label': info['label'], 'puntos': info['puntos'],
+                      'fecha': fecha_cr(s.resuelto_at)})
+        total_pts += info['puntos']
+    return {'lista': lista, 'cantidad': len(lista), 'puntos': total_pts}

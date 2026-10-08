@@ -52,18 +52,40 @@
                       <small class="text-muted d-block mt-1">Aparece en "Ganar puntos desde casa" con su botón de confirmación. Al aprobarse se deshabilita para esa persona y se reactiva pasada la frecuencia.</small>
                     </form>
                   </div>
+                  <p class="small fw-bold text-muted mb-2">Retos fijos</p>
+                  {% for rf in retos_fijos() %}
+                  <form method="post" action="{{ url_for('main.reto_frecuencia') }}" class="d-flex justify-content-between align-items-center gap-2 border rounded-3 px-2 py-1 mb-1 small bg-white bg-opacity-50">
+                    <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <input type="hidden" name="reto" value="{{ rf.key }}">
+                    <span class="text-truncate"><strong>{{ rf.label }}</strong> · +200 pts</span>
+                    <span class="d-flex align-items-center gap-1 flex-shrink-0">
+                      cada <input type="number" name="dias" class="form-control form-control-sm py-0 px-1 text-center" style="width:60px" value="{{ rf.dias }}" min="1" max="365"> días
+                      <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill py-0 px-2">Guardar</button>
+                    </span>
+                  </form>
+                  {% endfor %}
                   {% set retos_creados = retos_todos() %}
                   {% if retos_creados %}
-                  <p class="small fw-bold text-muted mb-2">Retos creados</p>
+                  <p class="small fw-bold text-muted mb-2 mt-3">Retos creados</p>
                   {% for rc in retos_creados %}
-                  <div class="d-flex justify-content-between align-items-center gap-2 border rounded-3 px-2 py-1 mb-1 small bg-white bg-opacity-50">
-                    <div class="text-truncate">
-                      <strong>{{ rc.titulo }}</strong> · +{{ rc.puntos }} pts · cada {{ rc.frecuencia_dias or 30 }} días{% if not rc.activo %} <span class="badge bg-secondary rounded-pill">inactivo</span>{% endif %}{% if rc.enlace %} <i class="bi bi-link-45deg text-primary"></i>{% endif %}
-                      <div><small class="text-muted text-truncate d-block">{{ rc.texto[:70] }}</small></div>
+                  <div class="border rounded-3 px-2 py-1 mb-1 small bg-white bg-opacity-50">
+                    <div class="d-flex justify-content-between align-items-center gap-2">
+                      <div class="text-truncate">
+                        <strong>{{ rc.titulo }}</strong> · +{{ rc.puntos }} pts{% if not rc.activo %} <span class="badge bg-secondary rounded-pill">inactivo</span>{% endif %}{% if rc.enlace %} <i class="bi bi-link-45deg text-primary"></i>{% endif %}
+                        <div><small class="text-muted text-truncate d-block">{{ rc.texto[:70] }}</small></div>
+                      </div>
+                      <form method="post" action="{{ url_for('main.reto_custom_toggle', rid=rc.id) }}" class="flex-shrink-0" onsubmit="return confirm('¿{{ 'Desactivar' if rc.activo else 'Activar' }} el reto «{{ rc.titulo }}»?');">
+                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                        <button type="submit" class="btn btn-sm rounded-pill py-0 px-2 {{ 'btn-outline-danger' if rc.activo else 'btn-outline-success' }}">{{ 'Desactivar' if rc.activo else 'Activar' }}</button>
+                      </form>
                     </div>
-                    <form method="post" action="{{ url_for('main.reto_custom_toggle', rid=rc.id) }}" class="flex-shrink-0" onsubmit="return confirm('¿{{ 'Desactivar' if rc.activo else 'Activar' }} el reto «{{ rc.titulo }}»?');">
+                    <form method="post" action="{{ url_for('main.reto_frecuencia') }}" class="d-flex align-items-center gap-1 mt-1">
                       <input type="hidden" name="cedula" value="{{ result.cedula }}">
-                      <button type="submit" class="btn btn-sm rounded-pill py-0 px-2 {{ 'btn-outline-danger' if rc.activo else 'btn-outline-success' }}">{{ 'Desactivar' if rc.activo else 'Activar' }}</button>
+                      <input type="hidden" name="reto" value="custom_{{ rc.id }}">
+                      <span class="text-muted">cada</span>
+                      <input type="number" name="dias" class="form-control form-control-sm py-0 px-1 text-center" style="width:60px" value="{{ rc.frecuencia_dias or 30 }}" min="1" max="365">
+                      <span class="text-muted">días</span>
+                      <button type="submit" class="btn btn-outline-primary btn-sm rounded-pill py-0 px-2">Guardar</button>
                     </form>
                   </div>
                   {% endfor %}

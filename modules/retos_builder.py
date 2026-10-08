@@ -6,8 +6,8 @@
 # Crea retos personalizados que aparecen en "Ganar puntos desde
 # casa" con boton de confirmacion, puntos propios y enlace opcional.
 from db import db
-from models import Reto
-from modules.retos import estado_reto, proximo_disponible
+from models import Reto, SiteContent
+from modules.retos import estado_reto, proximo_disponible, dias_reto, RETOS
 
 
 def crear_custom(titulo, texto, puntos, enlace, frecuencia, operador):
@@ -61,3 +61,38 @@ def lista_custom(cedula):
 
 def todos_custom():
     return Reto.query.order_by(Reto.id.desc()).all()
+
+
+def set_frecuencia(reto, dias):
+    """Cambia la frecuencia (días) de un reto fijo ('datos'...) o personalizado ('custom_<id>')."""
+    try:
+        dias = int(dias)
+    except (TypeError, ValueError):
+        dias = 0
+    if dias <= 0 or dias > 365:
+        return {'ok': False, 'error': 'La frecuencia debe ser entre 1 y 365 días.'}
+    if reto in RETOS:
+        key = 'reto_dias_' + reto
+        fila = SiteContent.query.filter_by(key=key).first()
+        if fila:
+            fila.value = str(dias)
+        else:
+            db.session.add(SiteContent(key=key, value=str(dias)))
+        db.session.commit()
+        return {'ok': True, 'mensaje': f'«{RETOS[reto]["label"]}» ahora se repite cada {dias} días.'}
+    if reto.startswith('custom_'):
+        try:
+            r = Reto.query.get(int(reto.split('_', 1)[1]))
+        except ValueError:
+            r = None
+        if not r:
+            return {'ok': False, 'error': 'Reto no encontrado.'}
+        r.frecuencia_dias = dias
+        db.session.commit()
+        return {'ok': True, 'mensaje': f'«{r.titulo}» ahora se repite cada {dias} días.'}
+    return {'ok': False, 'error': 'Reto desconocido.'}
+
+
+def fijos_con_dias():
+    """Los 3 retos fijos con su frecuencia actual (para editarla en el panel)."""
+    return [{'key': k, 'label': v['label'], 'dias': dias_reto(k)} for k, v in RETOS.items()]
