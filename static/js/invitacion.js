@@ -255,7 +255,8 @@ const Invitacion = (function () {
         const blurPx = params().blur / 100 * 12;
         if (blurPx <= 0 || !img.src) return Promise.resolve(null);
         const im = new Image();
-        im.crossOrigin = 'anonymous';
+        // crossOrigin solo para URLs http(s): en data:/blob: rompe la carga
+        if (/^https?:/i.test(img.src)) im.crossOrigin = 'anonymous';
         return new Promise(function (res) {
             im.onload = function () {
                 const cv = document.createElement('canvas');
@@ -264,18 +265,23 @@ const Invitacion = (function () {
                 const s = Math.max(cv.width / im.width, cv.height / im.height);
                 const w = im.width * s * (1 + blurPx * 0.02), h = im.height * s * (1 + blurPx * 0.02);
                 const dx = (cv.width - w) / 2, dy = (cv.height - h) / 2;
-                if (typeof cx.filter !== 'undefined') {
+                if (typeof cx.filter === 'string') {
                     cx.filter = 'blur(' + blurPx + 'px)';
                     cx.drawImage(im, dx, dy, w, h);
                 } else {
-                    // Fallback sin ctx.filter: blur aproximado por capas desplazadas
-                    cx.globalAlpha = 0.18;
-                    for (let i = 0; i < 6; i++) {
-                        const a = i * Math.PI / 3;
-                        cx.drawImage(im, dx + Math.cos(a) * blurPx * 0.5, dy + Math.sin(a) * blurPx * 0.5, w, h);
-                    }
-                    cx.globalAlpha = 1;
-                    cx.drawImage(im, dx, dy, w, h);
+                    // Fallback universal (iOS viejo / sin ctx.filter): bajar la
+                    // resolución y subirla con suavizado produce un blur real.
+                    const f = Math.max(2, Math.round(blurPx * 0.7));
+                    const tmp = document.createElement('canvas');
+                    tmp.width = Math.max(4, Math.round(cv.width / f));
+                    tmp.height = Math.max(4, Math.round(cv.height / f));
+                    const tc = tmp.getContext('2d');
+                    const s2 = Math.max(tmp.width / im.width, tmp.height / im.height);
+                    const w2 = im.width * s2 * (1 + blurPx * 0.02), h2 = im.height * s2 * (1 + blurPx * 0.02);
+                    tc.drawImage(im, (tmp.width - w2) / 2, (tmp.height - h2) / 2, w2, h2);
+                    cx.imageSmoothingEnabled = true;
+                    try { cx.imageSmoothingQuality = 'high'; } catch (e) {}
+                    cx.drawImage(tmp, 0, 0, cv.width, cv.height);
                 }
                 res(cv.toDataURL('image/png'));
             };
