@@ -57,6 +57,28 @@
                     </button>
                     {% endif %}
                   </div>
+                  {% for rc in result.retos_custom %}
+                  <div class="border rounded-4 p-3 mb-2">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong><i class="bi bi-star me-1 text-warning"></i>{{ rc.titulo }}</strong>
+                      <span class="badge bg-success rounded-pill">+{{ rc.puntos }} pts</span>
+                    </div>
+                    <p class="small text-muted mb-2">{{ rc.texto }}</p>
+                    {% if rc.enlace %}
+                    <a href="{{ rc.enlace }}" target="_blank" rel="noopener" class="btn btn-outline-primary btn-sm rounded-pill w-100 mb-2"><i class="bi bi-link-45deg me-1"></i>Abrir el enlace del reto</a>
+                    {% endif %}
+                    {% if rc.estado == 'ganado' %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
+                    {% elif rc.estado == 'pendiente' %}
+                    <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
+                    {% else %}
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 btn-reto"
+                            data-action="{{ url_for('main.reto_confirmar', reto=rc.key) }}" data-cedula="{{ result.cedula }}">
+                      <i class="bi bi-check2-circle me-1"></i>Ya lo hice, confirmar reto
+                    </button>
+                    {% endif %}
+                  </div>
+                  {% endfor %}
                 </div>
               </div>
             </div>

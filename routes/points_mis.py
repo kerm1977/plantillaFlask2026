@@ -12,7 +12,7 @@ from modules.points_engine import get_points_engine
 from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
 from modules.points_donations import birthday_hikers, donate
-from modules import fidelidad, retos
+from modules import fidelidad, retos, retos_builder
 from modules.estado_global import resumen_global, detalle_persona
 from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
                                     get_notif_cutoff, build_estado_cuenta_whatsapp)
@@ -267,6 +267,7 @@ def mis_puntos():
                     'fidelidad': fidelidad.info(cedula)
                 }
                 result['retos'] = retos.estados_todos(cedula)
+                result['retos_custom'] = retos_builder.lista_custom(cedula)
                 result['perfil'] = {
                     'nombre_completo': hiker_found.nombre_completo or '',
                     'telefono': hiker_found.telefono or '',

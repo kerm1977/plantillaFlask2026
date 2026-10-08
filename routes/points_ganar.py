@@ -11,7 +11,7 @@ from flask import request, session, redirect, url_for, jsonify
 
 from db import db
 from models import Hiker
-from modules import retos
+from modules import retos, retos_builder
 from routes import bp
 from routes.points import _current_user
 
@@ -19,7 +19,8 @@ from routes.points import _current_user
 @bp.app_context_processor
 def inject_retos():
     # BLINDADO: helpers del panel "Retos" del superusuario (se consultan solo si se usa).
-    return {'retos_pendientes': retos.pendientes, 'retos_resueltas': retos.resueltas}
+    return {'retos_pendientes': retos.pendientes, 'retos_resueltas': retos.resueltas,
+            'retos_todos': retos_builder.todos_custom}
 
 
 def _volver(cedula):
@@ -75,6 +76,38 @@ def reto_resolver(sid, accion):
         session['admin_message'] = res['mensaje']
         if res.get('wa'):
             session['wa_aviso'] = res['wa']
+    else:
+        session['admin_error'] = res['error']
+    return _volver(cedula)
+
+
+@bp.route('/admin/retos/crear', methods=['POST'])
+def reto_crear():
+    """Constructor de retos: crea un reto personalizado (solo superusuario)."""
+    cedula = (request.form.get('cedula') or '').strip()
+    if session.get('role') != 'Superusuario':
+        session['admin_error'] = 'Solo el superusuario puede crear retos.'
+        return _volver(cedula)
+    res = retos_builder.crear_custom(request.form.get('titulo'), request.form.get('texto'),
+                                     request.form.get('puntos'), request.form.get('enlace'),
+                                     _current_user())
+    if res['ok']:
+        session['admin_message'] = res['mensaje']
+    else:
+        session['admin_error'] = res['error']
+    return _volver(cedula)
+
+
+@bp.route('/admin/retos/custom/<int:rid>/toggle', methods=['POST'])
+def reto_custom_toggle(rid):
+    """Activa/desactiva un reto personalizado (solo superusuario)."""
+    cedula = (request.form.get('cedula') or '').strip()
+    if session.get('role') != 'Superusuario':
+        session['admin_error'] = 'Solo el superusuario puede gestionar retos.'
+        return _volver(cedula)
+    res = retos_builder.toggle_custom(rid)
+    if res['ok']:
+        session['admin_message'] = res['mensaje']
     else:
         session['admin_error'] = res['error']
     return _volver(cedula)

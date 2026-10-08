@@ -10,7 +10,7 @@ import re
 from urllib.parse import quote
 from datetime import datetime, timezone, timedelta
 from db import db
-from models import Hiker, RetoSolicitud
+from models import Hiker, RetoSolicitud, Reto
 from modules.points_engine import get_points_engine
 from modules.points_purchase import fecha_cr
 
@@ -47,9 +47,28 @@ def _mes(dt):
     return d.astimezone(_CR).strftime('%Y-%m')
 
 
+def _info_reto(key):
+    """{'label','puntos','wa'} de un reto builtin ('datos', 'foto_*') o personalizado ('custom_<id>')."""
+    if key in RETOS:
+        return RETOS[key]
+    if key.startswith('custom_'):
+        try:
+            rid = int(key.split('_', 1)[1])
+        except ValueError:
+            return None
+        r = Reto.query.get(rid)
+        if not r:
+            return None
+        return {'label': r.titulo, 'puntos': r.puntos or 0,
+                'wa': ('Hola, ya cumplí el reto «' + (r.titulo or '') + '». Envío el comprobante '
+                       'para que lo confirmen. Cédula: {cedula} - {nombre}.'),
+                'reto_obj': r}
+    return None
+
+
 def estado_reto(cedula, reto):
     """'pendiente' si hay solicitud sin resolver, 'ganado' si se aprobó este mes, 'ok' si puede hacerlo."""
-    if reto not in RETOS:
+    if _info_reto(reto) is None:
         return 'ok'
     base = RetoSolicitud.query.filter_by(cedula=str(cedula), reto=reto)
     if base.filter_by(estado='pendiente').first():
@@ -66,16 +85,22 @@ def estados_todos(cedula):
 
 
 def wa_coordinador(hiker, reto):
-    msg = RETOS[reto]['wa'].format(cedula=hiker.cedula, nombre=hiker.nombre_completo or '')
+    info = _info_reto(reto)
+    if not info:
+        return ''
+    msg = info['wa'].format(cedula=hiker.cedula, nombre=hiker.nombre_completo or '')
     return 'https://wa.me/' + WHATSAPP_COORD + '?text=' + quote(msg)
 
 
 def wa_aviso_rechazo(hiker, reto):
+    info = _info_reto(reto)
+    if not info:
+        return ''
     tel = re.sub(r'\D', '', hiker.telefono or '')
     if tel and len(tel) <= 8:
         tel = '506' + tel
     msg = (f"Hola {hiker.nombre_completo or ''}, no pudimos comprobar tu reto "
-           f"«{RETOS[reto]['label']}». Por favor confirmalo o repetilo desde Mis puntos "
+           f"«{info['label']}». Por favor confirmalo o repetilo desde Mis puntos "
            f"en latribu.top. ¡Pura vida!")
     if tel:
         return 'https://wa.me/' + tel + '?text=' + quote(msg)
@@ -84,8 +109,9 @@ def wa_aviso_rechazo(hiker, reto):
 
 def crear_solicitud(cedula, reto):
     """Registra la confirmación del reto; queda pendiente de aprobación."""
-    if reto not in RETOS:
-        return {'ok': False, 'error': 'Reto desconocido.'}
+    info = _info_reto(reto)
+    if not info or (info.get('reto_obj') and not info['reto_obj'].activo):
+        return {'ok': False, 'error': 'Reto desconocido o inactivo.'}
     hiker = Hiker.query.filter_by(cedula=str(cedula)).first()
     if not hiker:
         return {'ok': False, 'error': 'Registro no encontrado.'}
@@ -103,9 +129,9 @@ def pendientes():
     out = []
     for s in RetoSolicitud.query.filter_by(estado='pendiente').order_by(RetoSolicitud.created_at).all():
         h = Hiker.query.filter_by(cedula=s.cedula).first()
+        info = _info_reto(s.reto) or {'label': s.reto, 'puntos': 0}
         out.append({
-            'id': s.id, 'reto': s.reto, 'label': RETOS.get(s.reto, {}).get('label', s.reto),
-            'puntos': RETOS.get(s.reto, {}).get('puntos', 0),
+            'id': s.id, 'reto': s.reto, 'label': info['label'], 'puntos': info['puntos'],
             'nombre': h.nombre_completo if h else s.cedula, 'cedula': s.cedula,
             'fecha': fecha_cr(s.created_at), 'estado': s.estado,
         })
@@ -119,8 +145,9 @@ def resueltas(limit=15):
     for s in filas:
         h = Hiker.query.filter_by(cedula=s.cedula).first()
         nombre = h.nombre_completo if h else s.cedula
+        info = _info_reto(s.reto) or {'label': s.reto}
         out.append({
-            'id': s.id, 'label': RETOS.get(s.reto, {}).get('label', s.reto),
+            'id': s.id, 'label': info['label'],
             'nombre': nombre, 'cedula': s.cedula, 'estado': s.estado,
             'fecha': fecha_cr(s.resuelto_at), 'por': s.resuelto_por or '',
             'wa_rechazo': wa_aviso_rechazo(h, s.reto) if (s.estado == 'rechazada' and h) else '',
@@ -137,7 +164,7 @@ def resolver(sid, accion, operador):
         return {'ok': False, 'error': 'Esta solicitud ya fue resuelta.'}
     hiker = Hiker.query.filter_by(cedula=s.cedula).first()
     h_name = hiker.nombre_completo if hiker else s.cedula
-    info = RETOS.get(s.reto, {'label': s.reto, 'puntos': 0})
+    info = _info_reto(s.reto) or {'label': s.reto, 'puntos': 0}
     s.resuelto_at = datetime.utcnow()
     s.resuelto_por = operador or 'admin'
     wa = ''

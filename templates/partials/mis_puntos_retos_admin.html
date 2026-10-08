@@ -30,6 +30,40 @@
                   {% else %}
                   <p class="small text-muted mb-0">No hay retos pendientes de comprobar.</p>
                   {% endfor %}
+                  <div class="border rounded-4 p-3 my-3" style="border-style:dashed!important;">
+                    <p class="small fw-bold mb-2"><i class="bi bi-plus-circle me-1 text-success"></i>Crear nuevo reto</p>
+                    <form method="post" action="{{ url_for('main.reto_crear') }}">
+                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                      <input type="text" name="titulo" class="form-control form-control-sm mb-2" placeholder="Título del reto *" maxlength="120" required>
+                      <textarea name="texto" class="form-control form-control-sm mb-2" rows="2" maxlength="500" placeholder="Descripción: qué tiene que hacer la persona *" required></textarea>
+                      <div class="row g-2 mb-2">
+                        <div class="col-5">
+                          <input type="number" name="puntos" class="form-control form-control-sm" placeholder="Puntos *" min="1" max="100000" required>
+                        </div>
+                        <div class="col-7">
+                          <input type="url" name="enlace" class="form-control form-control-sm" placeholder="Enlace (opcional) https://..." maxlength="300">
+                        </div>
+                      </div>
+                      <button type="submit" class="btn btn-success btn-sm rounded-pill fw-bold w-100"><i class="bi bi-plus-lg me-1"></i>Crear reto</button>
+                      <small class="text-muted d-block mt-1">Aparece en "Ganar puntos desde casa" con su botón de confirmación. Se gana una vez por mes tras tu aprobación.</small>
+                    </form>
+                  </div>
+                  {% set retos_creados = retos_todos() %}
+                  {% if retos_creados %}
+                  <p class="small fw-bold text-muted mb-2">Retos creados</p>
+                  {% for rc in retos_creados %}
+                  <div class="d-flex justify-content-between align-items-center gap-2 border rounded-3 px-2 py-1 mb-1 small bg-white bg-opacity-50">
+                    <div class="text-truncate">
+                      <strong>{{ rc.titulo }}</strong> · +{{ rc.puntos }} pts{% if rc.enlace %} <i class="bi bi-link-45deg text-primary"></i>{% endif %}
+                      <div><small class="text-muted text-truncate d-block">{{ rc.texto[:70] }}</small></div>
+                    </div>
+                    <form method="post" action="{{ url_for('main.reto_custom_toggle', rid=rc.id) }}" class="flex-shrink-0" onsubmit="return confirm('¿{{ 'Desactivar' if rc.activo else 'Activar' }} el reto «{{ rc.titulo }}»?');">
+                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                      <button type="submit" class="btn btn-sm rounded-pill py-0 px-2 {{ 'btn-outline-danger' if rc.activo else 'btn-outline-success' }}">{{ 'Desactivar' if rc.activo else 'Activar' }}</button>
+                    </form>
+                  </div>
+                  {% endfor %}
+                  {% endif %}
                   {% if retos_res %}
                   <div class="border-top pt-2 mt-2">
                     <p class="small fw-bold text-muted mb-2">Últimos retos resueltos</p>
