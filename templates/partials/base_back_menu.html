@@ -27,6 +27,10 @@
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
+    <!-- BLINDADO: botón flotante de invitaciones (encima del escáner QR) -->
+    <a href="#" class="btn-inv-float" id="btnInvFloat" title="Crear y enviar invitación" onclick="mostrarInvitacion(); return false;">
+        <i class="bi bi-envelope-paper fs-4"></i>
+    </a>
     <!-- BLINDADO: botón flotante del escáner QR de caminatas (encima del de herramientas) -->
     <a href="#" class="btn-scan-float" id="btnScanFloat" title="Escanear QR de caminata">
         <i class="bi bi-qr-code-scan fs-4"></i>

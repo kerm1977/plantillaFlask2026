@@ -125,6 +125,9 @@
 <script src="{{ url_for('static', filename='vendor/html5-qrcode.min.js') }}"></script>
 <script src="{{ url_for('static', filename='js/scanner.js') }}"></script>
 <script src="{{ url_for('static', filename='js/scan_flow.js') }}"></script>
+<!-- BLINDADO: invitaciones 9:16 por WhatsApp (solo superusuario) -->
+{% include 'partials/invitacion_modal.html' %}
+<script src="{{ url_for('static', filename='js/invitacion.js') }}?v=1"></script>
 {% endif %}
 
 <!-- MODAL: ACCESO AL COTIZADOR -->
