@@ -1,3 +1,4 @@
+{# BLINDADO #}
             <div class="d-flex flex-column flex-wrap gap-3">
                 {% if session.get('role') == 'Superusuario' %}
                 <div class="accordion w-100" id="profileAdminAccordion">
@@ -39,6 +40,22 @@
                                     <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold"><i class="bi bi-upload me-2"></i>Importar puntos desde JSON</button>
                                 </form>
                             </div>
+                        </div></div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profilePuntosPersonas"><i class="bi bi-people-fill me-2 text-warning"></i>Gestión de puntos</button></h2>
+                        <div id="profilePuntosPersonas" class="accordion-collapse collapse" data-bs-parent="#profileAdminAccordion"><div class="accordion-body">
+                            <p class="small text-muted">Buscá a la persona por cédula, nombre o apellidos y entrá a sus puntos sin necesidad de contraseña: podés regalarle, restarle, aprobar sus retos y ver su estado de cuenta.</p>
+                            <form method="get" action="{{ url_for('main.mis_puntos') }}">
+                                <label class="form-label fw-bold">Persona a gestionar</label>
+                                <select name="cedula" class="form-select mb-2" data-searchable data-modal-picker required>
+                                    <option value="" selected disabled>Seleccioná la persona...</option>
+                                    {% for p in todos_hikers %}
+                                    <option value="{{ p.cedula }}" data-search="{{ (p.nombre_completo or '') + ' ' + (p.cedula or '') + ' ' + (p.telefono or '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-warning rounded-pill fw-bold text-dark w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Abrir sus puntos</button>
+                            </form>
                         </div></div>
                     </div>
                     <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
