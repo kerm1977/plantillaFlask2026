@@ -5,9 +5,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v10.25';
-const STATIC_CACHE   = 'la-tribu-static-v10.25';
-const PAGES_CACHE    = 'la-tribu-pages-v10.25';
+const CACHE_NAME     = 'la-tribu-v10.26';
+const STATIC_CACHE   = 'la-tribu-static-v10.26';
+const PAGES_CACHE    = 'la-tribu-pages-v10.26';
 const OFFLINE_DATA_CACHE = 'la-tribu-offline-data-v1';
 const OFFLINE_URL    = '/offline';
 

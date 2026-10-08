@@ -77,20 +77,16 @@ const Invitacion = (function () {
     }
 
     // ── Datos en la invitación ─────────────────────────────────
-    function slug(s) {
-        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
-            .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    }
     function linkEvento(ev) {
-        return location.origin + '/inscripcion/' + slug(ev.nombre) + '-' + ev.id;
+        return location.origin + '/caminatas-2027/' + ev.id + '?share=1';
     }
     function mensajeAuto(ev, p) {
         return '¡' + (p ? p.nombre_completo : 'Hola') + ', estás invitado(a) a "' +
             (ev ? ev.nombre : 'nuestra actividad') + '"' +
             (ev && ev.fecha ? ' el ' + ev.fecha : '') +
             (ev && ev.puntos ? '. ¡Ganás ' + ev.puntos + ' puntos por participar!' : '.') +
-            (ev ? '\n\nConfirmá tu participación y obtené tu código QR aquí: ' + linkEvento(ev) : '') +
-            '\nTe adjuntamos tu invitación personalizada. — latribu.top';
+            (ev ? '\n\nSi participás de esta caminata, abrí este enlace y presentá el código QR a los coordinadores de La Tribu para ganar tus puntos:\n' + linkEvento(ev) : '') +
+            '\n\nTe adjuntamos tu invitación personalizada. — latribu.top';
     }
     function actualizar() {
         const ev = eventoSel(), p = personaSel();
