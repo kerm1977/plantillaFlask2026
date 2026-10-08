@@ -24,6 +24,7 @@
                         {% endif %}
                         {% endfor %}
                       </select>
+                      <small class="text-muted">{{ result.nombre_completo }} no aparece en la lista porque es el titular: no puede recibir sus propios puntos.{% if is_super %} Para regalarle puntos a esta persona, usá "Obsequiar puntos" en la gestión.{% endif %}</small>
                     </div>
                     <div class="mb-3">
                       <label class="form-label fw-bold">Puntos a obsequiar</label>

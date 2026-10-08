@@ -6,6 +6,11 @@
     var PICKER_PAGE_SIZE = 10;
     var pickerCount = 0;
 
+    // Búsqueda insensible a tildes: "astua" encuentra "Astúa"
+    function norm(s) {
+        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    }
+
     function armarModalPicker(select) {
         if (select.dataset.dropdownInit === '1') return;
         select.dataset.dropdownInit = '1';
@@ -88,9 +93,9 @@
         }
 
         input.addEventListener('input', function() {
-            var terms = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+            var terms = norm(input.value).trim().split(/\s+/).filter(Boolean);
             filtered = options.filter(function(o) {
-                var text = (o.getAttribute('data-search') || o.textContent).toLowerCase();
+                var text = norm(o.getAttribute('data-search') || o.textContent);
                 return terms.every(function(t) { return text.indexOf(t) !== -1; });
             });
             page = 0;
@@ -142,7 +147,7 @@
                 item.className = 'dropdown-item small';
                 item.textContent = opt.textContent;
                 item.setAttribute('data-value', opt.value);
-                item.setAttribute('data-search', (opt.getAttribute('data-search') || opt.textContent).toLowerCase());
+                item.setAttribute('data-search', norm(opt.getAttribute('data-search') || opt.textContent));
                 item.addEventListener('click', function() {
                     select.value = opt.value;
                     options.forEach(function(o) { o.selected = (o.value === opt.value); });
@@ -152,7 +157,7 @@
                 list.appendChild(item);
             });
             input.addEventListener('input', function() {
-                var q = input.value.toLowerCase().trim();
+                var q = norm(input.value).trim();
                 var terms = q.split(/\s+/).filter(Boolean);
                 list.querySelectorAll('.dropdown-item').forEach(function(item) {
                     var text = item.getAttribute('data-search');
