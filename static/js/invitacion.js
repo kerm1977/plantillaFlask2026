@@ -126,13 +126,45 @@ const Invitacion = (function () {
     }
     // Sliders: solo el punto de control mueve el valor; tocar la barra no hace nada
     // (evita cambios accidentales al hacer scroll en el panel de ajustes).
+    // Estrategia doble: bloquear el pointerdown fuera del thumb + revertir el valor
+    // si el navegador igual hace saltar el punto.
     function soloThumb(inp) {
-        inp.addEventListener('pointerdown', function (e) {
+        const THUMB = 26; // radio de agarre del punto (px)
+        inp._prev = inp.value;
+        function centroThumb() {
             const r = inp.getBoundingClientRect();
             const min = parseFloat(inp.min), max = parseFloat(inp.max), v = parseFloat(inp.value);
-            const thumbW = 20;
-            const cx = thumbW / 2 + (r.width - thumbW) * (v - min) / (max - min);
-            if (Math.abs(e.clientX - r.left - cx) > thumbW) e.preventDefault();
+            return { r: r, cx: THUMB + (r.width - 2 * THUMB) * (v - min) / (max - min) };
+        }
+        inp.addEventListener('pointerdown', function (e) {
+            const c = centroThumb();
+            const x = e.clientX - c.r.left;
+            if (Math.abs(x - c.cx) > THUMB + 6) {
+                inp._block = true;
+                e.preventDefault();
+                return;
+            }
+            inp._drag = true;
+            try { inp.setPointerCapture(e.pointerId); } catch (err) {}
+        });
+        inp.addEventListener('pointermove', function (e) {
+            if (!inp._drag) return;
+            const r = inp.getBoundingClientRect();
+            const min = parseFloat(inp.min), max = parseFloat(inp.max);
+            const frac = Math.min(Math.max((e.clientX - r.left - THUMB) / (r.width - 2 * THUMB), 0), 1);
+            const nv = String(Math.round(min + frac * (max - min)));
+            if (nv !== inp.value) { inp.value = nv; inp._prev = nv; ajuste(); }
+        });
+        ['pointerup', 'pointercancel'].forEach(function (ev) {
+            inp.addEventListener(ev, function () {
+                inp._drag = false;
+                setTimeout(function () { inp._block = false; }, 60);
+            });
+        });
+        // Red de seguridad: si el navegador movió el valor por el toque en la barra, revertirlo.
+        inp.addEventListener('input', function () {
+            if (inp._block) { inp.value = inp._prev; inp._block = false; ajuste(); }
+            else { inp._prev = inp.value; }
         });
     }
     function bindSoloThumb() {
