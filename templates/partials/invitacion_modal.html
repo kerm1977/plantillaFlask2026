@@ -75,7 +75,7 @@
               <div id="invCanvas" style="width:540px;height:960px;position:relative;overflow:hidden;flex:none;
                    background:#121218;font-family:Arial,Helvetica,sans-serif;transform-origin:center center;">
                 <img id="invBgImg" src="" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
-                <div id="invBand" style="position:absolute;left:0;right:0;bottom:0;top:58%;
+                <div id="invBandDiv" style="position:absolute;left:0;right:0;bottom:0;top:58%;
                      background:linear-gradient(to bottom, rgba(230,110,0,0) 0%, rgba(230,110,0,0.96) 20%, rgba(230,110,0,0.97) 100%);"></div>
                 <div id="invBlock" style="position:absolute;left:0;right:0;top:62%;text-align:center;font-size:10px;">
                   <img src="{{ url_for('static', filename='logo.png') }}" alt="" style="width:38px;margin-bottom:.8em;">
@@ -95,25 +95,34 @@
               <i class="bi bi-sliders me-1"></i>Ajustar diseño
             </button>
             <div class="collapse text-start" id="invAjustes">
-              <div class="border rounded-3 mt-2 p-2 small" style="max-height:200px;overflow-y:auto;">
+              <div class="border rounded-3 mt-2 p-2 small" style="max-height:220px;overflow-y:auto;">
                 <label class="form-label mb-0 d-flex justify-content-between">Escala general <span id="invFglobalVal">100%</span></label>
-                <input type="range" class="form-range" id="invFglobal" min="50" max="170" value="100" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invFglobal" data-min="50" data-max="170" data-value="100"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Posición del texto <span id="invPosVal">62%</span></label>
-                <input type="range" class="form-range" id="invPos" min="20" max="92" value="62" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invPos" data-min="20" data-max="92" data-value="62"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Difuminado (inicio) <span id="invBandVal">58%</span></label>
-                <input type="range" class="form-range" id="invBand" min="10" max="98" value="58" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invBand" data-min="10" data-max="98" data-value="58"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Suavidad del borde <span id="invSoftVal">20%</span></label>
-                <input type="range" class="form-range" id="invSoft" min="2" max="100" value="20" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invSoft" data-min="2" data-max="100" data-value="20"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Desenfoque del fondo <span id="invBlurVal">0%</span></label>
-                <input type="range" class="form-range" id="invBlur" min="0" max="100" value="0" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invBlur" data-min="0" data-max="100" data-value="0"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Tamaño del nombre <span id="invFnombreVal">100%</span></label>
-                <input type="range" class="form-range" id="invFnombre" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invFnombre" data-min="50" data-max="200" data-value="100"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Tamaño de la información <span id="invFinfoVal">100%</span></label>
-                <input type="range" class="form-range" id="invFinfo" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invFinfo" data-min="50" data-max="200" data-value="100"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
                 <label class="form-label mb-0 d-flex justify-content-between">Tamaño del botón de puntos <span id="invFbotonVal">100%</span></label>
-                <input type="range" class="form-range" id="invFboton" min="50" max="200" value="100" oninput="Invitacion.ajuste()">
+                <div class="inv-slider" id="invFboton" data-min="50" data-max="200" data-value="100"><div class="inv-slider-track"><div class="inv-slider-fill"></div></div><div class="inv-slider-thumb"></div></div>
               </div>
             </div>
+            <style>
+            .inv-slider{position:relative;height:32px;display:flex;align-items:center;touch-action:pan-y;}
+            .inv-slider-track{position:relative;width:100%;height:6px;border-radius:3px;background:#d7dade;}
+            .inv-slider-fill{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:#0d6efd;}
+            .inv-slider-thumb{position:absolute;top:50%;left:0;width:22px;height:22px;border-radius:50%;
+                background:#0d6efd;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);
+                transform:translate(-50%,-50%);touch-action:none;cursor:grab;}
+            .inv-slider-thumb:active{cursor:grabbing;box-shadow:0 2px 8px rgba(13,110,253,.5);}
+            </style>
           </div>
         </div>
       </div>

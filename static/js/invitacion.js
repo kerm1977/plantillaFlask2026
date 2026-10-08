@@ -21,7 +21,7 @@ const Invitacion = (function () {
     }
     function params() {
         const p = {};
-        for (const k in PARAM_IDS) p[k] = parseInt($(PARAM_IDS[k]).value, 10) || 0;
+        for (const k in PARAM_IDS) p[k] = parseInt($(PARAM_IDS[k]).dataset.value, 10) || 0;
         return p;
     }
     function eventoSel() {
@@ -47,7 +47,7 @@ const Invitacion = (function () {
 
         $('invBlock').style.top = p.pos + '%';
         $('invBlock').style.fontSize = (10 * p.fglobal / 100) + 'px';
-        const band = $('invBand');
+        const band = $('invBandDiv');
         band.style.top = p.band + '%';
         const soft = Math.max(2, Math.min(100, p.soft));
         band.style.background = 'linear-gradient(to bottom, rgba(230,110,0,0) 0%, rgba(230,110,0,0.96) ' +
@@ -69,7 +69,8 @@ const Invitacion = (function () {
         let saved = {};
         try { saved = JSON.parse(localStorage.getItem(PARAM_KEY)) || {}; } catch (e) {}
         for (const k in PARAM_IDS) {
-            if (saved[k] !== undefined) $(PARAM_IDS[k]).value = saved[k];
+            const el = $(PARAM_IDS[k]);
+            sliderSet(el, saved[k] !== undefined ? saved[k] : parseInt(el.dataset.value, 10));
         }
     }
 
@@ -124,51 +125,38 @@ const Invitacion = (function () {
                 (p.nombre_completo || '') + ' <span class="text-muted">(' + p.cedula + ')</span></button>';
         }).join('');
     }
-    // Sliders: solo el punto de control mueve el valor; tocar la barra no hace nada
-    // (evita cambios accidentales al hacer scroll en el panel de ajustes).
-    // Estrategia doble: bloquear el pointerdown fuera del thumb + revertir el valor
-    // si el navegador igual hace saltar el punto.
-    function soloThumb(inp) {
-        const THUMB = 26; // radio de agarre del punto (px)
-        inp._prev = inp.value;
-        function centroThumb() {
-            const r = inp.getBoundingClientRect();
-            const min = parseFloat(inp.min), max = parseFloat(inp.max), v = parseFloat(inp.value);
-            return { r: r, cx: THUMB + (r.width - 2 * THUMB) * (v - min) / (max - min) };
-        }
-        inp.addEventListener('pointerdown', function (e) {
-            const c = centroThumb();
-            const x = e.clientX - c.r.left;
-            if (Math.abs(x - c.cx) > THUMB + 6) {
-                inp._block = true;
-                e.preventDefault();
-                return;
-            }
-            inp._drag = true;
-            try { inp.setPointerCapture(e.pointerId); } catch (err) {}
-        });
-        inp.addEventListener('pointermove', function (e) {
-            if (!inp._drag) return;
-            const r = inp.getBoundingClientRect();
-            const min = parseFloat(inp.min), max = parseFloat(inp.max);
-            const frac = Math.min(Math.max((e.clientX - r.left - THUMB) / (r.width - 2 * THUMB), 0), 1);
-            const nv = String(Math.round(min + frac * (max - min)));
-            if (nv !== inp.value) { inp.value = nv; inp._prev = nv; ajuste(); }
-        });
-        ['pointerup', 'pointercancel'].forEach(function (ev) {
-            inp.addEventListener(ev, function () {
-                inp._drag = false;
-                setTimeout(function () { inp._block = false; }, 60);
-            });
-        });
-        // Red de seguridad: si el navegador movió el valor por el toque en la barra, revertirlo.
-        inp.addEventListener('input', function () {
-            if (inp._block) { inp.value = inp._prev; inp._block = false; ajuste(); }
-            else { inp._prev = inp.value; }
-        });
+    // Sliders propios: la barra no tiene handlers (tocarla no hace nada y el
+    // scroll pasa por encima); SOLO el thumb responde, con arrastre manual.
+    function sliderSet(el, val) {
+        const min = +el.dataset.min, max = +el.dataset.max;
+        val = Math.round(Math.min(Math.max(val, min), max));
+        el.dataset.value = val;
+        const frac = (val - min) / (max - min);
+        el.querySelector('.inv-slider-thumb').style.left = (frac * 100) + '%';
+        el.querySelector('.inv-slider-fill').style.width = (frac * 100) + '%';
+        const lab = $(el.id + 'Val');
+        if (lab) lab.textContent = val + '%';
     }
-    function bindSoloThumb() {
-        document.querySelectorAll('#invAjustes input[type=range]').forEach(soloThumb);
+    function bindSliders() {
+        document.querySelectorAll('#invAjustes .inv-slider').forEach(function (el) {
+            const thumb = el.querySelector('.inv-slider-thumb');
+            thumb.addEventListener('pointerdown', function (e) {
+                e.preventDefault();
+                try { thumb.setPointerCapture(e.pointerId); } catch (err) {}
+                el._drag = true;
+            });
+            thumb.addEventListener('pointermove', function (e) {
+                if (!el._drag) return;
+                const r = el.getBoundingClientRect();
+                const frac = Math.min(Math.max((e.clientX - r.left) / r.width, 0), 1);
+                sliderSet(el, +el.dataset.min + frac * (+el.dataset.max - +el.dataset.min));
+                ajuste();
+            });
+            ['pointerup', 'pointercancel'].forEach(function (ev) {
+                thumb.addEventListener(ev, function () { el._drag = false; });
+            });
+            sliderSet(el, parseInt(el.dataset.value, 10));
+        });
     }
 
     function colapsar(id, expandir) {
@@ -254,7 +242,7 @@ const Invitacion = (function () {
         if (!window._invResizeBound) {
             window.addEventListener('resize', scalePreview);
             $('invitacionModal').addEventListener('shown.bs.modal', scalePreview);
-            bindSoloThumb();
+            bindSliders();
             window._invResizeBound = true;
         }
     }
