@@ -77,12 +77,20 @@ const Invitacion = (function () {
     }
 
     // ── Datos en la invitación ─────────────────────────────────
+    function slug(s) {
+        return (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+            .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    }
+    function linkEvento(ev) {
+        return location.origin + '/inscripcion/' + slug(ev.nombre) + '-' + ev.id;
+    }
     function mensajeAuto(ev, p) {
         return '¡' + (p ? p.nombre_completo : 'Hola') + ', estás invitado(a) a "' +
             (ev ? ev.nombre : 'nuestra actividad') + '"' +
             (ev && ev.fecha ? ' el ' + ev.fecha : '') +
             (ev && ev.puntos ? '. ¡Ganás ' + ev.puntos + ' puntos por participar!' : '.') +
-            ' Te adjuntamos tu invitación personalizada. — latribu.top';
+            (ev ? '\n\nConfirmá tu participación y obtené tu código QR aquí: ' + linkEvento(ev) : '') +
+            '\nTe adjuntamos tu invitación personalizada. — latribu.top';
     }
     function actualizar() {
         const ev = eventoSel(), p = personaSel();
@@ -240,13 +248,23 @@ const Invitacion = (function () {
                 return;
             }
         } catch (e) { /* fallback abajo */ }
-        // Fallback: descarga la imagen y abre WhatsApp (wa.me sin número = elegir contacto)
+        // Fallback de escritorio: wa.me no admite adjuntar imágenes por URL,
+        // así que la imagen se copia al portapapeles para pegarla (Ctrl+V)
+        // en el chat, y se descarga también como respaldo.
+        let pegable = false;
+        try {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+            pegable = true;
+        } catch (e) { /* portapapeles no disponible */ }
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'invitacion.png';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
         window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank');
+        alert(pegable
+            ? 'La invitación quedó en el portapapeles: pegala en el chat de WhatsApp con Ctrl+V (también se descargó como respaldo).'
+            : 'Se descargó la imagen de la invitación: adjuntala en el chat de WhatsApp.');
     }
 
     return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar,
