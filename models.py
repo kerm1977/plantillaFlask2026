@@ -14,6 +14,7 @@ from models_puntos_evento import PuntosEvento
 from models_donacion import DonacionFinalidad
 from models_compra import CompraPuntos
 from models_fidelidad import FidelidadAjuste, FidelidadLog
+from models_reto import RetoSolicitud
 
 __all__ = [
     'User', 'Event', 'Notification', 'SiteContent', 'CaminataBlock', 'Hiker', 'EventRegistration', 'PaymentMethod', 'HikerPoints',
@@ -24,5 +25,5 @@ __all__ = [
     'HomeMedia',
     'LiveSession', 'LivePoint',
     'PuntosEvento',
-    'FidelidadAjuste', 'FidelidadLog'
+    'FidelidadAjuste', 'FidelidadLog', 'RetoSolicitud'
 ]

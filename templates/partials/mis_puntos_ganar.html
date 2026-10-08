@@ -1,4 +1,5 @@
-            {# BLINDADO: Ganar puntos desde casa - actualizar datos (+200) y foto de perfil FB (+200), una sola vez cada uno #}
+            {# BLINDADO: Ganar puntos desde casa - retos: actualizar datos, foto de perfil y
+               foto de portada en Facebook (+200 c/u, una vez por mes, con aprobación del superusuario) #}
             <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accGanar">
@@ -12,31 +13,48 @@
                       <strong><i class="bi bi-pencil-square me-1 text-primary"></i>Actualizar mis datos</strong>
                       <span class="badge bg-success rounded-pill">+200 pts</span>
                     </div>
-                    <p class="small text-muted mb-2">Completá <strong>todos los campos</strong> de tu registro (teléfono, correo, tipo de sangre, contacto de emergencia...) y ganás <strong>200 puntos</strong>. El premio se acredita una sola vez.</p>
-                    {% if result.premio_datos %}
-                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste estos puntos. Podés actualizar tus datos cuando quieras.</p>
+                    <p class="small text-muted mb-2">Completá <strong>todos los campos</strong> de tu registro (teléfono, correo, tipo de sangre, contacto de emergencia...) y ganás <strong>200 puntos</strong> una vez por mes, luego de que los coordinadores lo comprueben.</p>
+                    {% if result.retos.datos == 'ganado' %}
+                    <p class="small text-success fw-bold mb-2"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes. Podés actualizar tus datos cuando quieras.</p>
+                    {% elif result.retos.datos == 'pendiente' %}
+                    <p class="small text-warning fw-bold mb-2"><i class="bi bi-hourglass-split me-1"></i>Tu reto está pendiente de aprobación por los coordinadores.</p>
                     {% endif %}
-                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 mt-2" data-bs-toggle="modal" data-bs-target="#modalDatos">
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalDatos">
                       <i class="bi bi-pencil me-1"></i>Actualizar mis datos
                     </button>
                   </div>
-                  <div class="border rounded-4 p-3">
+                  <div class="border rounded-4 p-3 mb-2">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                      <strong><i class="bi bi-facebook me-1 text-primary"></i>Foto de perfil con la camisa</strong>
+                      <strong><i class="bi bi-person-circle me-1 text-primary"></i>Foto de perfil con la camisa</strong>
                       <span class="badge bg-success rounded-pill">+200 pts</span>
                     </div>
-                    <p class="small text-muted mb-2">Poné tu <strong>foto de perfil de Facebook</strong> con la camisa de La Tribu de los Libres durante <strong>una semana</strong> y ganás <strong>200 puntos</strong>. Se acredita una sola vez.</p>
-                    {% if result.premio_foto %}
-                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste estos puntos.</p>
+                    <p class="small text-muted mb-2">Poné tu <strong>foto de perfil de Facebook</strong> con la camisa de La Tribu de los Libres durante <strong>una semana</strong> y ganás <strong>200 puntos</strong>. Una vez por mes, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo a los coordinadores.</p>
+                    {% if result.retos.foto_perfil == 'ganado' %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
+                    {% elif result.retos.foto_perfil == 'pendiente' %}
+                    <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
                     {% else %}
-                    <form method="post" action="{{ url_for('main.foto_fb') }}">
-                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
-                      <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" name="confirma" value="si" id="confirmaFoto" required>
-                        <label class="form-check-label small" for="confirmaFoto">Confirmo que ya puse mi foto de perfil con la camisa.</label>
-                      </div>
-                      <button type="submit" class="btn btn-primary btn-sm rounded-pill fw-bold w-100"><i class="bi bi-check2-circle me-1"></i>Ya lo hice, acreditar puntos</button>
-                    </form>
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 btn-reto"
+                            data-action="{{ url_for('main.reto_confirmar', reto='foto_perfil') }}" data-cedula="{{ result.cedula }}">
+                      <i class="bi bi-check2-circle me-1"></i>Ya lo hice, confirmar reto
+                    </button>
+                    {% endif %}
+                  </div>
+                  <div class="border rounded-4 p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                      <strong><i class="bi bi-image me-1 text-primary"></i>Foto de portada con la camisa</strong>
+                      <span class="badge bg-success rounded-pill">+200 pts</span>
+                    </div>
+                    <p class="small text-muted mb-2">Poné una <strong>foto tuya en el encabezado de Facebook</strong> con un paisaje detrás y la camisa de La Tribu de los Libres, durante <strong>una semana</strong>. Ganás <strong>200 puntos</strong>, una vez por mes, luego de comprobado. Al confirmar se abre WhatsApp para enviar el pantallazo.</p>
+                    {% if result.retos.foto_portada == 'ganado' %}
+                    <p class="small text-success fw-bold mb-0"><i class="bi bi-check-circle-fill me-1"></i>Ya ganaste este reto este mes.</p>
+                    {% elif result.retos.foto_portada == 'pendiente' %}
+                    <p class="small text-warning fw-bold mb-0"><i class="bi bi-hourglass-split me-1"></i>Pendiente de aprobación.</p>
+                    {% else %}
+                    <button type="button" class="btn btn-primary btn-sm rounded-pill fw-bold w-100 btn-reto"
+                            data-action="{{ url_for('main.reto_confirmar', reto='foto_portada') }}" data-cedula="{{ result.cedula }}">
+                      <i class="bi bi-check2-circle me-1"></i>Ya lo hice, confirmar reto
+                    </button>
                     {% endif %}
                   </div>
                 </div>
@@ -52,7 +70,7 @@
                       <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                     </div>
                     <div class="modal-body px-4">
-                      <div class="alert alert-info small rounded-4"><i class="bi bi-info-circle-fill me-1"></i>Llená <strong>todos los campos obligatorios (*)</strong> para ganar <strong>200 puntos</strong>.</div>
+                      <div class="alert alert-info small rounded-4"><i class="bi bi-info-circle-fill me-1"></i>Llená <strong>todos los campos obligatorios (*)</strong> para completar el reto de <strong>200 puntos</strong>. Se acredita una vez por mes cuando los coordinadores lo aprueben.</div>
                       <div class="mb-2">
                         <label class="form-label fw-bold small">Nombre completo * <small class="text-muted fw-normal">(incluí ambos apellidos)</small></label>
                         <input type="text" name="nombre_completo" class="form-control form-control-sm" value="{{ result.perfil.nombre_completo }}" required>

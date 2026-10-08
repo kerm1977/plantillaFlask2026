@@ -1,0 +1,58 @@
+            {# BLINDADO: retos de "Ganar puntos desde casa" por verificar (solo superusuario).
+               pendiente -> aprobada (acredita puntos) / rechazada (aviso por WhatsApp a la persona) #}
+            {% set retos_pend = retos_pendientes() %}
+            {% set retos_res = retos_resueltas() %}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accRetosAdmin">
+                  <i class="bi bi-trophy me-2 text-warning"></i>Retos por comprobar{% if retos_pend %} <span class="badge bg-danger rounded-pill ms-2">{{ retos_pend | length }}</span>{% endif %}
+                </button>
+              </h2>
+              <div id="accRetosAdmin" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  <p class="small text-muted">La persona confirma su reto y te avisa por WhatsApp con el pantallazo. Verificá y aprobá para acreditar los puntos, o rechazá si no se comprobó.</p>
+                  {% for r in retos_pend %}
+                  <div class="border rounded-4 p-3 mb-2 bg-white bg-opacity-50">
+                    <div class="fw-bold">{{ r.nombre }} <small class="text-muted">({{ r.cedula }})</small></div>
+                    <div>{{ r.label }} · <strong>+{{ r.puntos }} pts</strong></div>
+                    <small class="text-muted d-block">Confirmado: {{ r.fecha }} (hora de Costa Rica)</small>
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                      <form method="post" action="{{ url_for('main.reto_resolver', sid=r.id, accion='aprobar') }}" onsubmit="return confirm('¿Aprobar el reto y acreditar +{{ r.puntos }} pts a {{ r.nombre }}?');">
+                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                        <button type="submit" class="btn btn-success btn-sm rounded-pill fw-bold"><i class="bi bi-check-circle me-1"></i>Aprobar</button>
+                      </form>
+                      <form method="post" action="{{ url_for('main.reto_resolver', sid=r.id, accion='rechazar') }}" onsubmit="return confirm('¿Rechazar este reto de {{ r.nombre }}? Podrás avisarle por WhatsApp.');">
+                        <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill"><i class="bi bi-x-circle me-1"></i>Rechazar</button>
+                      </form>
+                    </div>
+                  </div>
+                  {% else %}
+                  <p class="small text-muted mb-0">No hay retos pendientes de comprobar.</p>
+                  {% endfor %}
+                  {% if retos_res %}
+                  <div class="border-top pt-2 mt-2">
+                    <p class="small fw-bold text-muted mb-2">Últimos retos resueltos</p>
+                    {% for r in retos_res %}
+                    <div class="d-flex justify-content-between align-items-center gap-2 border rounded-3 px-2 py-1 mb-1 small bg-white bg-opacity-50">
+                      <div class="text-truncate">
+                        <strong>{{ r.nombre }}</strong> · {{ r.label }}
+                        <div><small class="text-muted">{{ r.fecha }}{% if r.por %} · por {{ r.por }}{% endif %}</small></div>
+                      </div>
+                      <div class="d-flex align-items-center gap-1 flex-shrink-0">
+                        {% if r.estado == 'aprobada' %}
+                        <span class="badge bg-success rounded-pill">Aprobado</span>
+                        {% else %}
+                        <span class="badge bg-danger rounded-pill">Rechazado</span>
+                        {% if r.wa_rechazo %}
+                        <a href="{{ r.wa_rechazo }}" target="_blank" class="btn btn-success btn-sm rounded-pill py-0 px-2"><i class="bi bi-whatsapp"></i></a>
+                        {% endif %}
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
