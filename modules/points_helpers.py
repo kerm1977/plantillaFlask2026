@@ -4,6 +4,20 @@
 # ==============================================================
 # modules/points_helpers.py - Helpers para el motor de puntos
 from datetime import datetime, date
+import hashlib
+import hmac as _hmac
+
+
+def descargar_token(cedula):
+    """Token firmado (HMAC) para enlaces de descarga del carnet/estado de cuenta.
+    Permite descargar aunque la sesión haya expirado o la página venga del caché PWA."""
+    from flask import current_app
+    secret = (current_app.config.get('SECRET_KEY') or 'dev-secret-change-me').encode()
+    return _hmac.new(secret, ('dl:' + str(cedula)).encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def token_descarga_ok(cedula, token):
+    return bool(token) and _hmac.compare_digest(str(token), descargar_token(cedula))
 
 
 def build_estado_cuenta_whatsapp(cedula, hiker=None, plain=False):

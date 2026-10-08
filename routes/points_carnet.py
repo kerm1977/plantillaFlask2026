@@ -9,6 +9,7 @@ from flask import request, session, jsonify, send_file, url_for
 from models import Hiker
 from modules.carnet import build_carnet_image, carnet_bytes, ensure_card_email
 from modules.points_engine import get_points_engine
+from modules.points_helpers import token_descarga_ok
 from routes import bp
 
 
@@ -16,7 +17,8 @@ def _autorizado():
     cedula = (request.args.get('cedula') or '').strip()
     if not cedula:
         return None, None, (jsonify({'ok': False, 'error': 'Falta la cedula'}), 400)
-    if session.get('role') != 'Superusuario' and session.get('mis_puntos_ok') != cedula:
+    if session.get('role') != 'Superusuario' and session.get('mis_puntos_ok') != cedula \
+            and not token_descarga_ok(cedula, request.args.get('t')):
         return None, None, (jsonify({'ok': False, 'error': 'No autorizado'}), 403)
     hiker = Hiker.query.filter_by(cedula=cedula).first()
     if not hiker:

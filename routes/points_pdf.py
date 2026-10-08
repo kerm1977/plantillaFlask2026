@@ -6,16 +6,18 @@
 from flask import request, session, Response, jsonify
 from models import Hiker
 from modules.estado_cuenta_pdf import build_estado_cuenta_pdf
-from modules.points_helpers import build_estado_cuenta_whatsapp
+from modules.points_helpers import build_estado_cuenta_whatsapp, token_descarga_ok
 from routes import bp
 
 
 def _hiker_autorizado():
-    """Devuelve (cedula, hiker, error_response). Autoriza superusuario o persona verificada con su PIN."""
+    """Devuelve (cedula, hiker, error_response). Autoriza superusuario, persona
+    verificada con su PIN o enlace con token de descarga firmado."""
     cedula = (request.args.get('cedula') or '').strip()
     if not cedula:
         return None, None, (jsonify({'ok': False, 'error': 'Falta la cedula'}), 400)
-    if session.get('role') != 'Superusuario' and session.get('mis_puntos_ok') != cedula:
+    if session.get('role') != 'Superusuario' and session.get('mis_puntos_ok') != cedula \
+            and not token_descarga_ok(cedula, request.args.get('t')):
         return None, None, (jsonify({'ok': False, 'error': 'No autorizado'}), 403)
     hiker = Hiker.query.filter_by(cedula=cedula).first()
     if not hiker:

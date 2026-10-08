@@ -157,8 +157,8 @@
                   <a href="{{ estado_coordinador_url }}" class="btn btn-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar mi estado de cuenta a un coordinador</a>
                   <a href="{{ estado_whatsapp_url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviarme a WhatsApp mi estado de cuenta</a>
                   <p class="small text-muted mb-1">"Enviarme" va al teléfono registrado de tu cédula{% if telefono_registrado %} ({{ telefono_registrado }}){% endif %}.</p>
-                  <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula) }}" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF</a>
-                  <a href="{{ url_for('main.estado_cuenta_txt', cedula=result.cedula) }}" class="btn btn-secondary rounded-pill fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Descargar TXT</a>
+                  <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula, t=result.dl_token) }}" class="btn btn-danger rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Descargar PDF</a>
+                  <a href="{{ url_for('main.estado_cuenta_txt', cedula=result.cedula, t=result.dl_token) }}" class="btn btn-secondary rounded-pill fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Descargar TXT</a>
                 </div>
               </div>
             </div>
@@ -174,13 +174,13 @@
               <div class="accordion-body text-center">
                 <p class="small text-muted mb-3 text-start">Tu carnet de identificación con código QR: presentalo en las actividades para registrar tu participación. Tocalo para verlo en grande y descargarlo.</p>
                 <div class="d-flex justify-content-center mb-3">
-                  <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
+                  <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1', t=result.dl_token) }}" alt="Carnet de {{ result.nombre_completo }}"
                        class="img-fluid rounded-4 shadow" style="display: block; margin-left: auto; margin-right: auto; max-width: 300px; cursor: zoom-in;" loading="lazy"
                        data-bs-toggle="modal" data-bs-target="#modalCarnet" title="Tocá para ampliar">
                 </div>
                 <div class="d-grid gap-2">
                   <button type="button" id="btnCarnetWa" class="btn btn-success rounded-pill fw-bold"
-                          data-url="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}"
+                          data-url="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, t=result.dl_token) }}"
                           data-wa="{{ carnet_wa_url }}"><i class="bi bi-whatsapp me-2"></i>Enviar mi carnet por WhatsApp</button>
                 </div>
               </div>
@@ -193,12 +193,12 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                   </div>
                   <div class="modal-body text-center px-3">
-                    <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1') }}" alt="Carnet de {{ result.nombre_completo }}"
+                    <img src="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, inline='1', t=result.dl_token) }}" alt="Carnet de {{ result.nombre_completo }}"
                          class="img-fluid rounded-4 shadow">
                   </div>
                   <div class="modal-footer border-0 justify-content-center pt-0 pb-4 gap-2">
                     <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
-                    <a href="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula) }}" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-file-earmark-image me-1"></i>Descargar PNG</a>
+                    <a href="{{ url_for('main.mis_puntos_carnet', fmt='png', cedula=result.cedula, t=result.dl_token) }}" class="btn btn-primary rounded-pill px-4 fw-bold"><i class="bi bi-file-earmark-image me-1"></i>Descargar PNG</a>
                   </div>
                 </div>
               </div>

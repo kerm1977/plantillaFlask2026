@@ -15,7 +15,8 @@ from modules.points_donations import birthday_hikers, donate
 from modules import fidelidad, retos, retos_builder
 from modules.estado_global import resumen_global, detalle_persona
 from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
-                                    get_notif_cutoff, build_estado_cuenta_whatsapp)
+                                    get_notif_cutoff, build_estado_cuenta_whatsapp,
+                                    descargar_token)
 from routes import bp
 from routes.points import _current_user
 
@@ -269,6 +270,7 @@ def mis_puntos():
                 }
                 result['retos'] = retos.estados_todos(cedula)
                 result['retos_custom'] = retos_builder.lista_custom(cedula)
+                result['dl_token'] = descargar_token(cedula)
                 result['perfil'] = {
                     'nombre_completo': hiker_found.nombre_completo or '',
                     'telefono': hiker_found.telefono or '',
