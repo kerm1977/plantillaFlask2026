@@ -1,0 +1,41 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+<!-- Modal: invitación personalizada 9:16 por WhatsApp (superusuario) -->
+<div class="modal fade" id="invitacionModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content border-0 shadow-lg rounded-4">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold"><i class="bi bi-envelope-paper me-2 text-success"></i>Invitación personalizada</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-bold small">Evento</label>
+            <select id="invEvento" class="form-select" onchange="Invitacion.actualizar()">
+              <option value="">Cargando eventos...</option>
+            </select>
+            <label class="form-label fw-bold small mt-3">Persona a invitar</label>
+            <input type="search" id="invBuscar" class="form-control" placeholder="Buscar por nombre o cédula..."
+                   autocomplete="off" oninput="Invitacion.filtrar()">
+            <input type="hidden" id="invCedula">
+            <div id="invLista" class="list-group mt-1" style="max-height:180px;overflow-y:auto;"></div>
+            <p class="small text-muted mt-2 mb-0" id="invResumen"></p>
+          </div>
+          <div class="col-12 col-md-6 text-center">
+            <div id="invPreview" class="border rounded-4 bg-light d-flex align-items-center justify-content-center" style="min-height:340px;overflow:hidden;">
+              <span class="text-muted small">Elegí evento y persona para ver la invitación</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold" data-bs-dismiss="modal">Cancelar</button>
+        <a href="#" id="invDescargar" class="btn btn-outline-primary rounded-pill fw-bold" download="invitacion.png"><i class="bi bi-download me-1"></i>Descargar</a>
+        <button type="button" id="invWhatsapp" class="btn btn-success rounded-pill fw-bold" onclick="Invitacion.whatsapp()"><i class="bi bi-whatsapp me-1"></i>WhatsApp</button>
+      </div>
+    </div>
+  </div>
+</div>
