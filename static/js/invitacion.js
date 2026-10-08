@@ -248,13 +248,60 @@ const Invitacion = (function () {
     }
 
     // ── Captura html2canvas a 1080x1920 ────────────────────────
-    function capturar() {
-        const area = $('invCanvas');
+    // html2canvas NO soporta filter:blur() — el blur se rasteriza antes
+    // en un canvas offscreen y se restaura después de la captura.
+    function _rasterizarBlur() {
+        const area = $('invCanvas'), img = $('invBgImg');
+        const blurPx = params().blur / 100 * 12;
+        if (blurPx <= 0 || !img.src) return Promise.resolve(null);
+        const im = new Image();
+        im.crossOrigin = 'anonymous';
+        return new Promise(function (res) {
+            im.onload = function () {
+                const cv = document.createElement('canvas');
+                cv.width = area.offsetWidth; cv.height = area.offsetHeight;
+                const cx = cv.getContext('2d');
+                const s = Math.max(cv.width / im.width, cv.height / im.height);
+                const w = im.width * s * (1 + blurPx * 0.02), h = im.height * s * (1 + blurPx * 0.02);
+                const dx = (cv.width - w) / 2, dy = (cv.height - h) / 2;
+                if (typeof cx.filter !== 'undefined') {
+                    cx.filter = 'blur(' + blurPx + 'px)';
+                    cx.drawImage(im, dx, dy, w, h);
+                } else {
+                    // Fallback sin ctx.filter: blur aproximado por capas desplazadas
+                    cx.globalAlpha = 0.18;
+                    for (let i = 0; i < 6; i++) {
+                        const a = i * Math.PI / 3;
+                        cx.drawImage(im, dx + Math.cos(a) * blurPx * 0.5, dy + Math.sin(a) * blurPx * 0.5, w, h);
+                    }
+                    cx.globalAlpha = 1;
+                    cx.drawImage(im, dx, dy, w, h);
+                }
+                res(cv.toDataURL('image/png'));
+            };
+            im.onerror = function () { res(null); };
+            im.src = img.src;
+        });
+    }
+    async function capturar() {
+        const area = $('invCanvas'), img = $('invBgImg');
+        const prevSrc = img.src, prevFilter = img.style.filter, prevTrans = img.style.transform;
+        const blurred = await _rasterizarBlur();
+        if (blurred) {
+            img.src = blurred;
+            img.style.filter = 'none';
+            img.style.transform = 'none';
+        }
         const t = area.style.transform;
         area.style.transform = 'none';   // capturar a tamaño real
-        return html2canvas(area, { scale: 2, useCORS: true, backgroundColor: '#121218' })
-            .then(function (canvas) { area.style.transform = t; return canvas; })
-            .catch(function (e) { area.style.transform = t; throw e; });
+        try {
+            return await html2canvas(area, { scale: 2, useCORS: true, backgroundColor: '#121218' });
+        } finally {
+            area.style.transform = t;
+            img.src = prevSrc;
+            img.style.filter = prevFilter;
+            img.style.transform = prevTrans;
+        }
     }
     function canvasBlob(canvas) {
         return new Promise(function (res) { canvas.toBlob(res, 'image/png'); });
