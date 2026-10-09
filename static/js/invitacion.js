@@ -84,9 +84,11 @@ const Invitacion = (function () {
 
     // ── Datos en la invitación ─────────────────────────────────
     function linkEvento(ev) {
-        // Mismo enlace que genera la ventana "Compartir código QR" de cada
-        // caminata (url_for puntos_scan _external): siempre el dominio público,
-        // aunque el superusuario genere la invitación desde localhost.
+        // ██ BLINDADO — NO CAMBIAR NUNCA ██
+        // Enlace del código QR de cada caminata: es el MISMO que genera la
+        // ventana "Compartir código QR" (url_for main.puntos_scan _external).
+        // Dominio público fijo: aunque se genere desde localhost el invitado
+        // recibe el link real. Orden del dueño: este enlace NO se toca.
         return 'https://www.latribu.top/puntos-scan/' + ev.id;
     }
     function mensajeAuto(ev, p) {

@@ -36,3 +36,18 @@ preservar todo lo demás, verificar antes de subir.
 
 - Cloudflare tunnel (`ejecutar.bat`, watcher CLOUD_WATCHER, protocolo http2).
 - GitHub: `https://github.com/kerm1977/plantillaFlask2026.git` → rama `main`.
+
+## REGLA BLINDADA — Invitación personalizada
+
+Aprobada por el dueño. En `static/js/invitacion.js`:
+
+- **El enlace del mensaje de WhatsApp es INTocable**: `linkEvento()` devuelve
+  siempre `https://www.latribu.top/puntos-scan/<id>` — el MISMO enlace del QR
+  de cada caminata (route `main.puntos_scan` en `routes/scan.py`, usado por
+  `caminata_qr_share.js` con `url_for(_external=True)`). Dominio fijo, nunca
+  `location.origin` (localhost rompía el link).
+- **Sliders propios, pista inerte**: NO volver a `input[type=range]` — el
+  track no responde a toques, solo el thumb arrastra (`bindSliders`).
+- **Diseño aprobado**: acordeón, controles en %, blur con raster previo a
+  html2canvas, degradado naranja, escala global. No regresar.
+- Vista previa DOM (sin parpadeo) + captura `html2canvas` a 1080×1920.
