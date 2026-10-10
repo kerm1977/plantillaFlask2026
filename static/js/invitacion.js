@@ -358,19 +358,20 @@ const Invitacion = (function () {
         const texto = $('invMsg').value || _msgAuto || '';
         const blob = await canvasBlob(await capturar());
         const file = new File([blob], 'invitacion.png', { type: 'image/png' });
+        let enviado = false;
         try {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 try {
                     await navigator.share({ files: [file], text: texto });
+                    enviado = true;
                 } catch (e) {
-                    // El usuario cerró el menú de compartir: no abrir wa.me,
-                    // se queda en la invitación para reintentar o elegir otra.
+                    // Solo la cancelación del usuario frena todo: cualquier
+                    // otro error del share cae al fallback de WhatsApp.
                     if (e && e.name === 'AbortError') return;
                 }
-                siguiente();
-                return;
             }
         } catch (e) { /* fallback abajo */ }
+        if (enviado) { siguiente(); return; }
         // Fallback: wa.me no admite adjuntar imágenes por URL — la imagen se
         // copia al portapapeles para pegarla en el chat (y se descarga como
         // respaldo). En móvil se usa el deep-link de la app directamente.
