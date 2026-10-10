@@ -339,6 +339,17 @@ const Invitacion = (function () {
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
     }
 
+    // Tras enviar: limpia la persona y reabre el acordeón de personas para
+    // encadenar invitaciones seguidas sin salir del modal.
+    function siguiente() {
+        $('invCedula').value = '';
+        $('invBuscar').value = '';
+        pintarLista();
+        actualizar();
+        colapsar('invAccPersona', true);
+        setTimeout(function () { $('invBuscar').focus(); }, 400);
+    }
+
     async function whatsapp() {
         if (!listo()) return;
         usada();
@@ -349,13 +360,20 @@ const Invitacion = (function () {
         const file = new File([blob], 'invitacion.png', { type: 'image/png' });
         try {
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                await navigator.share({ files: [file], text: texto });
+                try {
+                    await navigator.share({ files: [file], text: texto });
+                } catch (e) {
+                    // El usuario cerró el menú de compartir: no abrir wa.me,
+                    // se queda en la invitación para reintentar o elegir otra.
+                    if (e && e.name === 'AbortError') return;
+                }
+                siguiente();
                 return;
             }
         } catch (e) { /* fallback abajo */ }
-        // Fallback de escritorio: wa.me no admite adjuntar imágenes por URL,
-        // así que la imagen se copia al portapapeles para pegarla (Ctrl+V)
-        // en el chat, y se descarga también como respaldo.
+        // Fallback: wa.me no admite adjuntar imágenes por URL — la imagen se
+        // copia al portapapeles para pegarla en el chat (y se descarga como
+        // respaldo). En móvil se usa el deep-link de la app directamente.
         let pegable = false;
         try {
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -366,10 +384,15 @@ const Invitacion = (function () {
         a.download = 'invitacion.png';
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
-        window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank');
+        const movil = /Android|iPhone|iPad/i.test(navigator.userAgent);
+        const waUrl = movil
+            ? 'whatsapp://send?phone=' + tel + '&text=' + encodeURIComponent(texto)
+            : 'https://wa.me/' + tel + '?text=' + encodeURIComponent(texto);
+        window.open(waUrl, '_blank');
         alert(pegable
-            ? 'La invitación quedó en el portapapeles: pegala en el chat de WhatsApp con Ctrl+V (también se descargó como respaldo).'
+            ? 'La invitación quedó en el portapapeles: pegala en el chat de WhatsApp (también se descargó como respaldo).'
             : 'Se descargó la imagen de la invitación: adjuntala en el chat de WhatsApp.');
+        siguiente();
     }
 
     return { abrir: abrir, filtrar: pintarLista, elegir: elegir, actualizar: actualizar,
