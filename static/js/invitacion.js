@@ -64,6 +64,24 @@ const Invitacion = (function () {
     function ajuste() {
         renderDiseno();
         localStorage.setItem(PARAM_KEY, JSON.stringify(params()));
+        precapturarDebounced();
+    }
+    // Pre-render del PNG en segundo plano: al tocar WhatsApp la imagen ya
+    // está lista y navigator.share sale dentro de la activación del toque
+    // (si se captura al hacer click, la espera larga invalida el share y
+    // el navegador cae a descargar el archivo).
+    let _preTimer = null, _blobPendiente = null;
+    function precapturarDebounced() {
+        clearTimeout(_preTimer);
+        _preTimer = setTimeout(precapturar, 600);
+    }
+    function precapturar() {
+        if (!eventoSel() || !personaSel()) { _blobPendiente = null; return; }
+        _blobPendiente = capturar().then(canvasBlob).catch(function () { return null; });
+    }
+    function blobInvitacion() {
+        if (!_blobPendiente) precapturar();
+        return _blobPendiente;
     }
     function cargarParams() {
         let saved = {};
@@ -115,6 +133,7 @@ const Invitacion = (function () {
         if (!msg.value || msg.value === _msgAuto) { msg.value = nuevo; }
         _msgAuto = nuevo;
         renderDiseno();
+        precapturarDebounced();
     }
 
     // ── Persona (buscador en vivo) ─────────────────────────────
@@ -331,7 +350,8 @@ const Invitacion = (function () {
     async function descargar() {
         if (!listo()) return;
         usada();
-        const blob = await canvasBlob(await capturar());
+        const blob = await blobInvitacion();
+        if (!blob) { alert('No se pudo generar la imagen de la invitación.'); return; }
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = 'invitacion.png';
@@ -356,25 +376,41 @@ const Invitacion = (function () {
         const p = personaSel();
         const tel = p && p.telefono ? '506' + String(p.telefono).replace(/\D/g, '') : '';
         const texto = $('invMsg').value || _msgAuto || '';
-        const blob = await canvasBlob(await capturar());
+        const blob = await blobInvitacion();
+        if (!blob) { alert('No se pudo generar la imagen de la invitación.'); return; }
         const file = new File([blob], 'invitacion.png', { type: 'image/png' });
-        let enviado = false;
-        try {
-            if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                try {
-                    await navigator.share({ files: [file], text: texto });
-                    enviado = true;
-                } catch (e) {
-                    // Solo la cancelación del usuario frena todo: cualquier
-                    // otro error del share cae al fallback de WhatsApp.
-                    if (e && e.name === 'AbortError') return;
-                }
+        // 1) Share nativo con archivo: la única vía web para adjuntar la
+        //    imagen a WhatsApp como cualquier otro archivo. Se intenta
+        //    directo (canShare da falsos negativos en varios navegadores).
+        if (navigator.share) {
+            let conImagen = false;
+            for (const data of [{ files: [file], text: texto, title: 'Invitación' },
+                                { files: [file], text: texto },
+                                { files: [file] }]) {
+                try { await navigator.share(data); conImagen = true; break; }
+                catch (e) { if (e && e.name === 'AbortError') return; }
             }
-        } catch (e) { /* fallback abajo */ }
-        if (enviado) { siguiente(); return; }
-        // Fallback: wa.me no admite adjuntar imágenes por URL — la imagen se
-        // copia al portapapeles para pegarla en el chat (y se descarga como
-        // respaldo). En móvil se usa el deep-link de la app directamente.
+            if (conImagen) { siguiente(); return; }
+            // El navegador no comparte archivos: al menos el mensaje+link
+            // sale por el share nativo (texto plano).
+            let soloTexto = false;
+            try { await navigator.share({ text: texto }); soloTexto = true; }
+            catch (e) { if (e && e.name === 'AbortError') return; }
+            // El mensaje ya salió: dejar la imagen en portapapeles/descarga
+            // para adjuntarla en el chat y NO abrir WhatsApp otra vez.
+            if (soloTexto) {
+                try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); } catch (e) {}
+                const b = document.createElement('a');
+                b.href = URL.createObjectURL(blob);
+                b.download = 'invitacion.png';
+                document.body.appendChild(b); b.click(); b.remove();
+                setTimeout(function () { URL.revokeObjectURL(b.href); }, 4000);
+                alert('El mensaje salió. La imagen quedó en el portapapeles/descargas para adjuntarla en el chat.');
+                siguiente();
+                return;
+            }
+        }
+        // 2) Sin share API (PC): imagen al portapapeles + descarga + wa.me.
         let pegable = false;
         try {
             await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
@@ -386,10 +422,12 @@ const Invitacion = (function () {
         document.body.appendChild(a); a.click(); a.remove();
         setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
         const movil = /Android|iPhone|iPad/i.test(navigator.userAgent);
-        const waUrl = movil
-            ? 'whatsapp://send?phone=' + tel + '&text=' + encodeURIComponent(texto)
-            : 'https://wa.me/' + tel + '?text=' + encodeURIComponent(texto);
-        window.open(waUrl, '_blank');
+        if (movil) {
+            // location.href dispara el deep-link a la app (window.open lo bloquean)
+            window.location.href = 'whatsapp://send?phone=' + tel + '&text=' + encodeURIComponent(texto);
+        } else {
+            window.open('https://wa.me/' + tel + '?text=' + encodeURIComponent(texto), '_blank');
+        }
         alert(pegable
             ? 'La invitación quedó en el portapapeles: pegala en el chat de WhatsApp (también se descargó como respaldo).'
             : 'Se descargó la imagen de la invitación: adjuntala en el chat de WhatsApp.');
