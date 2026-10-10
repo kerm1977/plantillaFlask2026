@@ -51,3 +51,8 @@ Aprobada por el dueño. En `static/js/invitacion.js`:
 - **Diseño aprobado**: acordeón, controles en %, blur con raster previo a
   html2canvas, degradado naranja, escala global. No regresar.
 - Vista previa DOM (sin parpadeo) + captura `html2canvas` a 1080×1920.
+- **Envío WhatsApp**: el PNG se **pre-renderiza** (`precapturar`) cuando hay
+  evento+persona — `navigator.share({files,text})` debe salir dentro de la
+  activación del toque o el navegador lo rechaza y cae a descargar. Tras
+  enviar, `siguiente()` limpia la persona y reabre el buscador para
+  encadenar invitaciones. Cancelar el share (AbortError) no abre nada.
