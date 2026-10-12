@@ -30,8 +30,10 @@ def estado_cuenta_pdf():
     cedula, hiker, err = _hiker_autorizado()
     if err:
         return err
+    # BLINDADO: no-store para que Cloudflare no sirva un PDF viejo con ceros
     return Response(build_estado_cuenta_pdf(cedula, hiker), mimetype='application/pdf',
-                    headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.pdf'})
+                    headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.pdf',
+                             'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'})
 
 
 @bp.route('/mis-puntos/estado-cuenta-simple.txt', methods=['GET'])
@@ -41,4 +43,5 @@ def estado_cuenta_txt():
         return err
     text = build_estado_cuenta_whatsapp(cedula, hiker, plain=True)
     return Response(text, mimetype='text/plain; charset=utf-8',
-                    headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.txt'})
+                    headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.txt',
+                             'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'})

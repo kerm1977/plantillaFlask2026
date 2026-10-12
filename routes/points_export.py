@@ -12,6 +12,10 @@ from modules.points_engine import get_points_engine
 from routes import bp
 from routes.points import _current_user
 
+# BLINDADO: las descargas nunca deben quedar en caché (Cloudflare cachea
+# .txt/.pdf/.json por defecto y servía estados de cuenta viejos con ceros).
+_NO_STORE = {'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'}
+
 
 def _format_row_line(row):
     fecha = (row.get('creado_at') or '')[:19].replace('T', ' ')
@@ -58,7 +62,7 @@ def estado_cuenta():
     hiker = Hiker.query.filter_by(cedula=cedula).first()
     text = _build_estado_cuenta(cedula, hiker)
     filename = f'estado_cuenta_{cedula}.txt'
-    return Response(text, mimetype='text/plain', headers={'Content-Disposition': f'attachment; filename={filename}'})
+    return Response(text, mimetype='text/plain', headers={'Content-Disposition': f'attachment; filename={filename}', **_NO_STORE})
 
 
 @bp.route('/admin/puntos/exportar', methods=['GET'])
@@ -75,7 +79,7 @@ def admin_puntos_exportar():
     for hiker in hikers:
         parts.append(_build_estado_cuenta(hiker.cedula, hiker))
     text = '\n'.join(parts)
-    return Response(text, mimetype='text/plain', headers={'Content-Disposition': 'attachment; filename=estados_cuenta_todos.txt'})
+    return Response(text, mimetype='text/plain', headers={'Content-Disposition': 'attachment; filename=estados_cuenta_todos.txt', **_NO_STORE})
 
 
 @bp.route('/mis-puntos/exportar-json', methods=['GET'])
@@ -94,7 +98,17 @@ def mis_puntos_exportar_json():
         'historial': engine.history_with_names(cedula)
     }
     text = json.dumps(data, ensure_ascii=False, indent=2, default=str)
-    return Response(text, mimetype='application/json', headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.json'})
+    return Response(text, mimetype='application/json', headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.json', **_NO_STORE})
+
+
+@bp.route('/api/puntos/respaldo-estado', methods=['GET'])
+def puntos_respaldo_estado():
+    """Reloj del próximo respaldo automático (cada 48h) — solo superusuario."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    from modules import auto_backup
+    data = auto_backup.estado()
+    return jsonify({'ok': True, **data}), 200, _NO_STORE
 
 
 @bp.route('/mis-puntos/importar-json', methods=['POST'])

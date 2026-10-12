@@ -7,10 +7,29 @@ import json
 import random
 import string as _str2
 from flask import request, jsonify, session, Response
-from models import User, Hiker, Event, EventRegistration, Notification, SiteContent
+from models import User, Hiker, Event, EventRegistration, Notification, SiteContent, HikerPoints
 from db import db
 from datetime import datetime
 from routes import bp, _PROJECT_ROOT
+
+_NO_STORE = {'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'}
+
+
+def _db_payload():
+    """Toda la base de datos serializada — incluye puntos (hiker_points)."""
+    return {
+        'exported_at': datetime.utcnow().isoformat(),
+        'version': '1.0',
+        'tables': {
+            'users':               [_serialize_row(r) for r in User.query.all()],
+            'hikers':              [_serialize_row(r) for r in Hiker.query.all()],
+            'events':              [_serialize_row(r) for r in Event.query.all()],
+            'event_registrations': [_serialize_row(r) for r in EventRegistration.query.all()],
+            'hiker_points':        [_serialize_row(r) for r in HikerPoints.query.all()],
+            'notifications':       [_serialize_row(r) for r in Notification.query.all()],
+            'site_content':        [_serialize_row(r) for r in SiteContent.query.all()],
+        }
+    }
 
 # ==========================================
 # EXPORTAR / IMPORTAR BASE DE DATOS
@@ -34,25 +53,14 @@ def db_export_json():
     if session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     try:
-        payload = {
-            'exported_at': datetime.utcnow().isoformat(),
-            'version': '1.0',
-            'tables': {
-                'users':               [_serialize_row(r) for r in User.query.all()],
-                'hikers':              [_serialize_row(r) for r in Hiker.query.all()],
-                'events':              [_serialize_row(r) for r in Event.query.all()],
-                'event_registrations': [_serialize_row(r) for r in EventRegistration.query.all()],
-                'notifications':       [_serialize_row(r) for r in Notification.query.all()],
-                'site_content':        [_serialize_row(r) for r in SiteContent.query.all()],
-            }
-        }
+        payload  = _db_payload()
         ts       = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
         fname    = f'db_export_{ts}.json'
         raw      = json.dumps(payload, ensure_ascii=False, indent=2)
         return Response(
             raw,
             mimetype='application/json',
-            headers={'Content-Disposition': f'attachment; filename="{fname}"'}
+            headers={'Content-Disposition': f'attachment; filename="{fname}"', **_NO_STORE}
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -81,7 +89,7 @@ def contactos_export_json():
         return Response(
             raw,
             mimetype='application/json',
-            headers={'Content-Disposition': f'attachment; filename="{fname}"'}
+            headers={'Content-Disposition': f'attachment; filename="{fname}"', **_NO_STORE}
         )
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -154,6 +162,40 @@ def db_import_json():
         from helpers.req_cache import invalidate
         invalidate('site_content')
         stats['site_content'] = {'added': added, 'skipped': skipped}
+
+        # --- HikerPoints (movimientos de puntos; se omiten duplicados exactos) ---
+        added = skipped = 0
+        for row in tables.get('hiker_points', []):
+            ced = (row.get('cedula') or '').strip()
+            if not ced:
+                skipped += 1; continue
+            creado = None
+            if row.get('created_at'):
+                try: creado = datetime.fromisoformat(str(row['created_at']).replace('Z', '+00:00')).replace(tzinfo=None)
+                except Exception: creado = None
+            dup = HikerPoints.query.filter_by(
+                cedula=ced,
+                event_id=row.get('event_id'),
+                tipo=(row.get('tipo') or 'participacion')[:20],
+                points=int(row.get('points') or 0),
+                created_at=creado
+            ).first() if creado else None
+            if dup:
+                skipped += 1; continue
+            hk = Hiker.query.filter_by(cedula=ced).first()
+            db.session.add(HikerPoints(
+                cedula=ced,
+                hiker_id=hk.id if hk else None,
+                event_id=row.get('event_id'),
+                points=int(row.get('points') or 0),
+                tipo=(row.get('tipo') or 'participacion')[:20],
+                detalle=(row.get('detalle') or '')[:255],
+                created_by=(row.get('created_by') or 'import')[:100],
+                created_at=creado or datetime.utcnow()
+            ))
+            added += 1
+        db.session.commit()
+        stats['hiker_points'] = {'added': added, 'skipped': skipped}
 
         return jsonify({'ok': True, 'stats': stats})
     except Exception as e:

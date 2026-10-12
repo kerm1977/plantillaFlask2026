@@ -3,6 +3,11 @@
         {% if is_super %}
         <div class="border-top pt-4{{ ' mt-4' if cumpleaneros else '' }}">
           <h4 class="fw-bold text-dark mb-3">Gestión de superusuario</h4>
+          {# Reloj del respaldo automático de la BD en JSON (cada 48h) #}
+          <div class="d-flex align-items-center justify-content-center gap-2 small text-muted mb-3" id="puntosRespaldoInfo">
+            <i class="bi bi-clock-history text-orange"></i>
+            <span>Próximo respaldo automático: <strong id="puntosRespaldoReloj" class="text-dark">cargando…</strong></span>
+          </div>
           <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-dark rounded-pill fw-bold w-100 mb-3" target="_blank">Exportar todos los estados de cuenta</a>
           <div class="accordion" id="gestionAdminPuntosAccordion">
             <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
@@ -146,4 +151,27 @@
             {% include 'partials/mis_puntos_fidelidad_admin.html' %}
           </div>
         </div>
+        <script>
+        // Reloj del respaldo automático de la BD en JSON (cada 48h)
+        (function () {
+          var el = document.getElementById('puntosRespaldoReloj');
+          if (!el) return;
+          var proximo = null;
+          function pintar() {
+            if (!proximo) return;
+            var diff = new Date(proximo) - Date.now();
+            if (diff <= 0) { el.textContent = 'en curso…'; return; }
+            var h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000);
+            var f = new Date(proximo);
+            el.textContent = ('0' + f.getDate()).slice(-2) + '/' + ('0' + (f.getMonth() + 1)).slice(-2) +
+              ' ' + ('0' + f.getHours()).slice(-2) + ':' + ('0' + f.getMinutes()).slice(-2) +
+              ' (faltan ' + h + 'h ' + m + 'm)';
+          }
+          fetch('/api/puntos/respaldo-estado', { cache: 'no-store' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) { if (d.ok && d.proximo) { proximo = d.proximo; pintar(); } })
+            .catch(function () { el.textContent = 'no disponible'; });
+          setInterval(pintar, 30000);
+        })();
+        </script>
         {% endif %}

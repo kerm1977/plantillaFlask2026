@@ -130,6 +130,10 @@ def create_app():
         # Inyecta el contenido por defecto del sitio si no existe
         inject_site_content()
 
+    # Respaldo automático de la BD en JSON cada 48 horas
+    from modules import auto_backup
+    auto_backup.iniciar(app)
+
     return app
 
 if __name__ == '__main__':

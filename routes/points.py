@@ -73,7 +73,8 @@ def admin_puntos_exportar_json():
             'historial': engine.history_with_names(hiker.cedula)
         })
     text = json.dumps(data, ensure_ascii=False, indent=2, default=str)
-    return Response(text, mimetype='application/json', headers={'Content-Disposition': 'attachment; filename=puntos_todos_usuarios.json'})
+    return Response(text, mimetype='application/json', headers={'Content-Disposition': 'attachment; filename=puntos_todos_usuarios.json',
+                                                              'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'})
 
 
 @bp.route('/admin/puntos/importar-json', methods=['POST'])
