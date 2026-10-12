@@ -127,9 +127,7 @@
 
 {% include 'partials/caminata_qr_share_modal.html' %}
 <script>
-window.PE_EVENTOS = {
-{% for ev in eventos %}  {{ ev.id }}: { nombre: {{ ev.nombre | tojson }}, puntos: {{ ev.puntos or 0 }}, descripcion: {{ (ev.descripcion or '') | tojson }}, publico: {{ 'true' if ev.publico else 'false' }} }}{{ ',' if not loop.last }}
-{% endfor %}};
+window.PE_EVENTOS = {{ pe_eventos | tojson }};
 </script>
 <script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
 <script src="{{ url_for('static', filename='js/puntos_eventos.js') }}?v=2"></script>

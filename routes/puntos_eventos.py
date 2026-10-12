@@ -28,7 +28,10 @@ def puntos_eventos_admin():
     if not _is_super():
         return redirect(url_for('main.home'))
     eventos = PuntosEvento.query.order_by(PuntosEvento.id.desc()).all()
-    return render_template('puntos_eventos.html', eventos=eventos)
+    pe_eventos = {e.id: {'nombre': e.nombre, 'puntos': e.puntos or 0,
+                         'descripcion': e.descripcion or '', 'publico': bool(e.publico)}
+                  for e in eventos}
+    return render_template('puntos_eventos.html', eventos=eventos, pe_eventos=pe_eventos)
 
 
 @bp.route('/api/puntos-eventos', methods=['POST'])
