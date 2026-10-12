@@ -31,7 +31,7 @@ const CURRENT_USER_ROLE = "{{ session.get('role', '') }}";
 
 <div class="cu-sheet animate__animated animate__fadeIn">
     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
-        <h2 class="fw-bold text-dark m-0">
+        <h2 class="fw-bold text-dark m-0" id="cuTitulo" style="cursor:pointer; user-select:none;" title="Mantén presionado para compartir el enlace de registro por WhatsApp">
             <i class="bi bi-person-plus text-orange me-2"></i>Crear Nuevo Usuario
         </h2>
         <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary rounded-pill fw-bold">

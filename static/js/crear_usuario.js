@@ -48,6 +48,26 @@ document.addEventListener("DOMContentLoaded", () => {
     // Bloqueo de campos hasta ingresar cédula (solo aplica a no-superusuarios)
     toggleCedulaLock('crearUsuarioForm', 'cuCedula');
 
+    // Long-press sobre el título: enlace de registro + mensaje de bienvenida por WhatsApp
+    const cuTitulo = document.getElementById('cuTitulo');
+    if (cuTitulo) {
+        let lpTimer = null, sx = 0, sy = 0;
+        cuTitulo.addEventListener('pointerdown', function(e) {
+            sx = e.clientX; sy = e.clientY;
+            if (lpTimer) clearTimeout(lpTimer);
+            lpTimer = setTimeout(function() {
+                compartirEnlaceContacto({ type: 'hiker', display_name: '' });
+            }, 600);
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev) {
+            cuTitulo.addEventListener(ev, function() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
+        });
+        cuTitulo.addEventListener('pointermove', function(e) {
+            if (lpTimer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) { clearTimeout(lpTimer); lpTimer = null; }
+        });
+        cuTitulo.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    }
+
     const crearUsuarioForm = document.getElementById('crearUsuarioForm');
     if (!crearUsuarioForm) return;
 

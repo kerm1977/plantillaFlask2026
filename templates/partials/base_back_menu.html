@@ -90,7 +90,7 @@
             
             <!-- Opción 5: Agenda / Directorio (Dashboard) -->
             <li>
-                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard">
+                <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard" id="adminToolAgenda" title="Mantén presionado para compartir el enlace de la Agenda">
                     <i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda
                 </a>
             </li>
@@ -184,5 +184,35 @@
             display: none !important;
         }
     </style>
+    <script>
+    // Long-press sobre "Agenda" en Herramientas de Admin: abre WhatsApp con el enlace de la agenda
+    document.addEventListener('DOMContentLoaded', function() {
+        const item = document.getElementById('adminToolAgenda');
+        if (!item) return;
+        let lpTimer = null, lpFired = false, sx = 0, sy = 0;
+        function compartirAgenda() {
+            const url = 'https://www.latribu.top/dashboard';
+            const msg = 'Te comparto el enlace para ver la Agenda de La Tribu de los Libres: ' + url +
+                        ' — visita nuestra página en la siguiente dirección: www.latribu.top';
+            if (navigator.clipboard) { try { navigator.clipboard.writeText(url); } catch(e) {} }
+            window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+        }
+        item.addEventListener('pointerdown', function(e) {
+            sx = e.clientX; sy = e.clientY; lpFired = false;
+            if (lpTimer) clearTimeout(lpTimer);
+            lpTimer = setTimeout(function() { lpFired = true; compartirAgenda(); }, 600);
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev) {
+            item.addEventListener(ev, function() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } });
+        });
+        item.addEventListener('pointermove', function(e) {
+            if (lpTimer && (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10)) { clearTimeout(lpTimer); lpTimer = null; }
+        });
+        item.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        item.addEventListener('click', function(e) {
+            if (lpFired) { e.preventDefault(); e.stopPropagation(); lpFired = false; }
+        }, true);
+    });
+    </script>
     {% endif %}
 
