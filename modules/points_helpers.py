@@ -48,6 +48,29 @@ def build_estado_cuenta_whatsapp(cedula, hiker=None, plain=False):
     return '\n'.join(lines)
 
 
+def personas_con_puntos():
+    """Lista de hikers con su total de puntos, para paneles admin.
+    Separa apellidos del nombre_completo (últimas dos palabras, formato CR)."""
+    from models import Hiker, HikerPoints
+    from db import db
+    from sqlalchemy import func
+    totales = dict(
+        db.session.query(HikerPoints.cedula, func.coalesce(func.sum(HikerPoints.points), 0))
+        .group_by(HikerPoints.cedula).all())
+    personas = []
+    for h in Hiker.query.order_by(Hiker.nombre_completo).all():
+        partes = (h.nombre_completo or '').split()
+        apellido2 = partes.pop() if len(partes) > 1 else ''
+        apellido1 = partes.pop() if len(partes) > 1 else ''
+        personas.append({'cedula': h.cedula,
+                         'nombre': ' '.join(partes) or (h.nombre_completo or ''),
+                         'apellido1': apellido1, 'apellido2': apellido2,
+                         'telefono': h.telefono or '',
+                         'total': int(totales.get(h.cedula) or 0)})
+    personas.sort(key=lambda p: (-p['total'], p['apellido1'], p['apellido2'], p['nombre']))
+    return personas
+
+
 def is_past_event(event):
     today = date.today()
     for attr in ('fecha_unica', 'fecha_inicio', 'fecha_regreso'):

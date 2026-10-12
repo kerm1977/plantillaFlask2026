@@ -5,12 +5,15 @@
 # routes/points.py - Endpoints del motor de puntuación
 # (páginas en points_mis.py / points_evento.py, exportación en points_export.py)
 import json
+import re
 from datetime import datetime
+from urllib.parse import quote
 from flask import request, jsonify, session, Response, redirect, url_for
 from db import db
 from models import Hiker, Event, HikerPoints, User
 from modules.points_engine import get_points_engine
-from modules.points_helpers import set_puntos_password, set_notif_cleared, get_puntos_admin_visible, set_puntos_admin_visible
+from modules.points_helpers import (set_puntos_password, set_notif_cleared, get_puntos_admin_visible,
+                                    set_puntos_admin_visible, build_estado_cuenta_whatsapp)
 from routes import bp
 
 
@@ -37,6 +40,24 @@ def puntos_password_visibilidad():
         return redirect(url_for('main.home'))
     set_puntos_admin_visible(bool(request.form.get('visible')))
     return redirect(url_for('main.profile'))
+
+
+@bp.route('/admin/puntos/whatsapp/<cedula>')
+def admin_puntos_whatsapp(cedula):
+    """Redirige a WhatsApp con el estado de cuenta de la persona, generado en
+    tiempo real. Si tiene teléfono registrado se abre su chat directo."""
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if not hiker:
+        return redirect(url_for('main.mis_puntos'))
+    estado = build_estado_cuenta_whatsapp(cedula, hiker)
+    tel = re.sub(r'\D', '', hiker.telefono or '')
+    if tel and len(tel) == 8:
+        tel = '506' + tel
+    wa = f'https://wa.me/{tel}?text={quote(estado)}' if tel \
+        else 'https://wa.me/?text=' + quote(estado)
+    return redirect(wa)
 
 
 @bp.route('/puntos/limpiar-notificaciones', methods=['POST'])

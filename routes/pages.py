@@ -205,13 +205,15 @@ def profile():
     engine = get_points_engine()
     puntos_total = engine.total_by_cedula(puntos_cedula) if puntos_cedula else 0
     puntos_history = engine.history_with_names(puntos_cedula) if puntos_cedula else []
-    from modules.points_helpers import get_puntos_password, get_puntos_admin_visible, get_notif_cutoff
+    from modules.points_helpers import (get_puntos_password, get_puntos_admin_visible,
+                                        get_notif_cutoff, personas_con_puntos)
     notif_cutoff = get_notif_cutoff(puntos_cedula)
     puntos_notificaciones = [r for r in puntos_history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > notif_cutoff]
     todos_hikers = Hiker.query.order_by(Hiker.nombre_completo).all() if session.get('role') == 'Superusuario' else []
     return render_template('perfil.html', user=user, hiker=hiker, puntos_cedula=puntos_cedula,
                            puntos_total=puntos_total, puntos_history=puntos_history, puntos_notificaciones=puntos_notificaciones,
                            todos_hikers=todos_hikers,
+                           personas_puntos=personas_con_puntos() if session.get('role') == 'Superusuario' else [],
                            puntos_password=get_puntos_password(), puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible())
 

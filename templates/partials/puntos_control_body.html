@@ -36,3 +36,4 @@
                                 <a href="{{ url_for('main.puntos_eventos_admin') }}" class="btn btn-orange rounded-pill fw-bold"><i class="bi bi-stars me-2"></i>Ir a Eventos de puntos</a>
                                 <button type="button" class="btn btn-outline-warning rounded-pill fw-bold" data-bs-toggle="collapse" data-bs-target="{{ gestion_target or '#profilePuntosPersonas' }}"><i class="bi bi-people-fill me-2"></i>Ver Gestión de puntos</button>
                             </div>
+{% include 'partials/puntos_personas_lista.html' %}
