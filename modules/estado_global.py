@@ -140,20 +140,20 @@ def estadisticas_persona(cedula):
     participo_ids = {r.event_id for r in rows if r.tipo == 'participacion' and r.event_id} \
         - {r.event_id for r in rows if r.tipo == 'retiro' and r.event_id}
     visitados = Event.query.filter_by(visitado='Visitados').all()
+
+    def _evento_fecha(e):
+        for attr in ('fecha_unica', 'fecha_inicio', 'fecha_regreso'):
+            val = getattr(e, attr, None)
+            if val:
+                try:
+                    from datetime import datetime as _dt
+                    return _dt.strptime(str(val).strip()[:10], '%Y-%m-%d').date()
+                except (ValueError, AttributeError):
+                    continue
+        return None
+
     if desde:
         desde_d = desde.date()
-
-        def _evento_fecha(e):
-            for attr in ('fecha_unica', 'fecha_inicio', 'fecha_regreso'):
-                val = getattr(e, attr, None)
-                if val:
-                    try:
-                        from datetime import datetime as _dt
-                        return _dt.strptime(str(val).strip()[:10], '%Y-%m-%d').date()
-                    except (ValueError, AttributeError):
-                        continue
-            return None
-
         visitados = [e for e in visitados
                      if _evento_fecha(e) and _evento_fecha(e) >= desde_d]
     caminatas_ok = sorted((e.nombre_lugar or 'Sin nombre') for e in visitados if e.id in participo_ids)
@@ -176,6 +176,29 @@ def estadisticas_persona(cedula):
     if extras:
         posibles += sum(_valor_evento(e)
                         for e in Event.query.filter(Event.id.in_(extras)).all())
+    # Participación y faltas por mes (participaciones por fecha del escaneo,
+    # faltas por fecha de la caminata visitada)
+    MESES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+             'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
+    por_mes = {}
+    for r in rows:
+        if not (r.event_id and r.created_at):
+            continue
+        k = r.created_at.strftime('%Y-%m')
+        if r.tipo == 'participacion':
+            por_mes.setdefault(k, {'ok': 0, 'no': 0})['ok'] += 1
+        elif r.tipo == 'retiro':
+            por_mes.setdefault(k, {'ok': 0, 'no': 0})['no'] += 1
+    for e in visitados:
+        if e.id in participo_ids:
+            continue
+        f = _evento_fecha(e)
+        if f:
+            por_mes.setdefault(f.strftime('%Y-%m'), {'ok': 0, 'no': 0})['no'] += 1
+    meses = [{'mes': k,
+              'label': f'{MESES[int(k[5:7]) - 1]} {k[:4]}',
+              'ok': v['ok'], 'no': v['no']}
+             for k, v in sorted(por_mes.items())]
     flag = SiteContent.query.filter_by(key='carnet_descargado_' + cedula).first()
     return {
         'nombre': h.nombre_completo or '', 'cedula': cedula,
@@ -183,6 +206,7 @@ def estadisticas_persona(cedula):
         'comprados': comprados, 'donados': donados, 'redimidos': redimidos,
         'casa': casa, 'caminatas_ok': caminatas_ok, 'caminatas_no': caminatas_no,
         'posibles': posibles,
+        'meses': meses,
         'carnet_descargado': flag.value if flag else '',
         'desde': desde.strftime('%d/%m/%Y') if desde else '',
     }

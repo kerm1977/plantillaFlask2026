@@ -47,6 +47,32 @@
     </div>
   </div>
 
+  <!-- Participación por mes -->
+  {% if stats.meses %}
+  <div class="mb-4">
+    <p class="fw-bold small mb-2"><i class="bi bi-calendar3 me-1 text-primary"></i>Participación por mes</p>
+    {% set mxm = (stats.meses | map(attribute='ok') | list + stats.meses | map(attribute='no') | list + [1]) | max %}
+    <div class="d-flex flex-column gap-2">
+      {% for m in stats.meses %}
+      <div class="d-flex align-items-center gap-2">
+        <span class="small fw-bold text-muted flex-shrink-0" style="width: 64px;">{{ m.label }}</span>
+        <div class="flex-grow-1 d-flex flex-column gap-1">
+          <div class="d-flex align-items-center gap-1">
+            <div class="rounded-pill bg-success" style="height:12px; width: {{ (m.ok * 100 / mxm) | round(1) }}%; min-width: {{ 12 if m.ok else 0 }}px;"></div>
+            <span class="small fw-bold text-success">{{ m.ok }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-1">
+            <div class="rounded-pill bg-danger" style="height:12px; width: {{ (m.no * 100 / mxm) | round(1) }}%; min-width: {{ 12 if m.no else 0 }}px;"></div>
+            <span class="small fw-bold text-danger">{{ m.no }}</span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="small text-muted mb-0 mt-2"><span class="text-success fw-bold">■</span> participó &nbsp; <span class="text-danger fw-bold">■</span> no participó</p>
+  </div>
+  {% endif %}
+
   <!-- Resumen descargable -->
   <div class="d-flex flex-wrap gap-2 mb-4 small">
     <span class="badge bg-light text-dark rounded-pill">Redimidos: {{ stats.redimidos }}</span>
