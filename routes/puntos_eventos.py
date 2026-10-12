@@ -67,6 +67,30 @@ def puntos_evento_toggle(pid):
     return jsonify({'ok': True, campo: getattr(ev, campo)})
 
 
+@bp.route('/api/puntos-eventos/<int:pid>/editar', methods=['POST'])
+def puntos_evento_editar(pid):
+    """Edita nombre, puntos, descripción y visibilidad de un evento de puntos."""
+    if not _is_super():
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    ev = PuntosEvento.query.get_or_404(pid)
+    data = request.get_json(silent=True) or {}
+    nombre = (data.get('nombre') or '').strip()
+    if not nombre:
+        return jsonify({'ok': False, 'error': 'Falta el nombre del evento.'})
+    try:
+        puntos = max(0, int(data.get('puntos') or 0))
+    except (TypeError, ValueError):
+        puntos = ev.puntos
+    if puntos <= 0:
+        return jsonify({'ok': False, 'error': 'Indicá cuántos puntos vale el evento.'})
+    ev.nombre = nombre
+    ev.puntos = puntos
+    ev.descripcion = (data.get('descripcion') or '').strip()
+    ev.publico = bool(data.get('publico', ev.publico))
+    db.session.commit()
+    return jsonify({'ok': True})
+
+
 @bp.route('/api/puntos-eventos/<int:pid>/borrar', methods=['POST'])
 def puntos_evento_borrar(pid):
     """Elimina el evento solo si nadie ha recibido puntos por él todavía."""
@@ -86,7 +110,7 @@ def puntos_evento_borrar(pid):
 def puntos_evento_qr_page(pid):
     """Página con el QR del evento de puntos (la comparte el superusuario)."""
     ev = PuntosEvento.query.get_or_404(pid)
-    if not ev.publico and not _is_super():
+    if (not ev.publico or not ev.activo) and not _is_super():
         return redirect(url_for('main.home'))
     qr_img = url_for('main.puntos_evento_qr_png', pid=pid)
     return render_template('scan_qr.html', titulo=ev.nombre,
@@ -97,7 +121,7 @@ def puntos_evento_qr_page(pid):
 def puntos_evento_qr_png(pid):
     """PNG del QR que codifica /puntos-evento/<id> (espacio separado de caminatas)."""
     ev = PuntosEvento.query.get_or_404(pid)
-    if not ev.publico and not _is_super():
+    if (not ev.publico or not ev.activo) and not _is_super():
         return redirect(url_for('main.home'))
     img = qrcode.make(_evento_scan_url(pid), box_size=10, border=2)
     buf = io.BytesIO()
@@ -110,7 +134,7 @@ def puntos_evento_qr_png(pid):
 def puntos_evento_card_png(pid):
     """PNG del recuadro completo del evento de puntos (para descargar)."""
     ev = PuntosEvento.query.get_or_404(pid)
-    if not ev.publico and not _is_super():
+    if (not ev.publico or not ev.activo) and not _is_super():
         return redirect(url_for('main.home'))
     buf = build_card_png(ev.nombre, ev.descripcion, ev.puntos,
                          _evento_scan_url(pid))

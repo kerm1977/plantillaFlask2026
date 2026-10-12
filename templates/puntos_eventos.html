@@ -55,8 +55,8 @@
                   data-scan-url="{{ url_for('main.puntos_evento_qr_page', pid=ev.id, _external=True) }}"
                   data-nombre="{{ ev.nombre }}">{{ ev.nombre }}</span>
             <span class="badge bg-warning text-dark me-1"><i class="bi bi-star-fill me-1"></i>{{ ev.puntos }} pts</span>
-            <span class="badge {{ 'bg-success' if ev.activo else 'bg-secondary' }}">{{ 'Activo' if ev.activo else 'Inactivo' }}</span>
-            <span class="badge {{ 'bg-info text-dark' if ev.publico else 'bg-dark' }}">{{ 'Público' if ev.publico else 'Privado' }}</span>
+            <span class="badge {{ 'bg-success' if ev.activo else 'bg-secondary' }}" id="peBadgeActivo{{ ev.id }}">{{ 'Activo' if ev.activo else 'Inactivo' }}</span>
+            <span class="badge {{ 'bg-info text-dark' if ev.publico else 'bg-dark' }}" id="peBadgePublico{{ ev.id }}">{{ 'Público' if ev.publico else 'Privado' }}</span>
           </div>
           <div class="d-flex gap-2">
             <a href="{{ url_for('main.puntos_evento_card_png', pid=ev.id) }}" download="qr-puntos-evento-{{ ev.id }}.png"
@@ -67,9 +67,13 @@
                     onclick="QRShare.open('{{ ev.nombre | replace("'", "") }}', '{{ url_for('main.puntos_evento_qr_page', pid=ev.id, _external=True) }}')">
               <i class="bi bi-whatsapp"></i>
             </button>
-            <button class="btn btn-sm btn-outline-primary rounded-pill" title="{{ 'Desactivar' if ev.activo else 'Activar' }}"
+            <button class="btn btn-sm btn-outline-primary rounded-pill" title="Editar evento"
+                    onclick="peEditar({{ ev.id }})"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-sm {{ 'btn-success' if ev.activo else 'btn-danger' }} rounded-pill" id="peBtnActivo{{ ev.id }}"
+                    title="{{ 'Desactivar' if ev.activo else 'Activar' }}"
                     onclick="peToggle({{ ev.id }}, 'activo')"><i class="bi bi-power"></i></button>
-            <button class="btn btn-sm btn-outline-secondary rounded-pill" title="{{ 'Hacer privado' if ev.publico else 'Hacer público' }}"
+            <button class="btn btn-sm btn-outline-secondary rounded-pill" id="peBtnPublico{{ ev.id }}"
+                    title="{{ 'Hacer privado' if ev.publico else 'Hacer público' }}"
                     onclick="peToggle({{ ev.id }}, 'publico')"><i class="bi bi-{{ 'eye' if ev.publico else 'eye-slash' }}"></i></button>
             <button class="btn btn-sm btn-outline-danger rounded-pill" title="Eliminar"
                     onclick="peBorrar({{ ev.id }})"><i class="bi bi-trash"></i></button>
@@ -87,7 +91,46 @@
   </div>
 </div>
 
+<!-- Modal editar evento (tema glass) -->
+<div class="modal fade" id="peEditModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content glass-modal border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-pencil-square text-orange me-2"></i>Editar evento</h4>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body px-4 pb-4 pt-2">
+        <input type="hidden" id="peEditId">
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted small mb-1">Nombre del evento</label>
+          <input type="text" id="peEditNombre" class="form-control glass-input rounded-3" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted small mb-1">Puntos</label>
+          <input type="number" id="peEditPuntos" class="form-control glass-input rounded-3" min="1" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-bold text-muted small mb-1">Descripción (opcional)</label>
+          <input type="text" id="peEditDesc" class="form-control glass-input rounded-3">
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="peEditPublico">
+          <label class="form-check-label small fw-bold" for="peEditPublico">Público</label>
+        </div>
+        <button class="btn btn-orange w-100 rounded-pill fw-bold py-2" onclick="peGuardarEdicion()">
+          <i class="bi bi-save me-1"></i>Guardar cambios
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% include 'partials/caminata_qr_share_modal.html' %}
+<script>
+window.PE_EVENTOS = {
+{% for ev in eventos %}  {{ ev.id }}: { nombre: {{ ev.nombre | tojson }}, puntos: {{ ev.puntos or 0 }}, descripcion: {{ (ev.descripcion or '') | tojson }}, publico: {{ 'true' if ev.publico else 'false' }} }}{{ ',' if not loop.last }}
+{% endfor %}};
+</script>
 <script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
-<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}"></script>
+<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}?v=2"></script>
 {% endblock %}
