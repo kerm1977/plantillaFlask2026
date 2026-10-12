@@ -42,6 +42,21 @@ def puntos_password_visibilidad():
     return redirect(url_for('main.control_usuarios', seccion='control'))
 
 
+@bp.route('/admin/puntos/estadisticas-restaurar', methods=['POST'])
+def admin_puntos_estadisticas_restaurar():
+    """Restaura las estadísticas personales a cero desde ahora (todos los
+    usuarios). NO toca los puntos: solo fija la fecha desde la que cuentan
+    las estadísticas."""
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    from modules.estado_global import reset_stats_desde
+    reset_stats_desde()
+    cedula = (request.form.get('cedula') or '').strip()
+    session['admin_message'] = 'Estadísticas restauradas a cero. Los puntos no se modificaron.'
+    return redirect(url_for('main.mis_puntos', cedula=cedula) if cedula
+                    else url_for('main.control_usuarios', seccion='control'))
+
+
 @bp.route('/admin/puntos/whatsapp/<cedula>')
 def admin_puntos_whatsapp(cedula):
     """Redirige a WhatsApp con el estado de cuenta de la persona, generado en

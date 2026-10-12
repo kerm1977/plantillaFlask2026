@@ -3,7 +3,8 @@
    Requiere `stats` en el contexto. #}
 {% if stats %}
 <div class="glass-panel rounded-4 shadow-sm p-4 mt-4">
-  <h4 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-fill me-2 text-orange"></i>Mis estadísticas</h4>
+  <h4 class="fw-bold text-dark mb-1"><i class="bi bi-bar-chart-fill me-2 text-orange"></i>Mis estadísticas</h4>
+  {% if stats.desde %}<p class="small text-muted mb-3"><i class="bi bi-calendar-check me-1"></i>Contando desde el {{ stats.desde }}</p>{% endif %}
 
   <!-- Gráfico de barras -->
   {% set mx = [stats.caminatas_ok|length, stats.caminatas_no|length, stats.ganados, stats.perdidos, 1] | max %}
@@ -96,6 +97,19 @@
       <i class="bi bi-download me-2"></i>Descargar mis estadísticas (TXT)
     </a>
   </div>
+
+  {% if is_super %}
+  <div class="border-top pt-3 mt-3">
+    <form method="post" action="{{ url_for('main.admin_puntos_estadisticas_restaurar') }}"
+          onsubmit="return confirm('¿Restaurar TODAS las estadísticas a cero desde hoy?\n\nLos puntos NO se modifican — solo el conteo de estadísticas.');">
+      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold w-100">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar estadísticas a cero (los puntos no se tocan)
+      </button>
+      <p class="small text-muted mb-0 mt-1">Solo superusuario. Reinicia el conteo de estadísticas para todos los usuarios a partir de ahora. Los puntos quedan intactos.</p>
+    </form>
+  </div>
+  {% endif %}
 </div>
 
 <script>

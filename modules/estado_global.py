@@ -88,14 +88,46 @@ def detalle_persona(cedula):
     return fila
 
 
+def get_stats_desde():
+    """Fecha/hora desde la que cuentan las estadísticas personales.
+    None = cuentan desde siempre. Los puntos reales NUNCA se tocan."""
+    from models import SiteContent
+    from datetime import datetime
+    row = SiteContent.query.filter_by(key='puntos_stats_desde').first()
+    if not row or not row.value:
+        return None
+    try:
+        return datetime.fromisoformat(row.value)
+    except ValueError:
+        return None
+
+
+def reset_stats_desde():
+    """Restaura las estadísticas a cero: todo empieza a contar desde ahora."""
+    from models import SiteContent
+    from db import db
+    from datetime import datetime
+    valor = datetime.utcnow().isoformat()
+    row = SiteContent.query.filter_by(key='puntos_stats_desde').first()
+    if row:
+        row.value = valor
+    else:
+        db.session.add(SiteContent(key='puntos_stats_desde', value=valor))
+    db.session.commit()
+
+
 def estadisticas_persona(cedula):
     """Estadísticas detalladas de una persona para el gráfico, las listas
-    paginadas de caminatas y la descarga de su propia estadística."""
+    paginadas de caminatas y la descarga de su propia estadística.
+    Solo cuenta movimientos posteriores a `puntos_stats_desde` (los puntos
+    reales de la persona no se modifican nunca)."""
     from models import SiteContent
     h = Hiker.query.filter_by(cedula=cedula).first()
     if not h:
         return None
-    rows = HikerPoints.query.filter_by(cedula=cedula).all()
+    desde = get_stats_desde()
+    rows = [r for r in HikerPoints.query.filter_by(cedula=cedula).all()
+            if not desde or (r.created_at and r.created_at >= desde)]
     ganados = sum(r.points for r in rows if (r.points or 0) > 0)
     perdidos = sum(-r.points for r in rows if (r.points or 0) < 0)
     comprados = sum(r.points for r in rows if r.tipo == 'compra' and (r.points or 0) > 0)
@@ -108,6 +140,22 @@ def estadisticas_persona(cedula):
     participo_ids = {r.event_id for r in rows if r.tipo == 'participacion' and r.event_id} \
         - {r.event_id for r in rows if r.tipo == 'retiro' and r.event_id}
     visitados = Event.query.filter_by(visitado='Visitados').all()
+    if desde:
+        desde_d = desde.date()
+
+        def _evento_fecha(e):
+            for attr in ('fecha_unica', 'fecha_inicio', 'fecha_regreso'):
+                val = getattr(e, attr, None)
+                if val:
+                    try:
+                        from datetime import datetime as _dt
+                        return _dt.strptime(str(val).strip()[:10], '%Y-%m-%d').date()
+                    except (ValueError, AttributeError):
+                        continue
+            return None
+
+        visitados = [e for e in visitados
+                     if _evento_fecha(e) and _evento_fecha(e) >= desde_d]
     caminatas_ok = sorted((e.nombre_lugar or 'Sin nombre') for e in visitados if e.id in participo_ids)
     extras = participo_ids - {e.id for e in visitados}
     if extras:
@@ -136,6 +184,7 @@ def estadisticas_persona(cedula):
         'casa': casa, 'caminatas_ok': caminatas_ok, 'caminatas_no': caminatas_no,
         'posibles': posibles,
         'carnet_descargado': flag.value if flag else '',
+        'desde': desde.strftime('%d/%m/%Y') if desde else '',
     }
 
 
