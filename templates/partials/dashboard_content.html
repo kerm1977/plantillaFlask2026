@@ -57,6 +57,18 @@
                         <input type="file" id="dashImportInput" accept=".json" class="d-none" onchange="dashImportJSON(this)">
                     </label>
                 </div>
+
+                <!-- Respaldo / Importación de Contactos en JSON -->
+                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
+                    <span class="fw-bold text-dark small"><i class="bi bi-person-lines-fill text-orange me-1"></i>Contactos:</span>
+                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportContactos()">
+                        <i class="bi bi-filetype-json me-1"></i>Respaldar JSON
+                    </button>
+                    <label class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
+                        <i class="bi bi-upload me-1"></i>Importar JSON
+                        <input type="file" id="dashImportContactosInput" accept=".json" class="d-none" onchange="dashImportContactos(this)">
+                    </label>
+                </div>
                 <div id="dashDbMsg" class="mb-3 d-none small"></div>
 
                 <div class="table-responsive glass-table-container rounded-4 p-2 shadow-sm">
@@ -115,5 +127,4 @@
 
 {% include 'partials/bulma_inputs_styles.html' %}
 
-{% include 'partials/dash_modal_editar.html' %}
 {% include 'partials/dash_modals_extra.html' %}

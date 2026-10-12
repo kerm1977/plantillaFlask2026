@@ -30,7 +30,7 @@ async function loadAllUsers() {
     }
 }
 
-function _buildRow(u) {
+function _buildRow(u, idx) {
     const safeUser = JSON.stringify(u).replace(/'/g, "&apos;");
     const icon = '<i class="bi bi-person-circle text-orange me-2 fs-5"></i>';
     const subtext = u.type === 'user'
@@ -46,7 +46,7 @@ function _buildRow(u) {
     const emergencyIcon = hasEmergency
         ? `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="#dc3545" class="ms-2 flex-shrink-0" viewBox="0 0 16 16" role="img" aria-label="Tiene contacto de emergencia registrado"><title>Tiene contacto de emergencia registrado</title><path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z"/></svg>`
         : '';
-    return `<tr style="cursor:pointer;" onclick='viewUserDetails(${safeUser})' class="bg-white bg-opacity-50 user-row">
+    return `<tr style="cursor:pointer;" data-ci="${idx}" onclick='viewUserDetails(${safeUser})' class="bg-white bg-opacity-50 user-row">
         <td class="py-3">
             <div class="fw-bold text-dark d-flex align-items-center">${icon}<span class="text-truncate">${u.display_name}</span>${emergencyIcon}</div>
             ${subtext}
@@ -68,7 +68,7 @@ function renderContactsPage(page) {
     const total      = filteredContacts.length;
     const totalPages = Math.ceil(total / DASH_PAGE_SIZE);
     const start      = (page - 1) * DASH_PAGE_SIZE;
-    tbody.innerHTML  = filteredContacts.slice(start, start + DASH_PAGE_SIZE).map(_buildRow).join('');
+    tbody.innerHTML  = filteredContacts.slice(start, start + DASH_PAGE_SIZE).map((u, i) => _buildRow(u, start + i)).join('');
     renderDashPagination(totalPages, page, total);
 }
 
@@ -89,4 +89,50 @@ function renderDashPagination(totalPages, page, total) {
         html += `<button class="btn btn-sm btn-outline-secondary rounded-pill px-3" onclick="renderContactsPage(${page+1});window.scrollTo(0,0)">Siguiente ›</button>`;
     bar.innerHTML = html;
 }
+
+// ==========================================================
+// LONG-PRESS sobre un contacto (táctil o mouse sostenido ~0.6s):
+// genera el enlace público del contacto y abre el modal para
+// enviarlo por WhatsApp con el mensaje de bienvenida.
+// ==========================================================
+(function() {
+    const HOLD_MS = 600;
+    let lpTimer = null;
+    let lpFired = false;
+    let startX = 0, startY = 0;
+
+    function _cancelLp() { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const tbody = document.getElementById('usersTableBody');
+        if (!tbody) return;
+
+        tbody.addEventListener('pointerdown', function(e) {
+            const tr = e.target.closest('tr[data-ci]');
+            if (!tr || e.target.closest('button')) return;
+            const u = filteredContacts[+tr.dataset.ci];
+            if (!u) return;
+            startX = e.clientX; startY = e.clientY; lpFired = false;
+            _cancelLp();
+            lpTimer = setTimeout(function() {
+                lpFired = true;
+                compartirEnlaceContacto(u);
+            }, HOLD_MS);
+        });
+        ['pointerup', 'pointercancel', 'pointerleave'].forEach(function(ev) {
+            tbody.addEventListener(ev, _cancelLp);
+        });
+        tbody.addEventListener('pointermove', function(e) {
+            if (lpTimer && (Math.abs(e.clientX - startX) > 10 || Math.abs(e.clientY - startY) > 10)) _cancelLp();
+        });
+        // Evita el menú contextual del navegador al sostener sobre una fila
+        tbody.addEventListener('contextmenu', function(e) {
+            if (e.target.closest('tr[data-ci]')) e.preventDefault();
+        });
+        // Tras un long-press, suprime el click para no abrir la ficha
+        tbody.addEventListener('click', function(e) {
+            if (lpFired) { e.preventDefault(); e.stopPropagation(); lpFired = false; }
+        }, true);
+    });
+})();
 </script>

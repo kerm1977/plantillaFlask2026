@@ -58,6 +58,35 @@ def db_export_json():
         return jsonify({'error': str(e)}), 500
 
 
+# ==========================================
+# RESPALDO DE CONTACTOS (users + hikers) EN JSON
+# ==========================================
+@bp.route('/api/admin/contactos/export')
+def contactos_export_json():
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    try:
+        payload = {
+            'exported_at': datetime.utcnow().isoformat(),
+            'version': '1.0',
+            'tipo': 'contactos',
+            'tables': {
+                'users':  [_serialize_row(r) for r in User.query.all()],
+                'hikers': [_serialize_row(r) for r in Hiker.query.all()],
+            }
+        }
+        ts    = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
+        fname = f'contactos_export_{ts}.json'
+        raw   = json.dumps(payload, ensure_ascii=False, indent=2)
+        return Response(
+            raw,
+            mimetype='application/json',
+            headers={'Content-Disposition': f'attachment; filename="{fname}"'}
+        )
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @bp.route('/api/admin/db/import', methods=['POST'])
 def db_import_json():
     if session.get('role') != 'Superusuario':

@@ -2,7 +2,16 @@
 //   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
 //   Explicar antes de editar. Contenido sagrado protegido.
 // ==============================================================
+// Estado del modal de compartir: modo ('crear'|'actualizar'), user_id y
+// mensaje personalizado de WhatsApp (usado por el long-press de contactos).
+let _compartirModo = 'crear';
+let _compartirUserId = null;
+let _compartirMensaje = null;
+
 function abrirModalCompartir(modo) {
+    _compartirModo = window._compartirModo || (modo === 'editar' ? 'actualizar' : 'crear');
+    _compartirUserId = (typeof window._compartirUserId === 'number') ? window._compartirUserId : null;
+    _compartirMensaje = null;
     document.getElementById('compartirEnlaceInput').value = 'Generando enlace...';
     const modalEl = document.getElementById('compartirUsuarioModal');
     if (modalEl) {
@@ -14,12 +23,46 @@ function abrirModalCompartir(modo) {
     }
 }
 
+// Long-press sobre un contacto: genera su enlace público y prepara el
+// mensaje de bienvenida para enviar por WhatsApp.
+async function compartirEnlaceContacto(u) {
+    const esUser = u && u.type === 'user';
+    _compartirModo = esUser ? 'actualizar' : 'crear';
+    _compartirUserId = esUser ? u.id : null;
+    _compartirMensaje = null;
+    const input = document.getElementById('compartirEnlaceInput');
+    if (input) input.value = 'Generando enlace...';
+    const modalEl = document.getElementById('compartirUsuarioModal');
+    if (modalEl) new bootstrap.Modal(modalEl).show();
+    try {
+        const r = await fetch('/api/admin/generar_enlace_publico', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ accion: _compartirModo, user_id: _compartirUserId })
+        });
+        const d = await r.json();
+        if (!r.ok || !d.url) {
+            mostrarAlerta(d.error || 'No se pudo generar el enlace.', 'error');
+            return;
+        }
+        if (input) input.value = d.url;
+        const nombre = (u.display_name || '').trim();
+        _compartirMensaje =
+            `Bienvenido a la Tribu de los Libres${nombre ? ', ' + nombre : ''}. ` +
+            `Si deseas registrarte y participar en la acumulación de puntos, ` +
+            `regístrate en este enlace: ${d.url} ` +
+            `Y visita nuestra página en la siguiente dirección: www.latribu.top`;
+    } catch (e) {
+        mostrarAlerta('Error de conexión. Intenta nuevamente.', 'error');
+    }
+}
+
 async function generarEnlacePublico() {
     try {
         const r = await fetch('/api/admin/generar_enlace_publico', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ accion: 'crear', user_id: null })
+            body: JSON.stringify({ accion: _compartirModo || 'crear', user_id: _compartirUserId || null })
         });
         if (!r.ok) {
             const text = await r.text();
@@ -59,7 +102,8 @@ function compartirWhatsApp() {
         mostrarAlerta('Primero generá un enlace.', 'warning');
         return;
     }
-    const mensaje = encodeURIComponent('Hola, te comparto este enlace para gestionar usuarios: ' + input.value);
+    const texto = _compartirMensaje || ('Hola, te comparto este enlace para gestionar usuarios: ' + input.value);
+    const mensaje = encodeURIComponent(texto);
     window.open('https://wa.me/?text=' + mensaje, '_blank');
 }
 
@@ -93,6 +137,32 @@ async function dashExportExcel() {
         XLSX.writeFile(wb,`db_export_${new Date().toISOString().slice(0,10).replace(/-/g,'')}.xlsx`);
         _dashMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>Excel descargado.');
     } catch(e) { _dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`); }
+}
+// ---- Respaldo dedicado de contactos (usuarios + caminantes) en JSON ----
+async function dashExportContactos() {
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Generando respaldo de contactos…');
+    try {
+        const r = await fetch('/api/admin/contactos/export');
+        if (!r.ok) { const d = await r.json(); throw new Error(d.error || 'Error del servidor'); }
+        const blob = await r.blob(), cd = r.headers.get('Content-Disposition')||'';
+        const name = (cd.match(/filename="?([^"]+)"?/)||[])[1]||'contactos_export.json';
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a'); a.href=url; a.download=name; a.click(); URL.revokeObjectURL(url);
+        _dashMsg('alert-success','<i class="bi bi-check-circle-fill me-2"></i>Respaldo de contactos descargado.');
+    } catch(e) { _dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`); }
+}
+async function dashImportContactos(input) {
+    const file=input.files[0]; if(!file) return;
+    _dashMsg('alert-info','<span class="spinner-border spinner-border-sm me-2"></span>Importando contactos…');
+    try {
+        const json=JSON.parse(await file.text());
+        const r=await fetch('/api/admin/db/import',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(json)});
+        const d=await r.json();
+        if(d.ok){const summary=Object.entries(d.stats).map(([t,v])=>`<b>${t}</b>: +${v.added} nuevos, ${v.skipped} existentes`).join(' · ');
+            _dashMsg('alert-success',`<i class="bi bi-check-circle-fill me-2"></i>Importado — ${summary}`); loadAllUsers();}
+        else{throw new Error(d.error||'Error desconocido');}
+    } catch(e){_dashMsg('alert-danger',`<i class="bi bi-x-circle-fill me-2"></i>${e.message}`);}
+    input.value='';
 }
 async function dashImportJSON(input) {
     const file=input.files[0]; if(!file) return;

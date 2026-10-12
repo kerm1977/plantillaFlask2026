@@ -41,73 +41,8 @@ function openEditUserModal() {
         else mostrarAlerta('Este registro CRM no tiene cédula editable.', 'warning');
         return;
     }
-    document.getElementById('editName').value       = currentSelectedUserObj.name;
-    document.getElementById('editLastName1').value  = currentSelectedUserObj.last_name_1;
-    document.getElementById('editLastName2').value  = currentSelectedUserObj.last_name_2;
-    document.getElementById('editEmail').value      = currentSelectedUserObj.email;
-    const editRole = document.getElementById('editRole');
-    if (editRole) editRole.value = currentSelectedUserObj.role;
-    const avatarPath = currentSelectedUserObj.avatar && currentSelectedUserObj.avatar.startsWith('uploads')
-        ? currentSelectedUserObj.avatar : (currentSelectedUserObj.avatar === 'default.png' ? 'default.png' : 'uploads/' + currentSelectedUserObj.avatar);
-    document.getElementById('editAvatarPreviewImg').src = "/static/" + avatarPath;
-    const dynSelect = document.getElementById('editDynamicSelect');
-    const dynContainer = document.getElementById('editDynamicContainer');
-    if (currentSelectedUserObj.phone && currentSelectedUserObj.phone !== "No registrado") {
-        dynSelect.value = 'Telefono';
-        dynContainer.innerHTML = `<div class="mb-2"><span class="text-orange me-2"><i class="bi bi-phone"></i></span>
-            <input type="tel" name="phone" class="input-bulma" placeholder="Digite el número telefónico" inputmode="numeric" pattern="[0-9]*"
-            oninput="this.value=this.value.replace(/[^0-9]/g,'')" maxlength="15" value="${currentSelectedUserObj.phone.replace(/[^0-9]/g, '')}"></div>
-            <small class="text-muted d-block ps-2">Solo números permitidos.</small>`;
-    } else { dynSelect.value = ''; dynContainer.innerHTML = ''; }
-
-    // Precargar Información del Caminante (CRM)
-    const editCedulaField = document.getElementById('editCedula');
-    const cedulaValue = (currentSelectedUserObj.crm_cedula || '').replace(/[^0-9]/g,'');
-    editCedulaField.value = cedulaValue;
-    editCedulaField.readOnly = cedulaValue.length > 0;
-    toggleCedulaLock('adminEditUserForm', 'editCedula');
-    document.getElementById('editPasaporte').value    = currentSelectedUserObj.crm_pasaporte || '';
-
-    const fNac = currentSelectedUserObj.crm_fecha_nac || currentSelectedUserObj.dob || '';
-    document.getElementById('editDia').value  = '';
-    document.getElementById('editMes').value  = '';
-    document.getElementById('editAnio').value = '';
-    if (fNac && /^\d{4}-\d{2}-\d{2}$/.test(fNac)) {
-        const [anio, mes, dia] = fNac.split('-');
-        document.getElementById('editDia').value  = dia;
-        document.getElementById('editMes').value  = mes;
-        document.getElementById('editAnio').value = anio;
-    }
-
-    document.getElementById('editSangre').value       = currentSelectedUserObj.crm_tipo_sangre || '';
-    document.getElementById('editAlergias').value     = currentSelectedUserObj.crm_alergias || '';
-    document.getElementById('editEnfermedades').value = currentSelectedUserObj.crm_enfermedades || '';
-
-    // Contactos de emergencia (separados por ' | ')
-    const emergencyContainer = document.getElementById('editEmergencyContainer');
-    const nombresRaw = currentSelectedUserObj.crm_emergencia_nombre || '';
-    const telefonosRaw = currentSelectedUserObj.crm_emergencia_tel || '';
-    const nombres = nombresRaw ? nombresRaw.split(' | ').map(s => s.trim()).filter(Boolean) : [];
-    const telefonos = telefonosRaw ? telefonosRaw.split(' | ').map(s => s.trim()).filter(Boolean) : [];
-    emergencyContainer.innerHTML = '';
-    if (nombres.length || telefonos.length) {
-        const maxRows = Math.max(nombres.length, telefonos.length, 1);
-        for (let i = 0; i < maxRows; i++) {
-            emergencyContainer.insertAdjacentHTML('beforeend', buildEditEmergencyRow(nombres[i] || '', telefonos[i] || ''));
-        }
-    } else {
-        emergencyContainer.innerHTML = buildEditEmergencyRow('', '');
-    }
-
-    // Reiniciar campo de contraseña
-    const passWrapper = document.getElementById('editPassWrapper');
-    const passTrigger = document.getElementById('editPassTrigger');
-    const passInput   = document.getElementById('editPass');
-    if (passWrapper) passWrapper.classList.add('d-none');
-    if (passTrigger) passTrigger.classList.remove('d-none');
-    if (passInput) passInput.value = '';
-
-    new bootstrap.Modal(document.getElementById('adminEditUserModal')).show();
+    // Editar usuario: página dedicada de hoja única (sin modal)
+    window.location.href = `/admin/editar-usuario/${currentSelectedUserObj.id}`;
 }
 
 function handleEditDynamicSelect() {

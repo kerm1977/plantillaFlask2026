@@ -83,7 +83,8 @@ document.addEventListener("DOMContentLoaded", () => {
         f.addEventListener('change', function(e) { if (e.target.classList) e.target.classList.remove('is-danger'); });
     });
 
-    document.getElementById('adminEditUserForm').addEventListener('submit', async function(e) {
+    const adminEditUserForm = document.getElementById('adminEditUserForm');
+    if (adminEditUserForm) adminEditUserForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         const dia = document.getElementById('editDia').value;
         const mes = document.getElementById('editMes').value;

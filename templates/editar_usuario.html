@@ -1,0 +1,310 @@
+<!-- ==============================================================
+     PÁGINA EDITAR USUARIO — hoja única, sin modal, responsive Flexbox
+     Misma estructura/estilo que crear_usuario.html, con datos precargados.
+     Mismos id/name que el antiguo modal para conservar todo el JS existente.
+============================================================== -->
+{% extends "base.html" %}
+
+{% block content %}
+<script>
+const CURRENT_USER_ROLE = "{{ session.get('role', '') }}";
+window._compartirModo = 'actualizar';
+window._compartirUserId = {{ u.id }};
+</script>
+
+{% include 'partials/bulma_inputs_styles.html' %}
+
+<style>
+/* ===== Layout de la hoja Editar Usuario (Flexbox, igual que Crear) ===== */
+.eu-sheet { max-width: 920px; margin: 0 auto; }
+.eu-section-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.eu-sep { border: 0; border-top: 1px solid rgba(0,0,0,0.08); margin: 1.75rem 0; }
+.eu-flex { display: flex; flex-wrap: wrap; gap: 1rem; }
+.eu-flex > .eu-field { flex: 1 1 240px; min-width: 0; }
+.eu-flex > .eu-field-sm { flex: 1 1 140px; min-width: 0; }
+.eu-flex > .eu-field-full { flex: 1 1 100%; min-width: 0; }
+</style>
+
+<div class="eu-sheet animate__animated animate__fadeIn">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
+        <h2 class="fw-bold text-dark m-0">
+            <i class="bi bi-pencil-square text-orange me-2"></i>Editar Información del Usuario
+        </h2>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-outline-secondary rounded-pill fw-bold">
+            <i class="bi bi-arrow-left me-1"></i>Volver al Dashboard
+        </a>
+    </div>
+
+    <div class="glass-panel rounded-4 shadow-lg p-3 p-md-4">
+        <form id="adminEditUserForm" data-user-id="{{ u.id }}" enctype="multipart/form-data">
+
+            <!-- ===== Foto de Perfil ===== -->
+            <h3 class="eu-section-title text-orange"><i class="bi bi-camera-fill"></i>Foto de Perfil</h3>
+            <div class="text-center mb-2">
+                <div class="avatar-upload-container d-inline-block p-3 glass-panel rounded-4">
+                    <div class="position-relative d-inline-block">
+                        <div class="overflow-hidden rounded-circle border border-4 border-white shadow-sm" style="width: 120px; height: 120px;">
+                            <img id="editAvatarPreviewImg" src="{{ url_for('static', filename=avatar_file) }}" class="avatar-preview" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; transition: transform 0.2s ease;">
+                        </div>
+                        <label for="editAvatarUpload" class="position-absolute bottom-0 end-0 d-flex align-items-center justify-content-center rounded-circle shadow-sm" style="width: 36px; height: 36px; background-color: #ff8c00; border: 2px solid white; cursor: pointer; z-index: 10;">
+                            <i class="bi bi-camera-fill text-white" style="font-size: 0.85rem;"></i>
+                        </label>
+                    </div>
+                    <input type="file" name="avatar" id="editAvatarUpload" class="d-none" accept="image/*">
+
+                    <!-- Controles del Editor Visual -->
+                    <div class="image-editor-controls mt-3 text-start">
+                        <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-zoom-in me-1"></i>Zoom</label>
+                        <input type="range" class="form-range" id="editScaleSlider" min="1" max="3" step="0.1" value="1">
+
+                        <div class="eu-flex" style="gap: 0.5rem;">
+                            <div class="eu-field-sm">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-move me-1"></i>Horizontal (X)</label>
+                                <input type="range" class="form-range" id="editPosXSlider" min="-50" max="50" step="1" value="0">
+                            </div>
+                            <div class="eu-field-sm">
+                                <label class="form-label text-secondary fw-bold mb-1" style="font-size: 0.7rem;"><i class="bi bi-arrows-vertical me-1"></i>Vertical (Y)</label>
+                                <input type="range" class="form-range" id="editPosYSlider" min="-50" max="50" step="1" value="0">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Información de la Persona ===== -->
+            <h3 class="eu-section-title text-orange"><i class="bi bi-person-vcard"></i>Información de la Persona</h3>
+            <div class="eu-flex">
+                <div class="eu-field-sm">
+                    <label class="label-bulma">Número de Cédula</label>
+                    <input type="text" name="cedula" class="input-bulma" id="editCedula" value="{{ cedula_val }}" {{ 'readonly' if cedula_val else '' }} {{ 'required' if session.get('role') != 'Superusuario' else '' }} inputmode="numeric" pattern="[0-9]*" oninput="if(!this.readOnly){ this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('adminEditUserForm', 'editCedula'); }" onfocus="if(this.readOnly){ mostrarAlerta('La cédula no se puede modificar. Si necesita cambiar su número de cédula, es mejor crear un nuevo usuario o comuníquese con cualquiera de los administradores del grupo.', 'warning'); this.blur(); }" placeholder="Ej: 112340567">
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">Nombre</label>
+                    <input type="text" name="name" class="input-bulma validate-name field-border" id="editName" value="{{ u.name or '' }}" required>
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">1° Apellido</label>
+                    <input type="text" name="last_name_1" class="input-bulma validate-lastname field-border" id="editLastName1" value="{{ u.last_name_1 or '' }}" required>
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">2° Apellido (Opcional)</label>
+                    <input type="text" name="last_name_2" class="input-bulma validate-lastname field-border" id="editLastName2" value="{{ u.last_name_2 or '' }}">
+                </div>
+                {% if session.get('role') == 'Superusuario' %}
+                <div class="eu-field">
+                    <label class="label-bulma">Rol de Seguridad</label>
+                    <select class="form-select select-bulma field-border" name="role" id="editRole" required>
+                        <option value="Usuario" {{ 'selected' if u.role == 'Usuario' else '' }}>Usuario</option>
+                        <option value="Colaborador" {{ 'selected' if u.role == 'Colaborador' else '' }}>Colaborador</option>
+                        <option value="Administrador" {{ 'selected' if u.role == 'Administrador' else '' }}>Administrador</option>
+                        <option value="Superusuario" {{ 'selected' if u.role == 'Superusuario' else '' }}>Superusuario</option>
+                    </select>
+                </div>
+                {% endif %}
+                <div class="eu-field">
+                    <label class="label-bulma">Email Principal</label>
+                    <input type="email" name="email" class="input-bulma force-lowercase" id="editEmail" value="{{ u.email or '' }}" required>
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">Teléfono (WhatsApp)</label>
+                    <input type="tel" name="phone" class="input-bulma field-border" id="editPhone" value="{{ phone_val }}" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="88889999">
+                </div>
+            </div>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Información Adicional ===== -->
+            <h3 class="eu-section-title text-orange"><i class="bi bi-plus-circle-dotted"></i>Información Adicional</h3>
+
+            {% if extras %}
+            <div class="eu-flex mb-3">
+                {% for campo in extras %}
+                <div class="eu-field">
+                    <label class="label-bulma" style="font-size:0.85rem;">{{ campo.label }}</label>
+                    <input type="{{ 'url' if campo.name in ['facebook','instagram','address'] else 'text' }}" name="{{ campo.name }}" class="input-bulma" value="{{ campo.value }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="eu-flex">
+                <div class="eu-field">
+                    <select class="form-select select-bulma field-border" id="editDynamicSelect" onchange="handleEditDynamicSelectPage()">
+                        <option value="">Seleccione para agregar...</option>
+                        <option value="Telefono">Teléfono</option>
+                        <option value="Whatsapp">Whatsapp</option>
+                        <option value="Facebook">Facebook (URL)</option>
+                        <option value="Instagram">Instagram (URL)</option>
+                        <option value="Direccion">Dirección (Google Maps)</option>
+                        <option value="Fecha">Fecha Especial</option>
+                        <option value="Institucion">Institución/Empresa</option>
+                        <option value="Otro">Otros</option>
+                    </select>
+                </div>
+            </div>
+            <div id="editDynamicContainer" class="animate__animated animate__fadeIn mt-2"></div>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Fecha de Nacimiento ===== -->
+            <h3 class="eu-section-title text-orange"><i class="bi bi-calendar-event"></i>Fecha de Nacimiento</h3>
+            <div class="eu-flex mb-2">
+                <div class="eu-field-sm">
+                    <select class="form-select select-bulma" id="editDia">
+                        <option value="" disabled {{ 'selected' if not fnac_dia else '' }}>Día</option>
+                        {% for d in range(1, 32) %}
+                        <option value="{{ '%02d'|format(d) }}" {{ 'selected' if fnac_dia == '%02d'|format(d) else '' }}>{{ d }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="eu-field-sm">
+                    <select class="form-select select-bulma" id="editMes">
+                        <option value="" disabled {{ 'selected' if not fnac_mes else '' }}>Mes</option>
+                        <option value="01" {{ 'selected' if fnac_mes == '01' else '' }}>Enero</option>
+                        <option value="02" {{ 'selected' if fnac_mes == '02' else '' }}>Febrero</option>
+                        <option value="03" {{ 'selected' if fnac_mes == '03' else '' }}>Marzo</option>
+                        <option value="04" {{ 'selected' if fnac_mes == '04' else '' }}>Abril</option>
+                        <option value="05" {{ 'selected' if fnac_mes == '05' else '' }}>Mayo</option>
+                        <option value="06" {{ 'selected' if fnac_mes == '06' else '' }}>Junio</option>
+                        <option value="07" {{ 'selected' if fnac_mes == '07' else '' }}>Julio</option>
+                        <option value="08" {{ 'selected' if fnac_mes == '08' else '' }}>Agosto</option>
+                        <option value="09" {{ 'selected' if fnac_mes == '09' else '' }}>Setiembre</option>
+                        <option value="10" {{ 'selected' if fnac_mes == '10' else '' }}>Octubre</option>
+                        <option value="11" {{ 'selected' if fnac_mes == '11' else '' }}>Noviembre</option>
+                        <option value="12" {{ 'selected' if fnac_mes == '12' else '' }}>Diciembre</option>
+                    </select>
+                </div>
+                <div class="eu-field-sm">
+                    <select class="form-select select-bulma" id="editAnio">
+                        <option value="" disabled {{ 'selected' if not fnac_anio else '' }}>Año</option>
+                        {% for a in range(2025, 1919, -1) %}
+                        <option value="{{ a }}" {{ 'selected' if fnac_anio == a else '' }}>{{ a }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <input type="hidden" name="dob" id="editDobHidden">
+            <input type="hidden" name="fecha_nacimiento" id="editFechaNacHidden">
+
+            <!-- Espacio reservado para actividad de cumpleaños -->
+            <div id="birthdayActivitySpot" class="mt-2 p-3 rounded-4 border border-dashed border-warning" style="background: rgba(255,193,7,0.05); min-height: 80px;">
+                <p class="text-muted small text-center mb-0">Espacio reservado para actividad de cumpleaños</p>
+            </div>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Información del Caminante ===== -->
+            <h3 class="eu-section-title text-primary"><i class="bi bi-person-walking"></i>Información del Caminante</h3>
+            <div class="eu-flex">
+                <div class="eu-field">
+                    <label class="label-bulma">Número de Pasaporte (Opcional)</label>
+                    <input type="text" name="pasaporte" class="input-bulma" id="editPasaporte" value="{{ hiker.pasaporte or '' if hiker else '' }}" placeholder="Ej: 123456789">
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">Tipo de Sangre</label>
+                    {% set sangre = hiker.tipo_sangre if hiker else '' %}
+                    <select name="tipo_sangre" class="form-select select-bulma" id="editSangre">
+                        <option value="" {{ 'selected' if not sangre else '' }} disabled>Seleccione...</option>
+                        <option value="O+" {{ 'selected' if sangre == 'O+' else '' }}>O Positivo (O+)</option>
+                        <option value="O-" {{ 'selected' if sangre == 'O-' else '' }}>O Negativo (O-)</option>
+                        <option value="A+" {{ 'selected' if sangre == 'A+' else '' }}>A Positivo (A+)</option>
+                        <option value="A-" {{ 'selected' if sangre == 'A-' else '' }}>A Negativo (A-)</option>
+                        <option value="B+" {{ 'selected' if sangre == 'B+' else '' }}>B Positivo (B+)</option>
+                        <option value="B-" {{ 'selected' if sangre == 'B-' else '' }}>B Negativo (B-)</option>
+                        <option value="AB+" {{ 'selected' if sangre == 'AB+' else '' }}>AB Positivo (AB+)</option>
+                        <option value="AB-" {{ 'selected' if sangre == 'AB-' else '' }}>AB Negativo (AB-)</option>
+                        <option value="No sabe" {{ 'selected' if sangre == 'No sabe' else '' }}>No lo sé</option>
+                        <option value="No transfusiones" {{ 'selected' if sangre == 'No transfusiones' else '' }}>NO RECIBO TRANSFUSIONES</option>
+                    </select>
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">Alergias Conocidas</label>
+                    <textarea name="alergias" class="textarea-bulma" id="editAlergias" rows="2" placeholder="Si no tiene, escriba 'Ninguna'">{{ hiker.alergias or '' if hiker else '' }}</textarea>
+                </div>
+                <div class="eu-field">
+                    <label class="label-bulma">Enfermedades Crónicas</label>
+                    <textarea name="enfermedades_cronicas" class="textarea-bulma" id="editEnfermedades" rows="2" placeholder="Si no tiene, escriba 'Ninguna'">{{ hiker.enfermedades_cronicas or '' if hiker else '' }}</textarea>
+                </div>
+            </div>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Contacto de Emergencia ===== -->
+            <h3 class="eu-section-title text-danger"><i class="bi bi-telephone-plus"></i>Información de Contacto de Emergencia</h3>
+            <div id="editEmergencyContainer">
+                {% for em in emergencias %}
+                <div class="edit-emergency-row row g-3 mb-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="label-bulma">Contacto de Emergencia</label>
+                        <input type="text" name="contacto_emergencia_nombre[]" class="input-bulma" placeholder="Ej: María (Esposa)" value="{{ em.nombre }}">
+                    </div>
+                    <div class="col-md-5">
+                        <label class="label-bulma">Teléfono del Contacto</label>
+                        <input type="tel" name="contacto_emergencia_telefono[]" class="input-bulma" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="88889999" value="{{ em.telefono }}">
+                    </div>
+                    {% if not loop.first %}
+                    <div class="col-md-2 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="this.closest('.edit-emergency-row').remove()" title="Quitar contacto"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" class="btn btn-outline-danger rounded-pill btn-sm fw-bold" onclick="addEditEmergencyContact()">
+                <i class="bi bi-plus-lg me-1"></i>Agregar otro contacto
+            </button>
+
+            <hr class="eu-sep">
+
+            <!-- ===== Acceso / Contraseña ===== -->
+            <h3 class="eu-section-title text-dark"><i class="bi bi-shield-lock"></i>Acceso</h3>
+            <div class="mb-3" id="editPassTrigger">
+                <button type="button" class="btn btn-outline-orange rounded-pill w-100 fw-bold" onclick="document.getElementById('editPassWrapper').classList.remove('d-none'); document.getElementById('editPassTrigger').classList.add('d-none');">
+                    <i class="bi bi-key me-2"></i>Cambiar contraseña
+                </button>
+            </div>
+            <div class="eu-flex mb-3 d-none" id="editPassWrapper">
+                <div class="eu-field position-relative">
+                    <label class="label-bulma">Nueva Contraseña</label>
+                    <input type="password" name="password" class="input-bulma pe-5 field-border" id="editPass" minlength="6" placeholder="Dejar en blanco para no cambiar">
+                    <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('editPass', this)"></i>
+                </div>
+            </div>
+
+            {% if session.get('role') == 'Superusuario' %}
+            <!-- Compartir enlace público -->
+            <div class="mb-4 text-center">
+                <button type="button" class="btn btn-outline-primary rounded-pill w-100 fw-bold" onclick="abrirModalCompartir('editar')">
+                    <i class="bi bi-share me-2"></i>Compartir enlace público
+                </button>
+            </div>
+            {% endif %}
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-orange rounded-pill py-3 fw-bold fs-5 shadow-sm" id="btnGuardarUsuario">
+                    <i class="bi bi-save me-2"></i>Guardar Cambios del Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% set hide_crear_fab = true %}
+{% include 'partials/dash_modals_extra.html' %}
+
+<script src="{{ url_for('static', filename='js/dashboard_user_fields.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard_card.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard_detail_actions.js') }}"></script>
+<script src="{{ url_for('static', filename='js/dashboard_share.js') }}"></script>
+<script src="{{ url_for('static', filename='js/editar_usuario.js') }}?v=1"></script>
+
+{% endblock %}

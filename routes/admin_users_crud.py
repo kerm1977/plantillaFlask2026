@@ -45,6 +45,12 @@ def admin_update_user(user_id):
 
     if request.form.get('phone'):
         u.phone = re.sub(r'\D', '', request.form.get('phone'))
+        u.whatsapp = u.phone
+
+    # Información adicional (se guarda tal como llega; vacío = borrar)
+    for _extra in ('facebook', 'instagram', 'address', 'institution', 'other_info'):
+        if _extra in request.form:
+            setattr(u, _extra, request.form.get(_extra, '').strip())
 
     avatar_file = request.files.get('avatar')
     if avatar_file and avatar_file.filename != '':
