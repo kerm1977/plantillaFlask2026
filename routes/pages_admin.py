@@ -14,6 +14,14 @@ def dashboard():
     return render_template('dashboard.html')
 
 
+@bp.route('/admin/crear-usuario')
+def crear_usuario():
+    # Crear usuario como página dedicada (hoja única, sin modal)
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    return render_template('crear_usuario.html')
+
+
 @bp.route('/eventos')
 def eventos():
     # El formulario de crear/editar eventos se unificó dentro de /caminatas-2027

@@ -1,0 +1,45 @@
+<!-- Estilos compartidos de inputs tipo Bulma (dashboard + página Crear Usuario) -->
+<style>
+.input-bulma,
+.select-bulma,
+.textarea-bulma {
+    background-color: #fff;
+    border: 1px solid rgba(255,140,0,0.35);
+    border-radius: 4px;
+    color: #363636;
+    display: block;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 0.5em 0.75em;
+    width: 100%;
+    transition: border-color .15s, box-shadow .15s;
+}
+.input-bulma { height: 2.5em; }
+.select-bulma { height: 2.5em; }
+.textarea-bulma { height: auto; min-height: 4.5em; }
+.input-bulma:focus,
+.select-bulma:focus,
+.textarea-bulma:focus {
+    border-color: #ff8c00;
+    box-shadow: 0 0 0 0.125em rgba(255,140,0,0.15);
+    outline: none;
+}
+.input-bulma::placeholder { color: rgba(54,54,54,0.45); }
+.label-bulma {
+    color: #363636;
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 0.5em;
+}
+.input-bulma:disabled,
+.select-bulma:disabled,
+.textarea-bulma:disabled {
+    background-color: #f5f5f5;
+    color: #7a7a7a;
+    opacity: 0.7;
+}
+.input-bulma.is-danger,
+.select-bulma.is-danger,
+.textarea-bulma.is-danger { border-color: #f14668; }
+</style>

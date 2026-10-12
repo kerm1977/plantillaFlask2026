@@ -9,8 +9,7 @@ function showUsersList() {
 }
 
 function dashOptionCreateUser() {
-    const modalEl = document.getElementById('crearUsuarioModal');
-    if (modalEl) new bootstrap.Modal(modalEl).show();
+    window.location.href = '/admin/crear-usuario';
 }
 
 function dashOptionEditUser() {
