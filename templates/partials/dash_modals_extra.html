@@ -101,7 +101,7 @@
     </div>
 </div>
 
-<!-- BOTÓN FLOTANTE CREAR USUARIO (+) -->
-<button type="button" class="btn btn-global-add" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal" title="Crear Nuevo Usuario" style="position: fixed; bottom: 145px; right: 20px; width: 50px; height: 50px; z-index: 1046;">
+<!-- BOTÓN FLOTANTE CREAR USUARIO (+): solo en el dashboard, encima del botón de Invitación -->
+<button type="button" class="btn btn-global-add" data-bs-toggle="modal" data-bs-target="#crearUsuarioModal" title="Crear Nuevo Usuario" style="position: fixed; bottom: calc(var(--nav-mobile-height, 70px) - 15px + 200px); right: 20px; width: 50px; height: 50px; z-index: 1046;">
     <i class="bi bi-plus-lg fs-4"></i>
 </button>
