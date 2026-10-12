@@ -86,3 +86,59 @@ def detalle_persona(cedula):
                          _eventos_realizados(), _superuser_emails())
     fila['fidelidad'] = fidelidad.info(cedula)
     return fila
+
+
+def estadisticas_persona(cedula):
+    """Estadísticas detalladas de una persona para el gráfico, las listas
+    paginadas de caminatas y la descarga de su propia estadística."""
+    from models import SiteContent
+    h = Hiker.query.filter_by(cedula=cedula).first()
+    if not h:
+        return None
+    rows = HikerPoints.query.filter_by(cedula=cedula).all()
+    ganados = sum(r.points for r in rows if (r.points or 0) > 0)
+    perdidos = sum(-r.points for r in rows if (r.points or 0) < 0)
+    comprados = sum(r.points for r in rows if r.tipo == 'compra' and (r.points or 0) > 0)
+    donados = sum(-r.points for r in rows if r.tipo in ('donacion_envio', 'donacion_benefica') and (r.points or 0) < 0)
+    redimidos = sum(-r.points for r in rows if (r.tipo or '').startswith('redencion') and (r.points or 0) < 0)
+    # Excedente "de la casa" generado por las compras de esta persona
+    engine = get_points_engine()
+    casa = sum((engine.purchase_cost(r.points) or {}).get('fee', 0)
+               for r in rows if r.tipo == 'compra' and (r.points or 0) > 0)
+    participo_ids = {r.event_id for r in rows if r.tipo == 'participacion' and r.event_id} \
+        - {r.event_id for r in rows if r.tipo == 'retiro' and r.event_id}
+    visitados = Event.query.filter_by(visitado='Visitados').all()
+    caminatas_ok = sorted((e.nombre_lugar or 'Sin nombre') for e in visitados if e.id in participo_ids)
+    extras = participo_ids - {e.id for e in visitados}
+    if extras:
+        caminatas_ok += sorted((e.nombre_lugar or 'Sin nombre')
+                               for e in Event.query.filter(Event.id.in_(extras)).all())
+    caminatas_no = sorted((e.nombre_lugar or 'Sin nombre') for e in visitados if e.id not in participo_ids)
+    # Puntos posibles: valor configurado del evento o, si es 0 (eventos viejos),
+    # el máximo que otorgó realmente en participaciones.
+    max_otorgado = {}
+    for r in HikerPoints.query.filter_by(tipo='participacion').all():
+        if r.event_id:
+            max_otorgado[r.event_id] = max(max_otorgado.get(r.event_id, 0), r.points or 0)
+
+    def _valor_evento(e):
+        return e.puntos or max_otorgado.get(e.id, 0)
+
+    posibles = sum(_valor_evento(e) for e in visitados)
+    if extras:
+        posibles += sum(_valor_evento(e)
+                        for e in Event.query.filter(Event.id.in_(extras)).all())
+    flag = SiteContent.query.filter_by(key='carnet_descargado_' + cedula).first()
+    return {
+        'nombre': h.nombre_completo or '', 'cedula': cedula,
+        'ganados': ganados, 'perdidos': perdidos, 'total': ganados - perdidos,
+        'comprados': comprados, 'donados': donados, 'redimidos': redimidos,
+        'casa': casa, 'caminatas_ok': caminatas_ok, 'caminatas_no': caminatas_no,
+        'posibles': posibles,
+        'carnet_descargado': flag.value if flag else '',
+    }
+
+
+def get_points_engine():
+    from modules.points_engine import get_points_engine as _g
+    return _g()

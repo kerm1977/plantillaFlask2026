@@ -38,5 +38,18 @@ def mis_puntos_carnet(fmt):
     img = build_carnet_image(hiker, get_points_engine().total_by_cedula(cedula), tarjeta_url)
     buf, mime, ext = carnet_bytes(img, fmt)
     inline = request.args.get('inline') == '1'
+    if not inline:
+        # Marca de descarga para las estadísticas personales
+        from db import db
+        from models import SiteContent
+        from datetime import datetime
+        key = 'carnet_descargado_' + cedula
+        row = SiteContent.query.filter_by(key=key).first()
+        valor = datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')
+        if row:
+            row.value = valor
+        else:
+            db.session.add(SiteContent(key=key, value=valor))
+        db.session.commit()
     return send_file(buf, mimetype=mime, as_attachment=not inline,
                      download_name=f'carnet_{cedula}.{ext}')

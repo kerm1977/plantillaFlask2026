@@ -45,3 +45,36 @@ def estado_cuenta_txt():
     return Response(text, mimetype='text/plain; charset=utf-8',
                     headers={'Content-Disposition': f'attachment; filename=estado_cuenta_{cedula}.txt',
                              'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'})
+
+
+@bp.route('/mis-puntos/estadisticas.txt', methods=['GET'])
+def estadisticas_txt():
+    """Descarga de la estadística personal (solo lectura)."""
+    cedula, hiker, err = _hiker_autorizado()
+    if err:
+        return err
+    from modules.estado_global import estadisticas_persona
+    from datetime import datetime
+    st = estadisticas_persona(cedula)
+    sep = '=' * 60
+    lines = [sep, 'MIS ESTADÍSTICAS - La Tribu de los Libres', sep,
+             f'Nombre: {st["nombre"]}', f'Cédula: {cedula}',
+             f'Generado: {datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")}', sep,
+             f'Total de puntos actuales: {st["total"]}',
+             f'Puntos ganados: {st["ganados"]}',
+             f'Puntos perdidos: {st["perdidos"]}',
+             f'Puntos redimidos: {st["redimidos"]}',
+             f'Puntos comprados: {st["comprados"]}',
+             f'Puntos donados: {st["donados"]}',
+             f'Excedente generado a la casa por compras: {st["casa"]}',
+             f'Puntos posibles que pudo haber ganado: {st["posibles"]}',
+             f'Carnet descargado: {"Sí (" + st["carnet_descargado"] + ")" if st["carnet_descargado"] else "No"}',
+             f'Caminatas participadas: {len(st["caminatas_ok"])}',
+             f'Caminatas no participadas: {len(st["caminatas_no"])}',
+             '', 'CAMINATAS EN LAS QUE PARTICIPÉ:']
+    lines += [f'  - {n}' for n in st['caminatas_ok']] or ['  (ninguna)']
+    lines += ['', 'CAMINATAS EN LAS QUE NO PARTICIPÉ:']
+    lines += [f'  - {n}' for n in st['caminatas_no']] or ['  (ninguna)']
+    return Response('\n'.join(lines), mimetype='text/plain; charset=utf-8',
+                    headers={'Content-Disposition': f'attachment; filename=estadisticas_{cedula}.txt',
+                             'Cache-Control': 'no-store, no-cache, must-revalidate', 'Pragma': 'no-cache'})

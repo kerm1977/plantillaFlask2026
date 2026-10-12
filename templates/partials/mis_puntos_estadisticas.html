@@ -1,0 +1,128 @@
+{# BLINDADO — Estadísticas personales: gráfico (barras CSS), listas de
+   caminatas paginadas (20 por página) y descarga de estadística propia.
+   Requiere `stats` en el contexto. #}
+{% if stats %}
+<div class="glass-panel rounded-4 shadow-sm p-4 mt-4">
+  <h4 class="fw-bold text-dark mb-3"><i class="bi bi-bar-chart-fill me-2 text-orange"></i>Mis estadísticas</h4>
+
+  <!-- Gráfico de barras -->
+  {% set mx = [stats.caminatas_ok|length, stats.caminatas_no|length, stats.ganados, stats.perdidos, 1] | max %}
+  <div class="d-flex flex-column gap-3 mb-4">
+    <div>
+      <div class="d-flex justify-content-between small fw-bold mb-1">
+        <span><i class="bi bi-check-circle-fill text-success me-1"></i>Caminatas participadas</span>
+        <span>{{ stats.caminatas_ok|length }}</span>
+      </div>
+      <div class="rounded-pill bg-white bg-opacity-50" style="height:18px; overflow:hidden;">
+        <div class="h-100 bg-success rounded-pill" style="width: {{ (stats.caminatas_ok|length * 100 / mx) | round(1) }}%;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="d-flex justify-content-between small fw-bold mb-1">
+        <span><i class="bi bi-x-circle-fill text-danger me-1"></i>Caminatas que me salté</span>
+        <span>{{ stats.caminatas_no|length }}</span>
+      </div>
+      <div class="rounded-pill bg-white bg-opacity-50" style="height:18px; overflow:hidden;">
+        <div class="h-100 bg-danger rounded-pill" style="width: {{ (stats.caminatas_no|length * 100 / mx) | round(1) }}%;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="d-flex justify-content-between small fw-bold mb-1">
+        <span><i class="bi bi-star-fill text-warning me-1"></i>Puntos ganados</span>
+        <span>{{ stats.ganados }}</span>
+      </div>
+      <div class="rounded-pill bg-white bg-opacity-50" style="height:18px; overflow:hidden;">
+        <div class="h-100 bg-warning rounded-pill" style="width: {{ (stats.ganados * 100 / mx) | round(1) }}%;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="d-flex justify-content-between small fw-bold mb-1">
+        <span><i class="bi bi-arrow-down-circle-fill text-secondary me-1"></i>Puntos perdidos</span>
+        <span>{{ stats.perdidos }}</span>
+      </div>
+      <div class="rounded-pill bg-white bg-opacity-50" style="height:18px; overflow:hidden;">
+        <div class="h-100 bg-secondary rounded-pill" style="width: {{ (stats.perdidos * 100 / mx) | round(1) }}%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resumen descargable -->
+  <div class="d-flex flex-wrap gap-2 mb-4 small">
+    <span class="badge bg-light text-dark rounded-pill">Redimidos: {{ stats.redimidos }}</span>
+    <span class="badge bg-light text-dark rounded-pill">Comprados: {{ stats.comprados }}</span>
+    <span class="badge bg-light text-dark rounded-pill">Donados: {{ stats.donados }}</span>
+    <span class="badge bg-light text-dark rounded-pill">Casa: {{ stats.casa }}</span>
+    <span class="badge bg-light text-dark rounded-pill">Posibles: {{ stats.posibles }}</span>
+    <span class="badge {{ 'bg-success' if stats.carnet_descargado else 'bg-secondary' }} rounded-pill">
+      Carnet: {{ 'descargado' if stats.carnet_descargado else 'sin descargar' }}
+    </span>
+  </div>
+
+  <!-- Listas de caminatas paginadas -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <p class="fw-bold small mb-2"><i class="bi bi-check2-circle text-success me-1"></i>En las que participé ({{ stats.caminatas_ok|length }})</p>
+      <ul class="list-group list-group-flush stat-list" id="statListOk">
+        {% for n in stats.caminatas_ok %}
+        <li class="list-group-item bg-transparent py-1 px-0 small stat-item">{{ n }}</li>
+        {% endfor %}
+        {% if not stats.caminatas_ok %}<li class="list-group-item bg-transparent py-1 px-0 small text-muted">Ninguna todavía.</li>{% endif %}
+      </ul>
+      <div class="d-flex align-items-center justify-content-between mt-2 stat-pager" data-list="statListOk">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill stat-prev"><i class="bi bi-chevron-left"></i></button>
+        <span class="small text-muted stat-info"></span>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill stat-next"><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+    <div class="col-12 col-lg-6">
+      <p class="fw-bold small mb-2"><i class="bi bi-x-circle text-danger me-1"></i>En las que no participé ({{ stats.caminatas_no|length }})</p>
+      <ul class="list-group list-group-flush stat-list" id="statListNo">
+        {% for n in stats.caminatas_no %}
+        <li class="list-group-item bg-transparent py-1 px-0 small stat-item">{{ n }}</li>
+        {% endfor %}
+        {% if not stats.caminatas_no %}<li class="list-group-item bg-transparent py-1 px-0 small text-muted">Ninguna.</li>{% endif %}
+      </ul>
+      <div class="d-flex align-items-center justify-content-between mt-2 stat-pager" data-list="statListNo">
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill stat-prev"><i class="bi bi-chevron-left"></i></button>
+        <span class="small text-muted stat-info"></span>
+        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill stat-next"><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-grid gap-2 mt-4">
+    <a href="{{ url_for('main.estadisticas_txt', cedula=result.cedula, t=result.dl_token) }}"
+       class="btn btn-outline-dark rounded-pill fw-bold">
+      <i class="bi bi-download me-2"></i>Descargar mis estadísticas (TXT)
+    </a>
+  </div>
+</div>
+
+<script>
+// Paginación de 20 ítems por página para las listas de caminatas
+(function () {
+    var POR_PAGINA = 20;
+    document.querySelectorAll('.stat-pager').forEach(function (pager) {
+        var lista = document.getElementById(pager.getAttribute('data-list'));
+        if (!lista) return;
+        var items = lista.querySelectorAll('.stat-item');
+        var info = pager.querySelector('.stat-info');
+        var pagina = 0;
+        var paginas = Math.max(1, Math.ceil(items.length / POR_PAGINA));
+        function mostrar(p) {
+            pagina = Math.min(Math.max(p, 0), paginas - 1);
+            items.forEach(function (it, i) {
+                it.classList.toggle('d-none',
+                    i < pagina * POR_PAGINA || i >= (pagina + 1) * POR_PAGINA);
+            });
+            info.textContent = 'Página ' + (pagina + 1) + ' de ' + paginas;
+            pager.querySelector('.stat-prev').disabled = pagina === 0;
+            pager.querySelector('.stat-next').disabled = pagina >= paginas - 1;
+        }
+        pager.querySelector('.stat-prev').addEventListener('click', function () { mostrar(pagina - 1); });
+        pager.querySelector('.stat-next').addEventListener('click', function () { mostrar(pagina + 1); });
+        mostrar(0);
+    });
+})();
+</script>
+{% endif %}

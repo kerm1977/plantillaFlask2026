@@ -94,8 +94,6 @@
           </div>
         </div>
         {% if result %}
-        <div class="row g-4">
-          <div class="col-12 col-lg-7">
         <div class="text-center mb-4">
           <h2 class="fw-bold text-warning-custom puntos-total" id="puntosTotal">{{ result.total }} <span class="puntos-label">puntos</span>{% if result.fidelidad.nivel == 'exclusivo' %} <span class="vip-badge vip-gold" title="Exclusivo VIP: acumula ×1.5 en todo lo que suma puntos">GOLD</span>{% elif result.fidelidad.nivel == 'activo' %} <span class="vip-badge" title="Activo VIP: acumula ×1.2 en todo lo que suma puntos">VIP-1</span>{% endif %}</h2>
           <p class="text-muted mt-3 mb-4">
@@ -103,11 +101,12 @@
             {% if is_super %}<span class="badge rounded-pill" style="background:#e9f7ee; color:#2e7d4f; font-size:0.65rem; font-weight:600; vertical-align:middle;" title="Veces que ha ingresado a consultar sus puntos (solo visible para superusuario)">{{ result.consultas_puntos_count }}</span>{% endif %}
           </p>
         </div>
-        <div class="mt-5">{% include 'partials/reglamento_puntos.html' %}</div>
-
+        <div class="row g-4">
+          <div class="col-12 col-lg-5">
         {% include 'partials/mis_puntos_acciones.html' %}
-
-        <div class="border-top pt-4 mt-4">
+        <div class="mt-4">{% include 'partials/reglamento_puntos.html' %}</div>
+          </div>
+          <div class="col-12 col-lg-7">
         <div class="accordion mb-4" id="resultadoPuntosAccordion">
           <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
             <h2 class="accordion-header">
@@ -209,9 +208,6 @@
           {% set page_arg = request.args.get('page', '') %}
           {% include 'partials/mis_puntos_historial.html' %}
         </div>
-        </div>
-          </div>
-          <div class="col-12 col-lg-5">
 
         {% if cumpleaneros %}
         <div class="border-top pt-4 mt-4">
@@ -262,6 +258,7 @@
         {% include 'partials/mis_puntos_admin.html' %}
           </div>
         </div>
+        {% include 'partials/mis_puntos_estadisticas.html' %}
         {% endif %}
     </div>
   </div>
