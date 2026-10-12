@@ -51,7 +51,8 @@ async function compartirEnlaceContacto(u) {
             `Bienvenido a la Tribu de los Libres${nombre ? ', ' + nombre : ''}. ` +
             `Si deseas registrarte y participar en la acumulación de puntos, ` +
             `regístrate en este enlace: ${d.url} ` +
-            `Y visita nuestra página en la siguiente dirección: www.latribu.top`;
+            `Y visita nuestra página en la siguiente dirección: www.latribu.top ` +
+            `y consulta tus puntos en la siguiente dirección: www.latribu.top/mis-puntos`;
     } catch (e) {
         mostrarAlerta('Error de conexión. Intenta nuevamente.', 'error');
     }
