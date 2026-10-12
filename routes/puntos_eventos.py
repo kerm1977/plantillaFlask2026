@@ -31,7 +31,14 @@ def puntos_eventos_admin():
     pe_eventos = {e.id: {'nombre': e.nombre, 'puntos': e.puntos or 0,
                          'descripcion': e.descripcion or '', 'publico': bool(e.publico)}
                   for e in eventos}
-    return render_template('puntos_eventos.html', eventos=eventos, pe_eventos=pe_eventos)
+    # Contexto extra para los acordeones embebidos de Control/Gestión de puntos
+    from models import Hiker
+    from modules.points_helpers import get_puntos_password, get_puntos_admin_visible
+    return render_template('puntos_eventos.html', eventos=eventos, pe_eventos=pe_eventos,
+                           todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
+                           puntos_password=get_puntos_password(),
+                           puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
+                           puntos_pwd_visible=get_puntos_admin_visible())
 
 
 @bp.route('/api/puntos-eventos', methods=['POST'])

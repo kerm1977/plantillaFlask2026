@@ -1,0 +1,38 @@
+{# BLINDADO — Cuerpo "Control de puntos". Se usa en el perfil (perfil_admin_accordion)
+   y embebido en /puntos-eventos. gestion_target: id del colapso de Gestión a alternar. #}
+                            <p class="small text-muted">Esta contraseña de 4 dígitos es la misma para todas las personas y les permite ingresar a su sistema de puntos.</p>
+                            {% if puntos_pwd_msg %}<div class="alert alert-info rounded-4 py-2 small">{{ puntos_pwd_msg }}</div>{% endif %}
+                            <form method="post" action="{{ url_for('main.puntos_password_visibilidad') }}" class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="visible" value="1" id="pwdVisibleToggle" {% if puntos_pwd_visible %}checked{% endif %} onchange="this.form.submit()">
+                                    <label class="form-check-label fw-bold" for="pwdVisibleToggle">Mostrar administrador de contraseña a superusuarios</label>
+                                </div>
+                            </form>
+                            {% if puntos_pwd_visible %}
+                            <form method="post" action="{{ url_for('main.puntos_password') }}">
+                                <label class="form-label fw-bold">Administrar contraseña para ingreso de puntos</label>
+                                <div class="input-group mb-2">
+                                    <input type="text" name="password" class="form-control" maxlength="4" pattern="\d{4}" inputmode="numeric" placeholder="4 dígitos" required>
+                                    <button type="submit" class="btn btn-warning fw-bold text-dark">Guardar</button>
+                                </div>
+                                <small class="text-muted">Contraseña actual: <strong>{{ puntos_password or 'No configurada' }}</strong></small>
+                            </form>
+                            {% else %}
+                            <p class="small text-muted mb-0">El administrador de contraseña está oculto. Activá el interruptor para verlo.</p>
+                            {% endif %}
+                            <hr class="my-3">
+                            <p class="fw-bold mb-1"><i class="bi bi-database-fill-gear me-2 text-primary"></i>Exportar e importar puntos de todos los usuarios</p>
+                            <p class="small text-muted">Respalda o restaura la información de puntos de todas las personas registradas en el sistema.</p>
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('main.admin_puntos_exportar_json') }}" class="btn btn-outline-dark rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-json me-2"></i>Exportar todos los puntos a JSON</a>
+                                <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-txt me-2"></i>Exportar todos los puntos a TXT</a>
+                                <form method="post" action="{{ url_for('main.admin_puntos_importar_json') }}" enctype="multipart/form-data" class="mt-1">
+                                    <input type="file" name="archivo" class="form-control mb-2" accept=".json,application/json" required>
+                                    <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold"><i class="bi bi-upload me-2"></i>Importar puntos desde JSON</button>
+                                </form>
+                            </div>
+                            <hr class="my-3">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('main.puntos_eventos_admin') }}" class="btn btn-orange rounded-pill fw-bold"><i class="bi bi-stars me-2"></i>Ir a Eventos de puntos</a>
+                                <button type="button" class="btn btn-outline-warning rounded-pill fw-bold" data-bs-toggle="collapse" data-bs-target="{{ gestion_target or '#profilePuntosPersonas' }}"><i class="bi bi-people-fill me-2"></i>Ver Gestión de puntos</button>
+                            </div>

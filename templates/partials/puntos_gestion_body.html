@@ -1,0 +1,18 @@
+{# BLINDADO — Cuerpo "Gestión de puntos". Se usa en el perfil (perfil_admin_accordion)
+   y embebido en /puntos-eventos. control_target: id del colapso de Control a alternar. #}
+                            <p class="small text-muted">Buscá a la persona por cédula, nombre o apellidos y entrá a sus puntos sin necesidad de contraseña: podés regalarle, restarle, aprobar sus retos y ver su estado de cuenta.</p>
+                            <form method="get" action="{{ url_for('main.mis_puntos') }}">
+                                <label class="form-label fw-bold">Persona a gestionar</label>
+                                <select name="cedula" class="form-select mb-2" data-searchable data-modal-picker required>
+                                    <option value="" selected disabled>Seleccioná la persona...</option>
+                                    {% for p in todos_hikers %}
+                                    <option value="{{ p.cedula }}" data-search="{{ (p.nombre_completo or '') + ' ' + (p.cedula or '') + ' ' + (p.telefono or '') }}">{{ p.nombre_completo }} ({{ p.cedula }})</option>
+                                    {% endfor %}
+                                </select>
+                                <button type="submit" class="btn btn-warning rounded-pill fw-bold text-dark w-100"><i class="bi bi-box-arrow-in-right me-1"></i>Abrir sus puntos</button>
+                            </form>
+                            <hr class="my-3">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('main.puntos_eventos_admin') }}" class="btn btn-orange rounded-pill fw-bold"><i class="bi bi-stars me-2"></i>Ir a Eventos de puntos</a>
+                                <button type="button" class="btn btn-outline-warning rounded-pill fw-bold" data-bs-toggle="collapse" data-bs-target="{{ control_target or '#profilePuntosControl' }}"><i class="bi bi-trophy me-2"></i>Ver Control de puntos</button>
+                            </div>
