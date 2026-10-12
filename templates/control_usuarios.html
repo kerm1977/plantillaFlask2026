@@ -1,0 +1,100 @@
+<!-- ==============================================================
+    BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+    Control de Usuarios: panel unificado de puntos (superusuario)
+    + consulta pública de estado de cuenta (cualquier persona)
+============================================================== -->
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-4 animate__animated animate__fadeIn">
+  <div class="text-center mb-4">
+    <h1 class="fw-bold text-dark m-0"><i class="bi bi-person-gear text-orange me-2"></i>Control de Usuarios</h1>
+    <p class="text-muted mb-0">Puntos, eventos, gestión y expedientes en un solo panel.</p>
+  </div>
+
+  {% if is_super %}
+  <!-- Botones carrusel -->
+  <div class="d-flex flex-nowrap gap-2 pb-2 mb-4" id="cuTabs" style="overflow-x:auto; -webkit-overflow-scrolling:touch;">
+    <button type="button" class="btn btn-outline-orange rounded-pill fw-bold flex-shrink-0 cu-tab" data-cu="control">
+      <i class="bi bi-trophy me-1"></i>Control de puntos
+    </button>
+    <button type="button" class="btn btn-outline-orange rounded-pill fw-bold flex-shrink-0 cu-tab" data-cu="gestion">
+      <i class="bi bi-people-fill me-1"></i>Gestión de puntos
+    </button>
+    <button type="button" class="btn btn-outline-orange rounded-pill fw-bold flex-shrink-0 cu-tab" data-cu="eventos">
+      <i class="bi bi-stars me-1"></i>Eventos de puntos
+    </button>
+    <button type="button" class="btn btn-outline-orange rounded-pill fw-bold flex-shrink-0 cu-tab" data-cu="expediente">
+      <i class="bi bi-person-badge me-1"></i>Puntos y expediente
+    </button>
+    <button type="button" class="btn btn-outline-orange rounded-pill fw-bold flex-shrink-0 cu-tab" data-cu="estado">
+      <i class="bi bi-file-earmark-text me-1"></i>Estado de cuenta
+    </button>
+  </div>
+
+  <!-- Sección: Control de puntos -->
+  <div id="cu-control" class="cu-sec">
+    <div class="glass-panel rounded-4 shadow-sm p-3 mb-4">
+      {% include 'partials/puntos_control_body.html' %}
+    </div>
+  </div>
+
+  <!-- Sección: Gestión de puntos -->
+  <div id="cu-gestion" class="cu-sec d-none">
+    <div class="glass-panel rounded-4 shadow-sm p-3 mb-4">
+      {% include 'partials/puntos_gestion_body.html' %}
+    </div>
+  </div>
+
+  <!-- Sección: Eventos de puntos -->
+  <div id="cu-eventos" class="cu-sec d-none">
+    {% include 'partials/eventos_puntos_panel.html' %}
+  </div>
+
+  <!-- Sección: Puntos y expediente -->
+  <div id="cu-expediente" class="cu-sec d-none">
+    {% set cu_expediente = true %}
+    {% include 'partials/perfil_puntos_accordion.html' %}
+  </div>
+
+  <!-- Sección: Estado de cuenta (también pública) -->
+  <div id="cu-estado" class="cu-sec d-none">
+    {% include 'partials/estado_cuenta_publico.html' %}
+  </div>
+  {% else %}
+  {% include 'partials/estado_cuenta_publico.html' %}
+  {% endif %}
+</div>
+
+{% if is_super %}
+{% include 'partials/caminata_qr_share_modal.html' %}
+<script>
+window.PE_EVENTOS = {{ pe_eventos | tojson }};
+
+// Carrusel de secciones de Control de Usuarios
+function cuShow(nombre) {
+    document.querySelectorAll('.cu-sec').forEach(function (s) { s.classList.add('d-none'); });
+    var el = document.getElementById('cu-' + nombre);
+    if (!el) return;
+    el.classList.remove('d-none');
+    document.querySelectorAll('.cu-tab').forEach(function (b) {
+        var on = b.getAttribute('data-cu') === nombre;
+        b.classList.toggle('btn-orange', on);
+        b.classList.toggle('btn-outline-orange', !on);
+    });
+    try { history.replaceState(null, '', '#cu-' + nombre); } catch (e) {}
+}
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.cu-tab').forEach(function (b) {
+        b.addEventListener('click', function () { cuShow(b.getAttribute('data-cu')); });
+    });
+    var inicial = '{{ seccion or "" }}';
+    var h = (location.hash || '').replace('#cu-', '').replace('#', '');
+    if (['control', 'gestion', 'eventos', 'expediente', 'estado'].indexOf(h) >= 0) inicial = h;
+    if (['control', 'gestion', 'eventos', 'expediente', 'estado'].indexOf(inicial) < 0) inicial = 'control';
+    cuShow(inicial);
+});
+</script>
+<script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
+<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}?v=2"></script>
+{% endif %}
+{% endblock %}

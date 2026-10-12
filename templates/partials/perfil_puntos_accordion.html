@@ -1,3 +1,4 @@
+{% if session.get('role') != 'Superusuario' or cu_expediente %}
             <div class="accordion mb-4" id="puntosAccordion">
                 <div class="accordion-item glass-panel border-0 rounded-4 overflow-hidden bg-white bg-opacity-25">
                     <h2 class="accordion-header">
@@ -83,4 +84,5 @@
                     </div>
                 </div>
             </div>
+{% endif %}
                 </div>

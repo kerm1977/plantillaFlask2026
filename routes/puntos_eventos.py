@@ -22,25 +22,52 @@ def _evento_scan_url(pid):
     return url_for('main.puntos_evento_qr_page', pid=pid, _external=True)
 
 
-@bp.route('/puntos-eventos')
-def puntos_eventos_admin():
-    """Panel de gestión de eventos de puntos (solo superusuario)."""
-    if not _is_super():
-        return redirect(url_for('main.home'))
+@bp.route('/control-usuarios')
+def control_usuarios():
+    """Panel unificado: control, gestión, eventos de puntos y expediente (super)
+    + consulta pública de estado de cuenta (cualquier persona, solo lectura)."""
+    is_super = _is_super()
+    if not is_super:
+        return render_template('control_usuarios.html', is_super=False, seccion='estado')
+    from models import Hiker, User
+    from modules.points_engine import get_points_engine
+    from modules.points_helpers import (get_puntos_password, get_puntos_admin_visible,
+                                        get_notif_cutoff, personas_con_puntos)
     eventos = PuntosEvento.query.order_by(PuntosEvento.id.desc()).all()
     pe_eventos = {e.id: {'nombre': e.nombre, 'puntos': e.puntos or 0,
                          'descripcion': e.descripcion or '', 'publico': bool(e.publico)}
                   for e in eventos}
-    # Contexto extra para los acordeones embebidos de Control/Gestión de puntos
-    from models import Hiker
-    from modules.points_helpers import (get_puntos_password, get_puntos_admin_visible,
-                                        personas_con_puntos)
-    return render_template('puntos_eventos.html', eventos=eventos, pe_eventos=pe_eventos,
+    # Expediente del superusuario (mismo lookup que /profile)
+    user = User.query.get(session['user_id'])
+    full_name = f'{user.name} {user.last_name_1} {user.last_name_2}'.strip() if user else ''
+    hiker = Hiker.query.filter_by(telefono=user.phone).first() if user and user.phone else None
+    if not hiker:
+        hiker = Hiker.query.filter_by(nombre_completo=full_name).first() if full_name else None
+    puntos_cedula = hiker.cedula if hiker else ''
+    engine = get_points_engine()
+    puntos_total = engine.total_by_cedula(puntos_cedula) if puntos_cedula else 0
+    puntos_history = engine.history_with_names(puntos_cedula) if puntos_cedula else []
+    notif_cutoff = get_notif_cutoff(puntos_cedula)
+    puntos_notificaciones = [r for r in puntos_history
+                             if r['tipo'] in ('obsequio', 'donacion_recibida')
+                             and (r.get('creado_at') or '') > notif_cutoff]
+    seccion = (request.args.get('seccion') or '').strip()
+    return render_template('control_usuarios.html', is_super=True, seccion=seccion,
+                           eventos=eventos, pe_eventos=pe_eventos,
                            todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
                            personas_puntos=personas_con_puntos(),
                            puntos_password=get_puntos_password(),
                            puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
-                           puntos_pwd_visible=get_puntos_admin_visible())
+                           puntos_pwd_visible=get_puntos_admin_visible(),
+                           user=user, hiker=hiker, puntos_cedula=puntos_cedula,
+                           puntos_total=puntos_total, puntos_history=puntos_history,
+                           puntos_notificaciones=puntos_notificaciones)
+
+
+@bp.route('/puntos-eventos')
+def puntos_eventos_admin():
+    """Compatibilidad: el panel de eventos vive ahora en /control-usuarios."""
+    return redirect(url_for('main.control_usuarios', seccion='eventos'))
 
 
 @bp.route('/api/puntos-eventos', methods=['POST'])

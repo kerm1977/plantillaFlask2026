@@ -1,0 +1,13 @@
+{# BLINDADO — Sección pública "Estado de cuenta": cualquier persona consulta la
+   suya por cédula (la verificación de contraseña la hace /mis-puntos).
+   Único contenido visible sin rol superusuario; solo lectura. #}
+<div class="glass-panel rounded-4 shadow-sm p-4">
+  <h2 class="fs-5 fw-bold text-dark mb-2"><i class="bi bi-file-earmark-text me-2 text-orange"></i>Consultar estado de cuenta</h2>
+  <p class="small text-muted">Ingresá tu cédula para ver y descargar tu estado de cuenta de puntos. Es solo lectura — no modifica ningún dato.</p>
+  <form method="get" action="{{ url_for('main.mis_puntos') }}" class="d-flex flex-column flex-sm-row gap-2">
+    <input type="text" name="cedula" class="form-control glass-input rounded-3" placeholder="Tu cédula o pasaporte" required>
+    <button type="submit" class="btn btn-orange rounded-pill fw-bold flex-shrink-0">
+      <i class="bi bi-search me-1"></i>Consultar
+    </button>
+  </form>
+</div>
