@@ -140,20 +140,20 @@
             <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accExportarAdmin">
-                  <i class="bi bi-download me-2 text-primary"></i>Descargar, exportar e importar
+                  <i class="bi bi-download me-2 text-primary"></i>Respaldo y estados de cuenta
                 </button>
               </h2>
               <div id="accExportarAdmin" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
                 <div class="accordion-body">
                   <div class="d-grid gap-2">
-                    <a href="{{ url_for('main.estado_cuenta', cedula=result.cedula) }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank">Descargar estado de cuenta (TXT)</a>
-                    <a href="{{ url_for('main.mis_puntos_exportar_json', cedula=result.cedula) }}" class="btn btn-outline-dark rounded-pill fw-bold" target="_blank">Exportar a JSON</a>
-                    <form method="post" action="{{ url_for('main.mis_puntos_importar_json') }}" enctype="multipart/form-data" class="mt-2">
-                      <input type="hidden" name="cedula" value="{{ result.cedula }}">
+                    <a href="{{ url_for('main.admin_puntos_exportar_json') }}" class="btn btn-outline-dark rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-json me-2"></i>Exportar todos los puntos a JSON</a>
+                    <form method="post" action="{{ url_for('main.admin_puntos_importar_json') }}" enctype="multipart/form-data">
                       <input type="file" name="archivo" class="form-control mb-2" accept=".json,application/json" required>
-                      <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold">Importar desde JSON</button>
+                      <button type="submit" class="btn btn-outline-secondary w-100 rounded-pill fw-bold"><i class="bi bi-upload me-2"></i>Importar todos los puntos desde JSON</button>
                     </form>
-                    <a href="{{ whatsapp_url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Compartir resumen por WhatsApp</a>
+                    <a href="{{ url_for('main.admin_puntos_exportar') }}" class="btn btn-outline-primary rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-txt me-2"></i>Exportar a TXT todos los puntos</a>
+                    <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula) }}" class="btn btn-outline-danger rounded-pill fw-bold" target="_blank"><i class="bi bi-filetype-pdf me-2"></i>Estado de cuenta en PDF</a>
+                    <a href="{{ whatsapp_url }}" class="btn btn-outline-success rounded-pill fw-bold" target="_blank"><i class="bi bi-whatsapp me-2"></i>Enviar a WhatsApp los puntos de esta persona</a>
                   </div>
                 </div>
               </div>
