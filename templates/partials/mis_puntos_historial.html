@@ -7,11 +7,15 @@
             <div id="accHistorial" class="accordion-collapse collapse {% if page_arg %}show{% endif %}" data-bs-parent="#resultadoPuntosAccordion">
               <div class="accordion-body">
                 <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
-                  <a href="{{ url_for('main.estado_cuenta', cedula=result.cedula) }}" class="btn btn-sm btn-outline-primary rounded-pill" target="_blank" title="Descargar estado de cuenta en TXT"><i class="bi bi-filetype-txt"></i></a>
+                  <a href="{{ url_for('main.estado_cuenta_txt', cedula=result.cedula, t=result.dl_token) }}" class="btn btn-sm btn-outline-primary rounded-pill" target="_blank" title="Descargar estado de cuenta en TXT"><i class="bi bi-filetype-txt"></i></a>
+                  <a href="{{ url_for('main.estado_cuenta_pdf', cedula=result.cedula, t=result.dl_token) }}" class="btn btn-sm btn-outline-danger rounded-pill" target="_blank" title="Descargar estado de cuenta en PDF"><i class="bi bi-filetype-pdf"></i></a>
                   <a href="{{ whatsapp_url }}" class="btn btn-sm btn-outline-success rounded-pill" target="_blank" title="Enviar estado de cuenta por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                  {% if is_super %}
                   <a href="{{ url_for('main.mis_puntos_exportar_json', cedula=result.cedula) }}" class="btn btn-sm btn-outline-dark rounded-pill" target="_blank" title="Exportar historial a JSON"><i class="bi bi-filetype-json"></i></a>
                   <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" title="Importar historial desde JSON" data-bs-toggle="collapse" data-bs-target="#importarHistorial"><i class="bi bi-upload"></i></button>
+                  {% endif %}
                 </div>
+                {% if is_super %}
                 <div class="collapse mb-3" id="importarHistorial">
                   <form method="post" action="{{ url_for('main.mis_puntos_importar_json') }}" enctype="multipart/form-data" class="border rounded-4 p-3 bg-light bg-opacity-50">
                     <input type="hidden" name="cedula" value="{{ result.cedula }}">
@@ -19,6 +23,7 @@
                     <button type="submit" class="btn btn-sm btn-secondary w-100 rounded-pill fw-bold">Importar JSON de esta persona</button>
                   </form>
                 </div>
+                {% endif %}
                 {% set per_page = 5 %}
                 {% set page = request.args.get('page', '1')|int %}
                 {% if page < 1 %}{% set page = 1 %}{% endif %}
