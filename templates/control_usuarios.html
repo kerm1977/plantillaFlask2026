@@ -1,58 +1,24 @@
 <!-- ==============================================================
     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
-    Control de puntos: panel unificado de puntos (superusuario)
+    Puntos personales: expediente propio de puntos (superusuario)
     + consulta pública de estado de cuenta (cualquier persona)
 ============================================================== -->
 {% extends 'base.html' %}
-{% block title %}Control de puntos - La Tribu{% endblock %}
+{% block title %}Puntos personales - La Tribu{% endblock %}
 {% block content %}
 <div class="container py-4 animate__animated animate__fadeIn">
   <div class="text-center mb-4">
-    <h1 class="fw-bold text-dark m-0"><i class="bi bi-trophy text-orange me-2"></i>Control de puntos</h1>
-    <p class="text-muted mb-0">Puntos, eventos, gestión y expedientes en un solo panel.</p>
+    <h1 class="fw-bold text-dark m-0"><i class="bi bi-trophy text-orange me-2"></i>Puntos personales</h1>
+    <p class="text-muted mb-0">Tus puntos y expediente personal.</p>
   </div>
 
   {% if is_super %}
-  <div class="accordion" id="cuAccordion">
-
-    <!-- Gestión de puntos -->
-    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#cu-gestion">
-          <i class="bi bi-people-fill me-2 text-warning"></i>Gestión de puntos
-        </button>
-      </h2>
-      <div id="cu-gestion" class="accordion-collapse collapse" data-bs-parent="#cuAccordion">
-        <div class="accordion-body">
-          {% include 'partials/puntos_gestion_body.html' %}
-        </div>
-      </div>
-    </div>
-
-  </div>
-
   <!-- Puntos y expediente (directo, sin botones: es personal de cada quien) -->
-  <h4 class="fw-bold text-dark mt-4 mb-3"><i class="bi bi-person-badge me-2 text-info"></i>Puntos y expediente</h4>
+  <h4 class="fw-bold text-dark mt-2 mb-3"><i class="bi bi-person-badge me-2 text-info"></i>Puntos y expediente</h4>
   {% set cu_expediente = true %}
   {% include 'partials/perfil_puntos_accordion.html' %}
   {% else %}
   {% include 'partials/estado_cuenta_publico.html' %}
   {% endif %}
 </div>
-
-{% if is_super %}
-<script>
-// Abre una sección del acordeón de Control de puntos por nombre
-function cuShow(nombre) {
-    var el = document.getElementById('cu-' + nombre);
-    if (el) bootstrap.Collapse.getOrCreateInstance(el).show();
-}
-document.addEventListener('DOMContentLoaded', function () {
-    var inicial = '{{ seccion or "" }}';
-    var h = (location.hash || '').replace('#cu-', '').replace('#', '');
-    if (['gestion'].indexOf(h) >= 0) inicial = h;
-    if (['gestion'].indexOf(inicial) >= 0) cuShow(inicial);
-});
-</script>
-{% endif %}
 {% endblock %}
