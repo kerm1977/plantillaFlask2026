@@ -62,6 +62,7 @@ def control_usuarios():
     ocultar_ceros = get_lista_ocultar_ceros()
     personas = personas_con_puntos()
     n_con_puntos = sum(1 for p in personas if p['total'] != 0)
+    total_puntos_global = sum(p['total'] for p in personas if p['total'] > 0)
     if ocultar_ceros:
         personas = [p for p in personas if p['total'] != 0]
     resp = make_response(render_template(
@@ -70,6 +71,7 @@ def control_usuarios():
                            todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
                            personas_puntos=personas, ocultar_ceros=ocultar_ceros,
                            n_con_puntos=n_con_puntos, n_personas=len(personas),
+                           total_puntos_global=total_puntos_global,
                            puntos_password=get_puntos_password(),
                            puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible(),
