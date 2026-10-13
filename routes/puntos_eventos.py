@@ -55,12 +55,14 @@ def control_usuarios():
     seccion = (request.args.get('seccion') or '').strip()
     ocultar_ceros = get_lista_ocultar_ceros()
     personas = personas_con_puntos()
+    n_con_puntos = sum(1 for p in personas if p['total'] != 0)
     if ocultar_ceros:
         personas = [p for p in personas if p['total'] != 0]
     return render_template('control_usuarios.html', is_super=True, seccion=seccion,
                            eventos=eventos, pe_eventos=pe_eventos,
                            todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
                            personas_puntos=personas, ocultar_ceros=ocultar_ceros,
+                           n_con_puntos=n_con_puntos, n_personas=len(personas),
                            puntos_password=get_puntos_password(),
                            puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible(),
