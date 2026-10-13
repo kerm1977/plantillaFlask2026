@@ -117,20 +117,19 @@
     </div>
   </div>
 
-  <div class="d-grid gap-2 mt-4">
+  <div class="d-flex justify-content-center gap-2 flex-wrap mt-4">
     <a href="{{ url_for('main.estadisticas_txt', cedula=result.cedula, t=result.dl_token) }}"
-       class="btn btn-outline-dark rounded-pill fw-bold">
-      <i class="bi bi-download me-2"></i>Descargar mis estadísticas (TXT)
+       class="btn btn-sm btn-outline-primary rounded-pill" title="Descargar mis estadísticas (TXT)">
+      <i class="bi bi-filetype-txt"></i>
     </a>
+    {% if is_super %}
+    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" title="Restaurar estadísticas a cero (los puntos no se tocan)" data-bs-toggle="modal" data-bs-target="#modalRestaurarStats">
+      <i class="bi bi-arrow-counterclockwise"></i>
+    </button>
+    {% endif %}
   </div>
 
   {% if is_super %}
-  <div class="border-top pt-3 mt-3">
-    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalRestaurarStats">
-      <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar estadísticas a cero (los puntos no se tocan)
-    </button>
-    <p class="small text-muted mb-0 mt-1">Solo superusuario. Reinicia el conteo de estadísticas para todos los usuarios a partir de ahora. Los puntos quedan intactos.</p>
-  </div>
 
   <div class="modal fade" id="modalRestaurarStats" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
