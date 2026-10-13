@@ -213,7 +213,6 @@ def profile():
     return render_template('perfil.html', user=user, hiker=hiker, puntos_cedula=puntos_cedula,
                            puntos_total=puntos_total, puntos_history=puntos_history, puntos_notificaciones=puntos_notificaciones,
                            todos_hikers=todos_hikers,
-                           personas_puntos=personas_con_puntos() if session.get('role') == 'Superusuario' else [],
                            puntos_password=get_puntos_password(), puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible())
 

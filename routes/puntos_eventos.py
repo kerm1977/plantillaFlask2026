@@ -6,7 +6,7 @@
 import io
 
 import qrcode
-from flask import render_template, session, jsonify, request, send_file, url_for, redirect
+from flask import render_template, session, jsonify, request, send_file, url_for, redirect, make_response
 
 from db import db
 from models import PuntosEvento, HikerPoints
@@ -58,7 +58,8 @@ def control_usuarios():
     n_con_puntos = sum(1 for p in personas if p['total'] != 0)
     if ocultar_ceros:
         personas = [p for p in personas if p['total'] != 0]
-    return render_template('control_usuarios.html', is_super=True, seccion=seccion,
+    resp = make_response(render_template(
+                           'control_usuarios.html', is_super=True, seccion=seccion,
                            eventos=eventos, pe_eventos=pe_eventos,
                            todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
                            personas_puntos=personas, ocultar_ceros=ocultar_ceros,
@@ -68,7 +69,9 @@ def control_usuarios():
                            puntos_pwd_visible=get_puntos_admin_visible(),
                            user=user, hiker=hiker, puntos_cedula=puntos_cedula,
                            puntos_total=puntos_total, puntos_history=puntos_history,
-                           puntos_notificaciones=puntos_notificaciones)
+                           puntos_notificaciones=puntos_notificaciones))
+    resp.headers['Cache-Control'] = 'no-store'
+    return resp
 
 
 @bp.route('/puntos-eventos')
