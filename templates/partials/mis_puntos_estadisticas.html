@@ -126,15 +126,100 @@
 
   {% if is_super %}
   <div class="border-top pt-3 mt-3">
-    <form method="post" action="{{ url_for('main.admin_puntos_estadisticas_restaurar') }}"
-          onsubmit="return confirm('¿Restaurar TODAS las estadísticas a cero desde hoy?\n\nLos puntos NO se modifican — solo el conteo de estadísticas.');">
-      <input type="hidden" name="cedula" value="{{ result.cedula }}">
-      <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold w-100">
-        <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar estadísticas a cero (los puntos no se tocan)
-      </button>
-      <p class="small text-muted mb-0 mt-1">Solo superusuario. Reinicia el conteo de estadísticas para todos los usuarios a partir de ahora. Los puntos quedan intactos.</p>
-    </form>
+    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill fw-bold w-100" data-bs-toggle="modal" data-bs-target="#modalRestaurarStats">
+      <i class="bi bi-arrow-counterclockwise me-1"></i>Restaurar estadísticas a cero (los puntos no se tocan)
+    </button>
+    <p class="small text-muted mb-0 mt-1">Solo superusuario. Reinicia el conteo de estadísticas para todos los usuarios a partir de ahora. Los puntos quedan intactos.</p>
   </div>
+
+  <div class="modal fade" id="modalRestaurarStats" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Restaurar estadísticas — paso <span id="rsPaso">1</span> de 5</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body pt-0">
+          <form method="post" action="{{ url_for('main.admin_puntos_estadisticas_restaurar') }}" id="formRestaurarStats">
+            <input type="hidden" name="cedula" value="{{ result.cedula }}">
+
+            <div class="rs-step" data-step="1">
+              <p class="fw-bold mb-1">¿Qué hace esta acción?</p>
+              <p class="small text-muted">Restaura a cero el conteo de <strong>estadísticas de TODAS las personas</strong> a partir de hoy: caminatas participadas, ausencias, retiros y demás conteos históricos.</p>
+            </div>
+            <div class="rs-step d-none" data-step="2">
+              <p class="fw-bold mb-1">Los puntos NO se tocan</p>
+              <p class="small text-muted">Los saldos de puntos de cada persona quedan intactos. Lo que se reinicia es solo la lectura estadística (barras, gráficos, contadores de participación).</p>
+            </div>
+            <div class="rs-step d-none" data-step="3">
+              <p class="fw-bold mb-1">Es información delicada</p>
+              <p class="small text-muted">Las estadísticas alimentan reportes que usan quienes cobran y gestionan puntos. Reiniciarlas puede complicar verificar información histórica correcta de las personas.</p>
+            </div>
+            <div class="rs-step d-none" data-step="4">
+              <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="rsCheck1">
+                <label class="form-check-label small" for="rsCheck1">Entiendo que se reinicia el conteo estadístico de <strong>todas</strong> las personas.</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="rsCheck2">
+                <label class="form-check-label small" for="rsCheck2">Entiendo que esta acción <strong>no se puede deshacer</strong>.</label>
+              </div>
+            </div>
+            <div class="rs-step d-none" data-step="5">
+              <p class="fw-bold mb-2">Confirmación final</p>
+              <p class="small text-muted">Escribí <strong>RESTAURAR</strong> (en mayúsculas) para habilitar el botón:</p>
+              <input type="text" class="form-control text-center fw-bold" id="rsPalabra" placeholder="Escribí RESTAURAR" autocomplete="off">
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+              <button type="button" class="btn btn-outline-secondary rounded-pill" id="rsAtras" disabled>Atrás</button>
+              <button type="button" class="btn btn-danger rounded-pill fw-bold" id="rsSiguiente">Siguiente</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+      var paso = 1, TOTAL = 5;
+      var form = document.getElementById('formRestaurarStats');
+      if (!form) return;
+      var btnAtras = document.getElementById('rsAtras'),
+          btnSig = document.getElementById('rsSiguiente'),
+          lbl = document.getElementById('rsPaso'),
+          palabra = document.getElementById('rsPalabra'),
+          c1 = document.getElementById('rsCheck1'),
+          c2 = document.getElementById('rsCheck2');
+      function mostrar() {
+          document.querySelectorAll('.rs-step').forEach(function (d) {
+              d.classList.toggle('d-none', +d.dataset.step !== paso);
+          });
+          lbl.textContent = paso;
+          btnAtras.disabled = paso === 1;
+          btnSig.textContent = paso === TOTAL ? 'Restaurar definitivamente' : 'Siguiente';
+          validar();
+      }
+      function validar() {
+          if (paso === 4) { btnSig.disabled = !(c1.checked && c2.checked); }
+          else if (paso === TOTAL) { btnSig.disabled = palabra.value.trim() !== 'RESTAURAR'; }
+          else { btnSig.disabled = false; }
+      }
+      btnAtras.addEventListener('click', function () { if (paso > 1) { paso--; mostrar(); } });
+      btnSig.addEventListener('click', function () {
+          if (paso < TOTAL) { paso++; mostrar(); if (paso === TOTAL) palabra.focus(); }
+          else if (!btnSig.disabled) { form.submit(); }
+      });
+      c1.addEventListener('change', validar);
+      c2.addEventListener('change', validar);
+      palabra.addEventListener('input', validar);
+      document.getElementById('modalRestaurarStats').addEventListener('hidden.bs.modal', function () {
+          paso = 1; c1.checked = false; c2.checked = false; palabra.value = ''; mostrar();
+      });
+      mostrar();
+  })();
+  </script>
   {% endif %}
 </div>
 
