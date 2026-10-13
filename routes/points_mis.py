@@ -16,7 +16,7 @@ from modules import fidelidad, retos, retos_builder
 from modules.estado_global import resumen_global, detalle_persona, estadisticas_persona
 from modules.points_helpers import (is_past_event, get_puntos_password, set_notif_cleared,
                                     get_notif_cutoff, build_estado_cuenta_whatsapp,
-                                    descargar_token)
+                                    descargar_token, get_puntos_admin_visible)
 from routes import bp
 from routes.points import _current_user
 
@@ -317,6 +317,9 @@ def mis_puntos():
                         for e in evts},
             personas_puntos=personas, ocultar_ceros=ocultar,
             n_con_puntos=n_con_puntos, n_personas=len(personas),
-            total_puntos_global=total_puntos_global)
+            total_puntos_global=total_puntos_global,
+            puntos_password=get_puntos_password(),
+            puntos_pwd_visible=get_puntos_admin_visible(),
+            puntos_pwd_msg=session.pop('puntos_pwd_msg', None))
     return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url, wa_aviso=wa_aviso, stats=estadisticas_persona(cedula) if result else None, **extra)
 

@@ -31,7 +31,7 @@ def puntos_password():
     else:
         set_puntos_password(pwd)
         session['puntos_pwd_msg'] = 'Contraseña de ingreso a puntos actualizada correctamente.'
-    return redirect(url_for('main.control_usuarios', seccion='control'))
+    return redirect(url_for('main.mis_puntos'))
 
 
 @bp.route('/admin/puntos/password-visibilidad', methods=['POST'])
@@ -39,7 +39,7 @@ def puntos_password_visibilidad():
     if session.get('role') != 'Superusuario':
         return redirect(url_for('main.home'))
     set_puntos_admin_visible(bool(request.form.get('visible')))
-    return redirect(url_for('main.control_usuarios', seccion='control'))
+    return redirect(url_for('main.mis_puntos'))
 
 
 @bp.route('/admin/puntos/estadisticas-restaurar', methods=['POST'])
@@ -54,7 +54,7 @@ def admin_puntos_estadisticas_restaurar():
     cedula = (request.form.get('cedula') or '').strip()
     session['admin_message'] = 'Estadísticas restauradas a cero. Los puntos no se modificaron.'
     return redirect(url_for('main.mis_puntos', cedula=cedula) if cedula
-                    else url_for('main.control_usuarios', seccion='control'))
+                    else url_for('main.mis_puntos'))
 
 
 @bp.route('/admin/puntos/lista-ocultar-ceros', methods=['POST'])
@@ -131,11 +131,11 @@ def admin_puntos_importar_json():
         return jsonify({'ok': False, 'error': 'No autorizado'}), 403
     if 'archivo' not in request.files:
         session['puntos_pwd_msg'] = 'Falta el archivo JSON.'
-        return redirect(url_for('main.control_usuarios', seccion='control'))
+        return redirect(url_for('main.mis_puntos'))
     archivo = request.files['archivo']
     if archivo.filename == '':
         session['puntos_pwd_msg'] = 'Archivo vacío.'
-        return redirect(url_for('main.control_usuarios', seccion='control'))
+        return redirect(url_for('main.mis_puntos'))
     try:
         contenido = json.loads(archivo.read().decode('utf-8'))
         registros = []
@@ -156,7 +156,7 @@ def admin_puntos_importar_json():
             registros = contenido
         else:
             session['puntos_pwd_msg'] = 'El JSON no contiene registros de puntos.'
-            return redirect(url_for('main.control_usuarios', seccion='control'))
+            return redirect(url_for('main.mis_puntos'))
         agregados = 0
         for r in registros:
             ced = (r.get('cedula') or '').strip()
@@ -177,10 +177,10 @@ def admin_puntos_importar_json():
             agregados += 1
         db.session.commit()
         session['puntos_pwd_msg'] = f'Importación completada: {agregados} movimientos de puntos agregados.'
-        return redirect(url_for('main.control_usuarios', seccion='control'))
+        return redirect(url_for('main.mis_puntos'))
     except Exception as e:
         session['puntos_pwd_msg'] = f'Error al importar: {e}'
-        return redirect(url_for('main.control_usuarios', seccion='control'))
+        return redirect(url_for('main.mis_puntos'))
 
 
 @bp.route('/api/puntos/asignar/<int:event_id>', methods=['POST'])
