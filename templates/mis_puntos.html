@@ -43,13 +43,67 @@
         <p class="text-muted text-center mb-4">Ingresá tu número de cédula para ver tu historial de puntos.</p>
         <div class="row justify-content-center">
           <div class="col-12 col-md-8 col-lg-6">
-        <form method="get" action="{{ url_for('main.mis_puntos') }}">
-          <div class="input-group mb-1">
+        <form method="get" action="{{ url_for('main.mis_puntos') }}" id="mpBuscarForm">
+          <div class="input-group mb-1 position-relative">
+            {% if is_super %}
+            <input type="text" name="cedula" id="mpBuscarInput" class="form-control glass-input rounded-start-pill" value="{{ cedula }}" placeholder="Cédula, nombre o apellido" autocomplete="off" required>
+            {% else %}
             <input type="text" name="cedula" class="form-control glass-input rounded-start-pill" value="{{ cedula }}" placeholder="Número de cédula" inputmode="numeric" pattern="[0-9]*" oninput="this.value = this.value.replace(/\D/g, '')" required>
+            {% endif %}
             <button type="submit" class="btn btn-warning rounded-end-pill fw-bold text-dark">Buscar</button>
+            {% if is_super %}
+            <div id="mpSugerencias" class="position-absolute top-100 start-0 end-0 bg-white border rounded-4 shadow-lg mt-1 d-none" style="z-index:1050; max-height:280px; overflow-y:auto;"></div>
+            {% endif %}
           </div>
+          {% if is_super %}
+          <p class="small text-muted text-center mb-4">Buscá por cédula, nombre, apellido, teléfono o pasaporte y elegí la persona de la lista.</p>
+          {% else %}
           <p class="small text-muted text-center mb-4">Formato: solo números, sin guiones ni espacios. En vez de guiones usá ceros (ej: 1-0984-0935 → 109840935).</p>
+          {% endif %}
         </form>
+        {% if is_super %}
+        <script type="application/json" id="mpHikersData">[
+{% for h in todos_hikers %}{"n": {{ (h.nombre_completo or '') | tojson }}, "c": {{ (h.cedula or '') | tojson }}, "t": {{ (h.telefono or '') | tojson }}, "p": {{ (h.pasaporte or '') | tojson }}}{{ ',' if not loop.last }}
+{% endfor %}]</script>
+        <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var inp = document.getElementById('mpBuscarInput'),
+                box = document.getElementById('mpSugerencias'),
+                form = document.getElementById('mpBuscarForm');
+            if (!inp || !box) return;
+            var hikers = [];
+            try { hikers = JSON.parse(document.getElementById('mpHikersData').textContent); } catch (e) {}
+            function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+            function cerrar() { box.classList.add('d-none'); box.innerHTML = ''; }
+            inp.addEventListener('input', function () {
+                var q = norm(inp.value.trim());
+                if (q.length < 2) { cerrar(); return; }
+                var hits = hikers.filter(function (h) {
+                    return norm(h.n).indexOf(q) >= 0 || norm(h.c).indexOf(q) >= 0 ||
+                           norm(h.t).indexOf(q) >= 0 || norm(h.p).indexOf(q) >= 0;
+                }).slice(0, 12);
+                if (!hits.length) { cerrar(); return; }
+                box.innerHTML = hits.map(function (h) {
+                    return '<button type="button" class="btn btn-link text-decoration-none text-dark w-100 text-start px-3 py-2 border-bottom mp-hit" data-ced="' + h.c + '">' +
+                           '<span class="fw-bold">' + h.n + '</span><br>' +
+                           '<small class="text-muted">' + h.c + (h.t ? ' · ' + h.t : '') + '</small></button>';
+                }).join('');
+                box.classList.remove('d-none');
+            });
+            box.addEventListener('click', function (e) {
+                var b = e.target.closest('.mp-hit');
+                if (!b) return;
+                inp.value = b.dataset.ced;
+                cerrar();
+                form.submit();
+            });
+            document.addEventListener('click', function (e) {
+                if (!box.contains(e.target) && e.target !== inp) cerrar();
+            });
+            inp.addEventListener('keydown', function (e) { if (e.key === 'Escape') cerrar(); });
+        });
+        </script>
+        {% endif %}
         {% endif %}
         {% if not result %}{% include 'partials/reglamento_puntos.html' %}{% endif %}
         {% if no_registrado %}
