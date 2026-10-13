@@ -23,6 +23,12 @@ def _evento_scan_url(pid):
 
 
 @bp.route('/control-usuarios')
+def control_usuarios_legacy():
+    """Compatibilidad: la URL vieja redirige al panel con nombre nuevo."""
+    return redirect(url_for('main.control_usuarios', **request.args))
+
+
+@bp.route('/control-puntos')
 def control_usuarios():
     """Panel unificado: control, gestión, eventos de puntos y expediente (super)
     + consulta pública de estado de cuenta (cualquier persona, solo lectura)."""

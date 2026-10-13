@@ -5,9 +5,9 @@
 // static/sw.js  —  La Tribu PWA Offline v8.0
 // Estrategia: Cache-first (estáticos) + Stale-While-Revalidate (páginas) + Network-first (API)
 
-const CACHE_NAME     = 'la-tribu-v10.54';
-const STATIC_CACHE   = 'la-tribu-static-v10.54';
-const PAGES_CACHE    = 'la-tribu-pages-v10.54';
+const CACHE_NAME     = 'la-tribu-v10.55';
+const STATIC_CACHE   = 'la-tribu-static-v10.55';
+const PAGES_CACHE    = 'la-tribu-pages-v10.55';
 const OFFLINE_DATA_CACHE = 'la-tribu-offline-data-v1';
 const OFFLINE_URL    = '/offline';
 
@@ -188,7 +188,7 @@ self.addEventListener('fetch', event => {
     }
 
     // 2. Páginas dinámicas admin y cotizador → siempre Network-first (sin caché)
-    const NETWORK_ONLY = ['/gestor-fechas', '/dashboard', '/eventos', '/detalles_evento', '/cotizador', '/caminatas-2027', '/control-usuarios', '/puntos-eventos'];
+    const NETWORK_ONLY = ['/gestor-fechas', '/dashboard', '/eventos', '/detalles_evento', '/cotizador', '/caminatas-2027', '/control-usuarios', '/control-puntos', '/puntos-eventos'];
     if (NETWORK_ONLY.some(p => url.pathname.startsWith(p))) {
         event.respondWith(
             fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
