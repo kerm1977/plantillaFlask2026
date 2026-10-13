@@ -47,6 +47,30 @@
             <span class="badge bg-light text-dark border">Sin nivel VIP</span>
             {% endif %}
           </div>
+          {% set caminatas = p.caminatas_ok | length %}
+          {% set caminatas_pct = [caminatas / 20 * 100, 100] | min %}
+          {% set nivel_barra = 'Exclusivo VIP' if caminatas >= 20 else ('Activo VIP' if caminatas >= 12 else 'En camino') %}
+          <div class="mt-3 px-2 text-start">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <small class="fw-bold text-dark"><i class="bi bi-signpost-2 me-1 text-warning-emphasis"></i>{{ caminatas }} caminata{{ 's' if caminatas != 1 }}</small>
+              <small class="fw-bold {{ 'text-success' if caminatas >= 12 else 'text-muted' }}" {% if caminatas >= 20 %}style="color:#6f42c1 !important;"{% endif %}>
+                {% if caminatas >= 20 %}👑{% elif caminatas >= 12 %}⭐{% endif %} {{ nivel_barra }}
+              </small>
+            </div>
+            <div class="position-relative" style="height:26px;">
+              <div class="progress rounded-pill" style="height:14px; margin-top:6px;">
+                <div class="progress-bar {{ 'bg-success' if caminatas >= 12 else 'bg-warning' }} progress-bar-striped progress-bar-animated"
+                     role="progressbar" style="width: {{ caminatas_pct }}%;{{ ' background-color:#6f42c1;' if caminatas >= 20 }}"></div>
+              </div>
+              <div class="position-absolute top-0 bottom-0 border-start border-2 border-dark opacity-50" style="left:60%;"></div>
+            </div>
+            <div class="d-flex justify-content-between position-relative" style="font-size:.72rem;">
+              <span class="text-muted">0</span>
+              <span class="text-success fw-bold position-absolute" style="left:60%; transform:translateX(-50%);">Activo VIP<br><span class="fw-normal">12 caminatas</span></span>
+              <span class="fw-bold text-end" style="color:#6f42c1;">Exclusivo VIP<br><span class="fw-normal">20 caminatas</span></span>
+            </div>
+            <div style="height:1.6rem;"></div>
+          </div>
         </div>
         <div class="row g-2 text-center mb-4">
           <div class="col-4">
