@@ -9,7 +9,8 @@
 # ganados y puntos perdidos.
 from models import Event, Hiker, HikerPoints, User
 
-MOV_VACIO = {'ganados': 0, 'perdidos': 0, 'participo': set(), 'retiro': set()}
+MOV_VACIO = {'ganados': 0, 'perdidos': 0, 'participo': set(), 'retiro': set(),
+             'donados': 0, 'obsequiados': 0, 'restados': 0}
 
 
 def _superuser_emails():
@@ -29,12 +30,19 @@ def _movimientos_por_cedula():
     for r in HikerPoints.query.all():
         info = por_cedula.setdefault(r.cedula, {
             'ganados': 0, 'perdidos': 0, 'participo': set(), 'retiro': set(),
+            'donados': 0, 'obsequiados': 0, 'restados': 0,
         })
         pts = r.points or 0
         if pts > 0:
             info['ganados'] += pts
         elif pts < 0:
             info['perdidos'] += -pts
+        if r.tipo in ('donacion_envio', 'donacion_benefica') and pts < 0:
+            info['donados'] += -pts
+        elif r.tipo in ('donacion_recibida', 'obsequio') and pts > 0:
+            info['obsequiados'] += pts
+        elif r.tipo == 'resta' and pts < 0:
+            info['restados'] += -pts
         if r.event_id:
             if r.tipo == 'participacion':
                 info['participo'].add(r.event_id)
@@ -62,6 +70,10 @@ def _fila_persona(h, mov, eventos, supers):
         'total': mov['ganados'] - mov['perdidos'],
         'ganados': mov['ganados'],
         'perdidos': mov['perdidos'],
+        'donados': mov.get('donados', 0),
+        'obsequiados': mov.get('obsequiados', 0),
+        'restados': mov.get('restados', 0),
+        'retiros': len(mov['retiro']),
         'caminatas_ok': caminatas_ok,
         'caminatas_no': caminatas_no,
     }
@@ -69,11 +81,22 @@ def _fila_persona(h, mov, eventos, supers):
 
 def resumen_global():
     """Lista de resumenes por hiker (ordenada por nombre) para el modal de gestion."""
+    from modules import fidelidad
+    from models import FidelidadAjuste
     eventos = _eventos_realizados()
     movimientos = _movimientos_por_cedula()
     supers = _superuser_emails()
-    return [_fila_persona(h, movimientos.get(h.cedula, MOV_VACIO), eventos, supers)
-            for h in Hiker.query.order_by(Hiker.nombre_completo).all()]
+    ajustes = {a.cedula: a.nivel for a in FidelidadAjuste.query.all()}
+    filas = [_fila_persona(h, movimientos.get(h.cedula, MOV_VACIO), eventos, supers)
+             for h in Hiker.query.order_by(Hiker.nombre_completo).all()]
+    for f in filas:
+        n = len(f['caminatas_ok'])
+        nivel = ajustes.get(f['cedula']) or (
+            'exclusivo' if n >= fidelidad.MIN_EXCLUSIVO
+            else 'activo' if n >= fidelidad.MIN_ACTIVO else 'normal')
+        f['vip'] = nivel
+        f['vip_label'] = fidelidad.ETIQUETAS.get(nivel) or 'Sin nivel VIP'
+    return filas
 
 
 def detalle_persona(cedula):

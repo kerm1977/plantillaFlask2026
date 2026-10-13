@@ -48,7 +48,15 @@
                     </div>
                   </div>
                   <div id="fidMsg" class="small mb-2"></div>
-                  <h6 class="fw-bold small text-muted mt-3">Personas con nivel VIP</h6>
+                  <div class="d-flex justify-content-between align-items-center mt-3 mb-1 flex-wrap gap-2">
+                    <h6 class="fw-bold small text-muted mb-0">Personas con nivel VIP</h6>
+                    <div class="d-flex gap-1">
+                      <a href="{{ url_for('main.estado_global_page', vip=1) }}" class="btn btn-sm btn-outline-dark rounded-pill" target="_blank" title="Imprimir / PNG lista VIP"><i class="bi bi-printer"></i></a>
+                      <a href="{{ url_for('main.estado_global_txt', vip=1) }}" class="btn btn-sm btn-outline-primary rounded-pill" title="Descargar VIP en TXT"><i class="bi bi-filetype-txt"></i></a>
+                      <a href="{{ url_for('main.estado_global_pdf', vip=1) }}" class="btn btn-sm btn-outline-danger rounded-pill" title="Descargar VIP en PDF"><i class="bi bi-filetype-pdf"></i></a>
+                      <a href="{{ url_for('main.estado_global_whatsapp', vip=1) }}" class="btn btn-sm btn-outline-success rounded-pill" target="_blank" title="Enviar VIP por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                    </div>
+                  </div>
                   <div id="fidLista" class="small"></div>
                   <h6 class="fw-bold small text-muted mt-3">Bitácora de cambios de nivel</h6>
                   <div id="fidHistorial" class="small text-muted"></div>

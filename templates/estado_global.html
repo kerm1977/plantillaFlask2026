@@ -1,0 +1,104 @@
+<!-- ==============================================================
+    BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+    Estado de cuenta global / lista VIP (solo superusuario).
+============================================================== -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ titulo }} - La Tribu</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap-icons.css') }}">
+  <style>
+    body { background: #f4f6f8; }
+    .tabla-eg th { position: sticky; top: 0; background: #ff8c00; color: #fff; font-size: .72rem; white-space: nowrap; }
+    .tabla-eg td { font-size: .75rem; vertical-align: middle; }
+    @media print { .no-print { display: none !important; } body { background: #fff; } }
+  </style>
+</head>
+<body>
+  <div class="container-fluid py-4" style="max-width: 1200px;">
+    <div class="card border-0 shadow rounded-4 overflow-hidden">
+      <div class="card-body p-4">
+        <div class="text-center mb-3">
+          <h4 class="fw-bold mb-1"><i class="bi bi-globe2 text-warning me-2"></i>{{ titulo }}</h4>
+          <p class="text-muted mb-0">La Tribu de los Libres</p>
+        </div>
+
+        <div class="d-flex justify-content-center gap-2 flex-wrap mb-3 no-print">
+          <a href="{{ url_for('main.estado_global_txt', vip=1 if vip else None) }}" class="btn btn-sm btn-outline-primary rounded-pill" title="Descargar en TXT"><i class="bi bi-filetype-txt"></i></a>
+          <a href="{{ url_for('main.estado_global_pdf', vip=1 if vip else None) }}" class="btn btn-sm btn-outline-danger rounded-pill" title="Descargar en PDF"><i class="bi bi-filetype-pdf"></i></a>
+          <button type="button" class="btn btn-sm btn-outline-dark rounded-pill" id="btnPng" title="Descargar como imagen PNG"><i class="bi bi-filetype-png"></i></button>
+          <a href="{{ wa_url }}" target="_blank" class="btn btn-sm btn-outline-success rounded-pill" title="Enviar por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill" onclick="window.print()" title="Imprimir"><i class="bi bi-printer"></i></button>
+        </div>
+
+        <div id="egCaptura" class="bg-white rounded-3 p-2">
+        <div class="table-responsive" style="max-height: 70vh;">
+          <table class="table table-hover tabla-eg mb-0">
+            <thead>
+              <tr>
+                <th>Persona</th><th>Cédula</th><th>VIP</th><th class="text-end">Puntos</th>
+                <th class="text-end">Ganados</th><th class="text-end">Perdidos</th>
+                <th class="text-end">Caminatas</th><th class="text-end">Retiros</th>
+                <th class="text-end">Donados</th><th class="text-end">Obsequiados</th><th class="text-end">Restados</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for f in filas %}
+              <tr>
+                <td class="fw-semibold">{{ f.nombre }}</td>
+                <td>{{ f.cedula }}</td>
+                <td>
+                  {% if f.vip == 'exclusivo' %}<span class="badge" style="background:#6f42c1;">Exclusivo VIP</span>
+                  {% elif f.vip == 'activo' %}<span class="badge bg-success">Activo VIP</span>
+                  {% else %}<span class="text-muted small">—</span>{% endif %}
+                </td>
+                <td class="text-end fw-bold {{ 'text-danger' if f.total < 0 }}">{{ f.total }}</td>
+                <td class="text-end text-success">+{{ f.ganados }}</td>
+                <td class="text-end text-danger">-{{ f.perdidos }}</td>
+                <td class="text-end">{{ f.caminatas_ok | length }}</td>
+                <td class="text-end">{{ f.retiros }}</td>
+                <td class="text-end">{{ f.donados }}</td>
+                <td class="text-end text-success">+{{ f.obsequiados }}</td>
+                <td class="text-end text-danger">-{{ f.restados }}</td>
+              </tr>
+              {% else %}
+              <tr><td colspan="11" class="text-center text-muted py-4">No hay personas en esta lista.</td></tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr class="table-warning fw-bold">
+                <td colspan="3">TOTAL ({{ filas | length }} personas)</td>
+                <td class="text-end">{{ total_puntos }}</td>
+                <td class="text-end text-success">+{{ filas | sum(attribute='ganados') }}</td>
+                <td class="text-end text-danger">-{{ filas | sum(attribute='perdidos') }}</td>
+                <td class="text-end">{{ filas | sum(attribute='retiros') }}</td>
+                <td class="text-end"></td>
+                <td class="text-end">{{ filas | sum(attribute='donados') }}</td>
+                <td class="text-end">+{{ filas | sum(attribute='obsequiados') }}</td>
+                <td class="text-end">-{{ filas | sum(attribute='restados') }}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        </div>
+        <p class="small text-muted text-center mt-3 mb-0">Solo superusuario · La Tribu de los Libres</p>
+      </div>
+    </div>
+  </div>
+<script src="{{ url_for('static', filename='js/html2canvas.js') }}"></script>
+<script>
+document.getElementById('btnPng').addEventListener('click', function () {
+    var zona = document.getElementById('egCaptura');
+    html2canvas(zona, { scale: 2, backgroundColor: '#ffffff' }).then(function (canvas) {
+        var a = document.createElement('a');
+        a.download = '{{ "fidelidad_vip" if vip else "estado_global" }}.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+    });
+});
+</script>
+</body>
+</html>

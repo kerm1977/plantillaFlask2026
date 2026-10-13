@@ -116,6 +116,7 @@ from routes import (        # noqa: E402, F401
     points_fidelidad,
     points_carnet,
     points_ganar,
+    points_estado_global,
     invitacion,
     scan,
     puntos_eventos,
