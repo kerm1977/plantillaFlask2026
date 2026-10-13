@@ -27,10 +27,10 @@
     <div id="reglamentoPuntos" class="accordion-collapse collapse" data-bs-parent="#reglamentoPuntosAcc">
       <div class="accordion-body text-dark">
         <div class="d-flex flex-wrap gap-2 justify-content-center mb-3" id="rgCompartir">
-          <a href="{{ url_for('main.reglamento_whatsapp') }}" target="_blank" rel="noopener" class="btn btn-success btn-sm rounded-pill fw-bold"><i class="bi bi-whatsapp me-1"></i>WhatsApp</a>
-          <a href="{{ url_for('main.reglamento_txt') }}" class="btn btn-secondary btn-sm rounded-pill fw-bold"><i class="bi bi-file-earmark-text me-1"></i>TXT</a>
-          <a href="{{ url_for('main.reglamento_pdf') }}" class="btn btn-danger btn-sm rounded-pill fw-bold"><i class="bi bi-file-earmark-pdf me-1"></i>PDF</a>
-          {% if is_super %}<button type="button" id="rgEditar" class="btn btn-outline-dark btn-sm rounded-pill fw-bold"><i class="bi bi-pencil-square me-1"></i>Editar reglamento</button>{% endif %}
+          <a href="{{ url_for('main.reglamento_whatsapp') }}" target="_blank" rel="noopener" class="btn btn-outline-success btn-sm rounded-pill" title="Enviar reglamento por WhatsApp"><i class="bi bi-whatsapp"></i></a>
+          <a href="{{ url_for('main.reglamento_txt') }}" class="btn btn-outline-primary btn-sm rounded-pill" title="Descargar reglamento en TXT"><i class="bi bi-filetype-txt"></i></a>
+          <a href="{{ url_for('main.reglamento_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill" title="Descargar reglamento en PDF"><i class="bi bi-filetype-pdf"></i></a>
+          {% if is_super %}<button type="button" id="rgEditar" class="btn btn-outline-dark btn-sm rounded-pill" title="Editar reglamento"><i class="bi bi-pencil-square"></i></button>{% endif %}
         </div>
         {% if is_super %}
         <div id="rgBarra" class="d-none mb-2">
