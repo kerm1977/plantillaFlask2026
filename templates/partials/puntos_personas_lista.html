@@ -1,28 +1,40 @@
-{# BLINDADO — Lista de personas: apellidos, puntos y envío de estado de cuenta
-   por WhatsApp al teléfono registrado. Flexbox, 100% responsiva.
-   Se usa dentro de Control de puntos y Gestión de puntos (perfil y
-   /puntos-eventos). Requiere `personas_puntos` en el contexto. #}
-{% if personas_puntos %}
-<hr class="my-3">
-<p class="fw-bold mb-2"><i class="bi bi-list-ol me-2 text-primary"></i>Personas y puntos</p>
-<div class="d-flex flex-column gap-2" style="max-height: 55vh; overflow-y: auto;">
-  {% for p in personas_puntos %}
-  <div class="d-flex align-items-center flex-wrap gap-2 p-2 rounded-4 bg-white bg-opacity-50 shadow-sm">
-    <div class="flex-grow-1" style="min-width: 140px;">
-      <div class="fw-bold text-dark text-break">
-        {{ p.apellido1 }}{{ (' ' + p.apellido2) if p.apellido2 }}{{ (', ' + p.nombre) if p.nombre }}
-      </div>
-      <small class="text-muted d-block text-break">{{ p.cedula }}{% if p.telefono %} · {{ p.telefono }}{% else %} · sin teléfono{% endif %}</small>
+{# BLINDADO — Lista "Personas y puntos" del Control de puntos.
+   Cada fila: primer nombre + primer apellido (clic abre el perfil de la
+   persona), cédula, teléfono y puntos. Toggle persistente para ocultar
+   personas sin puntos. Requiere `personas_puntos` y `ocultar_ceros`. #}
+<form method="post" action="{{ url_for('main.admin_puntos_lista_ocultar_ceros') }}" class="mb-3">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <span class="fw-bold text-dark"><i class="bi bi-list-ol me-2 text-primary"></i>{{ personas_puntos | length }} persona{{ 's' if personas_puntos | length != 1 }}</span>
+    <div class="form-check form-switch mb-0">
+      <input class="form-check-input" type="checkbox" name="ocultar" value="1" id="ocultarCerosToggle"
+             {% if ocultar_ceros %}checked{% endif %} onchange="this.form.submit()">
+      <label class="form-check-label small fw-bold" for="ocultarCerosToggle">Ocultar personas sin puntos</label>
     </div>
-    <span class="badge bg-warning text-dark rounded-pill fs-6 flex-shrink-0">
+  </div>
+</form>
+<div class="d-flex flex-column gap-2" style="max-height: 60vh; overflow-y: auto;">
+  {% for p in personas_puntos %}
+  <div class="d-flex align-items-center flex-wrap gap-2 px-3 py-2 rounded-4 bg-white bg-opacity-50 shadow-sm">
+    <div class="flex-grow-1" style="min-width: 150px;">
+      <a href="{{ url_for('main.mis_puntos_persona', cedula=p.cedula) }}"
+         class="fw-bold text-dark text-decoration-none text-break" title="Ver perfil de {{ p.nombre_completo or p.nombre }}">
+        {{ p.nombre1 }}{{ (' ' + p.apellido1) if p.apellido1 }}
+        <i class="bi bi-box-arrow-up-right small text-muted ms-1"></i>
+      </a>
+      <small class="text-muted d-block text-break">
+        {{ p.cedula }}{% if p.telefono %} · {{ p.telefono }}{% endif %}
+      </small>
+    </div>
+    <span class="badge rounded-pill fs-6 flex-shrink-0 {{ 'bg-warning text-dark' if p.total > 0 else ('bg-danger' if p.total < 0 else 'bg-secondary') }}">
       <i class="bi bi-star-fill me-1"></i>{{ p.total }}
     </span>
     <a href="{{ url_for('main.admin_puntos_whatsapp', cedula=p.cedula) }}" target="_blank" rel="noopener"
        class="btn btn-sm btn-success rounded-pill fw-bold flex-shrink-0"
        title="Enviar estado de cuenta por WhatsApp{% if not p.telefono %} (sin teléfono: elegir contacto){% endif %}">
-      <i class="bi bi-whatsapp"></i><span class="d-none d-sm-inline ms-1">Estado</span>
+      <i class="bi bi-whatsapp"></i>
     </a>
   </div>
+  {% else %}
+  <p class="text-muted text-center py-3 mb-0">No hay personas que mostrar{% if ocultar_ceros %} con puntos{% endif %}.</p>
   {% endfor %}
 </div>
-{% endif %}

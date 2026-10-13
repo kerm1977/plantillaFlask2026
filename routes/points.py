@@ -57,6 +57,16 @@ def admin_puntos_estadisticas_restaurar():
                     else url_for('main.control_usuarios', seccion='control'))
 
 
+@bp.route('/admin/puntos/lista-ocultar-ceros', methods=['POST'])
+def admin_puntos_lista_ocultar_ceros():
+    """Guarda el toggle 'Ocultar personas sin puntos' de la lista (persistente)."""
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.home'))
+    from modules.points_helpers import set_lista_ocultar_ceros
+    set_lista_ocultar_ceros(bool(request.form.get('ocultar')))
+    return redirect(url_for('main.control_usuarios', seccion='personas'))
+
+
 @bp.route('/admin/puntos/whatsapp/<cedula>')
 def admin_puntos_whatsapp(cedula):
     """Redirige a WhatsApp con el estado de cuenta de la persona, generado en

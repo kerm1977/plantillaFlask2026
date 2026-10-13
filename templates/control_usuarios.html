@@ -72,6 +72,20 @@
       </div>
     </div>
 
+    <!-- Personas y puntos -->
+    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+      <h2 class="accordion-header">
+        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#cu-personas">
+          <i class="bi bi-person-lines-fill me-2 text-success"></i>Personas y puntos
+        </button>
+      </h2>
+      <div id="cu-personas" class="accordion-collapse collapse" data-bs-parent="#cuAccordion">
+        <div class="accordion-body">
+          {% include 'partials/puntos_personas_lista.html' %}
+        </div>
+      </div>
+    </div>
+
     <!-- Estado de cuenta (también pública) -->
     <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
       <h2 class="accordion-header">
@@ -105,8 +119,8 @@ function cuShow(nombre) {
 document.addEventListener('DOMContentLoaded', function () {
     var inicial = '{{ seccion or "" }}';
     var h = (location.hash || '').replace('#cu-', '').replace('#', '');
-    if (['control', 'gestion', 'eventos', 'expediente', 'estado'].indexOf(h) >= 0) inicial = h;
-    if (['control', 'gestion', 'eventos', 'expediente', 'estado'].indexOf(inicial) >= 0) cuShow(inicial);
+    if (['control', 'gestion', 'eventos', 'expediente', 'personas', 'estado'].indexOf(h) >= 0) inicial = h;
+    if (['control', 'gestion', 'eventos', 'expediente', 'personas', 'estado'].indexOf(inicial) >= 0) cuShow(inicial);
 });
 </script>
 <script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>

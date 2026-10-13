@@ -64,11 +64,31 @@ def personas_con_puntos():
         apellido1 = partes.pop() if len(partes) > 1 else ''
         personas.append({'cedula': h.cedula,
                          'nombre': ' '.join(partes) or (h.nombre_completo or ''),
+                         'nombre1': (h.nombre_completo or '').split()[0] if h.nombre_completo else '',
                          'apellido1': apellido1, 'apellido2': apellido2,
                          'telefono': h.telefono or '',
                          'total': int(totales.get(h.cedula) or 0)})
     personas.sort(key=lambda p: (-p['total'], p['apellido1'], p['apellido2'], p['nombre']))
     return personas
+
+
+def get_lista_ocultar_ceros():
+    """Toggle persistente: ocultar personas sin puntos en la lista (super)."""
+    from models import SiteContent
+    row = SiteContent.query.filter_by(key='puntos_lista_ocultar_ceros').first()
+    return row.value == '1' if row else False
+
+
+def set_lista_ocultar_ceros(ocultar):
+    from models import SiteContent
+    from db import db
+    row = SiteContent.query.filter_by(key='puntos_lista_ocultar_ceros').first()
+    val = '1' if ocultar else '0'
+    if row:
+        row.value = val
+    else:
+        db.session.add(SiteContent(key='puntos_lista_ocultar_ceros', value=val))
+    db.session.commit()
 
 
 def is_past_event(event):
