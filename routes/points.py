@@ -64,7 +64,7 @@ def admin_puntos_lista_ocultar_ceros():
         return redirect(url_for('main.home'))
     from modules.points_helpers import set_lista_ocultar_ceros
     set_lista_ocultar_ceros(bool(request.form.get('ocultar')))
-    return redirect(url_for('main.control_usuarios', seccion='personas'))
+    return redirect(url_for('main.mis_puntos'))
 
 
 @bp.route('/admin/puntos/whatsapp/<cedula>')

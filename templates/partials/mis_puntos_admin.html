@@ -148,6 +148,31 @@
             {% include 'partials/mis_puntos_compras_admin.html' %}
             {% include 'partials/mis_puntos_retos_admin.html' %}
             {% include 'partials/mis_puntos_comision_admin.html' %}
+            {# BLINDADO: Personas y puntos + Eventos de puntos (movidos desde /control-puntos) #}
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accPersonasPuntos">
+                  <i class="bi bi-person-lines-fill me-2 text-success"></i>Personas y puntos
+                </button>
+              </h2>
+              <div id="accPersonasPuntos" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  {% include 'partials/puntos_personas_lista.html' %}
+                </div>
+              </div>
+            </div>
+            <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fw-bold text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#accEventosPuntos">
+                  <i class="bi bi-stars me-2 text-orange"></i>Eventos de puntos
+                </button>
+              </h2>
+              <div id="accEventosPuntos" class="accordion-collapse collapse" data-bs-parent="#gestionAdminPuntosAccordion">
+                <div class="accordion-body">
+                  {% include 'partials/eventos_puntos_panel.html' %}
+                </div>
+              </div>
+            </div>
             {% include 'partials/mis_puntos_fidelidad_admin.html' %}
           </div>
         </div>

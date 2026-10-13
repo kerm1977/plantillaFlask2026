@@ -264,7 +264,13 @@
   </div>
 </section><script src="{{ url_for('static', filename='js/mis_puntos.js') }}"></script>
 {% if result %}<script src="{{ url_for('static', filename='js/retos.js') }}?v=1"></script>{% endif %}
-{% if is_super %}<script src="{{ url_for('static', filename='js/fidelidad_admin.js') }}?v=2"></script>{% endif %}
+{% if is_super %}
+{% include 'partials/caminata_qr_share_modal.html' %}
+<script>window.PE_EVENTOS = {{ pe_eventos | tojson }};</script>
+<script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
+<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}?v=2"></script>
+<script src="{{ url_for('static', filename='js/fidelidad_admin.js') }}?v=2"></script>
+{% endif %}
 {% if result and not is_super %}
 {# BLINDADO: al salir de la página se avisa al servidor para contar la próxima entrada #}
 <script>

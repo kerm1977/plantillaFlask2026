@@ -43,20 +43,6 @@
       </div>
     </div>
 
-    <!-- Eventos de puntos -->
-    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#cu-eventos">
-          <i class="bi bi-stars me-2 text-orange"></i>Eventos de puntos
-        </button>
-      </h2>
-      <div id="cu-eventos" class="accordion-collapse collapse" data-bs-parent="#cuAccordion">
-        <div class="accordion-body">
-          {% include 'partials/eventos_puntos_panel.html' %}
-        </div>
-      </div>
-    </div>
-
     <!-- Puntos y expediente -->
     <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
       <h2 class="accordion-header">
@@ -68,20 +54,6 @@
         <div class="accordion-body">
           {% set cu_expediente = true %}
           {% include 'partials/perfil_puntos_accordion.html' %}
-        </div>
-      </div>
-    </div>
-
-    <!-- Personas y puntos -->
-    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
-      <h2 class="accordion-header">
-        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#cu-personas">
-          <i class="bi bi-person-lines-fill me-2 text-success"></i>Personas y puntos
-        </button>
-      </h2>
-      <div id="cu-personas" class="accordion-collapse collapse" data-bs-parent="#cuAccordion">
-        <div class="accordion-body">
-          {% include 'partials/puntos_personas_lista.html' %}
         </div>
       </div>
     </div>
@@ -107,10 +79,7 @@
 </div>
 
 {% if is_super %}
-{% include 'partials/caminata_qr_share_modal.html' %}
 <script>
-window.PE_EVENTOS = {{ pe_eventos | tojson }};
-
 // Abre una sección del acordeón de Control de puntos por nombre
 function cuShow(nombre) {
     var el = document.getElementById('cu-' + nombre);
@@ -119,11 +88,9 @@ function cuShow(nombre) {
 document.addEventListener('DOMContentLoaded', function () {
     var inicial = '{{ seccion or "" }}';
     var h = (location.hash || '').replace('#cu-', '').replace('#', '');
-    if (['control', 'gestion', 'eventos', 'expediente', 'personas', 'estado'].indexOf(h) >= 0) inicial = h;
-    if (['control', 'gestion', 'eventos', 'expediente', 'personas', 'estado'].indexOf(inicial) >= 0) cuShow(inicial);
+    if (['control', 'gestion', 'expediente', 'estado'].indexOf(h) >= 0) inicial = h;
+    if (['control', 'gestion', 'expediente', 'estado'].indexOf(inicial) >= 0) cuShow(inicial);
 });
 </script>
-<script src="{{ url_for('static', filename='js/caminata_qr_share.js') }}"></script>
-<script src="{{ url_for('static', filename='js/puntos_eventos.js') }}?v=2"></script>
 {% endif %}
 {% endblock %}

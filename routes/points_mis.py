@@ -299,5 +299,24 @@ def mis_puntos():
                 estado_txt = build_estado_cuenta_whatsapp(cedula, hiker_found)
                 estado_whatsapp_url = ('https://wa.me/' + telefono_registrado if telefono_registrado else 'https://wa.me/') + '?text=' + quote(estado_txt)
                 estado_coordinador_url = 'https://wa.me/50686529837?text=' + quote('Hola Jenny, este es mi estado de cuenta\n\n' + estado_txt)
-    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url, wa_aviso=wa_aviso, stats=estadisticas_persona(cedula) if result else None)
+    extra = {}
+    if is_super:
+        from models import PuntosEvento
+        from modules.points_helpers import personas_con_puntos, get_lista_ocultar_ceros
+        evts = PuntosEvento.query.order_by(PuntosEvento.id.desc()).all()
+        ocultar = get_lista_ocultar_ceros()
+        personas = personas_con_puntos()
+        n_con_puntos = sum(1 for p in personas if p['total'] != 0)
+        total_puntos_global = sum(p['total'] for p in personas if p['total'] > 0)
+        if ocultar:
+            personas = [p for p in personas if p['total'] != 0]
+        extra = dict(
+            eventos=evts,
+            pe_eventos={e.id: {'nombre': e.nombre, 'puntos': e.puntos or 0,
+                               'descripcion': e.descripcion or '', 'publico': bool(e.publico)}
+                        for e in evts},
+            personas_puntos=personas, ocultar_ceros=ocultar,
+            n_con_puntos=n_con_puntos, n_personas=len(personas),
+            total_puntos_global=total_puntos_global)
+    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url, wa_aviso=wa_aviso, stats=estadisticas_persona(cedula) if result else None, **extra)
 

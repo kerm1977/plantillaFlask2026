@@ -38,12 +38,7 @@ def control_usuarios():
     from models import Hiker, User
     from modules.points_engine import get_points_engine
     from modules.points_helpers import (get_puntos_password, get_puntos_admin_visible,
-                                        get_notif_cutoff, personas_con_puntos,
-                                        get_lista_ocultar_ceros)
-    eventos = PuntosEvento.query.order_by(PuntosEvento.id.desc()).all()
-    pe_eventos = {e.id: {'nombre': e.nombre, 'puntos': e.puntos or 0,
-                         'descripcion': e.descripcion or '', 'publico': bool(e.publico)}
-                  for e in eventos}
+                                        get_notif_cutoff)
     # Expediente del superusuario (mismo lookup que /profile)
     user = User.query.get(session['user_id'])
     full_name = f'{user.name} {user.last_name_1} {user.last_name_2}'.strip() if user else ''
@@ -59,19 +54,9 @@ def control_usuarios():
                              if r['tipo'] in ('obsequio', 'donacion_recibida')
                              and (r.get('creado_at') or '') > notif_cutoff]
     seccion = (request.args.get('seccion') or '').strip()
-    ocultar_ceros = get_lista_ocultar_ceros()
-    personas = personas_con_puntos()
-    n_con_puntos = sum(1 for p in personas if p['total'] != 0)
-    total_puntos_global = sum(p['total'] for p in personas if p['total'] > 0)
-    if ocultar_ceros:
-        personas = [p for p in personas if p['total'] != 0]
     resp = make_response(render_template(
                            'control_usuarios.html', is_super=True, seccion=seccion,
-                           eventos=eventos, pe_eventos=pe_eventos,
                            todos_hikers=Hiker.query.order_by(Hiker.nombre_completo).all(),
-                           personas_puntos=personas, ocultar_ceros=ocultar_ceros,
-                           n_con_puntos=n_con_puntos, n_personas=len(personas),
-                           total_puntos_global=total_puntos_global,
                            puntos_password=get_puntos_password(),
                            puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible(),
@@ -84,8 +69,8 @@ def control_usuarios():
 
 @bp.route('/puntos-eventos')
 def puntos_eventos_admin():
-    """Compatibilidad: el panel de eventos vive ahora en /control-usuarios."""
-    return redirect(url_for('main.control_usuarios', seccion='eventos'))
+    """Compatibilidad: el panel de eventos vive ahora en /mis-puntos (super)."""
+    return redirect(url_for('main.mis_puntos'))
 
 
 @bp.route('/api/puntos-eventos', methods=['POST'])
