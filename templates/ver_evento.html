@@ -71,7 +71,7 @@
                     <i class="bi bi-arrow-left me-2"></i>Volver
                 </a>
                 {% if is_super %}
-                <button type="button" class="btn btn-orange rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="font-size: 0.9rem;" onclick="editarEvento({{ evento.id }})" title="Editar esta caminata">
+                <button type="button" id="btnEditarEventoDetalle" data-evento-id="{{ evento.id }}" class="btn btn-orange rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="font-size: 0.9rem;" title="Editar esta caminata">
                     <i class="bi bi-pencil-fill me-2"></i>Editar
                 </button>
                 {% endif %}
@@ -149,6 +149,14 @@
 <script src="{{ url_for('static', filename='js/wysiwyg_media.js') }}"></script>
 {% include 'partials/evento_crear_editar_modal.html' %}
 {% include 'partials/caminatas_2027_script.html' %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var btn = document.getElementById('btnEditarEventoDetalle');
+    if (btn && typeof editarEvento === 'function') {
+        btn.addEventListener('click', function () { editarEvento(btn.dataset.eventoId); });
+    }
+});
+</script>
 {% endif %}
 
 {% endblock %}
