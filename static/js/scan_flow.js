@@ -10,6 +10,7 @@
     var persona = null;   // persona identificada por QR de carnet: {cedula, nombre}
     var mode = 'award';   // 'award' = asignar puntos | 'estado' = enviar estado de cuenta
     var searchTimer = null;
+    var lastCedula = null; // última cédula conocida (persona escaneada, seleccionada o asignada)
 
     function $(id) { return document.getElementById(id); }
 
@@ -55,6 +56,7 @@
                         { showRegister: true });
                     return;
                 }
+                lastCedula = cedula;
                 persona = { cedula: cedula, nombre: h.nombre };
                 if (mode === 'estado') { sendEstado(cedula); return; }
                 if (ev) { award(cedula); return; }
@@ -108,8 +110,9 @@
     }
 
     function sendEstado(cedulaDirecta) {
-        var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '');
+        var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '') || lastCedula;
         if (!cedula) { alert('Ingresá un número de cédula.'); return; }
+        lastCedula = cedula;
         fetch('/api/scan/estado', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -132,6 +135,7 @@
     function award(cedulaDirecta) {
         var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '');
         if (!cedula) { alert('Ingresá un número de cédula.'); return; }
+        lastCedula = cedula;
         fetch('/api/scan/award', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -167,6 +171,7 @@
                         h.nombre + (h.telefono ? ' · ' + h.telefono : '');
                     b.onclick = function () {
                         $('scanCedulaInput').value = h.cedula;
+                        lastCedula = h.cedula;
                         box.innerHTML = '';
                     };
                     box.appendChild(b);
@@ -194,6 +199,8 @@
             window.ScanCam.stop();
             ev = null;
             persona = null;
+            mode = 'award';
+            lastCedula = null;
         });
 
         $('scanConfirmBtn').addEventListener('click', function () {
@@ -205,8 +212,21 @@
         $('scanNextBtn').addEventListener('click', startCamera);
         $('scanCarnetBtn').addEventListener('click', startCamera);
         $('scanWaitBtn').addEventListener('click', startCamera);
-        $('scanEstadoFlowBtn').addEventListener('click', startEstadoFlow);
-        $('scanEstadoFromCedulaBtn').addEventListener('click', startEstadoFlow);
+        $('scanEstadoFlowBtn').addEventListener('click', function () {
+            if (lastCedula) { sendEstado(lastCedula); } else { startEstadoFlow(); }
+        });
+        $('scanEstadoFromCedulaBtn').addEventListener('click', function () {
+            var cedula = ($('scanCedulaInput').value || '').replace(/\D/g, '');
+            if (cedula) { sendEstado(cedula); } else { startEstadoFlow(); }
+        });
+        var waitEstadoBtn = $('scanEstadoFromWaitBtn');
+        if (waitEstadoBtn) {
+            waitEstadoBtn.addEventListener('click', function () {
+                if (persona && persona.cedula) { sendEstado(persona.cedula); }
+                else if (lastCedula) { sendEstado(lastCedula); }
+                else { startEstadoFlow(); }
+            });
+        }
         $('scanShareBtn').addEventListener('click', function () {
             var texto = this.dataset.texto || '';
             if (navigator.share) {
