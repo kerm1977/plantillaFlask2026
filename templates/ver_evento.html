@@ -66,10 +66,15 @@
 <div class="container animate__animated animate__fadeIn pb-5 pt-3">
     <div class="row justify-content-center">
         <div class="col-lg-12">
-            <div class="mb-4 d-flex justify-content-start hide-on-export">
+            <div class="mb-4 d-flex justify-content-start hide-on-export gap-2">
                 <a href="javascript:history.back()" class="btn bg-white rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="color: #6c757d; border: 1px solid #ced4da; font-size: 0.9rem;">
                     <i class="bi bi-arrow-left me-2"></i>Volver
                 </a>
+                {% if is_super %}
+                <button type="button" class="btn btn-orange rounded-pill px-4 py-2 shadow-sm fw-bold d-inline-flex align-items-center" style="font-size: 0.9rem;" onclick="editarEvento({{ evento.id }})" title="Editar esta caminata">
+                    <i class="bi bi-pencil-fill me-2"></i>Editar
+                </button>
+                {% endif %}
             </div>
 
             <div class="row g-4 g-lg-5">
@@ -138,5 +143,12 @@
 {% include 'partials/ver_evento_script_public.html' %}
 {% include 'partials/ver_evento_poster_modal.html' %}
 {% include 'partials/ver_evento_puntos_modal.html' %}
+
+{% if is_super %}
+<script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
+<script src="{{ url_for('static', filename='js/wysiwyg_media.js') }}"></script>
+{% include 'partials/evento_crear_editar_modal.html' %}
+{% include 'partials/caminatas_2027_script.html' %}
+{% endif %}
 
 {% endblock %}
