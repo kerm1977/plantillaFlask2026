@@ -12,6 +12,12 @@
         aspect-ratio: 9/16;
         max-height: 480px; /* Reducido un poco */
     }
+    /* Los GIF animados se muestran completos, sin recorte */
+    .event-poster.gif-poster {
+        object-fit: contain;
+        aspect-ratio: auto;
+        height: auto;
+    }
     
     .badge-dificultad {
         font-size: 0.75rem;

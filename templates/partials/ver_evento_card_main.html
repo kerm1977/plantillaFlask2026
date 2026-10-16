@@ -12,7 +12,8 @@
                                     {% endif %}
 
                                     {% set poster_url = url_for('static', filename='uploads/' + evento.flyer_bg) if evento.flyer_bg else (url_for('static', filename='uploads/' + evento.poster) if evento.poster else url_for('static', filename='default.png')) %}
-                                    <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white" crossorigin="anonymous">
+                                    {% set es_gif = poster_url.endswith('.gif') %}
+                                    <img src="{{ poster_url }}" alt="{{ evento.nombre_lugar }}" class="event-poster border border-4 border-white{% if es_gif %} gif-poster{% endif %}" crossorigin="anonymous">
                                     
                                     {% set badge_class = 'bg-success' %}
                                     {% if evento.dificultad in ['Intermedio'] %} {% set badge_class = 'bg-warning text-dark' %} {% endif %}
