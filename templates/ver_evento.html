@@ -147,6 +147,7 @@
 {% if is_super %}
 <script src="{{ url_for('static', filename='js/wysiwyg.js') }}"></script>
 <script src="{{ url_for('static', filename='js/wysiwyg_media.js') }}"></script>
+{% set sin_flyer_editor = true %}
 {% include 'partials/evento_crear_editar_modal.html' %}
 {% include 'partials/caminatas_2027_script.html' %}
 <script>

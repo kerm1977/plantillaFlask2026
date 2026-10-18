@@ -94,7 +94,9 @@
                     </div>
                   </div>
 
+                  {% if not sin_flyer_editor %}
                   <div class="no-cotizacion">{% include 'partials/evento_flyer_editor.html' %}</div>
+                  {% endif %}
 
                 </div>
 
@@ -111,4 +113,6 @@
   </div>
 </div>
 
+{% if not sin_flyer_editor %}
 {% include 'partials/evento_flyer_script.html' %}
+{% endif %}
