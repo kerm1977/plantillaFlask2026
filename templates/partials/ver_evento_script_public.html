@@ -65,9 +65,15 @@ function shareToFriendWhatsApp() {
     const precio = "{% set p_val = evento.precio|int if evento.precio else 0 %}{% if p_val > 0 %}{{ evento.moneda }}{{ evento.precio }}{% else %}PENDIENTE{% endif %}";
     let fecha = "{{ fecha_formateada }}";
     {% if evento.dias > 1 %} fecha = "{{ inicio_formateada }} al {{ regreso_formateada }}"; {% endif %}
-    
+    const qrUrl = 'https://www.latribu.top/puntos-scan/{{ evento.id }}';
+    const puntosEv = {{ evento.puntos or 0 }};
     const url = window.location.href;
-    const mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
+    let mensaje = `¡Mira este súper evento! 🏕️\n*${nombreEvento}*\n📅 Fecha: ${fecha}\n💰 Inversión: ${precio}\n\nConoce todos los detalles e inscríbete aquí:\n${url}`;
+    if (puntosEv > 0) {
+        mensaje += `\n\n⭐ Si participás vas a ganar *${puntosEv} puntos*. Presentá este código QR al ingresar para registrar tu participación:\n${qrUrl}`;
+    } else {
+        mensaje += `\n\n📱 Tu código QR de la caminata:\n${qrUrl}`;
+    }
     window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(mensaje)}`, '_blank');
 }
 
@@ -150,8 +156,16 @@ async function saveOrganicMaps(eventId) {
 
 async function shareNative() {
     const nombreEvento = "{{ evento.nombre_lugar }}";
+    const qrUrl = 'https://www.latribu.top/puntos-scan/{{ evento.id }}';
+    const puntosEv = {{ evento.puntos or 0 }};
     const url = window.location.href;
-    const shareData = { title: `Aventura en ${nombreEvento}`, text: `Revisa los detalles del evento ${nombreEvento} y acompáñame:`, url: url };
+    let texto = `Revisa los detalles del evento ${nombreEvento} y acompáñame:`;
+    if (puntosEv > 0) {
+        texto += `\n\n⭐ Si participás vas a ganar ${puntosEv} puntos. Presentá este código QR al ingresar:\n${qrUrl}`;
+    } else {
+        texto += `\n\n📱 Código QR de la caminata:\n${qrUrl}`;
+    }
+    const shareData = { title: `Aventura en ${nombreEvento}`, text: texto, url: url };
     
     if (navigator.share) {
         try { await navigator.share(shareData); } catch (err) {}
