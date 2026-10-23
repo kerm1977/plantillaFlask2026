@@ -1,6 +1,15 @@
   <div id="vistaProvincias" class="caminatas-vista" style="display:block;">
   <div id="accordionProvincias">
+    {% set ns = namespace(divider_2027_shown=false) %}
     {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) %}
+      {% if entry.type == 'provincia' and '2027' in (entry.group_label or '') and not ns.divider_2027_shown %}
+      {% set ns.divider_2027_shown = true %}
+      <div class="d-flex align-items-center gap-3 my-4">
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+        <span class="fw-bold fs-4" style="color:#6f42c1;letter-spacing:3px;">2027</span>
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+      </div>
+      {% endif %}
       {% if entry.type == 'provincia' %}
       <div class="accordion glass-panel border-0 rounded-4 mb-3 shadow-sm">
         <div class="accordion-item border-0 bg-transparent">
@@ -8,7 +17,7 @@
             <button class="accordion-button collapsed fw-bold bg-transparent text-dark" type="button" data-bs-toggle="collapse" data-bs-target="#collapseProv{{ loop.index }}" aria-expanded="false" aria-controls="collapseProv{{ loop.index }}">
               <span class="d-flex align-items-start gap-2 w-100 justify-content-between pe-3">
                 <span class="d-flex flex-column align-items-start">
-                  <span class="{{ group_header_text_class | default('text-uppercase') }}" style="font-size:1.05rem; line-height:1.15;">{{ entry.group_label }}</span>
+                  <span class="{{ group_header_text_class | default('text-uppercase') }}" style="font-size:1.05rem; line-height:1.15;{% if '2027' in (entry.group_label or '') %} color:#6f42c1;{% endif %}">{{ entry.group_label }}</span>
                   {% if show_expand_hint | default(false) %}
                   <small class="text-muted" style="font-size:0.6rem; opacity:0.55; line-height:1; margin-top:0.05rem;">
                     <i class="bi bi-hand-index-thumb me-1"></i>{{ expand_hint_text | default('Toca para expandir') }}
@@ -33,7 +42,7 @@
               {% set year_label = year_values[0] if year_values else '2027' %}
               <div class="row row-cols-2 g-3">
                 <div class="col">
-                  <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#ff8c00;min-height:100px;">
+                  <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:{{ '#6f42c1' if year_label == '2027' else '#ff8c00' }};min-height:100px;">
                     <span class="fs-5 fw-bold">{{ year_label }}</span>
                   </a>
                 </div>

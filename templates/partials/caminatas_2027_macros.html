@@ -110,7 +110,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
             {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
           </small>
           {% if is_tribu %}
-          <small class="text-muted d-block">{{ fecha_text | trim }}</small>
+          <small class="text-muted d-block">{% if '2027' in fecha_text %}<span class="fw-bold" style="color:#6f42c1;">{{ fecha_text | trim }}</span>{% else %}{{ fecha_text | trim }}{% endif %}</small>
           <span class="fw-bold text-dark fs-6">{{ precio_mostrar }}</span>
           {% endif %}
           {% if ev.puntos and ev.puntos > 0 %}
@@ -126,7 +126,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
           <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" class="fw-bold text-dark d-block text-decoration-none stretched-link cam-name-link{% if is_super %} cam-qr-share{% endif %}"{% if is_super %} data-scan-url="{{ url_for('main.puntos_scan', event_id=ev.id, _external=True) }}" data-nombre="{{ ev.nombre_lugar }}"{% endif %}>{{ ev.nombre_lugar }}</a>
           {% if ev.actividad %}<small class="text-muted d-block">{{ ev.actividad }}</small>{% endif %}
           {% if ev.provincia %}<small class="text-muted d-block">{{ ev.provincia }}</small>{% endif %}
-          {% if is_tribu %}<small class="text-muted d-block">{{ fecha_text | trim }}</small>{% endif %}
+          {% if is_tribu %}<small class="text-muted d-block">{% if '2027' in fecha_text %}<span class="fw-bold" style="color:#6f42c1;">{{ fecha_text | trim }}</span>{% else %}{{ fecha_text | trim }}{% endif %}</small>{% endif %}
           {% if is_tribu %}
           <div class="text-center">
             <span class="fw-bold text-dark cam-price-mobile">{{ precio_mostrar }}</span>
