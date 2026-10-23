@@ -10,7 +10,56 @@
         <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
       </div>
       {% endif %}
-      {% if entry.type == 'provincia' %}
+      {% if entry.type == 'provincia' and entry.group_label == 'Otras Caminatas' %}
+      {% set year_values = [] %}
+      {% for ev in entry.walks %}
+        {% if ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 and ev.visitado not in year_values %}
+          {% set year_values = year_values + [ev.visitado] %}
+        {% endif %}
+      {% endfor %}
+      {% set year_label = year_values[0] if year_values else '2027' %}
+      <div class="d-flex align-items-center gap-3 my-4">
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+        <span class="fw-bold fs-4" style="color:#6f42c1;letter-spacing:3px;">Otras Caminatas</span>
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+      </div>
+      <div class="glass-panel rounded-4 mb-3 shadow-sm p-3">
+        <div class="row row-cols-2 g-3">
+          <div class="col">
+            <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:{{ '#6f42c1' if year_label == '2027' else '#ff8c00' }};min-height:100px;">
+              <span class="fs-5 fw-bold">{{ year_label }}</span>
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('main.caminatas_visitados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#198754;min-height:100px;">
+              <span class="fs-6 fw-bold">Visitados</span>
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('main.caminatas_pendientes') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6c757d;min-height:100px;">
+              <span class="fs-6 fw-bold">Pendiente</span>
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('main.caminatas_programados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6f42c1;min-height:100px;">
+              <span class="fs-6 fw-bold">Programados</span>
+            </a>
+          </div>
+          {% if is_super %}
+          <div class="col">
+            <a href="{{ url_for('main.caminatas_cotizaciones') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#d63384;min-height:100px;">
+              <span class="fs-6 fw-bold">Cotizaciones</span>
+            </a>
+          </div>
+          <div class="col">
+            <a href="{{ url_for('main.bitacora_lista') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#4527a0;min-height:100px;">
+              <span class="fs-6 fw-bold">Bitácora</span>
+            </a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      {% elif entry.type == 'provincia' %}
       <div class="accordion glass-panel border-0 rounded-4 mb-3 shadow-sm">
         <div class="accordion-item border-0 bg-transparent">
           <h2 class="accordion-header">
@@ -32,55 +81,11 @@
           </h2>
           <div id="collapseProv{{ loop.index }}" class="accordion-collapse collapse" data-bs-parent="#accordionProvincias">
             <div class="accordion-body pt-0">
-              {% if entry.group_label == 'Otras Caminatas' %}
-              {% set year_values = [] %}
-              {% for ev in entry.walks %}
-                {% if ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 and ev.visitado not in year_values %}
-                  {% set year_values = year_values + [ev.visitado] %}
-                {% endif %}
-              {% endfor %}
-              {% set year_label = year_values[0] if year_values else '2027' %}
-              <div class="row row-cols-2 g-3">
-                <div class="col">
-                  <a href="{{ url_for('main.caminatas_anio') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:{{ '#6f42c1' if year_label == '2027' else '#ff8c00' }};min-height:100px;">
-                    <span class="fs-5 fw-bold">{{ year_label }}</span>
-                  </a>
-                </div>
-                <div class="col">
-                  <a href="{{ url_for('main.caminatas_visitados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#198754;min-height:100px;">
-                    <span class="fs-6 fw-bold">Visitados</span>
-                  </a>
-                </div>
-                <div class="col">
-                  <a href="{{ url_for('main.caminatas_pendientes') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6c757d;min-height:100px;">
-                    <span class="fs-6 fw-bold">Pendiente</span>
-                  </a>
-                </div>
-                <div class="col">
-                  <a href="{{ url_for('main.caminatas_programados') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#6f42c1;min-height:100px;">
-                    <span class="fs-6 fw-bold">Programados</span>
-                  </a>
-                </div>
-                {% if is_super %}
-                <div class="col">
-                  <a href="{{ url_for('main.caminatas_cotizaciones') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#d63384;min-height:100px;">
-                    <span class="fs-6 fw-bold">Cotizaciones</span>
-                  </a>
-                </div>
-                <div class="col">
-                  <a href="{{ url_for('main.bitacora_lista') }}" class="estado-bar d-flex align-items-center justify-content-center text-white w-100 p-2" style="background-color:#38bdf8;min-height:100px;">
-                    <span class="fs-6 fw-bold">Bitácora</span>
-                  </a>
-                </div>
-                {% endif %}
-              </div>
-              {% else %}
               <ul class="list-group list-group-flush">
                 {% for ev in entry.walks %}
                 {{ caminata_item(ev, is_tribu, is_super, is_share|default(false), meses, detail_endpoint) }}
                 {% endfor %}
               </ul>
-              {% endif %}
             </div>
           </div>
         </div>

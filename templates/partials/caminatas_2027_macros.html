@@ -35,7 +35,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
     'intermedio': {'bg':'#ffc107','text':'#000'},
     'facil': {'bg':'#28a745','text':'#fff'},
     'basico': {'bg':'#28a745','text':'#fff'},
-    'paseo': {'bg':'#0d6efd','text':'#fff'}
+    'paseo': {'bg':'#4527a0','text':'#fff'}
   } %}
   {% set d = (dificultad or 'Paseo') | lower | replace('í','i') | replace('á','a') | replace('é','e') | replace('ó','o') | replace('ú','u') | replace(' ','') | trim %}
   {% set info = dificultad_map.get(d, dificultad_map['paseo']) %}
@@ -107,7 +107,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
             {% if ev.dificultad %}{{ ev.dificultad }}{% if ev.actividad %} · {% endif %}{% endif %}
             {% if ev.actividad %}{{ ev.actividad }}{% endif %}
             <br>{{ estado_badge(ev.visitado) }}
-            {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
+            {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#4527a0; color:#fff;">{{ ev.tipo_caminata }}</span>{% endif %}
           </small>
           {% if is_tribu %}
           <small class="text-muted d-block">{% if '2027' in fecha_text %}<span class="fw-bold" style="color:#6f42c1;">{{ fecha_text | trim }}</span>{% else %}{{ fecha_text | trim }}{% endif %}</small>
@@ -135,7 +135,7 @@ Hola, estoy interesado en participar en esta actividad. Necesito que me contacte
           <div class="d-block mt-1">
             {% if is_tribu %}{{ dificultad_badge(ev.dificultad) }}{% endif %}
             {{ estado_badge(ev.visitado) }}
-            {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#0dcaf0; color:#000;">{{ ev.tipo_caminata }}</span>{% endif %}
+            {% if ev.visitado == 'Cotización' and ev.tipo_caminata %}<span class="badge rounded-pill ms-1" style="background:#4527a0; color:#fff;">{{ ev.tipo_caminata }}</span>{% endif %}
           </div>
         </div>
       </div>
