@@ -1,16 +1,22 @@
   <div id="vistaProvincias" class="caminatas-vista" style="display:block;">
   <div id="accordionProvincias">
-    {% set ns = namespace(divider_2027_shown=false) %}
+    {% set ns = namespace(divider_2027_shown=false, sec2027_open=false) %}
     {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) %}
       {% if entry.type == 'provincia' and '2027' in (entry.group_label or '') and not ns.divider_2027_shown %}
       {% set ns.divider_2027_shown = true %}
-      <div class="d-flex align-items-center gap-3 my-4">
-        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
-        <span class="fw-bold fs-4" style="color:#6f42c1;letter-spacing:3px;">2027</span>
-        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+      {% set ns.sec2027_open = true %}
+      <div class="d-flex align-items-center gap-3 my-4" data-bs-toggle="collapse" data-bs-target="#seccion2027" role="button" style="cursor:pointer;" aria-expanded="true">
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
+        <span class="fw-bold fs-4" style="color:#722F37;letter-spacing:3px;">2027</span>
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
       </div>
+      <div id="seccion2027" class="collapse show">
       {% endif %}
       {% if entry.type == 'provincia' and entry.group_label == 'Otras Caminatas' %}
+      {% if ns.sec2027_open %}
+      {% set ns.sec2027_open = false %}
+      </div>
+      {% endif %}
       {% set year_values = [] %}
       {% for ev in entry.walks %}
         {% if ev.visitado and ev.visitado.isdigit() and ev.visitado|length == 4 and ev.visitado not in year_values %}
@@ -18,11 +24,12 @@
         {% endif %}
       {% endfor %}
       {% set year_label = year_values[0] if year_values else '2027' %}
-      <div class="d-flex align-items-center gap-3 my-4">
-        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
-        <span class="fw-bold fs-4" style="color:#6f42c1;letter-spacing:3px;">Otras Caminatas</span>
-        <hr class="flex-grow-1 m-0" style="border-top:2px solid #6f42c1;opacity:1;">
+      <div class="d-flex align-items-center gap-3 my-4" data-bs-toggle="collapse" data-bs-target="#seccionOtras" role="button" style="cursor:pointer;" aria-expanded="false">
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
+        <span class="fw-bold fs-4" style="color:#722F37;letter-spacing:3px;">Otras Caminatas</span>
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
       </div>
+      <div id="seccionOtras" class="collapse">
       <div class="glass-panel rounded-4 mb-3 shadow-sm p-3">
         <div class="row row-cols-2 g-3">
           <div class="col">
@@ -58,6 +65,7 @@
           </div>
           {% endif %}
         </div>
+      </div>
       </div>
       {% elif entry.type == 'provincia' %}
       <div class="accordion glass-panel border-0 rounded-4 mb-3 shadow-sm">
@@ -110,6 +118,7 @@
       </div>
       {% endif %}
     {% endfor %}
+    {% if ns.sec2027_open %}</div>{% endif %}
   </div>
   </div>
   <div id="vistaLista" class="caminatas-vista" style="display:none;">
