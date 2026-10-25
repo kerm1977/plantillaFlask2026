@@ -210,10 +210,11 @@ def profile():
     notif_cutoff = get_notif_cutoff(puntos_cedula)
     puntos_notificaciones = [r for r in puntos_history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > notif_cutoff]
     todos_hikers = Hiker.query.order_by(Hiker.nombre_completo).all() if session.get('role') == 'Superusuario' else []
-    caminatas_escaneadas = _build_escaneos(engine) if session.get('role') == 'Superusuario' else []
+    escaneos_data = _build_escaneos(engine) if session.get('role') == 'Superusuario' else {'caminatas': [], 'hoy': []}
     return render_template('perfil.html', user=user, hiker=hiker, puntos_cedula=puntos_cedula,
                            puntos_total=puntos_total, puntos_history=puntos_history, puntos_notificaciones=puntos_notificaciones,
-                           todos_hikers=todos_hikers, caminatas_escaneadas=caminatas_escaneadas,
+                           todos_hikers=todos_hikers, caminatas_escaneadas=escaneos_data['caminatas'],
+                           escaneos_hoy=escaneos_data['hoy'],
                            puntos_password=get_puntos_password(), puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible())
 
@@ -301,7 +302,15 @@ def _build_escaneos(engine):
             'ultimo': rows[0].created_at if rows else None,
         })
     resultado.sort(key=lambda e: e['ultimo'] or datetime.min, reverse=True)
-    return resultado
+
+    hoy_lista = []
+    for c in resultado:
+        for p in c['personas']:
+            if p['hoy']:
+                hoy_lista.append({'nombre': p['nombre'], 'cedula': p['cedula'],
+                                  'puntos': p['puntos'], 'total': p['total'],
+                                  'hora': p['hora'], 'caminata': c['nombre']})
+    return {'caminatas': resultado, 'hoy': hoy_lista}
 
 
 @bp.route('/public/usuarios/<token>')
