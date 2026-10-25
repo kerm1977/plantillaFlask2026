@@ -44,7 +44,7 @@
                     <!-- Cédula -->
                     <div class="mb-4">
                         <label class="label-bulma">Número de Cédula</label>
-                        <input type="text" name="cedula" class="input-bulma" id="cuCedula" {{ 'required' if session.get('role') != 'Superusuario' else '' }} inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('crearUsuarioForm', 'cuCedula'); checkCedulaExistente(this.value, 'crearUsuarioForm');" placeholder="Ej: 112340567">
+                        <input type="text" name="cedula" class="input-bulma" id="cuCedula" required inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('crearUsuarioForm', 'cuCedula'); checkCedulaExistente(this.value, 'crearUsuarioForm');" placeholder="Ej: 112340567">
                     </div>
 
                     <!-- Información Personal Básica -->
@@ -76,7 +76,7 @@
 
                     <div class="mb-4">
                         <label class="label-bulma">Email Principal</label>
-                        <input type="email" name="email" class="input-bulma force-lowercase" id="cuEmail" required>
+                        <input type="email" name="email" class="input-bulma force-lowercase" id="cuEmail" placeholder="Opcional — se genera automático">
                     </div>
 
                     <div class="mb-4">
@@ -159,7 +159,7 @@
                             </div>
                             <div class="col-12 col-md-6">
                                 <label class="label-bulma">Tipo de Sangre</label>
-                                <select name="tipo_sangre" class="form-select select-bulma" id="cuSangre" required>
+                                <select name="tipo_sangre" class="form-select select-bulma" id="cuSangre">
                                     <option value="" selected disabled>Seleccione...</option>
                                     <option value="O+">O Positivo (O+)</option>
                                     <option value="O-">O Negativo (O-)</option>
@@ -191,11 +191,11 @@
                             <div class="cu-emergency-row row g-3 mb-3 align-items-end">
                                 <div class="col-md-6">
                                     <label class="label-bulma">Contacto de Emergencia</label>
-                                    <input type="text" name="contacto_emergencia_nombre[]" class="input-bulma" required placeholder="Ej: María (Esposa)">
+                                    <input type="text" name="contacto_emergencia_nombre[]" class="input-bulma" placeholder="Ej: María (Esposa)">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="label-bulma">Teléfono del Contacto</label>
-                                    <input type="tel" name="contacto_emergencia_telefono[]" class="input-bulma" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="88889999">
+                                    <input type="tel" name="contacto_emergencia_telefono[]" class="input-bulma" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" placeholder="88889999">
                                 </div>
                             </div>
                         </div>
@@ -208,7 +208,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-12 position-relative">
                             <label class="label-bulma">Contraseña</label>
-                            <input type="password" name="password" class="input-bulma pe-5 field-border" id="cuPass" required placeholder="Mínimo 6 caracteres">
+                            <input type="password" name="password" class="input-bulma pe-5 field-border" id="cuPass" placeholder="Opcional — se genera automática">
                             <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('cuPass', this)"></i>
                         </div>
                     </div>

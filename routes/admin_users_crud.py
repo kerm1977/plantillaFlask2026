@@ -143,11 +143,15 @@ def admin_create_user():
     phone = re.sub(r'\D', '', request.form.get('phone', '').strip())
     password = request.form.get('password', '')
 
-    if not name or not email or not last_name_1 or not phone:
-        return jsonify({'error': 'Nombre, 1° apellido, correo y teléfono son obligatorios'}), 400
-    if cedula and not cedula.isdigit():
+    if not name or not last_name_1 or not cedula or not phone:
+        return jsonify({'error': 'Nombre, 1° apellido, cédula y teléfono son obligatorios'}), 400
+    if not cedula.isdigit():
         return jsonify({'error': 'La cédula solo debe contener números'}), 400
-    if not password or len(password) < 6:
+    if not email:
+        email = f"{cedula}@latribu.top"
+    if not password:
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=10))
+    if len(password) < 6:
         return jsonify({'error': 'La contraseña debe tener al menos 6 caracteres'}), 400
     if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Ya existe un usuario con ese email'}), 400
