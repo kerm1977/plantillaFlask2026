@@ -121,10 +121,7 @@
                 var blob = modalEl._posterBlob || null;
                 var ext = (poster.split('.').pop() || 'jpg').split('?')[0].toLowerCase();
                 var full = msg ? (msg + '\n\n' + link) : link;
-                var openWa = function (text, copyText) {
-                    if (copyText !== false && navigator.clipboard && navigator.clipboard.writeText) {
-                        navigator.clipboard.writeText(text).catch(function () {});
-                    }
+                var openWa = function (text) {
                     window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
                 };
                 // Móvil: compartir la imagen real adjunta (archivo ya precargado)
@@ -141,7 +138,7 @@
                 }
                 // Escritorio o sin soporte: texto + imagen por portapapeles o descarga
                 var pp = modalEl._posterPromise;
-                openWa(poster && !pp ? (poster + '\n\n' + full) : full, !pp);
+                openWa(poster && !pp ? (poster + '\n\n' + full) : full);
                 if (pp) pp.then(function (b) { if (b) attachForDesktop(b, ext); });
             });
         }
