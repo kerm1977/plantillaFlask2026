@@ -92,7 +92,7 @@
                     <div class="mb-4">
                         <label class="form-label form-label-huge" for="fecha_nacimiento">Fecha de Nacimiento</label>
                         <input type="date" class="form-control input-huge fw-bold text-dark text-center" id="fecha_nacimiento" 
-                               value="{% if hiker.fecha_nacimiento %}{{ hiker.fecha_nacimiento.strftime('%Y-%m-%d') }}{% endif %}" required>
+                               value="{% if hiker.fecha_nacimiento %}{{ hiker.fecha_nacimiento.strftime('%Y-%m-%d') }}{% endif %}">
                     </div>
 
                     <!-- SECCIÓN MÉDICA -->
@@ -100,7 +100,8 @@
 
                     <div class="mb-4">
                         <label class="form-label form-label-huge" for="tipo_sangre">Tipo de Sangre</label>
-                        <select class="form-select input-huge" id="tipo_sangre" required>
+                        <select class="form-select input-huge" id="tipo_sangre">
+                            <option value="" {% if not hiker.tipo_sangre %}selected{% endif %}>Sin dato</option>
                             <option value="O+" {% if hiker.tipo_sangre == 'O+' %}selected{% endif %}>O Positivo (O+)</option>
                             <option value="O-" {% if hiker.tipo_sangre == 'O-' %}selected{% endif %}>O Negativo (O-)</option>
                             <option value="A+" {% if hiker.tipo_sangre == 'A+' %}selected{% endif %}>A Positivo (A+)</option>
@@ -129,12 +130,12 @@
 
                     <div class="mb-4">
                         <label class="form-label form-label-huge" for="emergencia_nombre">Nombre del Contacto</label>
-                        <input type="text" class="form-control input-huge" id="emergencia_nombre" value="{{ hiker.contacto_emergencia_nombre }}" required>
+                        <input type="text" class="form-control input-huge" id="emergencia_nombre" value="{{ hiker.contacto_emergencia_nombre }}">
                     </div>
 
                     <div class="mb-4">
                         <label class="form-label form-label-huge" for="emergencia_telefono">Teléfono del Contacto</label>
-                        <input type="tel" class="form-control input-huge" id="emergencia_telefono" value="{{ hiker.contacto_emergencia_telefono }}" required inputmode="tel">
+                        <input type="tel" class="form-control input-huge" id="emergencia_telefono" value="{{ hiker.contacto_emergencia_telefono }}" inputmode="tel">
                     </div>
 
                     <!-- BOTONES DE ACCIÓN -->

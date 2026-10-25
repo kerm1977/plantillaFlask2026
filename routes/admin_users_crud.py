@@ -29,7 +29,9 @@ def admin_update_user(user_id):
     u.name = request.form.get('name', u.name)
     u.last_name_1 = request.form.get('last_name_1', u.last_name_1)
     u.last_name_2 = request.form.get('last_name_2', u.last_name_2)
-    u.email = request.form.get('email', u.email).lower()
+    email_edit = request.form.get('email', '').strip()
+    if email_edit:
+        u.email = email_edit.lower()
 
     new_role = request.form.get('role')
     if new_role:

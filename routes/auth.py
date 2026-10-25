@@ -95,7 +95,9 @@ def update_profile():
         user.name = request.form.get('name', user.name)
         user.last_name_1 = request.form.get('last_name_1', user.last_name_1)
         user.last_name_2 = request.form.get('last_name_2', user.last_name_2)
-        user.email = request.form.get('email', user.email).lower()
+        email_edit = request.form.get('email', '').strip()
+        if email_edit:
+            user.email = email_edit.lower()
         
         if request.form.get('phone_code'): user.phone_code = request.form.get('phone_code')
         if request.form.get('phone'): user.phone = request.form.get('phone')
