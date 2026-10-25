@@ -108,16 +108,17 @@
                     const email   = document.getElementById('reg_email').value.trim();
                     const pwd     = document.getElementById('reg_password').value;
                     const pwd2    = document.getElementById('reg_password2').value;
-                    const rName   = document.getElementById('reg_name').value.trim();
-                    const rLn1    = document.getElementById('reg_ln1').value.trim();
+                    const partes  = payload.nombre_completo.split(/\s+/).filter(Boolean);
+                    const rName   = document.getElementById('reg_name').value.trim() || partes[0] || '';
+                    const rLn1    = document.getElementById('reg_ln1').value.trim() || partes[1] || '';
                     const rLn2    = document.getElementById('reg_ln2').value.trim();
                     const regMsg  = document.getElementById('regAccountMsg');
 
-                    if (!email || !pwd || !rName || !rLn1) {
+                    if (!rName || !rLn1) {
                         regMsg.className = 'alert alert-warning rounded-3 py-2 small mb-2';
-                        regMsg.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Completa nombre, correo y contraseña para crear la cuenta.';
+                        regMsg.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Completa nombre y primer apellido para crear la cuenta.';
                         regMsg.classList.remove('d-none');
-                    } else if (pwd !== pwd2) {
+                    } else if (pwd && pwd !== pwd2) {
                         regMsg.className = 'alert alert-danger rounded-3 py-2 small mb-2';
                         regMsg.innerHTML = '<i class="bi bi-x-circle me-1"></i>Las contraseñas no coinciden.';
                         regMsg.classList.remove('d-none');
@@ -127,7 +128,7 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 name: rName, last_name_1: rLn1, last_name_2: rLn2 || '-',
-                                email, password: pwd,
+                                email, password: pwd, cedula: payload.cedula,
                                 phone: payload.telefono, dob: payload.fecha_nacimiento
                             })
                         });

@@ -79,13 +79,14 @@ window.submitLogin = async function() {
 document.getElementById('registerForm')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const pass = document.getElementById('regPass').value;
-    if (pass !== document.getElementById('regPassVerify').value) {
+    if (pass && pass !== document.getElementById('regPassVerify').value) {
         showMessage('registerMessage', 'Las contraseñas no coinciden');
         return;
     }
     const userData = {
         name: document.getElementById('regName').value, last_name_1: document.getElementById('regLastName1').value,
         last_name_2: document.getElementById('regLastName2').value, email: document.getElementById('regEmail').value, password: pass,
+        cedula: document.getElementById('regCedula').value.replace(/[^0-9]/g, ''),
         phone: document.getElementById('regPhone').value.replace(/[^0-9]/g, '')
     };
     try {

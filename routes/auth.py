@@ -3,9 +3,10 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 import os
+import re
 import secrets
 from flask import request, jsonify, session, redirect, url_for, render_template
-from models import User
+from models import User, Hiker
 from users import hash_password, check_password
 from db import db
 from datetime import datetime, timedelta
@@ -42,24 +43,34 @@ def login():
 @bp.route('/api/register', methods=['POST'])
 def register():
     data = request.json
-    password = data.get('password', '')
-    
-    valid, msg = validate_password_strength(password)
-    if not valid:
-        return jsonify({'error': msg}), 400
+    password = (data.get('password') or '').strip()
+    email = (data.get('email') or '').strip().lower()
+    cedula = re.sub(r'\D', '', str(data.get('cedula') or ''))
+    phone = re.sub(r'\D', '', str(data.get('phone') or ''))
 
-    if not data.get('name') or not data.get('last_name_1') or not data.get('email') or not data.get('phone'):
-        return jsonify({'error': 'Nombre, 1° apellido, correo y teléfono son obligatorios'}), 400
+    if not data.get('name') or not data.get('last_name_1') or not cedula or not phone:
+        return jsonify({'error': 'Nombre, 1° apellido, cédula y teléfono son obligatorios'}), 400
 
-    if User.query.filter_by(email=data.get('email').lower()).first():
+    if not email:
+        email = f"{cedula}@latribu.top"
+    if not password:
+        password = secrets.token_urlsafe(9)
+    else:
+        valid, msg = validate_password_strength(password)
+        if not valid:
+            return jsonify({'error': msg}), 400
+
+    if User.query.filter_by(email=email).first():
         return jsonify({'error': 'Email ya registrado'}), 400
-        
+
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+
     try:
         new_user = User(
             name=data.get('name'),
             last_name_1=data.get('last_name_1'),
             last_name_2=(data.get('last_name_2') or '').strip(),
-            email=data.get('email').lower(),
+            email=email,
             password_hash=hash_password(password)
         )
         
@@ -75,6 +86,21 @@ def register():
         if data.get('other_info') and hasattr(new_user, 'other_info'): new_user.other_info = data.get('other_info')
 
         db.session.add(new_user)
+
+        # Ficha de caminante: se crea o se vincula con la cédula (para escáner/carnet)
+        if not hiker:
+            hiker = Hiker(cedula=cedula)
+            db.session.add(hiker)
+        hiker.nombre_completo = f"{new_user.name} {new_user.last_name_1} {new_user.last_name_2}".strip()
+        if not hiker.telefono:
+            hiker.telefono = phone
+        if not hiker.pin_secreto:
+            for _ in range(10):
+                pin = secrets.token_hex(3)
+                if not Hiker.query.filter_by(pin_secreto=pin).first():
+                    hiker.pin_secreto = pin
+                    break
+
         db.session.commit()
         return jsonify({'success': True})
     except Exception as e:

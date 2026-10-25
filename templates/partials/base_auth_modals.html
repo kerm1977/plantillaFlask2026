@@ -122,8 +122,13 @@
                             </div>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-semibold text-secondary">Email</label>
-                            <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail" required>
+                            <label class="form-label fw-semibold text-secondary">Número de Cédula</label>
+                            <input type="text" class="form-control glass-input rounded-3" id="regCedula" inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,'')" required placeholder="112340567">
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold text-secondary">Email (Opcional)</label>
+                            <input type="email" class="form-control glass-input rounded-3 force-lowercase" id="regEmail">
+                            <small class="text-muted">Si lo dejás vacío se genera uno con tu cédula.</small>
                         </div>
 
                         <div class="mb-4">
@@ -144,13 +149,13 @@
 
                         <div class="row g-3 mb-4">
                             <div class="col-md-6 position-relative">
-                                <label class="form-label fw-semibold text-secondary">Contraseña</label>
-                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPass" required>
+                                <label class="form-label fw-semibold text-secondary">Contraseña (Opcional)</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPass">
                                 <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPass', this)"></i>
                             </div>
                             <div class="col-md-6 position-relative">
-                                <label class="form-label fw-semibold text-secondary">Verificar Contraseña</label>
-                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPassVerify" required>
+                                <label class="form-label fw-semibold text-secondary">Verificar Contraseña (Opcional)</label>
+                                <input type="password" class="form-control glass-input rounded-3 pe-5" id="regPassVerify">
                                 <i class="bi bi-eye-slash toggle-password position-absolute fs-5" style="right: 15px; top: 36px; cursor: pointer; color: #6c757d;" onclick="togglePasswordVisibility('regPassVerify', this)"></i>
                             </div>
                         </div>

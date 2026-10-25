@@ -210,11 +210,98 @@ def profile():
     notif_cutoff = get_notif_cutoff(puntos_cedula)
     puntos_notificaciones = [r for r in puntos_history if r['tipo'] in ('obsequio', 'donacion_recibida') and (r.get('creado_at') or '') > notif_cutoff]
     todos_hikers = Hiker.query.order_by(Hiker.nombre_completo).all() if session.get('role') == 'Superusuario' else []
+    caminatas_escaneadas = _build_escaneos(engine) if session.get('role') == 'Superusuario' else []
     return render_template('perfil.html', user=user, hiker=hiker, puntos_cedula=puntos_cedula,
                            puntos_total=puntos_total, puntos_history=puntos_history, puntos_notificaciones=puntos_notificaciones,
-                           todos_hikers=todos_hikers,
+                           todos_hikers=todos_hikers, caminatas_escaneadas=caminatas_escaneadas,
                            puntos_password=get_puntos_password(), puntos_pwd_msg=session.pop('puntos_pwd_msg', None),
                            puntos_pwd_visible=get_puntos_admin_visible())
+
+
+def _build_escaneos(engine):
+    """Resumen de caminatas/eventos con puntos escaneados (solo superusuario)."""
+    from models import HikerPoints, EventRegistration, PuntosEvento
+    hoy = date.today()
+    grupos = {}
+    recs = HikerPoints.query.filter(
+        HikerPoints.tipo.in_(['participacion', 'evento']),
+        db.or_(HikerPoints.event_id != None, HikerPoints.puntos_evento_id != None)
+    ).order_by(HikerPoints.created_at.desc()).all()
+    for r in recs:
+        key = ('cam', r.event_id) if r.event_id else ('pe', r.puntos_evento_id)
+        grupos.setdefault(key, []).append(r)
+
+    hikers_cache = {}
+    totals_cache = {}
+
+    def _hiker(ced):
+        if ced not in hikers_cache:
+            hikers_cache[ced] = Hiker.query.filter_by(cedula=ced).first()
+        return hikers_cache[ced]
+
+    def _total(ced):
+        if ced not in totals_cache:
+            totals_cache[ced] = engine.total_by_cedula(ced)
+        return totals_cache[ced]
+
+    resultado = []
+    for (kind, oid), rows in grupos.items():
+        if kind == 'cam':
+            ev = Event.query.get(oid)
+            if not ev:
+                continue
+            nombre, pts_cfg = ev.nombre_lugar, ev.puntos or 0
+            url = url_for('main.ver_caminata_2027', event_id=oid)
+        else:
+            pe = PuntosEvento.query.get(oid)
+            if not pe:
+                continue
+            nombre, pts_cfg = pe.nombre, pe.puntos or 0
+            url = url_for('main.puntos_evento_qr_page', pid=oid)
+
+        retiradas = {x.cedula for x in HikerPoints.query.filter_by(
+            tipo='retiro', event_id=oid if kind == 'cam' else None,
+            puntos_evento_id=oid if kind == 'pe' else None).all()}
+
+        personas = []
+        for r in rows:
+            h = _hiker(r.cedula)
+            es_hoy = bool(r.created_at and r.created_at.date() == hoy)
+            personas.append({
+                'nombre': h.nombre_completo if h else r.cedula,
+                'cedula': r.cedula,
+                'puntos': r.points,
+                'total': _total(r.cedula),
+                'hora': r.created_at.strftime('%d/%m/%Y %H:%M') if r.created_at else '',
+                'hoy': es_hoy,
+                'retirado': r.cedula in retiradas,
+                'operador': r.created_by or '',
+            })
+
+        pendientes = []
+        if kind == 'cam':
+            escaneadas = {r.cedula for r in rows}
+            for reg in EventRegistration.query.filter_by(event_id=oid).all():
+                h = Hiker.query.get(reg.hiker_id)
+                if h and h.cedula not in escaneadas:
+                    pendientes.append({'nombre': h.nombre_completo, 'cedula': h.cedula,
+                                       'telefono': h.telefono or ''})
+
+        resultado.append({
+            'kind': kind,
+            'id': oid,
+            'nombre': nombre,
+            'puntos_config': pts_cfg,
+            'url': url,
+            'personas': personas,
+            'pendientes': pendientes,
+            'total_generado': sum(p['puntos'] for p in personas),
+            'hoy_puntos': sum(p['puntos'] for p in personas if p['hoy']),
+            'hoy_count': sum(1 for p in personas if p['hoy']),
+            'ultimo': rows[0].created_at if rows else None,
+        })
+    resultado.sort(key=lambda e: e['ultimo'] or datetime.min, reverse=True)
+    return resultado
 
 
 @bp.route('/public/usuarios/<token>')
