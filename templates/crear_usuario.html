@@ -82,7 +82,7 @@ const CURRENT_USER_ROLE = "{{ session.get('role', '') }}";
             <div class="cu-flex">
                 <div class="cu-field-sm">
                     <label class="label-bulma">Número de Cédula</label>
-                    <input type="text" name="cedula" class="input-bulma" id="cuCedula" {{ 'required' if session.get('role') != 'Superusuario' else '' }} inputmode="numeric" pattern="[0-9]*" oninput="this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('crearUsuarioForm', 'cuCedula'); checkCedulaExistente(this.value, 'crearUsuarioForm');" placeholder="Ej: 112340567">
+                    <input type="text" name="cedula" class="input-bulma" id="cuCedula" {{ 'required' if session.get('role') != 'Superusuario' else '' }} inputmode="numeric" pattern="[0-9]*" value="{{ request.args.get('cedula', '') }}" oninput="this.value=this.value.replace(/[^0-9]/g,''); toggleCedulaLock('crearUsuarioForm', 'cuCedula'); checkCedulaExistente(this.value, 'crearUsuarioForm');" placeholder="Ej: 112340567">
                 </div>
                 <div class="cu-field">
                     <label class="label-bulma">Nombre</label>

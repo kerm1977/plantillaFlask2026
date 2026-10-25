@@ -52,6 +52,7 @@
             .then(function (d) {
                 var h = (d.results || []).filter(function (x) { return x.cedula === cedula; })[0];
                 if (!h) {
+                    lastCedula = cedula;
                     showResult(false, 'La cédula ' + cedula + ' del carnet no está registrada.',
                         { showRegister: true });
                     return;
@@ -106,7 +107,10 @@
             estadoBtn.href = opts.estadoUrl;
             estadoBtn.classList.remove('d-none');
         }
-        if (opts.showRegister) regBtn.classList.remove('d-none');
+        if (opts.showRegister) {
+            regBtn.href = '/admin/crear-usuario' + (lastCedula ? ('?cedula=' + encodeURIComponent(lastCedula)) : '');
+            regBtn.classList.remove('d-none');
+        }
     }
 
     function sendEstado(cedulaDirecta) {
@@ -177,7 +181,11 @@
                     box.appendChild(b);
                 });
                 if (!(d.results || []).length) {
-                    box.innerHTML = '<div class="list-group-item small text-muted">Sin coincidencias</div>';
+                    var esCed = /^\d{5,}$/.test(q.replace(/\D/g, ''));
+                    box.innerHTML = '<div class="list-group-item small text-muted">Sin coincidencias</div>' +
+                        '<a class="list-group-item list-group-item-action text-center fw-bold" style="color:#4527a0;"' +
+                        ' href="/admin/crear-usuario' + (esCed ? ('?cedula=' + encodeURIComponent(q.replace(/\D/g, ''))) : '') + '">' +
+                        '<i class="bi bi-person-plus me-1"></i>Agregar usuario</a>';
                 }
             })
             .catch(function () { /* silencioso */ });
