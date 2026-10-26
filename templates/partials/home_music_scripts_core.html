@@ -110,7 +110,7 @@ function mpRowClick(i) {
 function mpShareSong(i) {
     const s = MP.songs[i];
     if (!s) return;
-    const url = 'https://www.latribu.top/musica/' + encodeURIComponent(s.filename);
+    const url = 'https://www.latribu.top/musica/' + (s.slug || encodeURIComponent(s.filename));
     document.getElementById('songShareName').textContent = s.display_name;
     document.getElementById('songShareUrl').value = url;
     document.getElementById('songShareWa').href =

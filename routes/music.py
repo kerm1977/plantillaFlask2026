@@ -4,6 +4,8 @@
 # ==============================================================
 import os
 import json
+import re
+import unicodedata
 from flask import request, jsonify, session, render_template, abort
 from werkzeug.utils import secure_filename
 from routes import bp, _PROJECT_ROOT
@@ -30,6 +32,14 @@ def _safe_musica_name(name):
     return '/' not in name and '\\' not in name and '..' not in name
 
 
+def _slugify(text):
+    """'A GOLPE DE BASTON.mp3' -> 'a-golpe-de-baston' (slug corto y legible)."""
+    s = unicodedata.normalize('NFD', text or '')
+    s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+    s = re.sub(r'[^a-zA-Z0-9]+', '-', s).strip('-').lower()
+    return s or 'cancion'
+
+
 @bp.route('/api/musica')
 def list_musica():
     if not os.path.exists(MUSICA_FOLDER):
@@ -42,19 +52,31 @@ def list_musica():
             songs.append({
                 'filename': fname,
                 'display_name': meta.get(fname, os.path.splitext(fname)[0]),
-                'url': '/static/musica/' + fname
+                'url': '/static/musica/' + fname,
+                'slug': _slugify(os.path.splitext(fname)[0])
             })
     return jsonify(songs)
 
 
-@bp.route('/musica/<path:filename>')
-def musica_cancion(filename):
-    """Mini reproductor público de UNA sola canción (enlace directo)."""
-    fname = os.path.basename(filename)
-    ext = fname.rsplit('.', 1)[-1].lower() if '.' in fname else ''
-    if (not _safe_musica_name(fname) or ext not in ALLOWED_AUDIO
-            or not os.path.isfile(os.path.join(MUSICA_FOLDER, fname))):
+@bp.route('/musica/<path:name>')
+def musica_cancion(name):
+    """Mini reproductor público de UNA sola canción.
+    Acepta el nombre de archivo exacto o el slug corto (ej. /musica/a-golpe-de-baston)."""
+    fname = os.path.basename(name)
+    if not _safe_musica_name(fname):
         abort(404)
+    ext = fname.rsplit('.', 1)[-1].lower() if '.' in fname else ''
+    if ext not in ALLOWED_AUDIO or not os.path.isfile(os.path.join(MUSICA_FOLDER, fname)):
+        # Resolver por slug: /musica/a-golpe-de-baston -> "A GOLPE DE BASTON.mp3"
+        base = os.path.splitext(fname)[0] if ext in ALLOWED_AUDIO else fname
+        wanted = _slugify(base)
+        fname = next(
+            (f for f in os.listdir(MUSICA_FOLDER)
+             if f.rsplit('.', 1)[-1].lower() in ALLOWED_AUDIO
+             and _slugify(os.path.splitext(f)[0]) == wanted),
+            None)
+        if not fname:
+            abort(404)
     meta = _load_musica_meta()
     return render_template('musica_cancion.html',
                            display_name=meta.get(fname, os.path.splitext(fname)[0]),
