@@ -61,7 +61,7 @@ function mpRenderList() {
         const lp = IS_MUSIC_SUPER
             ? `onpointerdown="mpLPStart(event,${i})" onpointerup="mpLPCancel()" onpointerleave="mpLPCancel()" onpointercancel="mpLPCancel()" oncontextmenu="event.preventDefault()"`
             : '';
-        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row" ${lp}`
+        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row" ${lp}
                      style="cursor:pointer; background:${bg}; border:1px solid ${isActive ? 'rgba(255,140,0,0.3)' : 'transparent'}; transition:all .15s; user-select:none; -webkit-user-select:none;"
                      onmouseenter="this.style.background='rgba(255,255,255,0.07)'"
                      onmouseleave="this.style.background='${bg}'"
