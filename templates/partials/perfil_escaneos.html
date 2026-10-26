@@ -90,6 +90,66 @@
 {% elif not escaneos_hoy %}
 <p class="small text-muted mb-0">Todavía no se ha escaneado ninguna caminata. Cuando se asignen puntos con el escáner QR, aparecerán aquí con nombre, cédula y puntos de cada persona.</p>
 {% endif %}
+<div class="d-flex gap-2 mt-3 pt-3 border-top border-secondary border-opacity-25">
+    <a href="/api/admin/puntos/export" class="btn btn-sm btn-outline-success flex-fill fw-bold" download>
+        <i class="bi bi-download me-1"></i>Exportar puntos (JSON)
+    </a>
+    <button type="button" class="btn btn-sm btn-outline-primary flex-fill fw-bold"
+            onclick="document.getElementById('escImportFile').click()">
+        <i class="bi bi-upload me-1"></i>Importar puntos (JSON)
+    </button>
+    <input type="file" id="escImportFile" accept=".json,application/json" hidden onchange="importarPuntosJson(this)">
+</div>
+<div id="escImportMsg" class="small mt-2" style="display:none;"></div>
+<script>
+async function importarPuntosJson(input) {
+    const msg = document.getElementById('escImportMsg');
+    const file = input.files && input.files[0];
+    input.value = '';
+    if (!file) return;
+    let data;
+    try {
+        data = JSON.parse(await file.text());
+    } catch (e) {
+        msg.style.display = 'block';
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = 'El archivo no es un JSON válido.';
+        return;
+    }
+    const movs = (data.movimientos || []).length;
+    const pers = (data.caminantes || []).length;
+    if (!confirm('Se va a importar el respaldo de puntos:\n\n' +
+                 '• ' + pers + ' personas en el archivo\n' +
+                 '• ' + movs + ' movimientos de puntos\n\n' +
+                 'Solo se agregarán los registros que falten (sin duplicar). ¿Continuar?')) {
+        return;
+    }
+    msg.style.display = 'block';
+    msg.className = 'small mt-2 text-muted';
+    msg.textContent = 'Importando…';
+    try {
+        const r = await fetch('/api/admin/puntos/import', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+        });
+        const d = await r.json();
+        if (d.ok) {
+            msg.className = 'small mt-2 text-success fw-bold';
+            msg.textContent = 'Importación lista: ' + d.caminantes_nuevos + ' personas nuevas, ' +
+                d.movimientos_importados + ' movimientos importados, ' +
+                d.movimientos_omitidos + ' ya existían.';
+            setTimeout(() => location.reload(), 2500);
+        } else {
+            msg.className = 'small mt-2 text-danger';
+            msg.textContent = d.error || 'No se pudo importar.';
+        }
+    } catch (e) {
+        msg.className = 'small mt-2 text-danger';
+        msg.textContent = 'Error de conexión al importar.';
+    }
+}
+</script>
 <style>
 .esc-cam-head .esc-caret { display: inline-block; transition: transform .2s ease; }
 .esc-cam-head[aria-expanded="true"] .esc-caret { transform: rotate(90deg); }

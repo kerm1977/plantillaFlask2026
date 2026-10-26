@@ -346,6 +346,234 @@ def admin_estado_cuenta(cedula):
                     'movimientos': movs})
 
 
+@bp.route('/api/admin/puntos/export')
+def admin_puntos_export():
+    """Exporta TODA la información del sistema de puntos a un JSON descargable
+    (solo superusuario): personas, movimientos, resúmenes y fidelidad."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    import json as _json
+    from models import Hiker, HikerPoints, PuntosEvento, FidelidadAjuste, FidelidadLog
+
+    hikers = Hiker.query.order_by(Hiker.nombre_completo).all()
+    pts = HikerPoints.query.order_by(HikerPoints.created_at, HikerPoints.id).all()
+    events = {e.id: e.nombre_lugar for e in Event.query.all()}
+    pevs = {p.id: p.nombre for p in PuntosEvento.query.all()}
+    nombres = {h.cedula: h.nombre_completo for h in hikers}
+
+    def _iso(dt):
+        return dt.isoformat(sep=' ', timespec='seconds') if dt else None
+
+    # Resumen por cédula: ganados (positivos), usados/redimidos (negativos), disponible (neto)
+    resumen = {}
+    for r in pts:
+        s = resumen.setdefault(r.cedula, {'ganados': 0, 'usados': 0, 'disponible': 0, 'movimientos': 0})
+        if r.points and r.points > 0:
+            s['ganados'] += r.points
+        elif r.points and r.points < 0:
+            s['usados'] += -r.points
+        s['disponible'] += r.points or 0
+        s['movimientos'] += 1
+
+    payload = {
+        'app': 'latribu-puntos',
+        'version': 1,
+        'generado': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'resumen': [{
+            'cedula': ced,
+            'nombre': nombres.get(ced, ''),
+            'ganados': s['ganados'],
+            'usados': s['usados'],
+            'disponible': s['disponible'],
+            'movimientos': s['movimientos'],
+        } for ced, s in sorted(resumen.items(), key=lambda kv: (nombres.get(kv[0], '') or kv[0]))],
+        'caminantes': [{
+            'cedula': h.cedula,
+            'nombre_completo': h.nombre_completo,
+            'telefono': h.telefono,
+            'pasaporte': h.pasaporte,
+            'tipo_sangre': h.tipo_sangre,
+            'fecha_nacimiento': h.fecha_nacimiento.isoformat() if h.fecha_nacimiento else None,
+            'alergias': h.alergias,
+            'enfermedades_cronicas': h.enfermedades_cronicas,
+            'contacto_emergencia_nombre': h.contacto_emergencia_nombre,
+            'contacto_emergencia_telefono': h.contacto_emergencia_telefono,
+            'pin_secreto': h.pin_secreto,
+            'card_email': h.card_email,
+            'status': h.status,
+            'consultas_puntos_count': h.consultas_puntos_count,
+            'created_at': _iso(h.created_at),
+        } for h in hikers],
+        'movimientos': [{
+            'cedula': r.cedula,
+            'event_id': r.event_id,
+            'evento_nombre': events.get(r.event_id) or pevs.get(r.puntos_evento_id) or '',
+            'puntos_evento_id': r.puntos_evento_id,
+            'donacion_finalidad_id': r.donacion_finalidad_id,
+            'points': r.points,
+            'tipo': r.tipo,
+            'detalle': r.detalle,
+            'created_by': r.created_by,
+            'created_at': _iso(r.created_at),
+        } for r in pts],
+        'fidelidad_ajustes': [{
+            'cedula': a.cedula, 'nivel': a.nivel, 'nota': a.nota,
+            'created_by': a.created_by, 'updated_at': _iso(a.updated_at),
+        } for a in FidelidadAjuste.query.all()],
+        'fidelidad_log': [{
+            'cedula': l.cedula, 'nivel_anterior': l.nivel_anterior, 'nivel_nuevo': l.nivel_nuevo,
+            'origen': l.origen, 'nota': l.nota, 'created_by': l.created_by,
+            'created_at': _iso(l.created_at),
+        } for l in FidelidadLog.query.all()],
+    }
+    resp = current_app.response_class(
+        _json.dumps(payload, ensure_ascii=False, indent=2),
+        mimetype='application/json; charset=utf-8')
+    resp.headers['Content-Disposition'] = (
+        f'attachment; filename=puntos-latribu-{datetime.now():%Y%m%d-%H%M}.json')
+    return resp
+
+
+@bp.route('/api/admin/puntos/import', methods=['POST'])
+def admin_puntos_import():
+    """Importa un JSON exportado por /api/admin/puntos/export (solo superusuario).
+    Inserta solo lo que falte: caminantes nuevos y movimientos no duplicados."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    import json as _json
+    from models import Hiker, HikerPoints, FidelidadAjuste, FidelidadLog
+
+    data = request.get_json(silent=True)
+    if data is None and request.files:
+        f = request.files.get('archivo') or next(iter(request.files.values()))
+        try:
+            data = _json.loads(f.read().decode('utf-8'))
+        except Exception:
+            data = None
+    if not isinstance(data, dict) or 'movimientos' not in data:
+        return jsonify({'ok': False, 'error': 'JSON inválido: se esperaba el formato exportado por La Tribu.'}), 400
+
+    def _dt(v):
+        if not v:
+            return None
+        try:
+            d = datetime.fromisoformat(str(v).replace('Z', '+00:00'))
+            return d.replace(tzinfo=None)
+        except Exception:
+            return None
+
+    # 1) Caminantes faltantes
+    cam_nuevos = 0
+    por_cedula = {}
+    for c in data.get('caminantes') or []:
+        ced = str(c.get('cedula') or '').strip()
+        if not ced or not c.get('nombre_completo'):
+            continue
+        h = Hiker.query.filter_by(cedula=ced).first()
+        if h:
+            por_cedula[ced] = h.id
+            continue
+        pin = c.get('pin_secreto')
+        if pin and Hiker.query.filter_by(pin_secreto=pin).first():
+            pin = None
+        h = Hiker(
+            cedula=ced, nombre_completo=c['nombre_completo'],
+            telefono=c.get('telefono'), pasaporte=c.get('pasaporte'),
+            tipo_sangre=c.get('tipo_sangre'),
+            alergias=c.get('alergias'),
+            enfermedades_cronicas=c.get('enfermedades_cronicas'),
+            contacto_emergencia_nombre=c.get('contacto_emergencia_nombre'),
+            contacto_emergencia_telefono=c.get('contacto_emergencia_telefono'),
+            pin_secreto=pin, card_email=c.get('card_email'),
+            status=c.get('status') or 'Activo',
+            consultas_puntos_count=c.get('consultas_puntos_count') or 0,
+        )
+        if c.get('fecha_nacimiento'):
+            try:
+                h.fecha_nacimiento = datetime.fromisoformat(str(c['fecha_nacimiento'])[:10]).date()
+            except Exception:
+                pass
+        db.session.add(h)
+        db.session.flush()
+        por_cedula[ced] = h.id
+        cam_nuevos += 1
+    for h in Hiker.query.all():
+        por_cedula.setdefault(h.cedula, h.id)
+
+    # 2) Movimientos faltantes (dedup por contenido completo)
+    def _key(ced, tipo, ev, pe, don, pts, ts, det):
+        return (ced, tipo or '', ev or 0, pe or 0, don or 0, pts or 0,
+                ts.strftime('%Y-%m-%d %H:%M:%S') if ts else '', det or '')
+
+    existentes = {_key(r.cedula, r.tipo, r.event_id, r.puntos_evento_id,
+                       r.donacion_finalidad_id, r.points, r.created_at, r.detalle)
+                  for r in HikerPoints.query.all()}
+    mov_nuevos, mov_omitidos = 0, 0
+    for m in data.get('movimientos') or []:
+        ced = str(m.get('cedula') or '').strip()
+        if not ced:
+            mov_omitidos += 1
+            continue
+        ts = _dt(m.get('created_at')) or datetime.utcnow()
+        k = _key(ced, m.get('tipo'), m.get('event_id'), m.get('puntos_evento_id'),
+                 m.get('donacion_finalidad_id'), m.get('points'), ts, m.get('detalle'))
+        if k in existentes:
+            mov_omitidos += 1
+            continue
+        db.session.add(HikerPoints(
+            cedula=ced, hiker_id=por_cedula.get(ced),
+            event_id=m.get('event_id'), puntos_evento_id=m.get('puntos_evento_id'),
+            donacion_finalidad_id=m.get('donacion_finalidad_id'),
+            points=m.get('points') or 0, tipo=m.get('tipo') or 'participacion',
+            detalle=m.get('detalle'), created_by=m.get('created_by'),
+            created_at=ts))
+        existentes.add(k)
+        mov_nuevos += 1
+
+    # 3) Ajustes de nivel VIP (upsert por cédula)
+    ajustes = 0
+    for a in data.get('fidelidad_ajustes') or []:
+        ced = str(a.get('cedula') or '').strip()
+        if not ced or not a.get('nivel'):
+            continue
+        row = FidelidadAjuste.query.filter_by(cedula=ced).first()
+        if row:
+            if row.nivel != a['nivel']:
+                row.nivel = a['nivel']
+                ajustes += 1
+        else:
+            db.session.add(FidelidadAjuste(cedula=ced, nivel=a['nivel'],
+                                           nota=a.get('nota'), created_by=a.get('created_by')))
+            ajustes += 1
+
+    # 4) Bitácora de fidelidad
+    log_keys = {(l.cedula, l.nivel_anterior or '', l.nivel_nuevo or '',
+                 l.created_at.strftime('%Y-%m-%d %H:%M:%S') if l.created_at else '')
+                for l in FidelidadLog.query.all()}
+    logs = 0
+    for l in data.get('fidelidad_log') or []:
+        ced = str(l.get('cedula') or '').strip()
+        ts = _dt(l.get('created_at'))
+        k = (ced, l.get('nivel_anterior') or '', l.get('nivel_nuevo') or '',
+             ts.strftime('%Y-%m-%d %H:%M:%S') if ts else '')
+        if not ced or k in log_keys:
+            continue
+        db.session.add(FidelidadLog(
+            cedula=ced, nivel_anterior=l.get('nivel_anterior'), nivel_nuevo=l.get('nivel_nuevo'),
+            origen=l.get('origen') or 'manual', nota=l.get('nota'),
+            created_by=l.get('created_by'), created_at=ts or datetime.utcnow()))
+        log_keys.add(k)
+        logs += 1
+
+    db.session.commit()
+    return jsonify({'ok': True,
+                    'caminantes_nuevos': cam_nuevos,
+                    'movimientos_importados': mov_nuevos,
+                    'movimientos_omitidos': mov_omitidos,
+                    'ajustes': ajustes,
+                    'logs': logs})
+
+
 @bp.route('/public/usuarios/<token>')
 def public_usuarios(token):
     return redirect(url_for('main.home', token=token))
