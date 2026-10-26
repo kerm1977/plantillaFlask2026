@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ display_name }} — La Tribu de los Libres</title>
+<link rel="icon" href="/static/logo.png">
+<link rel="apple-touch-icon" href="/static/logo.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<meta property="og:title" content="{{ display_name }} — La Tribu de los Libres">
+<meta property="og:image" content="{{ url_for('static', filename='logo.png', _external=True) }}">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: radial-gradient(circle at 50% 0%, #1a1a2e 0%, #0f0f1a 70%);
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #fff; padding: 20px;
+  }
+  .card {
+    width: 100%; max-width: 400px; text-align: center;
+    background: linear-gradient(160deg, #1a1a2e 0%, #16213e 60%, #0f3460 100%);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 1.5rem; padding: 2rem 1.5rem 1.5rem;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .logo { height: 72px; width: auto; border-radius: 14px; margin-bottom: .8rem;
+          background: #fff; padding: 6px; }
+  .brand { font-size: .8rem; letter-spacing: .15em; color: #ff8c00;
+           text-transform: uppercase; font-weight: 700; margin-bottom: 1.4rem; }
+  .song-name { font-size: 1.35rem; font-weight: 700; margin-bottom: .3rem;
+               word-break: break-word; }
+  .song-sub { font-size: .8rem; color: #9aa4c0; margin-bottom: 1.4rem; }
+  .progress-wrap { margin-bottom: 1.2rem; }
+  input[type=range] { width: 100%; accent-color: #ff8c00; height: 4px; }
+  .times { display: flex; justify-content: space-between;
+           font-size: .72rem; color: #9aa4c0; margin-top: 2px; }
+  .play-btn {
+    background: none; border: none; cursor: pointer;
+    color: #ff8c00; font-size: 4.2rem; line-height: 1;
+    transition: transform .15s ease;
+  }
+  .play-btn:hover { transform: scale(1.08); }
+  .actions { display: flex; gap: .6rem; margin-top: 1.6rem; }
+  .actions a {
+    flex: 1; text-decoration: none; font-size: .8rem; font-weight: 600;
+    padding: .65rem .5rem; border-radius: 2rem;
+    display: flex; align-items: center; justify-content: center; gap: .4rem;
+  }
+  .btn-dl { background: rgba(86,180,233,0.12); color: #56b4e9;
+            border: 1px solid rgba(86,180,233,0.35); }
+  .btn-site { background: rgba(255,140,0,0.12); color: #ff8c00;
+              border: 1px solid rgba(255,140,0,0.35); }
+</style>
+</head>
+<body>
+<div class="card">
+  <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu de los Libres" class="logo">
+  <div class="brand">La Tribu de los Libres</div>
+  <div class="song-name"><i class="bi bi-music-note-beamed" style="color:#ff8c00;"></i> {{ display_name }}</div>
+  <div class="song-sub">Canciones de La Tribu</div>
+
+  <audio id="songAudio" src="{{ url_for('static', filename='musica/' + filename) }}" preload="auto" autoplay></audio>
+
+  <div class="progress-wrap">
+    <input type="range" id="songProg" min="0" max="100" value="0">
+    <div class="times"><span id="songCur">0:00</span><span id="songDur">0:00</span></div>
+  </div>
+
+  <button id="songPlayBtn" class="play-btn" title="Play/Pausa" onclick="songToggle()">
+    <i class="bi bi-play-circle-fill" id="songPlayIcon"></i>
+  </button>
+
+  <div class="actions">
+    <a href="{{ url_for('static', filename='musica/' + filename) }}" download="{{ display_name }}" class="btn-dl">
+      <i class="bi bi-download"></i>Descargar
+    </a>
+    <a href="https://www.latribu.top" class="btn-site">
+      <i class="bi bi-globe2"></i>Visitar el sitio
+    </a>
+  </div>
+</div>
+
+<script>
+const a = document.getElementById('songAudio');
+const prog = document.getElementById('songProg');
+const icon = document.getElementById('songPlayIcon');
+function fmt(s){ const m=Math.floor(s/60), x=Math.floor(s%60); return m+':'+String(x).padStart(2,'0'); }
+a.addEventListener('timeupdate', () => {
+  if (a.duration) prog.value = (a.currentTime / a.duration) * 100;
+  document.getElementById('songCur').textContent = fmt(a.currentTime);
+});
+a.addEventListener('loadedmetadata', () => {
+  document.getElementById('songDur').textContent = fmt(a.duration);
+});
+a.addEventListener('play',  () => icon.className = 'bi bi-pause-circle-fill');
+a.addEventListener('pause', () => icon.className = 'bi bi-play-circle-fill');
+a.addEventListener('ended', () => icon.className = 'bi bi-arrow-repeat');
+prog.addEventListener('input', () => { if (a.duration) a.currentTime = prog.value / 100 * a.duration; });
+function songToggle(){ a.paused ? a.play() : a.pause(); }
+// Autoplay inmediato; si el navegador lo bloquea queda el botón de play
+a.play().catch(() => {});
+</script>
+</body>
+</html>

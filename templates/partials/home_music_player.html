@@ -143,3 +143,33 @@
     </div>
   </div>
 </div>
+
+<!-- MODAL COMPARTIR CANCIÓN (long-press, solo superusuario) -->
+<div class="modal fade" id="songShareModal" tabindex="-1" data-bs-backdrop="true" style="z-index:1080;">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow-lg" style="background:#1a1a2e; color:white; border-radius:1rem;">
+      <div class="modal-header border-0 pb-1">
+        <span class="fw-bold"><i class="bi bi-share-fill text-orange me-2"></i>Enlace directo</span>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-1">
+        <div id="songShareName" class="fw-bold mb-2" style="color:#ff8c00; font-size:0.95rem;"></div>
+        <input type="text" id="songShareUrl" readonly
+               class="form-control bg-dark text-white border-secondary rounded-3 px-3 mb-3"
+               style="font-size:0.78rem;" onclick="this.select()">
+        <div class="d-flex gap-2">
+          <button class="btn btn-orange btn-sm rounded-pill flex-fill fw-bold" onclick="mpCopySongLink()">
+            <i class="bi bi-clipboard me-1"></i>Copiar
+          </button>
+          <a id="songShareWa" href="#" target="_blank" rel="noopener"
+             class="btn btn-success btn-sm rounded-pill flex-fill fw-bold">
+            <i class="bi bi-whatsapp me-1"></i>WhatsApp
+          </a>
+        </div>
+        <div class="text-secondary text-center mt-2" style="font-size:0.7rem;">
+          Quien abra este enlace escucha solo esta canción
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

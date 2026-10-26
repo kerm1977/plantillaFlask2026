@@ -58,11 +58,14 @@ function mpRenderList() {
         const bg = isActive ? 'rgba(255,140,0,0.18)' : 'transparent';
         const nameColor = isActive ? '#ff8c00' : '#ddd';
         const iconClass = isActive && MP.isPlaying ? 'bi-soundwave text-orange' : 'bi-music-note';
-        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row"
-                     style="cursor:pointer; background:${bg}; border:1px solid ${isActive ? 'rgba(255,140,0,0.3)' : 'transparent'}; transition:all .15s;"
+        const lp = IS_MUSIC_SUPER
+            ? `onpointerdown="mpLPStart(event,${i})" onpointerup="mpLPCancel()" onpointerleave="mpLPCancel()" onpointercancel="mpLPCancel()" oncontextmenu="event.preventDefault()"`
+            : '';
+        return `<div class="d-flex align-items-center gap-2 px-2 py-2 rounded-3 mb-1 song-row" ${lp}`
+                     style="cursor:pointer; background:${bg}; border:1px solid ${isActive ? 'rgba(255,140,0,0.3)' : 'transparent'}; transition:all .15s; user-select:none; -webkit-user-select:none;"
                      onmouseenter="this.style.background='rgba(255,255,255,0.07)'"
                      onmouseleave="this.style.background='${bg}'"
-                     onclick="mpPlay(${i})">
+                     onclick="mpRowClick(${i})">
             <span class="text-secondary" style="font-size:0.7rem; min-width:22px; text-align:right;">${i + 1}</span>
             <i class="bi ${iconClass}" style="font-size:0.85rem; min-width:16px;"></i>
             <span id="mpName-${i}" class="flex-grow-1 fw-${isActive ? 'bold' : 'normal'}"
@@ -84,6 +87,48 @@ function mpRenderList() {
             </button>` : ''}
         </div>`;
     }).join('');
+}
+
+// ---- Long-press: generar enlace directo (solo superusuario) ----
+let _lpTimer = null, _lpJustFired = false;
+
+function mpLPStart(e, i) {
+    if (e.target.closest('a,button')) return;
+    mpLPCancel();
+    _lpTimer = setTimeout(() => {
+        _lpJustFired = true;
+        mpShareSong(i);
+        setTimeout(() => { _lpJustFired = false; }, 600);
+    }, 600);
+}
+function mpLPCancel() {
+    if (_lpTimer) { clearTimeout(_lpTimer); _lpTimer = null; }
+}
+function mpRowClick(i) {
+    if (!_lpJustFired) mpPlay(i);
+}
+function mpShareSong(i) {
+    const s = MP.songs[i];
+    if (!s) return;
+    const url = 'https://www.latribu.top/musica/' + encodeURIComponent(s.filename);
+    document.getElementById('songShareName').textContent = s.display_name;
+    document.getElementById('songShareUrl').value = url;
+    document.getElementById('songShareWa').href =
+        'https://wa.me/?text=' + encodeURIComponent('\u{1F3B5} ' + s.display_name + ' — La Tribu de los Libres\n' + url);
+    new bootstrap.Modal(document.getElementById('songShareModal')).show();
+}
+function mpCopySongLink() {
+    const inp = document.getElementById('songShareUrl');
+    const done = () => {
+        const b = document.querySelector('#songShareModal .btn-orange');
+        if (b) { b.innerHTML = '<i class="bi bi-check2 me-1"></i>¡Copiado!';
+                 setTimeout(() => b.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copiar', 1500); }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(inp.value).then(done).catch(() => { inp.select(); document.execCommand('copy'); done(); });
+    } else {
+        inp.select(); document.execCommand('copy'); done();
+    }
 }
 
 function mpPlay(index) {

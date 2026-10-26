@@ -4,7 +4,7 @@
 # ==============================================================
 import os
 import json
-from flask import request, jsonify, session
+from flask import request, jsonify, session, render_template, abort
 from werkzeug.utils import secure_filename
 from routes import bp, _PROJECT_ROOT
 
@@ -45,6 +45,20 @@ def list_musica():
                 'url': '/static/musica/' + fname
             })
     return jsonify(songs)
+
+
+@bp.route('/musica/<path:filename>')
+def musica_cancion(filename):
+    """Mini reproductor público de UNA sola canción (enlace directo)."""
+    fname = os.path.basename(filename)
+    ext = fname.rsplit('.', 1)[-1].lower() if '.' in fname else ''
+    if (not _safe_musica_name(fname) or ext not in ALLOWED_AUDIO
+            or not os.path.isfile(os.path.join(MUSICA_FOLDER, fname))):
+        abort(404)
+    meta = _load_musica_meta()
+    return render_template('musica_cancion.html',
+                           display_name=meta.get(fname, os.path.splitext(fname)[0]),
+                           filename=fname)
 
 
 @bp.route('/api/musica/rename', methods=['POST'])
