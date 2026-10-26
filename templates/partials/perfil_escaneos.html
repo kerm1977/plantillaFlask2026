@@ -7,21 +7,25 @@
    Tocar una persona abre su estado de cuenta de puntos. #}
 {% if escaneos_hoy %}
 <div class="border border-success rounded-4 overflow-hidden mb-3" style="background: rgba(25,135,84,0.12);">
-    <div class="p-3">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
-            <div class="fw-bold text-success"><i class="bi bi-calendar-check-fill me-1"></i>Escaneados HOY</div>
+    <div class="p-3 esc-cam-head" data-bs-toggle="collapse" data-bs-target="#escHoy" aria-expanded="false" style="cursor:pointer;" title="Tocar para ver quiénes escanearon hoy">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="fw-bold text-success"><i class="bi bi-chevron-right esc-caret me-1"></i><i class="bi bi-calendar-check-fill me-1"></i>Escaneados HOY</div>
             <div class="d-flex gap-2">
                 <span class="badge bg-success rounded-pill">{{ escaneos_hoy|length }} <i class="bi bi-people-fill"></i></span>
                 <span class="badge bg-success rounded-pill">{{ escaneos_hoy|sum(attribute='puntos') }} pts</span>
             </div>
         </div>
-        <div class="d-flex flex-column gap-1">
-            {% for p in escaneos_hoy %}
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 small esc-persona" role="button" title="Ver estado de cuenta" onclick="verEstadoCuenta('{{ p.cedula }}')" style="cursor:pointer;">
-                <div class="text-dark fw-semibold">{{ p.nombre }} <span class="text-muted fw-normal">· Céd. {{ p.cedula }}</span></div>
-                <div class="text-muted">{{ p.caminata }} · {{ p.hora[-5:] }}h · <span class="badge bg-orange rounded-pill">+{{ p.puntos }}</span> Total: <strong class="text-dark">{{ p.total }}</strong></div>
+    </div>
+    <div id="escHoy" class="collapse">
+        <div class="px-3 pb-3">
+            <div class="d-flex flex-column gap-1">
+                {% for p in escaneos_hoy %}
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-1 small esc-persona" role="button" title="Ver estado de cuenta" onclick="verEstadoCuenta('{{ p.cedula }}')" style="cursor:pointer;">
+                    <div class="text-dark fw-semibold">{{ p.nombre }} <span class="text-muted fw-normal">· Céd. {{ p.cedula }}</span></div>
+                    <div class="text-muted">{{ p.caminata }} · {{ p.hora[-5:] }}h · <span class="badge bg-orange rounded-pill">+{{ p.puntos }}</span> Total: <strong class="text-dark">{{ p.total }}</strong></div>
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 </div>

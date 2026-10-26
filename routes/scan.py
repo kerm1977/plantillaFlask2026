@@ -15,6 +15,7 @@ from sqlalchemy import or_
 from db import db
 from models import Event, Hiker, User, PuntosEvento, HikerPoints
 from modules.points_engine import get_points_engine
+from modules.points_bonuses import get_points_bonuses
 from modules import fidelidad
 from modules.points_helpers import is_past_event, build_estado_cuenta_whatsapp
 from modules.qr_card import build_card_png
@@ -167,6 +168,8 @@ def scan_award():
         if ya:
             return jsonify({'ok': False, 'code': 'duplicate',
                             'error': f'{hiker.nombre_completo} ya recibió los puntos de este evento.'})
+        # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
+        get_points_bonuses().apply(cedula)
         puntos = fidelidad.puntos_con_bono(cedula, pe.puntos)
         db.session.add(HikerPoints(
             cedula=cedula, hiker_id=hiker.id, puntos_evento_id=pe.id,
@@ -189,6 +192,8 @@ def scan_award():
     if engine.has_earned(event.id, cedula):
         return jsonify({'ok': False, 'code': 'duplicate',
                         'error': f'{hiker.nombre_completo} ya recibió los puntos de esta caminata.'})
+    # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
+    get_points_bonuses().apply(cedula)
     puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
     engine._add_record(cedula, hiker.id, event.id, puntos, 'participacion',
                        f'Puntos ganados en {event.nombre_lugar} (escaneo QR){fidelidad.etiqueta_bono(cedula, event.puntos)}', operador)
