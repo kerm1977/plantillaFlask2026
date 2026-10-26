@@ -357,12 +357,26 @@ def admin_puntos_export():
 
     hikers = Hiker.query.order_by(Hiker.nombre_completo).all()
     pts = HikerPoints.query.order_by(HikerPoints.created_at, HikerPoints.id).all()
-    events = {e.id: e.nombre_lugar for e in Event.query.all()}
-    pevs = {p.id: p.nombre for p in PuntosEvento.query.all()}
+    events = {e.id: e for e in Event.query.all()}
+    pevs = {p.id: p for p in PuntosEvento.query.all()}
     nombres = {h.cedula: h.nombre_completo for h in hikers}
 
     def _iso(dt):
         return dt.isoformat(sep=' ', timespec='seconds') if dt else None
+
+    # Escaneos por caminata / evento de puntos
+    esc_ev, esc_pe = {}, {}
+    for r in pts:
+        if r.event_id and r.tipo == 'participacion':
+            s = esc_ev.setdefault(r.event_id, {'escaneos': 0, 'cedulas': set(), 'puntos': 0})
+            s['escaneos'] += 1
+            s['cedulas'].add(r.cedula)
+            s['puntos'] += r.points or 0
+        elif r.puntos_evento_id and r.tipo == 'evento':
+            s = esc_pe.setdefault(r.puntos_evento_id, {'escaneos': 0, 'cedulas': set(), 'puntos': 0})
+            s['escaneos'] += 1
+            s['cedulas'].add(r.cedula)
+            s['puntos'] += r.points or 0
 
     # Resumen por cédula: ganados (positivos), usados/redimidos (negativos), disponible (neto)
     resumen = {}
@@ -387,6 +401,34 @@ def admin_puntos_export():
             'disponible': s['disponible'],
             'movimientos': s['movimientos'],
         } for ced, s in sorted(resumen.items(), key=lambda kv: (nombres.get(kv[0], '') or kv[0]))],
+        'caminatas': [{
+            'id': e.id,
+            'nombre': e.nombre_lugar,
+            'puntos': e.puntos,
+            'tipo_caminata': e.tipo_caminata,
+            'fecha_unica': e.fecha_unica,
+            'fecha_inicio': e.fecha_inicio,
+            'fecha_regreso': e.fecha_regreso,
+            'escaneada': e.id in esc_ev,
+            'escaneos': esc_ev.get(e.id, {}).get('escaneos', 0),
+            'personas': len(esc_ev.get(e.id, {}).get('cedulas', set())),
+            'puntos_generados': esc_ev.get(e.id, {}).get('puntos', 0),
+            'ultimo_escaneo': _iso(max((r.created_at for r in pts
+                                        if r.event_id == e.id and r.tipo == 'participacion'),
+                                       default=None)),
+        } for e in events.values() if e.puntos],
+        'eventos_puntos': [{
+            'id': p.id,
+            'nombre': p.nombre,
+            'descripcion': p.descripcion,
+            'puntos': p.puntos,
+            'activo': p.activo,
+            'publico': p.publico,
+            'escaneada': p.id in esc_pe,
+            'escaneos': esc_pe.get(p.id, {}).get('escaneos', 0),
+            'personas': len(esc_pe.get(p.id, {}).get('cedulas', set())),
+            'puntos_generados': esc_pe.get(p.id, {}).get('puntos', 0),
+        } for p in pevs.values()],
         'caminantes': [{
             'cedula': h.cedula,
             'nombre_completo': h.nombre_completo,
@@ -407,7 +449,8 @@ def admin_puntos_export():
         'movimientos': [{
             'cedula': r.cedula,
             'event_id': r.event_id,
-            'evento_nombre': events.get(r.event_id) or pevs.get(r.puntos_evento_id) or '',
+            'evento_nombre': (events[r.event_id].nombre_lugar if r.event_id in events else '')
+                             or (pevs[r.puntos_evento_id].nombre if r.puntos_evento_id in pevs else ''),
             'puntos_evento_id': r.puntos_evento_id,
             'donacion_finalidad_id': r.donacion_finalidad_id,
             'points': r.points,
