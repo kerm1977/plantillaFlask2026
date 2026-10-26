@@ -1,0 +1,143 @@
+<!-- ==============================================================
+     BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
+     Explicar antes de editar. Contenido sagrado protegido.
+============================================================== -->
+{# Modal Estado de Cuenta de Puntos + exportación PNG (superusuario).
+   Se abre al tocar una persona en "Caminatas Escaneadas". #}
+<div class="modal fade" id="estadoCuentaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-modal shadow-lg border-0">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h4 class="modal-title fw-bold text-dark w-100 text-center"><i class="bi bi-receipt me-2 text-orange"></i>Estado de Cuenta de Puntos</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-3 px-md-4 pb-4 pt-2">
+                <div id="estadoCuentaLoading" class="text-center py-5">
+                    <div class="spinner-border text-orange" role="status"></div>
+                    <div class="small text-muted mt-2">Cargando estado de cuenta...</div>
+                </div>
+                <div id="estadoCuentaError" class="alert alert-danger d-none"></div>
+                <div id="estadoCuentaBody" class="d-none">
+                    <!-- ═══ FACTURA (lo que se exporta a PNG) ═══ -->
+                    <div id="facturaArea" class="mx-auto rounded-4 overflow-hidden shadow-sm" style="max-width: 520px; background: #ffffff; border: 1px solid #eee;">
+                        <!-- Header degradado naranja -->
+                        <div style="background: linear-gradient(135deg, #ff8c00 0%, #e65c00 100%); padding: 20px 24px;">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <img src="{{ url_for('static', filename='logo.png') }}" alt="La Tribu" style="height: 48px; width: auto; background:#fff; border-radius: 10px; padding: 4px;">
+                                <div>
+                                    <div style="color: #fff; font-weight: 800; font-size: 1.15rem; line-height: 1.2;">ESTADO DE CUENTA</div>
+                                    <div style="color: #ffe0b3; font-size: 0.8rem; font-weight: 600;">La Tribu de los Libres · Sistema de Puntos</div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Datos de la persona -->
+                        <div style="padding: 18px 24px 6px;">
+                            <div style="font-size: 1.25rem; font-weight: 800; color: #212529;" id="fcNombre"></div>
+                            <div style="color: #6c757d; font-size: 0.85rem;">
+                                <span id="fcCedula"></span><span id="fcTelefono"></span><span id="fcPin"></span>
+                            </div>
+                        </div>
+                        <!-- Totales -->
+                        <div style="display: flex; gap: 10px; padding: 14px 24px;">
+                            <div style="flex: 1; background: #fff3e0; border: 1px solid #ffe0b2; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #e65100; text-transform: uppercase;">Disponible</div>
+                                <div style="font-size: 1.6rem; font-weight: 800; color: #e65100;" id="fcTotal">0</div>
+                                <div style="font-size: 0.65rem; color: #ef6c00;">puntos</div>
+                            </div>
+                            <div style="flex: 1; background: #e8f5e9; border: 1px solid #c8e6c9; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #2e7d32; text-transform: uppercase;">Ganados</div>
+                                <div style="font-size: 1.6rem; font-weight: 800; color: #2e7d32;" id="fcGanados">0</div>
+                                <div style="font-size: 0.65rem; color: #43a047;">puntos</div>
+                            </div>
+                            <div style="flex: 1; background: #ffebee; border: 1px solid #ffcdd2; border-radius: 12px; padding: 12px; text-align: center;">
+                                <div style="font-size: 0.7rem; font-weight: 700; color: #c62828; text-transform: uppercase;">Usados</div>
+                                <div style="font-size: 1.6rem; font-weight: 800; color: #c62828;" id="fcUsados">0</div>
+                                <div style="font-size: 0.65rem; color: #e53935;">puntos</div>
+                            </div>
+                        </div>
+                        <!-- Movimientos -->
+                        <div style="padding: 6px 24px 8px;">
+                            <div style="font-size: 0.75rem; font-weight: 800; color: #6c757d; text-transform: uppercase; letter-spacing: .5px; border-bottom: 2px solid #ff8c00; padding-bottom: 4px; margin-bottom: 6px;">Movimientos</div>
+                            <div id="fcMovimientos" style="font-size: 0.82rem;"></div>
+                        </div>
+                        <!-- Footer -->
+                        <div style="background: #fafafa; border-top: 1px dashed #ddd; padding: 10px 24px; text-align: center;">
+                            <div style="font-size: 0.7rem; color: #6c757d;">Generado: <span id="fcGenerado"></span> · www.latribu.top</div>
+                        </div>
+                    </div>
+                    <!-- ═══ FIN FACTURA ═══ -->
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 justify-content-center">
+                <button type="button" class="btn btn-orange rounded-pill fw-bold px-4" id="btnFacturaPNG" onclick="descargarFacturaPNG()" disabled>
+                    <i class="bi bi-file-earmark-image me-1"></i>Exportar PNG
+                </button>
+                <button type="button" class="btn btn-outline-secondary rounded-pill fw-bold px-4" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+let _fcCedulaActual = '';
+
+async function verEstadoCuenta(cedula) {
+    const modal = new bootstrap.Modal(document.getElementById('estadoCuentaModal'));
+    document.getElementById('estadoCuentaLoading').classList.remove('d-none');
+    document.getElementById('estadoCuentaBody').classList.add('d-none');
+    document.getElementById('estadoCuentaError').classList.add('d-none');
+    document.getElementById('btnFacturaPNG').disabled = true;
+    modal.show();
+    try {
+        const res = await fetch('/api/admin/estado_cuenta/' + encodeURIComponent(cedula));
+        const d = await res.json();
+        if (!d.ok) throw new Error(d.error || 'No se pudo cargar');
+        _fcCedulaActual = d.cedula;
+        document.getElementById('fcNombre').textContent = d.nombre;
+        document.getElementById('fcCedula').textContent = 'Céd. ' + d.cedula;
+        document.getElementById('fcTelefono').textContent = d.telefono ? ' · Tel. ' + d.telefono : '';
+        document.getElementById('fcPin').textContent = d.pin ? ' · PIN ' + d.pin : '';
+        document.getElementById('fcTotal').textContent = d.total.toLocaleString('es-CR');
+        document.getElementById('fcGanados').textContent = '+' + d.ganados.toLocaleString('es-CR');
+        document.getElementById('fcUsados').textContent = '-' + d.usados.toLocaleString('es-CR');
+        document.getElementById('fcGenerado').textContent = d.generado;
+        const cont = document.getElementById('fcMovimientos');
+        if (d.movimientos.length === 0) {
+            cont.innerHTML = '<div style="color:#6c757d; padding:8px 0;">Sin movimientos registrados.</div>';
+        } else {
+            cont.innerHTML = d.movimientos.map(m => {
+                const f = m.fecha ? m.fecha.split('-').reverse().join('/') : 'Sin fecha';
+                const pos = m.puntos > 0;
+                return '<div style="display:flex; justify-content:space-between; gap:8px; padding:5px 0; border-bottom:1px solid #f1f1f1;">' +
+                    '<div><div style="font-weight:700;color:#212529;">' + (m.actividad || '') + '</div>' +
+                    '<div style="color:#6c757d;font-size:0.72rem;">' + f + (m.hora ? ' ' + m.hora : '') + (m.detalle ? ' · ' + m.detalle : '') + '</div></div>' +
+                    '<div style="font-weight:800; color:' + (pos ? '#2e7d32' : '#c62828') + '; white-space:nowrap;">' + (pos ? '+' : '') + m.puntos.toLocaleString('es-CR') + '</div></div>';
+            }).join('');
+        }
+        document.getElementById('estadoCuentaLoading').classList.add('d-none');
+        document.getElementById('estadoCuentaBody').classList.remove('d-none');
+        document.getElementById('btnFacturaPNG').disabled = false;
+    } catch (err) {
+        document.getElementById('estadoCuentaLoading').classList.add('d-none');
+        const e = document.getElementById('estadoCuentaError');
+        e.textContent = err.message || 'Error de conexión';
+        e.classList.remove('d-none');
+    }
+}
+
+async function descargarFacturaPNG() {
+    const btn = document.getElementById('btnFacturaPNG');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Generando...';
+    try {
+        const canvas = await html2canvas(document.getElementById('facturaArea'), { scale: 3, useCORS: true, backgroundColor: '#ffffff' });
+        const a = document.createElement('a');
+        a.download = 'estado-cuenta-' + _fcCedulaActual + '.png';
+        a.href = canvas.toDataURL('image/png');
+        a.click();
+    } catch (e) {
+        alert('No se pudo generar el PNG. Intentá de nuevo.');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-file-earmark-image me-1"></i>Exportar PNG';
+}
+</script>

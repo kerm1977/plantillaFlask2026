@@ -313,6 +313,39 @@ def _build_escaneos(engine):
     return {'caminatas': resultado, 'hoy': hoy_lista}
 
 
+@bp.route('/api/admin/estado_cuenta/<cedula>')
+def admin_estado_cuenta(cedula):
+    """Estado de cuenta completo de puntos de una persona (solo superusuario)."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    import re as _re
+    from models import Hiker
+    ced = _re.sub(r'\D', '', str(cedula))
+    hiker = Hiker.query.filter_by(cedula=ced).first()
+    if not hiker:
+        return jsonify({'ok': False, 'error': 'Persona no encontrada'}), 404
+    engine = get_points_engine()
+    movs = [{
+        'fecha': (r['creado_at'] or '')[:10],
+        'hora': (r['creado_at'] or '')[11:16],
+        'actividad': r['evento_nombre'] or (r['tipo'] or '').replace('_', ' ').capitalize(),
+        'detalle': r['detalle'] or '',
+        'puntos': r['puntos'],
+        'tipo': r['tipo'],
+        'operador': r.get('creado_por') or '',
+    } for r in engine.history_with_names(ced)]
+    return jsonify({'ok': True,
+                    'nombre': hiker.nombre_completo,
+                    'cedula': ced,
+                    'telefono': hiker.telefono or '',
+                    'pin': hiker.pin_secreto or '',
+                    'total': engine.total_by_cedula(ced),
+                    'ganados': sum(m['puntos'] for m in movs if m['puntos'] > 0),
+                    'usados': -sum(m['puntos'] for m in movs if m['puntos'] < 0),
+                    'generado': datetime.now().strftime('%d/%m/%Y %H:%M'),
+                    'movimientos': movs})
+
+
 @bp.route('/public/usuarios/<token>')
 def public_usuarios(token):
     return redirect(url_for('main.home', token=token))
