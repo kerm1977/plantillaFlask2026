@@ -164,7 +164,8 @@
                         confirm('ÚLTIMA CONFIRMACIÓN: los puntos se acreditarán ahora. ¿Continuar?')) {
                         award(cedula, true);
                     } else {
-                        showResult(false, 'Re-asignación cancelada. No se sumaron puntos.');
+                        showResult(false, 'Re-asignación cancelada. No se sumaron puntos.',
+                            { showVerify: true });
                     }
                 } else {
                     showResult(false, d.error || 'Error al asignar puntos.',

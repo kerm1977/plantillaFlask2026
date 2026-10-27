@@ -312,17 +312,22 @@ def scan_award():
         return jsonify({'ok': False, 'error': 'Caminata no encontrada.'}), 404
     if not event.puntos:
         return jsonify({'ok': False, 'error': 'Esta caminata no tiene puntos configurados.'})
-    anulada = _tiene_anulacion('caminata', event.id, cedula)
-    if is_past_event(event) and not anulada:
-        return jsonify({'ok': False, 'error': 'La caminata ya pasó, no se pueden generar puntos.'})
     if engine.has_earned(event.id, cedula):
         return jsonify({'ok': False, 'code': 'duplicate',
                         'error': f'{hiker.nombre_completo} ya recibió los puntos de esta caminata.'})
-    if anulada and not data.get('confirmado_3'):
-        return jsonify({'ok': False, 'code': 'requires_confirm',
-                        'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
-                        'puntos': event.puntos,
-                        'error': f'{hiker.nombre_completo} tiene un escaneo anulado en esta caminata. Confirmá la re-asignación.'})
+    anulada = _tiene_anulacion('caminata', event.id, cedula)
+    pasada = is_past_event(event)
+    if not data.get('confirmado_3'):
+        if anulada:
+            return jsonify({'ok': False, 'code': 'requires_confirm',
+                            'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
+                            'puntos': event.puntos,
+                            'error': f'{hiker.nombre_completo} tiene un escaneo anulado en esta caminata. Confirmá la re-asignación.'})
+        if pasada:
+            return jsonify({'ok': False, 'code': 'requires_confirm',
+                            'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
+                            'puntos': event.puntos,
+                            'error': f'La caminata ya pasó. Confirmá si igual querés asignarle los puntos a {hiker.nombre_completo}.'})
     # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
     get_points_bonuses().apply(cedula)
     puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
