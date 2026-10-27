@@ -65,6 +65,9 @@
         <script type="application/json" id="mpHikersData">[
 {% for h in todos_hikers %}{"n": {{ (h.nombre_completo or '') | tojson }}, "c": {{ (h.cedula or '') | tojson }}, "t": {{ (h.telefono or '') | tojson }}, "p": {{ (h.pasaporte or '') | tojson }}}{{ ',' if not loop.last }}
 {% endfor %}]</script>
+        <script type="application/json" id="mpEventosData">[
+{% for e in todos_eventos %}{"id": {{ e.id }}, "n": {{ (e.nombre_lugar or '') | tojson }}, "p": {{ e.puntos or 0 }}}{{ ',' if not loop.last }}
+{% endfor %}]</script>
         <script>
         document.addEventListener('DOMContentLoaded', function () {
             var inp = document.getElementById('mpBuscarInput'),
@@ -72,22 +75,40 @@
                 form = document.getElementById('mpBuscarForm');
             if (!inp || !box) return;
             var hikers = [];
+            var eventos = [];
             try { hikers = JSON.parse(document.getElementById('mpHikersData').textContent); } catch (e) {}
+            try { eventos = JSON.parse(document.getElementById('mpEventosData').textContent); } catch (e) {}
             function norm(s) { return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
             function cerrar() { box.classList.add('d-none'); box.innerHTML = ''; }
+            function itemCaminata(e) {
+                return '<a href="/mis-puntos/caminata/' + e.id + '" class="d-block text-decoration-none text-dark px-3 py-2 border-bottom">' +
+                       '<span class="fw-bold"><i class="bi bi-signpost-2 me-1 text-orange"></i>' + e.n + '</span><br>' +
+                       '<small class="text-muted">Caminata · ' + e.p + ' puntos</small></a>';
+            }
             inp.addEventListener('input', function () {
                 var q = norm(inp.value.trim());
                 if (q.length < 2) { cerrar(); return; }
+                var html = '';
+                // "caminatas" en cualquier combinación de mayúsculas/minúsculas -> lista todas
+                if (q.length >= 3 && 'caminatas'.indexOf(q) === 0) {
+                    html = eventos.map(itemCaminata).join('');
+                } else {
+                    var evHits = eventos.filter(function (e) {
+                        return norm(e.n).indexOf(q) >= 0;
+                    }).slice(0, 6);
+                    html = evHits.map(itemCaminata).join('');
+                }
                 var hits = hikers.filter(function (h) {
                     return norm(h.n).indexOf(q) >= 0 || norm(h.c).indexOf(q) >= 0 ||
                            norm(h.t).indexOf(q) >= 0 || norm(h.p).indexOf(q) >= 0;
                 }).slice(0, 12);
-                if (!hits.length) { cerrar(); return; }
-                box.innerHTML = hits.map(function (h) {
+                html += hits.map(function (h) {
                     return '<button type="button" class="btn btn-link text-decoration-none text-dark w-100 text-start px-3 py-2 border-bottom mp-hit" data-ced="' + h.c + '">' +
                            '<span class="fw-bold">' + h.n + '</span><br>' +
                            '<small class="text-muted">' + h.c + (h.t ? ' · ' + h.t : '') + '</small></button>';
                 }).join('');
+                if (!html) { cerrar(); return; }
+                box.innerHTML = html;
                 box.classList.remove('d-none');
             });
             box.addEventListener('click', function (e) {

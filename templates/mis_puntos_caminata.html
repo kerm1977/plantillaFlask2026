@@ -1,0 +1,98 @@
+<!-- ==============================================================
+     Puntos por caminata: personas que acumularon puntos (solo superusuario)
+============================================================== -->
+{% extends 'base.html' %}
+{% block title %}Puntos · {{ event.nombre_lugar }} - La Tribu{% endblock %}
+{% block content %}
+<section class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-md-10 col-lg-8">
+
+      <h1 class="fw-bold text-dark text-center mb-1">
+        <i class="bi bi-signpost-2 text-orange me-2"></i>{{ event.nombre_lugar }}
+      </h1>
+      <p class="text-muted text-center mb-4">
+        {{ event.puntos or 0 }} puntos por participación ·
+        {{ lista|length }} persona{{ 's' if lista|length != 1 }} con puntos
+      </p>
+
+      <div class="d-flex justify-content-center gap-2 flex-wrap mb-4">
+        <a href="{{ wa_url }}" target="_blank" rel="noopener"
+           class="btn btn-success rounded-pill fw-bold">
+          <i class="bi bi-whatsapp me-1"></i>Enviar por WhatsApp
+        </a>
+        <button type="button" class="btn btn-outline-dark rounded-pill fw-bold" onclick="exportarCaminataTxt()">
+          <i class="bi bi-filetype-txt me-1"></i>Exportar TXT
+        </button>
+        <a href="{{ url_for('main.mis_puntos') }}" class="btn btn-outline-secondary rounded-pill fw-bold">
+          <i class="bi bi-arrow-left me-1"></i>Mis puntos
+        </a>
+      </div>
+
+      <!-- Tarjeta resumen -->
+      <div class="card border-0 shadow-lg rounded-4 mb-4 overflow-hidden">
+        <div class="p-3 text-white text-center" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+          <div class="small fw-bold" style="letter-spacing:.08em;">TOTAL ACUMULADO EN ESTA CAMINATA</div>
+          <div class="display-5 fw-bold" style="color:#ff8c00;">{{ total }} pts</div>
+          <div class="small" style="color:#9aa4c0;">
+            {{ ganados_total }} ganados · {{ perdidos_total }} perdidos
+          </div>
+        </div>
+      </div>
+
+      {% if lista %}
+      <div class="card border-0 shadow-lg rounded-4 overflow-hidden mb-4">
+        <div class="list-group list-group-flush">
+          {% for p in lista %}
+          <div class="list-group-item d-flex justify-content-between align-items-center px-3 py-2">
+            <div>
+              <div class="fw-bold text-dark">{{ p.nombre }}</div>
+              <small class="text-muted">{{ p.cedula }}{% if p.perdidos %} · perdió {{ p.perdidos }} pts{% endif %}</small>
+            </div>
+            <div class="text-end">
+              <span class="fw-bold fs-5 {{ 'text-success' if p.neto >= 0 else 'text-danger' }}">{{ '+' if p.neto >= 0 }}{{ p.neto }}</span>
+              <small class="d-block text-muted">pts</small>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="card border-0 shadow-lg rounded-4 p-4 mb-4 text-center">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <p class="text-muted mt-2 mb-0">Nadie tiene puntos registrados en esta caminata todavía.</p>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>
+
+<script>
+function exportarCaminataTxt() {
+    fetch('/api/mis-puntos/caminata/{{ event.id }}.txt')
+        .then(function (r) {
+            if (!r.ok) { throw new Error('No autorizado'); }
+            return r.blob();
+        })
+        .then(function (blob) {
+            var nombre = 'puntos-caminata-{{ event.id }}.txt';
+            var file = new File([blob], nombre, { type: 'text/plain' });
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: 'Puntos {{ event.nombre_lugar }}',
+                    text: 'Puntos de {{ event.nombre_lugar }} — La Tribu de los Libres'
+                }).catch(function () {});
+            } else {
+                var a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = nombre;
+                a.click();
+                URL.revokeObjectURL(a.href);
+            }
+        })
+        .catch(function () { alert('No se pudo exportar el reporte.'); });
+}
+</script>
+{% endblock %}

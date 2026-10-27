@@ -9,7 +9,7 @@ from urllib.parse import quote
 from datetime import datetime
 from flask import request, session, render_template, redirect, url_for, jsonify, send_file
 from db import db
-from models import Hiker, Event, User, EventRegistration
+from models import Hiker, Event, User, EventRegistration, HikerPoints
 from modules.points_engine import get_points_engine
 from modules.points_bonuses import get_points_bonuses
 from modules.points_admin import get_points_admin
@@ -43,6 +43,88 @@ def mis_puntos_exportar_whatsapp():
     texto = '\n'.join(lineas)
     return jsonify({'ok': True, 'personas': len(filas),
                     'url': 'https://wa.me/?text=' + quote(texto)})
+
+
+def _personas_por_evento(event_id):
+    """Personas con movimientos de puntos en una caminata: ganados,
+    perdidos y neto, ordenadas alfabéticamente (solo superusuario)."""
+    hikers = {re.sub(r'\D', '', h.cedula or ''): h.nombre_completo
+              for h in Hiker.query.all()}
+    por = {}
+    for r in (HikerPoints.query.filter_by(event_id=event_id)
+              .order_by(HikerPoints.created_at).all()):
+        key = re.sub(r'\D', '', r.cedula or '')
+        p = por.setdefault(key, {'cedula': key, 'ganados': 0, 'perdidos': 0, 'movs': []})
+        pts = r.points or 0
+        if pts > 0:
+            p['ganados'] += pts
+        elif pts < 0:
+            p['perdidos'] += -pts
+        p['movs'].append(r)
+    lista = [{'cedula': p['cedula'],
+              'nombre': hikers.get(p['cedula']) or '(sin registro)',
+              'ganados': p['ganados'], 'perdidos': p['perdidos'],
+              'neto': p['ganados'] - p['perdidos'],
+              'movs': p['movs']} for p in por.values()]
+    lista.sort(key=lambda x: (x['nombre'] or '').lower())
+    return lista
+
+
+@bp.route('/mis-puntos/caminata/<int:event_id>')
+def mis_puntos_caminata(event_id):
+    """Puntos por caminata: quién acumuló cuánto + total (solo superusuario)."""
+    if session.get('role') != 'Superusuario':
+        return redirect(url_for('main.mis_puntos'))
+    event = Event.query.get_or_404(event_id)
+    lista = _personas_por_evento(event_id)
+    total = sum(p['neto'] for p in lista)
+    ganados_total = sum(p['ganados'] for p in lista)
+    perdidos_total = sum(p['perdidos'] for p in lista)
+    lineas = [f'*{(event.nombre_lugar or "CAMINATA").upper()}*',
+              f'{event.puntos or 0} pts por participación', '']
+    for i, p in enumerate(lista, 1):
+        lineas.append(f"{i}. {p['nombre']} — {p['neto']} pts")
+    lineas += ['', f'*{len(lista)} personas — Total: {total} pts*']
+    wa_url = 'https://wa.me/?text=' + quote('\n'.join(lineas))
+    return render_template('mis_puntos_caminata.html', event=event, lista=lista,
+                           total=total, ganados_total=ganados_total,
+                           perdidos_total=perdidos_total, wa_url=wa_url)
+
+
+@bp.route('/api/mis-puntos/caminata/<int:event_id>.txt')
+def mis_puntos_caminata_txt(event_id):
+    """TXT de una caminata: personas, ganados/perdidos/neto, movimientos
+    y total de puntos acumulados (solo superusuario)."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    event = Event.query.get_or_404(event_id)
+    lista = _personas_por_evento(event_id)
+    sep = '=' * 64
+    sep2 = '-' * 64
+    L = [f"PUNTOS POR CAMINATA - {(event.nombre_lugar or '').upper()}",
+         f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+         f"Puntos por participación: {event.puntos or 0}", sep]
+    total = 0
+    for i, p in enumerate(lista, 1):
+        total += p['neto']
+        L += ['',
+              f"{i}. {p['nombre'].upper()} - Céd. {p['cedula']}",
+              sep2,
+              f"   Puntos ganados   : {p['ganados']}",
+              f"   Puntos perdidos  : {p['perdidos']}",
+              f"   Puntos netos     : {p['neto']}",
+              '   Movimientos:']
+        for r in p['movs']:
+            L.append(f"      - {(r.tipo or ''):20} {r.points:+d}  "
+                     f"{r.created_at.strftime('%d/%m/%Y %H:%M') if r.created_at else ''}"
+                     + (f"  ({r.created_by})" if r.created_by else ''))
+    L += ['', sep,
+          f'   Personas con puntos : {len(lista)}',
+          f'   TOTAL ACUMULADO     : {total} pts']
+    buf = io.BytesIO('\n'.join(L).encode('utf-8'))
+    buf.seek(0)
+    return send_file(buf, mimetype='text/plain; charset=utf-8', as_attachment=True,
+                     download_name=f"puntos-{re.sub(r'[^a-z0-9]+', '-', (event.nombre_lugar or 'caminata').lower())}-{datetime.now().strftime('%Y%m%d-%H%M')}.txt")
 
 
 @bp.route('/api/mis-puntos/exportar.txt')
@@ -391,5 +473,5 @@ def mis_puntos():
             puntos_password=get_puntos_password(),
             puntos_pwd_visible=get_puntos_admin_visible(),
             puntos_pwd_msg=session.pop('puntos_pwd_msg', None))
-    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url, wa_aviso=wa_aviso, stats=estadisticas_persona(cedula) if result else None, **extra)
+    return render_template('mis_puntos.html', cedula=cedula, result=result, is_super=is_super, admin_message=admin_message, admin_error=admin_error, donacion_message=donacion_message, donacion_error=donacion_error, cumpleaneros=cumpleaneros, todos_hikers=todos_hikers, todos_eventos=Event.query.order_by(Event.nombre_lugar).all() if is_super else [], eventos_redimir=eventos_redimir, whatsapp_url=whatsapp_url, registros=registros, no_registrado=no_registrado, registro_whatsapp_url=registro_whatsapp_url, pendiente_password=pendiente_password, nombre_bienvenida=nombre_bienvenida, estado_whatsapp_url=estado_whatsapp_url, estado_coordinador_url=estado_coordinador_url, telefono_registrado=telefono_registrado, estado_global=resumen_global() if is_super else [], carnet_wa_url=carnet_wa_url, wa_aviso=wa_aviso, stats=estadisticas_persona(cedula) if result else None, **extra)
 
