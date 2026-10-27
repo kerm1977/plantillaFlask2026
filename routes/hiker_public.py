@@ -63,7 +63,7 @@ def register_hiker():
             db.session.add(hiker)
         
         # 2. ACTUALIZAMOS SIEMPRE SU INFORMACIÓN
-        hiker.nombre_completo = data.get('nombre_completo', hiker.nombre_completo)
+        hiker.nombre_completo = (data.get('nombre_completo') or '').strip() or hiker.nombre_completo or 'Sin nombre'
         hiker.telefono = data.get('telefono', hiker.telefono)
         hiker.pasaporte = data.get('pasaporte', hiker.pasaporte)
         hiker.tipo_sangre = data.get('tipo_sangre', hiker.tipo_sangre)

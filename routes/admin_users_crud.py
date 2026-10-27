@@ -92,8 +92,10 @@ def admin_update_user(user_id):
                         hiker = h
                         break
         if not hiker and cedula:
-            hiker = Hiker(cedula=cedula)
-            db.session.add(hiker)
+            # No se agrega a la sesión todavía: la validación de duplicados
+            # debe correr sin que el registro nuevo se encuentre a sí mismo.
+            hiker = Hiker(cedula=cedula,
+                          nombre_completo=f"{u.name} {u.last_name_1} {u.last_name_2}".strip() or cedula)
 
         if hiker:
             # Validar duplicados excluyendo el caminante actual
@@ -102,6 +104,7 @@ def admin_update_user(user_id):
             if pasaporte and _hiker_por_pasaporte_limpio(pasaporte, hiker.id):
                 return jsonify({'error': 'Ya este usuario existe. Consultar con los superusuarios del sitio web.'}), 400
 
+            db.session.add(hiker)
             if cedula:
                 hiker.cedula = cedula
             hiker.nombre_completo = f"{u.name} {u.last_name_1} {u.last_name_2}".strip()
