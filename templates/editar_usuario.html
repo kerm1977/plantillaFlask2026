@@ -263,6 +263,84 @@ window._compartirUserId = {{ u.id }};
                 <i class="bi bi-plus-lg me-1"></i>Agregar otro contacto
             </button>
 
+            {% if puntos_info %}
+            <hr class="eu-sep">
+
+            <!-- ===== Estado de cuenta de puntos (acordeón) ===== -->
+            <div class="accordion mb-3" id="euPuntosAcc">
+                <div class="accordion-item border rounded-4 overflow-hidden">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#euPuntosBody" aria-expanded="false">
+                            <i class="bi bi-coin me-2 text-orange"></i>Puntos
+                            <span class="badge bg-orange rounded-pill ms-2">{{ puntos_info.total }} disponibles</span>
+                            {% if puntos_info.vip.es_vip %}
+                            <span class="badge bg-warning text-dark rounded-pill ms-1"><i class="bi bi-star-fill me-1"></i>{{ puntos_info.vip.nivel_label }}</span>
+                            {% endif %}
+                        </button>
+                    </h2>
+                    <div id="euPuntosBody" class="accordion-collapse collapse">
+                        <div class="accordion-body pt-3">
+                            <!-- Factura -->
+                            <div class="rounded-4 overflow-hidden mb-3" style="background:linear-gradient(135deg,#1a1a2e,#16213e); color:#fff;">
+                                <div class="p-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold" style="font-size:.85rem; letter-spacing:.08em;">ESTADO DE CUENTA DE PUNTOS</span>
+                                        {% if puntos_info.vip.es_vip %}
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-star-fill me-1"></i>{{ puntos_info.vip.nivel_label }} ×{{ puntos_info.vip.multiplicador }}</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Nivel normal</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="small" style="color:#9aa4c0;">
+                                        {{ hiker.nombre_completo }} · Céd. {{ cedula_val }} ·
+                                        {{ puntos_info.vip.participaciones }} participación{{ 'es' if puntos_info.vip.participaciones != 1 }}
+                                        {% if puntos_info.vip.manual %} · VIP asignado manual{% endif %}
+                                    </div>
+                                </div>
+                                <div class="d-flex text-center" style="background:rgba(0,0,0,0.25);">
+                                    <div class="flex-fill py-2" style="border-right:1px solid rgba(255,255,255,0.08);">
+                                        <div class="fw-bold fs-5 text-success">{{ puntos_info.total }}</div>
+                                        <div style="font-size:.68rem;color:#9aa4c0;">DISPONIBLE</div>
+                                    </div>
+                                    <div class="flex-fill py-2" style="border-right:1px solid rgba(255,255,255,0.08);">
+                                        <div class="fw-bold fs-5" style="color:#ff8c00;">{{ puntos_info.ganados }}</div>
+                                        <div style="font-size:.68rem;color:#9aa4c0;">GANADOS</div>
+                                    </div>
+                                    <div class="flex-fill py-2">
+                                        <div class="fw-bold fs-5 text-danger">{{ puntos_info.usados }}</div>
+                                        <div style="font-size:.68rem;color:#9aa4c0;">USADOS</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="d-flex gap-2 flex-wrap mb-3 small">
+                                <span class="badge rounded-pill" style="background:rgba(25,135,84,0.15); color:#198754;"><i class="bi bi-gift me-1"></i>Bienvenida: +{{ puntos_info.bienvenida }}</span>
+                                <span class="badge rounded-pill" style="background:rgba(86,180,233,0.15); color:#56b4e9;"><i class="bi bi-cake2 me-1"></i>Cumpleaños: +{{ puntos_info.cumpleanos }}</span>
+                            </div>
+                            {% if puntos_info.movimientos %}
+                            <div class="fw-bold small mb-2"><i class="bi bi-list-ul me-1"></i>Movimientos ({{ puntos_info.movimientos|length }})</div>
+                            <div class="list-group list-group-flush rounded-3 overflow-hidden border" style="max-height:320px; overflow-y:auto;">
+                                {% for m in puntos_info.movimientos %}
+                                <div class="list-group-item px-2 py-2">
+                                    <div class="d-flex justify-content-between align-items-start gap-2">
+                                        <div class="small fw-semibold text-dark">{{ m.actividad }}</div>
+                                        <span class="badge rounded-pill {{ 'bg-success' if m.puntos > 0 else 'bg-danger' }}">{{ '+' if m.puntos > 0 }}{{ m.puntos }}</span>
+                                    </div>
+                                    <div class="small text-muted" style="font-size:.72rem;">
+                                        {{ m.fecha }} {{ m.hora }}{% if m.operador %} · {{ m.operador }}{% endif %}
+                                        {% if m.detalle %}<br>{{ m.detalle }}{% endif %}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="small text-muted mb-0">Sin movimientos de puntos todavía.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <hr class="eu-sep">
 
             <!-- ===== Acceso / Contraseña ===== -->

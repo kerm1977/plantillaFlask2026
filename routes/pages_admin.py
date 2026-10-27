@@ -64,10 +64,36 @@ def editar_usuario(user_id):
 
     avatar_file = u.avatar if u.avatar else 'default.png'
 
+    # Estado de cuenta de puntos (factura dentro del expediente)
+    puntos_info = None
+    if hiker:
+        from modules.points_engine import get_points_engine
+        from modules import fidelidad
+        engine = get_points_engine()
+        movs = [{
+            'fecha': (r['creado_at'] or '')[:10],
+            'hora': (r['creado_at'] or '')[11:16],
+            'actividad': r['evento_nombre'] or (r['tipo'] or '').replace('_', ' ').capitalize(),
+            'detalle': r['detalle'] or '',
+            'puntos': r['puntos'],
+            'tipo': r['tipo'],
+            'operador': r.get('creado_por') or '',
+        } for r in engine.history_with_names(hiker.cedula)]
+        puntos_info = {
+            'total': engine.total_by_cedula(hiker.cedula),
+            'ganados': sum(m['puntos'] for m in movs if m['puntos'] > 0),
+            'usados': -sum(m['puntos'] for m in movs if m['puntos'] < 0),
+            'bienvenida': sum(m['puntos'] for m in movs if m['tipo'] == 'bienvenida'),
+            'cumpleanos': sum(m['puntos'] for m in movs if m['tipo'] == 'cumpleanos'),
+            'movimientos': movs,
+            'vip': fidelidad.info(hiker.cedula),
+        }
+
     return render_template('editar_usuario.html', u=u, hiker=hiker,
                            cedula_val=cedula_val, phone_val=phone_clean,
                            fnac_dia=fnac_dia, fnac_mes=fnac_mes, fnac_anio=fnac_anio,
-                           emergencias=emergencias, extras=extras, avatar_file=avatar_file)
+                           emergencias=emergencias, extras=extras, avatar_file=avatar_file,
+                           puntos_info=puntos_info)
 
 
 @bp.route('/eventos')
