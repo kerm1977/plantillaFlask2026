@@ -14,6 +14,7 @@ from urllib.parse import quote
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
 from routes.admin_actions import _nombres_equivalentes
+from modules.points_bonuses import get_points_bonuses
 from security import check_rate_limit, validate_password_strength
 
 
@@ -109,6 +110,8 @@ def register():
                     break
 
         db.session.commit()
+        # Regalías de primera entrada: bienvenida (y cumpleaños si aplica)
+        get_points_bonuses().apply(cedula)
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback() 

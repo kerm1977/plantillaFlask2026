@@ -11,6 +11,7 @@ from werkzeug.utils import secure_filename
 from models import Form, FormField, FormResponse, FormAnswer, Hiker
 from db import db
 from routes import bp, _PROJECT_ROOT
+from modules.points_bonuses import get_points_bonuses
 
 FORM_UPLOADS = os.path.join(_PROJECT_ROOT, 'static', 'uploads', 'forms')
 
@@ -136,6 +137,10 @@ def api_submit_form(form_id):
         response.total_questions = total_graded
     db.session.add(response)
     db.session.commit()
+
+    if cedula_valor:
+        # Regalías de primera entrada: bienvenida (y cumpleaños si aplica)
+        get_points_bonuses().apply(cedula_valor)
 
     # Resumen de respuestas
     summary_lines = []

@@ -18,6 +18,7 @@ from routes.admin_actions import (_hiker_por_cedula_limpia,
                                   _hiker_por_pasaporte_limpio,
                                   _nombres_equivalentes,
                                   _tarjeta_url, _generar_qr_usuario)
+from modules.points_bonuses import get_points_bonuses
 
 
 @bp.route('/api/admin/update_user/<int:user_id>', methods=['POST'])
@@ -139,6 +140,9 @@ def admin_update_user(user_id):
                         break
 
     db.session.commit()
+    if cedula:
+        # Regalías de primera entrada: bienvenida (y cumpleaños si aplica)
+        get_points_bonuses().apply(cedula)
     return jsonify({'success': True})
 
 
@@ -246,6 +250,10 @@ def admin_create_user():
         db.session.add(hiker)
 
     db.session.commit()
+
+    if cedula:
+        # Regalías de primera entrada: bienvenida (y cumpleaños si aplica)
+        get_points_bonuses().apply(cedula)
 
     if hiker:
         qr_b64 = _generar_qr_usuario(new_user, hiker)

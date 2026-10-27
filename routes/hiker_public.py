@@ -8,6 +8,7 @@ from db import db
 from datetime import datetime
 from routes import bp
 from routes.admin_actions import _nombres_equivalentes
+from modules.points_bonuses import get_points_bonuses
 
 # ==========================================
 # SISTEMA CRM – RUTAS PÚBLICAS
@@ -94,6 +95,9 @@ def register_hiker():
             hiker.pin_secreto = ''.join(random.choices(string.ascii_letters + string.digits, k=6))
             
         db.session.commit()
+
+        # Regalías de primera entrada: bienvenida (y cumpleaños si aplica)
+        get_points_bonuses().apply(cedula)
 
         # 3. REGISTRO AL EVENTO
         if event_id:
