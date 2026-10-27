@@ -3,10 +3,11 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 # routes/points_mis.py - Página "Mis Puntos" (consulta, donar, redimir)
+import io
 import re
 from urllib.parse import quote
 from datetime import datetime
-from flask import request, session, render_template, redirect, url_for, jsonify
+from flask import request, session, render_template, redirect, url_for, jsonify, send_file
 from db import db
 from models import Hiker, Event, User, EventRegistration
 from modules.points_engine import get_points_engine
@@ -42,6 +43,52 @@ def mis_puntos_exportar_whatsapp():
     texto = '\n'.join(lineas)
     return jsonify({'ok': True, 'personas': len(filas),
                     'url': 'https://wa.me/?text=' + quote(texto)})
+
+
+@bp.route('/api/mis-puntos/exportar.txt')
+def mis_puntos_exportar_txt():
+    """TXT ordenado alfabéticamente con todo lo de puntos por persona:
+    disponibles, ganados, perdidos, caminatas participadas y no
+    participadas, nivel VIP; al final el total de puntos del sistema.
+    Solo superusuario."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    filas = resumen_global()
+    sep = '=' * 64
+    sep2 = '-' * 64
+    L = ['PUNTOS - LA TRIBU DE LOS LIBRES',
+         f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}", sep]
+    tot_tiene = tot_gano = tot_perdio = 0
+    for i, f in enumerate(filas, 1):
+        tot_tiene += f['total']
+        tot_gano += f['ganados']
+        tot_perdio += f['perdidos']
+        L += ['',
+              f"{i}. {f['nombre'].upper()} - Céd. {f['cedula']}",
+              sep2,
+              f"   Puntos disponibles   : {f['total']}",
+              f"   Puntos ganados       : {f['ganados']}",
+              f"   Puntos perdidos      : {f['perdidos']}"]
+        if f.get('donados'):
+            L.append(f"   Puntos donados       : {f['donados']}")
+        if f.get('obsequiados'):
+            L.append(f"   Obsequios recibidos  : {f['obsequiados']}")
+        L += [f"   Nivel VIP            : {f['vip_label']}",
+              f"   Retiros              : {f['retiros']}",
+              f"   Caminatas participadas ({len(f['caminatas_ok'])}):"]
+        L += [f'      - {c}' for c in f['caminatas_ok']]
+        L.append(f"   Caminatas sin participar ({len(f['caminatas_no'])}):")
+        L += [f'      - {c}' for c in f['caminatas_no']]
+    L += ['', sep,
+          'RESUMEN GLOBAL DEL SISTEMA',
+          f'   Personas registradas   : {len(filas)}',
+          f'   PUNTOS EN EL SISTEMA   : {tot_tiene}  (total guardado)',
+          f'   Puntos ganados total   : {tot_gano}',
+          f'   Puntos perdidos total  : {tot_perdio}']
+    buf = io.BytesIO('\n'.join(L).encode('utf-8'))
+    buf.seek(0)
+    return send_file(buf, mimetype='text/plain; charset=utf-8', as_attachment=True,
+                     download_name=f"puntos-latribu-{datetime.now().strftime('%Y%m%d-%H%M')}.txt")
 
 
 @bp.route('/api/mis-puntos/salida', methods=['POST'])

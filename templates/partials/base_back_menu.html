@@ -29,19 +29,35 @@
     {% if session.get('role') == 'Superusuario' %}
     {% if request.path == '/mis-puntos' %}
     <!-- Botón flotante: exportar todos los puntos por WhatsApp (solo en Mis puntos, encima del de invitaciones) -->
-    <a href="#" id="btnWaExportFloat" title="Enviar todos los puntos por WhatsApp" onclick="exportarPuntosWhatsApp(); return false;"
+    <a href="#" id="btnWaExportFloat" title="Exportar TXT de puntos por WhatsApp" onclick="exportarPuntosWhatsApp(); return false;"
        style="position:fixed;bottom:calc(var(--nav-mobile-height, 70px) - 15px + 200px);right:20px;width:50px;height:50px;border-radius:50%;background:rgba(37,211,102,0.85);backdrop-filter:blur(5px);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 15px rgba(37,211,102,0.4);z-index:1045;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:all .3s ease;text-decoration:none;">
         <i class="bi bi-whatsapp fs-4"></i>
     </a>
     <script>
     function exportarPuntosWhatsApp() {
-        fetch('/api/mis-puntos/exportar-whatsapp')
-            .then(function (r) { return r.json(); })
-            .then(function (d) {
-                if (d.ok) { window.open(d.url, '_blank'); }
-                else { alert(d.error || 'No se pudo exportar.'); }
+        fetch('/api/mis-puntos/exportar.txt')
+            .then(function (r) {
+                if (!r.ok) { throw new Error('No autorizado'); }
+                return r.blob();
             })
-            .catch(function () { alert('Error de conexión.'); });
+            .then(function (blob) {
+                var nombre = 'puntos-latribu.txt';
+                var file = new File([blob], nombre, { type: 'text/plain' });
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Puntos La Tribu',
+                        text: 'Reporte de puntos de todas las personas — La Tribu de los Libres'
+                    }).catch(function () {});
+                } else {
+                    var a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = nombre;
+                    a.click();
+                    URL.revokeObjectURL(a.href);
+                }
+            })
+            .catch(function () { alert('No se pudo exportar el reporte.'); });
     }
     </script>
     {% endif %}
