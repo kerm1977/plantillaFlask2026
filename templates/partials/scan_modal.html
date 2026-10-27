@@ -65,6 +65,9 @@
                     <pre id="scanEstadoPreview" class="d-none small text-start bg-light rounded-3 p-2 mb-2"
                          style="white-space:pre-wrap;max-height:220px;overflow-y:auto"></pre>
                     <div id="scanResultActions" class="d-grid gap-2">
+                        <button class="btn btn-outline-danger rounded-pill fw-bold d-none" id="scanVerifyBtn" type="button">
+                            <i class="bi bi-search me-1"></i>Verificar / resetear escaneo
+                        </button>
                         <button class="btn btn-outline-success rounded-pill fw-bold d-none" id="scanShareBtn" type="button">
                             <i class="bi bi-share me-1"></i>Compartir estado
                         </button>
@@ -80,6 +83,24 @@
                         </button>
                         <button class="btn btn-orange rounded-pill fw-bold" id="scanEstadoFlowBtn" type="button">
                             <i class="bi bi-receipt me-1"></i>Enviar estado de cuenta a usuario
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Paso 4: verificación de un escaneo bloqueado -->
+                <div id="scanStepVerify" class="d-none">
+                    <div class="alert alert-warning rounded-3 py-2 small fw-bold mb-2" id="scanVerifyTitle"></div>
+                    <div id="scanVerifyStatus" class="small text-muted mb-2"></div>
+                    <div id="scanVerifyList" class="list-group mb-3" style="max-height:240px;overflow-y:auto"></div>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-danger rounded-pill fw-bold d-none" id="scanResetBtn" type="button">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Resetear escaneo
+                        </button>
+                        <button class="btn btn-orange rounded-pill fw-bold d-none" id="scanAwardNowBtn" type="button">
+                            <i class="bi bi-check-lg me-1"></i>Asignar puntos ahora
+                        </button>
+                        <button class="btn btn-link btn-sm text-muted" id="scanVerifyBackBtn" type="button">
+                            <i class="bi bi-arrow-left me-1"></i>Volver a escanear
                         </button>
                     </div>
                 </div>

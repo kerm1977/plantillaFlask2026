@@ -15,7 +15,7 @@
     function $(id) { return document.getElementById(id); }
 
     function showStep(stepId) {
-        ['scanStepCamera', 'scanStepCedula', 'scanStepResult', 'scanStepWaitEvent'].forEach(function (s) {
+        ['scanStepCamera', 'scanStepCedula', 'scanStepResult', 'scanStepWaitEvent', 'scanStepVerify'].forEach(function (s) {
             var el = $(s);
             if (el) el.classList.add('d-none');
         });
@@ -93,10 +93,15 @@
         var regBtn = $('scanRegisterBtn');
         var prev = $('scanEstadoPreview');
         var shareBtn = $('scanShareBtn');
+        var verifyBtn = $('scanVerifyBtn');
         estadoBtn.classList.add('d-none');
         regBtn.classList.add('d-none');
         prev.classList.add('d-none');
         shareBtn.classList.add('d-none');
+        verifyBtn.classList.add('d-none');
+        if (opts.showVerify) {
+            verifyBtn.classList.remove('d-none');
+        }
         if (opts.estadoTexto) {
             prev.textContent = opts.estadoTexto;
             prev.classList.remove('d-none');
@@ -153,8 +158,62 @@
                         { estadoUrl: d.estado_whatsapp_url });
                 } else {
                     showResult(false, d.error || 'Error al asignar puntos.',
-                        { showRegister: d.code === 'not_found' });
+                        { showRegister: d.code === 'not_found', showVerify: d.code === 'duplicate' });
                 }
+            })
+            .catch(function () { showResult(false, 'Error de conexión.'); });
+    }
+
+    function verificar() {
+        if (!ev || !lastCedula) { showResult(false, 'Falta la caminata o la cédula para verificar.'); return; }
+        fetch('/api/scan/verificar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: lastCedula })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) { showResult(false, d.error || 'No se pudo verificar.'); return; }
+                $('scanVerifyTitle').textContent = d.evento_nombre + ' (' + d.puntos_evento + ' pts) · ' + d.nombre;
+                $('scanVerifyStatus').textContent = 'Balance actual: ' + d.total + ' pts' +
+                    (d.bloqueado ? ' · existe un registro que bloquea el re-escaneo.' : ' · no hay registro que bloquee.');
+                var list = $('scanVerifyList');
+                list.innerHTML = '';
+                if (!d.registros.length) {
+                    list.innerHTML = '<div class="list-group-item small text-muted">Sin movimientos de esta persona en esta caminata/evento.</div>';
+                } else {
+                    d.registros.forEach(function (r) {
+                        var item = document.createElement('div');
+                        item.className = 'list-group-item py-2';
+                        item.innerHTML = '<div class="d-flex justify-content-between small">' +
+                            '<span class="fw-bold">' + r.tipo + '</span>' +
+                            '<span class="fw-bold ' + (r.puntos >= 0 ? 'text-success' : 'text-danger') + '">' +
+                            (r.puntos > 0 ? '+' : '') + r.puntos + '</span></div>' +
+                            '<div class="small text-muted" style="font-size:.72rem">' + r.fecha +
+                            (r.operador ? ' · ' + r.operador : '') +
+                            (r.detalle ? '<br>' + r.detalle : '') + '</div>';
+                        list.appendChild(item);
+                    });
+                }
+                $('scanResetBtn').classList.toggle('d-none', !d.bloqueado);
+                $('scanAwardNowBtn').classList.toggle('d-none', d.bloqueado);
+                showStep('scanStepVerify');
+            })
+            .catch(function () { showResult(false, 'Error de conexión.'); });
+    }
+
+    function resetear() {
+        var motivo = prompt('Motivo del reseteo (queda registrado en el historial):');
+        if (motivo === null) return;
+        fetch('/api/scan/reset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: lastCedula, motivo: motivo })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d.ok) { showResult(false, d.error || 'No se pudo resetear.'); return; }
+                verificar();
             })
             .catch(function () { showResult(false, 'Error de conexión.'); });
     }
@@ -243,6 +302,10 @@
                 navigator.clipboard.writeText(texto).then(function () { alert('Estado copiado al portapapeles.'); });
             }
         });
+        $('scanVerifyBtn').addEventListener('click', verificar);
+        $('scanResetBtn').addEventListener('click', resetear);
+        $('scanAwardNowBtn').addEventListener('click', function () { award(lastCedula); });
+        $('scanVerifyBackBtn').addEventListener('click', startCamera);
         $('scanBackBtn').addEventListener('click', startCamera);
         $('scanSearchInput').addEventListener('input', function () {
             clearTimeout(searchTimer);

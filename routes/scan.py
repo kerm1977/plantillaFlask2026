@@ -136,6 +136,116 @@ def scan_estado():
                     'estado_whatsapp_url': _estado_wa_url(cedula, hiker)})
 
 
+def _registros_escaneo(kind, item_id, cedula):
+    """Todos los movimientos de esa persona en esa caminata/evento
+    (la cédula se compara normalizada a dígitos por formatos viejos)."""
+    if kind == 'evento':
+        q = HikerPoints.query.filter_by(puntos_evento_id=item_id)
+    else:
+        q = HikerPoints.query.filter_by(event_id=item_id)
+    return [r for r in q.order_by(HikerPoints.created_at.desc()).all()
+            if re.sub(r'\D', '', r.cedula or '') == cedula]
+
+
+@bp.route('/api/scan/verificar', methods=['POST'])
+def scan_verificar():
+    """Diagnóstico de un escaneo problemático: muestra todos los registros
+    que la persona tiene en esa caminata/evento (solo superusuario)."""
+    if not _require_super():
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    data = request.get_json(silent=True) or {}
+    kind = data.get('kind') or 'caminata'
+    item_id = data.get('id') or data.get('event_id')
+    cedula = re.sub(r'\D', '', str(data.get('cedula') or ''))
+    if not cedula:
+        return jsonify({'ok': False, 'error': 'Ingresá una cédula válida.'})
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if not hiker:
+        return jsonify({'ok': False, 'code': 'not_found',
+                        'error': f'La cédula {cedula} no está registrada.'})
+    try:
+        item_id = int(item_id)
+    except (TypeError, ValueError):
+        return jsonify({'ok': False, 'error': 'Evento no válido.'})
+    if kind == 'evento':
+        pe = PuntosEvento.query.get(item_id)
+        if not pe:
+            return jsonify({'ok': False, 'error': 'Evento de puntos no encontrado.'}), 404
+        nombre_ev, puntos_ev, tipo_bloqueo = pe.nombre, pe.puntos or 0, 'evento'
+    else:
+        event = Event.query.get(item_id)
+        if not event:
+            return jsonify({'ok': False, 'error': 'Caminata no encontrada.'}), 404
+        nombre_ev, puntos_ev, tipo_bloqueo = event.nombre_lugar, event.puntos or 0, 'participacion'
+    regs = _registros_escaneo(kind, item_id, cedula)
+    return jsonify({
+        'ok': True,
+        'nombre': hiker.nombre_completo, 'cedula': cedula,
+        'evento_nombre': nombre_ev, 'puntos_evento': puntos_ev,
+        'bloqueado': any(r.tipo == tipo_bloqueo for r in regs),
+        'total': get_points_engine().total_by_cedula(cedula),
+        'registros': [{
+            'tipo': r.tipo or '', 'puntos': r.points or 0,
+            'fecha': r.created_at.strftime('%d-%m-%Y %H:%M') if r.created_at else '',
+            'operador': r.created_by or '', 'detalle': r.detalle or '',
+        } for r in regs],
+    })
+
+
+@bp.route('/api/scan/reset', methods=['POST'])
+def scan_reset():
+    """Anula el escaneo (participación/evento) de una persona para que pueda
+    volver a escanear. Borra el registro y deja una 'anulacion' de 0 puntos
+    con el motivo y el detalle de lo eliminado (solo superusuario)."""
+    if not _require_super():
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    data = request.get_json(silent=True) or {}
+    kind = data.get('kind') or 'caminata'
+    item_id = data.get('id') or data.get('event_id')
+    cedula = re.sub(r'\D', '', str(data.get('cedula') or ''))
+    motivo = (data.get('motivo') or '').strip() or 'Sin motivo indicado'
+    if not cedula:
+        return jsonify({'ok': False, 'error': 'Ingresá una cédula válida.'})
+    hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if not hiker:
+        return jsonify({'ok': False, 'code': 'not_found',
+                        'error': f'La cédula {cedula} no está registrada.'})
+    try:
+        item_id = int(item_id)
+    except (TypeError, ValueError):
+        return jsonify({'ok': False, 'error': 'Evento no válido.'})
+    if kind == 'evento':
+        pe = PuntosEvento.query.get(item_id)
+        if not pe:
+            return jsonify({'ok': False, 'error': 'Evento de puntos no encontrado.'}), 404
+        nombre_ev, tipo_bloqueo = pe.nombre, 'evento'
+    else:
+        event = Event.query.get(item_id)
+        if not event:
+            return jsonify({'ok': False, 'error': 'Caminata no encontrada.'}), 404
+        nombre_ev, tipo_bloqueo = event.nombre_lugar, 'participacion'
+    regs = [r for r in _registros_escaneo(kind, item_id, cedula) if r.tipo == tipo_bloqueo]
+    if not regs:
+        return jsonify({'ok': False, 'error': 'No hay escaneo que resetear: la persona no tiene registro en esta caminata.'})
+    quitados = sum(r.points or 0 for r in regs)
+    resumen = '; '.join(
+        f"{r.tipo} {r.points:+d} del {r.created_at.strftime('%d-%m-%Y %H:%M') if r.created_at else '?'}"
+        for r in regs)
+    for r in regs:
+        db.session.delete(r)
+    db.session.add(HikerPoints(
+        cedula=cedula, hiker_id=hiker.id,
+        event_id=(None if kind == 'evento' else item_id),
+        puntos_evento_id=(item_id if kind == 'evento' else None),
+        points=0, tipo='anulacion',
+        detalle=f'Escaneo anulado en {nombre_ev}. Motivo: {motivo}. Registros eliminados: {resumen}.',
+        created_by=_operador(), created_at=datetime.utcnow()))
+    db.session.commit()
+    return jsonify({'ok': True, 'nombre': hiker.nombre_completo,
+                    'puntos_quitados': quitados,
+                    'total': get_points_engine().total_by_cedula(cedula)})
+
+
 @bp.route('/api/scan/award', methods=['POST'])
 def scan_award():
     """Asigna puntos a una cédula desde un código escaneado (solo superusuario).
