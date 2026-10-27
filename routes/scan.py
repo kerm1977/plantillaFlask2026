@@ -312,12 +312,13 @@ def scan_award():
         return jsonify({'ok': False, 'error': 'Caminata no encontrada.'}), 404
     if not event.puntos:
         return jsonify({'ok': False, 'error': 'Esta caminata no tiene puntos configurados.'})
-    if is_past_event(event):
+    anulada = _tiene_anulacion('caminata', event.id, cedula)
+    if is_past_event(event) and not anulada:
         return jsonify({'ok': False, 'error': 'La caminata ya pasó, no se pueden generar puntos.'})
     if engine.has_earned(event.id, cedula):
         return jsonify({'ok': False, 'code': 'duplicate',
                         'error': f'{hiker.nombre_completo} ya recibió los puntos de esta caminata.'})
-    if not data.get('confirmado_3') and _tiene_anulacion('caminata', event.id, cedula):
+    if anulada and not data.get('confirmado_3'):
         return jsonify({'ok': False, 'code': 'requires_confirm',
                         'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
                         'puntos': event.puntos,
