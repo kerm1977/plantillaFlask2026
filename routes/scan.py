@@ -293,6 +293,7 @@ def scan_award():
             return jsonify({'ok': False, 'code': 'requires_confirm',
                             'nombre': hiker.nombre_completo, 'evento': pe.nombre,
                             'puntos': pe.puntos,
+                            'total': engine.total_by_cedula(cedula),
                             'error': f'Confirmá la asignación de {pe.puntos} puntos de {pe.nombre} a {hiker.nombre_completo}{extra}.'})
         # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
         get_points_bonuses().apply(cedula)
@@ -328,6 +329,7 @@ def scan_award():
         return jsonify({'ok': False, 'code': 'requires_confirm',
                         'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
                         'puntos': event.puntos,
+                        'total': engine.total_by_cedula(cedula),
                         'error': f'Confirmá la asignación de {event.puntos} puntos de {event.nombre_lugar} a {hiker.nombre_completo}{motivo}.'})
     # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
     get_points_bonuses().apply(cedula)

@@ -15,7 +15,7 @@
     function $(id) { return document.getElementById(id); }
 
     function showStep(stepId) {
-        ['scanStepCamera', 'scanStepCedula', 'scanStepResult', 'scanStepWaitEvent', 'scanStepVerify'].forEach(function (s) {
+        ['scanStepCamera', 'scanStepCedula', 'scanStepResult', 'scanStepWaitEvent', 'scanStepVerify', 'scanStepConfirm'].forEach(function (s) {
             var el = $(s);
             if (el) el.classList.add('d-none');
         });
@@ -158,21 +158,56 @@
                     showResult(true, '+' + d.puntos_ganados + ' pts a ' + d.nombre + ' (total: ' + d.total + ')' + (d.nivel_label ? ' · ' + d.nivel_label : ''),
                         { estadoUrl: d.estado_whatsapp_url });
                 } else if (d.code === 'requires_confirm') {
-                    // Re-escaneo de una participación anulada: triple confirmación
-                    if (confirm('¿Está seguro que desea sumar ' + (d.puntos || '') + ' puntos de ' + (d.evento || 'esta caminata') + ' a ' + (d.nombre || 'este usuario') + '?') &&
-                        confirm('¿Está seguro que lo va a hacer? Esto volverá a SUMAR puntos a la persona.') &&
-                        confirm('ÚLTIMA CONFIRMACIÓN: los puntos se acreditarán ahora. ¿Continuar?')) {
-                        award(cedula, true);
-                    } else {
-                        showResult(false, 'Re-asignación cancelada. No se sumaron puntos.',
-                            { showVerify: true });
-                    }
+                    pedirConfirmaciones(cedula, d);
                 } else {
                     showResult(false, d.error || 'Error al asignar puntos.',
                         { showRegister: d.code === 'not_found', showVerify: d.code === 'duplicate' });
                 }
             })
             .catch(function () { showResult(false, 'Error de conexión.'); });
+    }
+
+    var confirmData = null;    // respuesta requires_confirm
+    var confirmCedula = null;
+    var confirmStage = -1;     // -1 = pre-aviso, 0-2 = confirmaciones
+
+    function pedirConfirmaciones(cedula, d) {
+        // Paso previo: muestra lo que la persona ya tiene antes de las 3 confirmaciones
+        confirmCedula = cedula;
+        confirmData = d;
+        confirmStage = -1;
+        $('scanConfirmIcon').innerHTML = '<i class="bi bi-info-circle-fill" style="color:#56b4e9"></i>';
+        $('scanConfirmMsg').textContent = d.nombre + ' ya tiene ' + (d.total != null ? d.total : '?') + ' puntos acumulados.';
+        $('scanConfirmSub').textContent = 'Se le van a sumar ' + d.puntos + ' puntos de ' + d.evento + '.';
+        $('scanConfirmStep').textContent = (d.error || '') + ' ¿Deseás continuar?';
+        $('scanConfirmYes').innerHTML = '<i class="bi bi-check-lg me-1"></i>Sí, continuar';
+        showStep('scanStepConfirm');
+    }
+
+    function avanzarConfirm() {
+        confirmStage += 1;
+        var msgs = [
+            '¿Está seguro que desea sumar ' + confirmData.puntos + ' puntos de ' + confirmData.evento + ' a ' + confirmData.nombre + '?',
+            '¿Está seguro que lo va a hacer? Esto volverá a SUMAR puntos a la persona.',
+            'ÚLTIMA CONFIRMACIÓN: los puntos se acreditarán ahora. ¿Continuar?'
+        ];
+        if (confirmStage < 3) {
+            $('scanConfirmIcon').innerHTML = '<i class="bi bi-exclamation-triangle-fill text-warning"></i>';
+            $('scanConfirmMsg').textContent = msgs[confirmStage];
+            $('scanConfirmSub').textContent = '';
+            $('scanConfirmStep').textContent = 'Confirmación ' + (confirmStage + 1) + ' de 3';
+            showStep('scanStepConfirm');
+        } else {
+            award(confirmCedula, true);
+        }
+    }
+
+    function cancelarConfirm() {
+        confirmData = null;
+        confirmCedula = null;
+        confirmStage = -1;
+        showResult(false, 'Asignación cancelada. No se sumaron puntos.',
+            { showVerify: true });
     }
 
     function verificarAsignacion(cedula, awardData) {
@@ -339,6 +374,8 @@
                 navigator.clipboard.writeText(texto).then(function () { alert('Estado copiado al portapapeles.'); });
             }
         });
+        $('scanConfirmYes').addEventListener('click', avanzarConfirm);
+        $('scanConfirmNo').addEventListener('click', cancelarConfirm);
         $('scanVerifyBtn').addEventListener('click', verificar);
         $('scanResetBtn').addEventListener('click', resetear);
         $('scanAwardNowBtn').addEventListener('click', function () { award(lastCedula); });
