@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from urllib.parse import quote
 from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
+from routes.admin_actions import _nombres_equivalentes
 from security import check_rate_limit, validate_password_strength
 
 
@@ -64,6 +65,11 @@ def register():
         return jsonify({'error': 'Email ya registrado'}), 400
 
     hiker = Hiker.query.filter_by(cedula=cedula).first()
+    if hiker and hiker.nombre_completo:
+        # Sello nombre+cédula: una cédula registrada no puede adoptarse con otro nombre
+        nombre_reg = f"{data.get('name') or ''} {data.get('last_name_1') or ''} {data.get('last_name_2') or ''}"
+        if not _nombres_equivalentes(hiker.nombre_completo, nombre_reg):
+            return jsonify({'error': 'Ya este usuario existe. Consultar con los superusuarios del sitio web.'}), 400
 
     try:
         new_user = User(
@@ -91,7 +97,8 @@ def register():
         if not hiker:
             hiker = Hiker(cedula=cedula)
             db.session.add(hiker)
-        hiker.nombre_completo = f"{new_user.name} {new_user.last_name_1} {new_user.last_name_2}".strip()
+        if not hiker.nombre_completo:
+            hiker.nombre_completo = f"{new_user.name} {new_user.last_name_1} {new_user.last_name_2}".strip()
         if not hiker.telefono:
             hiker.telefono = phone
         if not hiker.pin_secreto:

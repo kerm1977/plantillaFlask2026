@@ -7,12 +7,24 @@ import re
 import secrets
 import io
 import base64
+import unicodedata
 from flask import request, jsonify, session, current_app, url_for
 from itsdangerous import URLSafeSerializer
 from models import User, Hiker
 from db import db
 from routes import bp
 import qrcode
+
+def _nombres_equivalentes(a, b):
+    """Mismo nombre ignorando tildes, mayúsculas y espacios; tolera que
+    falte el segundo apellido en una de las dos versiones."""
+    def _norm(s):
+        s = unicodedata.normalize('NFD', s or '')
+        s = ''.join(c for c in s if unicodedata.category(c) != 'Mn')
+        return ' '.join(s.upper().split())
+    na, nb = _norm(a), _norm(b)
+    return bool(na) and bool(nb) and (na == nb or na in nb or nb in na)
+
 
 def _hiker_por_cedula_limpia(cedula_limpia, excluir_id=None):
     for h in Hiker.query.all():

@@ -7,6 +7,7 @@ from models import Hiker, EventRegistration
 from db import db
 from datetime import datetime
 from routes import bp
+from routes.admin_actions import _nombres_equivalentes
 
 # ==========================================
 # SISTEMA CRM – RUTAS PÚBLICAS
@@ -56,7 +57,13 @@ def register_hiker():
 
         # 1. ESCUDO ANTI-DUPLICADOS (Buscamos si la cédula ya existe)
         hiker = Hiker.query.filter_by(cedula=cedula).first()
-        
+
+        if hiker and hiker.nombre_completo:
+            # Sello nombre+cédula: no se puede registrar la cédula con otro nombre
+            nombre_in = (data.get('nombre_completo') or '').strip()
+            if nombre_in and not _nombres_equivalentes(hiker.nombre_completo, nombre_in):
+                return jsonify({'success': False, 'error': 'Ya este usuario existe. Consultar con los superusuarios del sitio web.'}), 400
+
         if not hiker:
             # Si NO existe, creamos un nuevo caminante
             hiker = Hiker(cedula=cedula)

@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 from routes import bp, allowed_file, ALLOWED_IMAGE_EXTENSIONS
 from routes.admin_actions import (_hiker_por_cedula_limpia,
                                   _hiker_por_pasaporte_limpio,
+                                  _nombres_equivalentes,
                                   _tarjeta_url, _generar_qr_usuario)
 
 
@@ -84,6 +85,12 @@ def admin_update_user(user_id):
         hiker = None
         if cedula:
             hiker = _hiker_por_cedula_limpia(cedula)
+            if hiker and hiker.nombre_completo:
+                # Sello nombre+cédula: la cédula registrada no puede adoptarse
+                # con un nombre distinto (ni siquiera desde la edición de usuario)
+                nombre_u = f"{u.name} {u.last_name_1} {u.last_name_2}".strip()
+                if not _nombres_equivalentes(hiker.nombre_completo, nombre_u):
+                    return jsonify({'error': 'Ya este usuario existe. Consultar con los superusuarios del sitio web.'}), 400
         if not hiker and u.phone:
             phone_clean = re.sub(r'\D', '', u.phone)
             if phone_clean:
