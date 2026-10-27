@@ -141,27 +141,63 @@
             .catch(function () { showResult(false, 'Error de conexión.'); });
     }
 
-    function award(cedulaDirecta) {
+    function award(cedulaDirecta, confirmado) {
         var cedula = cedulaDirecta || ($('scanCedulaInput').value || '').replace(/\D/g, '');
         if (!cedula) { alert('Ingresá un número de cédula.'); return; }
         lastCedula = cedula;
         fetch('/api/scan/award', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: cedula })
+            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: cedula, confirmado_3: !!confirmado })
         })
             .then(function (r) { return r.json(); })
             .then(function (d) {
                 if (d.ok) {
+                    if (confirmado) { verificarAsignacion(cedula, d); return; }
                     persona = null;
                     showResult(true, '+' + d.puntos_ganados + ' pts a ' + d.nombre + ' (total: ' + d.total + ')' + (d.nivel_label ? ' · ' + d.nivel_label : ''),
                         { estadoUrl: d.estado_whatsapp_url });
+                } else if (d.code === 'requires_confirm') {
+                    // Re-escaneo de una participación anulada: triple confirmación
+                    if (confirm('¿Está seguro que desea sumar ' + (d.puntos || '') + ' puntos de ' + (d.evento || 'esta caminata') + ' a ' + (d.nombre || 'este usuario') + '?') &&
+                        confirm('¿Está seguro que lo va a hacer? Esto volverá a SUMAR puntos a la persona.') &&
+                        confirm('ÚLTIMA CONFIRMACIÓN: los puntos se acreditarán ahora. ¿Continuar?')) {
+                        award(cedula, true);
+                    } else {
+                        showResult(false, 'Re-asignación cancelada. No se sumaron puntos.');
+                    }
                 } else {
                     showResult(false, d.error || 'Error al asignar puntos.',
                         { showRegister: d.code === 'not_found', showVerify: d.code === 'duplicate' });
                 }
             })
             .catch(function () { showResult(false, 'Error de conexión.'); });
+    }
+
+    function verificarAsignacion(cedula, awardData) {
+        // Tras una re-asignación confirmada, verifica que el registro quedó en la base.
+        fetch('/api/scan/verificar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind: ev.kind, id: ev.id, cedula: cedula })
+        })
+            .then(function (r) { return r.json(); })
+            .then(function (v) {
+                var tipo = ev.kind === 'evento' ? 'evento' : 'participacion';
+                var rec = (v.registros || []).filter(function (x) { return x.tipo === tipo && x.puntos > 0; })[0];
+                persona = null;
+                if (rec) {
+                    showResult(true, 'VERIFICADO: +' + rec.puntos + ' pts registrados a ' + v.nombre + ' (total: ' + v.total + ')' + (awardData.nivel_label ? ' · ' + awardData.nivel_label : ''),
+                        { estadoUrl: awardData.estado_whatsapp_url });
+                } else {
+                    showResult(false, 'La asignación no quedó registrada. Usá "Verificar" para revisar.');
+                }
+            })
+            .catch(function () {
+                persona = null;
+                showResult(true, '+' + awardData.puntos_ganados + ' pts a ' + awardData.nombre + ' (total: ' + awardData.total + ')',
+                    { estadoUrl: awardData.estado_whatsapp_url });
+            });
     }
 
     function verificar() {

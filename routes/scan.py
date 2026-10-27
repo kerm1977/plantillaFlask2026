@@ -147,6 +147,16 @@ def _registros_escaneo(kind, item_id, cedula):
             if re.sub(r'\D', '', r.cedula or '') == cedula]
 
 
+def _tiene_anulacion(kind, item_id, cedula):
+    """True si la persona tuvo un escaneo anulado en esa caminata/evento:
+    el re-escaneo requiere triple confirmación del superusuario."""
+    if kind == 'evento':
+        q = HikerPoints.query.filter_by(puntos_evento_id=item_id, tipo='anulacion')
+    else:
+        q = HikerPoints.query.filter_by(event_id=item_id, tipo='anulacion')
+    return any(re.sub(r'\D', '', r.cedula or '') == cedula for r in q.all())
+
+
 @bp.route('/api/scan/verificar', methods=['POST'])
 def scan_verificar():
     """Diagnóstico de un escaneo problemático: muestra todos los registros
@@ -278,6 +288,11 @@ def scan_award():
         if ya:
             return jsonify({'ok': False, 'code': 'duplicate',
                             'error': f'{hiker.nombre_completo} ya recibió los puntos de este evento.'})
+        if not data.get('confirmado_3') and _tiene_anulacion('evento', pe.id, cedula):
+            return jsonify({'ok': False, 'code': 'requires_confirm',
+                            'nombre': hiker.nombre_completo, 'evento': pe.nombre,
+                            'puntos': pe.puntos,
+                            'error': f'{hiker.nombre_completo} tiene un escaneo anulado en este evento. Confirmá la re-asignación.'})
         # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
         get_points_bonuses().apply(cedula)
         puntos = fidelidad.puntos_con_bono(cedula, pe.puntos)
@@ -302,6 +317,11 @@ def scan_award():
     if engine.has_earned(event.id, cedula):
         return jsonify({'ok': False, 'code': 'duplicate',
                         'error': f'{hiker.nombre_completo} ya recibió los puntos de esta caminata.'})
+    if not data.get('confirmado_3') and _tiene_anulacion('caminata', event.id, cedula):
+        return jsonify({'ok': False, 'code': 'requires_confirm',
+                        'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
+                        'puntos': event.puntos,
+                        'error': f'{hiker.nombre_completo} tiene un escaneo anulado en esta caminata. Confirmá la re-asignación.'})
     # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
     get_points_bonuses().apply(cedula)
     puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
