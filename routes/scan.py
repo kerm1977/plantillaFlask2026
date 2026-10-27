@@ -288,11 +288,12 @@ def scan_award():
         if ya:
             return jsonify({'ok': False, 'code': 'duplicate',
                             'error': f'{hiker.nombre_completo} ya recibió los puntos de este evento.'})
-        if not data.get('confirmado_3') and _tiene_anulacion('evento', pe.id, cedula):
+        if not data.get('confirmado_3'):
+            extra = ' (tiene un escaneo anulado en este evento)' if _tiene_anulacion('evento', pe.id, cedula) else ''
             return jsonify({'ok': False, 'code': 'requires_confirm',
                             'nombre': hiker.nombre_completo, 'evento': pe.nombre,
                             'puntos': pe.puntos,
-                            'error': f'{hiker.nombre_completo} tiene un escaneo anulado en este evento. Confirmá la re-asignación.'})
+                            'error': f'Confirmá la asignación de {pe.puntos} puntos de {pe.nombre} a {hiker.nombre_completo}{extra}.'})
         # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
         get_points_bonuses().apply(cedula)
         puntos = fidelidad.puntos_con_bono(cedula, pe.puntos)
@@ -319,15 +320,15 @@ def scan_award():
     pasada = is_past_event(event)
     if not data.get('confirmado_3'):
         if anulada:
-            return jsonify({'ok': False, 'code': 'requires_confirm',
-                            'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
-                            'puntos': event.puntos,
-                            'error': f'{hiker.nombre_completo} tiene un escaneo anulado en esta caminata. Confirmá la re-asignación.'})
-        if pasada:
-            return jsonify({'ok': False, 'code': 'requires_confirm',
-                            'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
-                            'puntos': event.puntos,
-                            'error': f'La caminata ya pasó. Confirmá si igual querés asignarle los puntos a {hiker.nombre_completo}.'})
+            motivo = ' (tiene un escaneo anulado en esta caminata)'
+        elif pasada:
+            motivo = ' (la caminata ya pasó)'
+        else:
+            motivo = ''
+        return jsonify({'ok': False, 'code': 'requires_confirm',
+                        'nombre': hiker.nombre_completo, 'evento': event.nombre_lugar,
+                        'puntos': event.puntos,
+                        'error': f'Confirmá la asignación de {event.puntos} puntos de {event.nombre_lugar} a {hiker.nombre_completo}{motivo}.'})
     # Primer ingreso al sistema de puntos: regalía de bienvenida antes de asignar
     get_points_bonuses().apply(cedula)
     puntos = fidelidad.puntos_con_bono(cedula, event.puntos)
