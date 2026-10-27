@@ -27,6 +27,24 @@
     <!-- MENÚ FLOTANTE: HERRAMIENTAS DE SUPERUSUARIO -->
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
+    {% if request.path == '/mis-puntos' %}
+    <!-- Botón flotante: exportar todos los puntos por WhatsApp (solo en Mis puntos, encima del de invitaciones) -->
+    <a href="#" id="btnWaExportFloat" title="Enviar todos los puntos por WhatsApp" onclick="exportarPuntosWhatsApp(); return false;"
+       style="position:fixed;bottom:calc(var(--nav-mobile-height, 70px) - 15px + 200px);right:20px;width:50px;height:50px;border-radius:50%;background:rgba(37,211,102,0.85);backdrop-filter:blur(5px);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 15px rgba(37,211,102,0.4);z-index:1045;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:all .3s ease;text-decoration:none;">
+        <i class="bi bi-whatsapp fs-4"></i>
+    </a>
+    <script>
+    function exportarPuntosWhatsApp() {
+        fetch('/api/mis-puntos/exportar-whatsapp')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (d.ok) { window.open(d.url, '_blank'); }
+                else { alert(d.error || 'No se pudo exportar.'); }
+            })
+            .catch(function () { alert('Error de conexión.'); });
+    }
+    </script>
+    {% endif %}
     <!-- BLINDADO: botón flotante de invitaciones (encima del escáner QR) -->
     <a href="#" class="btn-inv-float" id="btnInvFloat" title="Crear y enviar invitación" onclick="mostrarInvitacion(); return false;">
         <i class="bi bi-envelope-paper fs-4"></i>

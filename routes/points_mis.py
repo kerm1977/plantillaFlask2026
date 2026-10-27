@@ -5,7 +5,8 @@
 # routes/points_mis.py - Página "Mis Puntos" (consulta, donar, redimir)
 import re
 from urllib.parse import quote
-from flask import request, session, render_template, redirect, url_for
+from datetime import datetime
+from flask import request, session, render_template, redirect, url_for, jsonify
 from db import db
 from models import Hiker, Event, User, EventRegistration
 from modules.points_engine import get_points_engine
@@ -19,6 +20,28 @@ from modules.points_helpers import (is_past_event, get_puntos_password, set_noti
                                     descargar_token, get_puntos_admin_visible)
 from routes import bp
 from routes.points import _current_user
+
+
+@bp.route('/api/mis-puntos/exportar-whatsapp')
+def mis_puntos_exportar_whatsapp():
+    """Texto de WhatsApp con todas las personas: puntos que tienen y ganados.
+    Solo superusuario (botón flotante en /mis-puntos)."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    filas = resumen_global()
+    lineas = ['*PUNTOS — LA TRIBU DE LOS LIBRES*',
+              datetime.now().strftime('%d/%m/%Y %H:%M'), '',
+              '*Persona* | *Tiene* | *Ganó*']
+    total_tiene = 0
+    total_gano = 0
+    for i, f in enumerate(filas, 1):
+        lineas.append(f"{i}. {f['nombre']} — {f['total']} pts (ganó {f['ganados']})")
+        total_tiene += f['total']
+        total_gano += f['ganados']
+    lineas += ['', f'*{len(filas)} personas — {total_tiene} pts disponibles · {total_gano} pts ganados*']
+    texto = '\n'.join(lineas)
+    return jsonify({'ok': True, 'personas': len(filas),
+                    'url': 'https://wa.me/?text=' + quote(texto)})
 
 
 @bp.route('/api/mis-puntos/salida', methods=['POST'])
