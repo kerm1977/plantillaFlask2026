@@ -2,6 +2,7 @@
 #   BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
+import re
 from flask import request, jsonify
 from models import Hiker, EventRegistration
 from db import db
@@ -18,7 +19,7 @@ from modules.points_bonuses import get_points_bonuses
 def check_hiker(cedula):
     # API Silenciosa para autocompletar formularios si el caminante ya existe
     try:
-        hiker = Hiker.query.filter_by(cedula=cedula).first()
+        hiker = Hiker.query.filter_by(cedula=re.sub(r'\D', '', cedula)).first()
         if hiker:
             # Shield para fecha_nacimiento física
             f_nac_str = ""
@@ -50,7 +51,7 @@ def register_hiker():
     data = request.get_json()
     
     try:
-        cedula = data.get('cedula', '').strip()
+        cedula = re.sub(r'\D', '', data.get('cedula', '')).strip()
         event_id = data.get('event_id')
         
         if not cedula:
