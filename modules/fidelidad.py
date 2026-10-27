@@ -3,7 +3,7 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 # modules/fidelidad.py - Programa de fidelidad: niveles VIP y multiplicador
-# Niveles: 12+ participaciones -> Activo VIP (x1.2); 20+ -> Exclusivo VIP (x1.5).
+# Niveles: 20+ participaciones -> Activo VIP (x1.2); 30+ -> Exclusivo VIP (x1.5).
 # El multiplicador aplica a todo lo que suma puntos (participaciones, eventos
 # de puntos, bienvenida, cumpleaños); NO a compras ni obsequios.
 from datetime import datetime
@@ -15,8 +15,8 @@ NIVEL_NORMAL = 'normal'
 NIVEL_ACTIVO = 'activo'
 NIVEL_EXCLUSIVO = 'exclusivo'
 NIVELES = (NIVEL_NORMAL, NIVEL_ACTIVO, NIVEL_EXCLUSIVO)
-MIN_ACTIVO = 12
-MIN_EXCLUSIVO = 20
+MIN_ACTIVO = 20
+MIN_EXCLUSIVO = 30
 MULTIPLICADORES = {NIVEL_NORMAL: 1.0, NIVEL_ACTIVO: 1.2, NIVEL_EXCLUSIVO: 1.5}
 ETIQUETAS = {NIVEL_ACTIVO: 'Activo VIP', NIVEL_EXCLUSIVO: 'Exclusivo VIP', NIVEL_NORMAL: ''}
 
