@@ -3,7 +3,7 @@
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
 {# Modal del póster del evento: ampliar, descargar y compartir. La imagen la toma del póster mostrado en la tarjeta. #}
-<div class="modal fade" id="posterModal" tabindex="-1" aria-hidden="true" data-nombre="{{ evento.nombre_lugar }}">
+<div class="modal fade" id="posterModal" tabindex="-1" aria-hidden="true" data-nombre="{{ evento.nombre_lugar }}" data-evento-id="{{ evento.id }}">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content border-0 shadow-lg rounded-4">
       <div class="modal-header border-0 pb-0">
@@ -13,6 +13,9 @@
       <div class="modal-body text-center">
         <img id="posterModalImg" src="" alt="Póster de {{ evento.nombre_lugar }}" class="img-fluid rounded-4 shadow" style="max-height:68vh;">
         <div id="posterModalMsg" class="small text-success mt-2"></div>
+        <button type="button" id="posterCambiarImg" class="btn btn-orange rounded-pill px-4 fw-bold mt-3" style="display:none;">
+          <i class="bi bi-camera-fill me-1"></i>Cambiar imagen
+        </button>
       </div>
       <div class="modal-footer border-0 justify-content-center pt-0 pb-4 gap-2">
         <a id="posterDescargar" href="#" download class="btn btn-orange rounded-pill px-4 fw-bold"><i class="bi bi-download me-1"></i>Descargar</a>

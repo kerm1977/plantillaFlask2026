@@ -36,6 +36,44 @@
     bootstrap.Modal.getOrCreateInstance(modalEl).show();
   });
 
+  // Mantener presionada la imagen (o clic derecho) muestra "Cambiar imagen"
+  // solo si existe la edición de evento (superusuario).
+  var btnCambiar = document.getElementById('posterCambiarImg');
+  var eventoId = modalEl.dataset.eventoId;
+  if (btnCambiar && eventoId) {
+    var pressTimer = null;
+    var mostrarBtn = function () {
+      // editarEvento se define en caminatas_editar.js (solo superusuario),
+      // cargado despues de este script: se evalua en el momento del toque.
+      if (typeof editarEvento === 'function') btnCambiar.style.display = 'inline-block';
+    };
+    var cancelar = function () { if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; } };
+    big.style.webkitTouchCallout = 'none';
+    big.addEventListener('touchstart', function () {
+      cancelar();
+      pressTimer = setTimeout(mostrarBtn, 550);
+    }, { passive: true });
+    ['touchend', 'touchmove', 'touchcancel'].forEach(function (ev) {
+      big.addEventListener(ev, cancelar, { passive: true });
+    });
+    big.addEventListener('mousedown', function () {
+      cancelar();
+      pressTimer = setTimeout(mostrarBtn, 550);
+    });
+    ['mouseup', 'mouseleave'].forEach(function (ev) {
+      big.addEventListener(ev, cancelar);
+    });
+    big.addEventListener('contextmenu', function (e) {
+      if (typeof editarEvento !== 'function') return;
+      e.preventDefault();
+      mostrarBtn();
+    });
+    btnCambiar.addEventListener('click', function () {
+      bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+      editarEvento(eventoId);
+    });
+  }
+
   document.getElementById('posterCompartir').addEventListener('click', function () {
     var url = window.location.href;
     var texto = nombre + '\n' + url;
