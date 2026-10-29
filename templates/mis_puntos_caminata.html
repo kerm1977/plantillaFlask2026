@@ -162,7 +162,7 @@ async function exportarCaminataPng() {
     try {
         var canvas = await html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#16213e' });
         var blob = await new Promise(function (res) { canvas.toBlob(res, 'image/png'); });
-        var nombre = 'puntos-{{ (event.nombre_lugar or 'caminata').lower().replace(' ', '-') }}-{{ event.id }}.png';
+        var nombre = 'puntos-{{ (event.nombre_lugar or "caminata").lower().replace(" ", "-") }}-{{ event.id }}.png';
         var file = new File([blob], nombre, { type: 'image/png' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
             navigator.share({
