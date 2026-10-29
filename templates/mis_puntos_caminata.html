@@ -74,7 +74,23 @@
 <!-- ===== Tarjeta 9:16 para exportar como PNG por WhatsApp (oculta) ===== -->
 {% set half = (lista|length + 1) // 2 %}
 {% set compact = lista|length > 30 %}
-<div id="mpPngCard" style="position:fixed; left:-9999px; top:0; width:540px; height:960px;
+<style>
+  #mpPngCard .mpRow { padding:4px 0; border-bottom:1px solid rgba(255,255,255,.08); }
+  #mpPngCard .mpLine { display:flex; justify-content:space-between; align-items:baseline; gap:6px; }
+  #mpPngCard .mpName { font-size:12.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #mpPngCard .mpNeto { font-size:13px; font-weight:800; flex-shrink:0; }
+  #mpPngCard .mpNeto.pos { color:#4ade80; }
+  #mpPngCard .mpNeto.neg { color:#f87171; }
+  #mpPngCard .mpSub { margin-top:1px; }
+  #mpPngCard .mpCed, #mpPngCard .mpBal { font-size:10px; color:#9aa4c0; }
+  #mpPngCard .mpCed { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  #mpPngCard .mpBal { flex-shrink:0; }
+  #mpPngCard.mpCompact .mpRow { padding:2.5px 0; }
+  #mpPngCard.mpCompact .mpName { font-size:10.5px; }
+  #mpPngCard.mpCompact .mpNeto { font-size:11px; }
+  #mpPngCard.mpCompact .mpCed, #mpPngCard.mpCompact .mpBal { font-size:8.5px; }
+</style>
+<div id="mpPngCard" class="{{ 'mpCompact' if compact }}" style="position:fixed; left:-9999px; top:0; width:540px; height:960px;
      background:linear-gradient(160deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);
      color:#fff; font-family:Arial,Helvetica,sans-serif; display:flex; flex-direction:column;">
   <div style="padding:26px 28px 14px; border-bottom:3px solid #ff8c00;">
@@ -90,14 +106,14 @@
     {% for col in (lista[:half], lista[half:]) %}
     <div style="flex:1; min-width:0;">
       {% for p in col %}
-      <div style="padding:{{ 2.5 if compact else 4 }}px 0; border-bottom:1px solid rgba(255,255,255,.08);">
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px;">
-          <span style="font-size:{{ 10.5 if compact else 12.5 }}px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ p.nombre }}</span>
-          <span style="font-size:{{ 11 if compact else 13 }}px; font-weight:800; color:{{ '#4ade80' if p.neto >= 0 else '#f87171' }}; flex-shrink:0;">{{ p.neto }}</span>
+      <div class="mpRow">
+        <div class="mpLine">
+          <span class="mpName">{{ p.nombre }}</span>
+          <span class="mpNeto {{ 'pos' if p.neto >= 0 else 'neg' }}">{{ p.neto }}</span>
         </div>
-        <div style="display:flex; justify-content:space-between; align-items:baseline; gap:6px; margin-top:1px;">
-          <span style="font-size:{{ 8.5 if compact else 10 }}px; color:#9aa4c0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{{ p.cedula }}</span>
-          <span style="font-size:{{ 8.5 if compact else 10 }}px; color:#9aa4c0; flex-shrink:0;">Cuenta: {{ p.balance_total }}</span>
+        <div class="mpLine mpSub">
+          <span class="mpCed">{{ p.cedula }}</span>
+          <span class="mpBal">Cuenta: {{ p.balance_total }}</span>
         </div>
       </div>
       {% endfor %}
