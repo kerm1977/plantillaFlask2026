@@ -121,6 +121,32 @@
     {% if ns.sec2027_open %}</div>{% endif %}
   </div>
   </div>
+  {% if is_tribu %}
+  <div id="vistaPortadas" class="caminatas-vista" style="display:none;">
+    {% for entry in timeline if entry.type == 'provincia' and entry.walks and not (entry.group_label == 'Referencia' and not is_super) %}
+      {% set _parts = (entry.group_label or '').split(' ') %}
+      {% set _anio = _parts[-1] if _parts and _parts[-1]|length == 4 and _parts[-1]|int(0) > 1900 else '' %}
+      {% set _mes = _parts[:-1]|join(' ') if _anio else (entry.group_label or '') %}
+      <div class="d-flex align-items-center gap-3 my-4">
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
+        <span class="fw-bold fs-4 text-uppercase" style="color:#722F37;letter-spacing:3px;">{{ _mes }}</span>
+        {% if _anio %}<span class="fw-bold fs-5" style="color:#9aa4c0;letter-spacing:2px;">{{ _anio }}</span>{% endif %}
+        <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
+      </div>
+      <div class="row row-cols-3 row-cols-sm-4 row-cols-md-5 g-2 mb-4">
+        {% for ev in entry.walks %}
+        <div class="col">
+          <a href="{{ url_for(detail_endpoint | default('main.ver_caminata_2027'), event_id=ev.id) }}" title="{{ ev.nombre_lugar }}">
+            <img src="{{ url_for('static', filename='uploads/' + ev.poster) if ev.poster else url_for('static', filename='default.png') }}"
+                 alt="{{ ev.nombre_lugar }}" class="img-fluid rounded-3 shadow-sm w-100"
+                 style="aspect-ratio:9/16; object-fit:cover;" loading="lazy">
+          </a>
+        </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
   <div id="vistaLista" class="caminatas-vista" style="display:none;">
     <div class="glass-panel rounded-4 shadow-sm mb-3">
       <ul class="list-group list-group-flush">

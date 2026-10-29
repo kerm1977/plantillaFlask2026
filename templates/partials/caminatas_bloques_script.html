@@ -126,13 +126,39 @@
   }
 
   let caminatasVistaIndex = 0;
-  const caminatasVistas = ['vistaProvincias', 'vistaAlfabetica'];
+  const caminatasVistas = ['vistaProvincias', 'vistaAlfabetica', 'vistaPortadas'];
+  function _vistasExistentes() {
+    return caminatasVistas.filter(id => document.getElementById(id));
+  }
+  function _mostrarVistaPorId(id) {
+    document.querySelectorAll('.caminatas-vista').forEach(v => { v.style.display = 'none'; });
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'block';
+    _syncBtnPortadas(id === 'vistaPortadas');
+  }
+  function _syncBtnPortadas(enPortadas) {
+    const btn = document.getElementById('btnVistaPortadas');
+    if (!btn) return;
+    btn.innerHTML = enPortadas
+      ? '<i class="bi bi-list-ul me-1"></i>Lista'
+      : '<i class="bi bi-images me-1"></i>Portadas';
+  }
   function cambiarVistaCaminatasCiclo() {
-    caminatasVistaIndex = (caminatasVistaIndex + 1) % caminatasVistas.length;
-    caminatasVistas.forEach((id, i) => {
-      const el = document.getElementById(id);
-      if (el) el.style.display = (i === caminatasVistaIndex) ? 'block' : 'none';
-    });
+    const vistas = _vistasExistentes();
+    if (!vistas.length) return;
+    caminatasVistaIndex = (caminatasVistaIndex + 1) % vistas.length;
+    _mostrarVistaPorId(vistas[caminatasVistaIndex]);
+  }
+  function toggleVistaPortadas() {
+    const portadas = document.getElementById('vistaPortadas');
+    if (!portadas) return;
+    const enPortadas = portadas.style.display !== 'none';
+    if (enPortadas) {
+      caminatasVistaIndex = 0;
+      _mostrarVistaPorId(_vistasExistentes()[0]);
+    } else {
+      _mostrarVistaPorId('vistaPortadas');
+    }
   }
 
   function setupCaminatas2027LongPress() {

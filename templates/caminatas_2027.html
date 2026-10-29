@@ -143,6 +143,13 @@
       <button class="btn btn-sm btn-light rounded-circle flex-shrink-0" onclick="openBlockEditor('intro', null, document.getElementById('caminataIntroText').innerHTML, null)" title="Editar información"><i class="bi bi-pencil"></i></button>
       {% endif %}
     </div>
+    {% if is_tribu and timeline %}
+    <div class="mt-2">
+      <button type="button" id="btnVistaPortadas" class="btn btn-sm btn-outline-orange rounded-pill fw-bold" onclick="toggleVistaPortadas()">
+        <i class="bi bi-images me-1"></i>Portadas
+      </button>
+    </div>
+    {% endif %}
   </div>
 
   {% if is_super and (is_caminatas_2027_page | default(true)) %}
