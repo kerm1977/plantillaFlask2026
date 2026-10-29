@@ -61,10 +61,12 @@ def _personas_por_evento(event_id):
         elif pts < 0:
             p['perdidos'] += -pts
         p['movs'].append(r)
+    engine = get_points_engine()
     lista = [{'cedula': p['cedula'],
               'nombre': hikers.get(p['cedula']) or '(sin registro)',
               'ganados': p['ganados'], 'perdidos': p['perdidos'],
               'neto': p['ganados'] - p['perdidos'],
+              'balance_total': engine.total_by_cedula(p['cedula']),
               'movs': p['movs']} for p in por.values()]
     lista.sort(key=lambda x: (x['nombre'] or '').lower())
     return lista
