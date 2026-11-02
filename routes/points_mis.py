@@ -131,14 +131,31 @@ def mis_puntos_caminata_txt(event_id):
 
 @bp.route('/api/mis-puntos/personas')
 def mis_puntos_personas():
-    """Lista ligera de personas con puntos para el selector del export
-    (cedula, nombre, total). Solo superusuario."""
+    """Lista de personas con su estado de puntos completo para el selector
+    inteligente del export (nombre, cedula, telefono y todas las categorias
+    de puntos). Solo superusuario."""
     if session.get('role') != 'Superusuario':
         return jsonify({'ok': False, 'error': 'No autorizado'}), 403
-    filas = resumen_global()
+    from sqlalchemy import func
+    telefonos = {h.cedula: (h.telefono or '') for h in Hiker.query.all()}
+    redimidos = dict(db.session.query(HikerPoints.cedula, func.coalesce(func.sum(HikerPoints.points), 0))
+                   .filter(HikerPoints.tipo.like('redencion%')).group_by(HikerPoints.cedula).all())
+    comprados = dict(db.session.query(HikerPoints.cedula, func.coalesce(func.sum(HikerPoints.points), 0))
+                     .filter(HikerPoints.tipo == 'compra').group_by(HikerPoints.cedula).all())
+    # Fecha del ultimo movimiento real de puntos por persona (para "ultimos")
+    ultimas = dict(db.session.query(HikerPoints.cedula, func.max(HikerPoints.created_at))
+                   .group_by(HikerPoints.cedula).all())
     return jsonify({'ok': True, 'personas': [
-        {'cedula': f['cedula'], 'nombre': f['nombre'], 'total': f['total']}
-        for f in filas]})
+        {'cedula': f['cedula'], 'nombre': f['nombre'],
+         'telefono': telefonos.get(f['cedula'], ''),
+         'total': f['total'], 'ganados': f['ganados'], 'perdidos': f['perdidos'],
+         'redimidos': -int(redimidos.get(f['cedula']) or 0),
+         'comprados': int(comprados.get(f['cedula']) or 0),
+         'donados': f.get('donados', 0), 'obsequiados': f.get('obsequiados', 0),
+         'restados': f.get('restados', 0), 'retiros': f['retiros'],
+         'vip_label': f['vip_label'],
+         'ultima': ultimas[f['cedula']].isoformat() if ultimas.get(f['cedula']) else ''}
+        for f in resumen_global()]})
 
 
 @bp.route('/api/mis-puntos/exportar-personas.txt', methods=['POST'])

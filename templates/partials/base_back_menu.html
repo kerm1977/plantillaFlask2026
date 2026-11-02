@@ -42,7 +42,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
           <div class="modal-body">
-            <input type="text" id="expFiltro" class="form-control rounded-pill mb-2" placeholder="Buscar por nombre o cédula…" oninput="filtrarExpPersonas()">
+            <input type="text" id="expFiltro" class="form-control rounded-pill mb-2" placeholder="Buscar: nombre, cédula, teléfono, 500, ganados, redimidos, últimos…" oninput="filtrarExpPersonas()">
             <label class="d-flex align-items-center gap-2 fw-bold small mb-2" style="cursor:pointer;">
               <input type="checkbox" id="expTodas" onchange="expSeleccionarTodas(this.checked)"> Seleccionar todas
             </label>
@@ -75,16 +75,81 @@
                 document.getElementById('expCargando').textContent = 'No se pudo cargar la lista.';
             });
     }
+    var EXP_CAMPOS = {
+        'ganados': 'ganados', 'ganado': 'ganados',
+        'perdidos': 'perdidos', 'perdido': 'perdidos',
+        'redimidos': 'redimidos', 'redimido': 'redimidos', 'usados': 'redimidos',
+        'comprados': 'comprados', 'comprado': 'comprados', 'compra': 'comprados',
+        'donados': 'donados', 'donado': 'donados',
+        'obsequiados': 'obsequiados', 'obsequios': 'obsequiados', 'obsequio': 'obsequiados',
+        'castigados': 'restados', 'castigo': 'restados', 'restados': 'restados',
+        'retiros': 'retiros', 'retiro': 'retiros',
+        'puntos': 'total', 'punto': 'total', 'disponibles': 'total', 'disponible': 'total', 'total': 'total'
+    };
+    function _expDigitos(s) { return (s || '').replace(/\D/g, ''); }
+    function _expTokenOk(p, tok) {
+        var digitos = _expDigitos(tok);
+        // Numero: igualdad exacta en alguna categoria de puntos, o digitos en cedula/telefono
+        if (/^\d+$/.test(tok)) {
+            var n = parseInt(tok, 10);
+            if ([p.total, p.ganados, p.perdidos, p.redimidos, p.comprados,
+                 p.donados, p.obsequiados, p.restados, p.retiros].indexOf(n) >= 0) return true;
+            return digitos.length >= 3 &&
+                (_expDigitos(p.cedula).indexOf(digitos) >= 0 || _expDigitos(p.telefono).indexOf(digitos) >= 0);
+        }
+        // Palabra clave de categoria: personas con ese campo > 0
+        if (EXP_CAMPOS[tok]) return (p[EXP_CAMPOS[tok]] || 0) > 0;
+        // VIP
+        if (tok === 'vip') return (p.vip_label || '').toLowerCase().indexOf('vip') >= 0 && (p.vip_label || '').toLowerCase().indexOf('sin nivel') < 0;
+        if (tok === 'activo' || tok === 'activos' || tok === 'exclusivo' || tok === 'exclusivos') {
+            return (p.vip_label || '').toLowerCase().indexOf(tok.replace(/s$/, '')) >= 0;
+        }
+        // Texto libre: nombre/apellidos, cedula o telefono
+        if ((p.nombre || '').toLowerCase().indexOf(tok) >= 0) return true;
+        if (digitos.length >= 2 &&
+            (_expDigitos(p.cedula).indexOf(digitos) >= 0 || _expDigitos(p.telefono).indexOf(digitos) >= 0)) return true;
+        return (p.cedula || '').toLowerCase().indexOf(tok) >= 0;
+    }
+    function expFiltrar(q) {
+        var sinAcentos = function (t) { return t.normalize('NFD').replace(/[̀-ͯ]/g, ''); };
+        var tokens = (q || '').toLowerCase().trim().split(/\s+/).filter(Boolean).map(sinAcentos);
+        var ultimos = tokens.some(function (t) { return /ultim|reciente/.test(t); });
+        tokens = tokens.filter(function (t) { return !/ultim|reciente/.test(t); });
+        var lista = _expPersonas;
+        var campoPrev = null;
+        tokens.forEach(function (tok) {
+            var campo = EXP_CAMPOS[tok];
+            // "ganados 500": un campo seguido de numero = igualdad exacta en ese campo
+            if (campoPrev && /^\d+$/.test(tok)) {
+                lista = lista.filter(function (p) { return p[campoPrev] === parseInt(tok, 10); });
+                campoPrev = null;
+                return;
+            }
+            campoPrev = campo || null;
+            lista = lista.filter(function (p) { return _expTokenOk(p, tok); });
+        });
+        if (ultimos) {
+            lista = lista.slice().sort(function (a, b) {
+                return (b.ultima || '').localeCompare(a.ultima || '');
+            }).slice(0, 30);
+        }
+        return lista;
+    }
+    function _expFecha(iso) {
+        if (!iso) return '';
+        var p = iso.slice(0, 10).split('-');
+        return p[2] + '/' + p[1] + '/' + p[0];
+    }
     function renderExpPersonas(filtro) {
-        var f = (filtro || '').toLowerCase();
-        var html = _expPersonas
-            .filter(function (p) {
-                return !f || (p.nombre || '').toLowerCase().indexOf(f) >= 0 || (p.cedula || '').indexOf(f) >= 0;
-            })
+        var html = expFiltrar(filtro)
             .map(function (p) {
+                var det = 'Céd. ' + p.cedula + (p.telefono ? ' · Tel ' + p.telefono : '')
+                    + ' · <b>' + p.total + ' pts</b><br>'
+                    + '<small>G:' + p.ganados + ' P:' + p.perdidos + ' R:' + p.redimidos + ' C:' + p.comprados + '</small>'
+                    + (p.ultima ? ' · <small>últ. mov ' + _expFecha(p.ultima) + '</small>' : '');
                 return '<label class="d-flex align-items-center gap-2 py-1 border-bottom" style="cursor:pointer;">'
                     + '<input type="checkbox" class="expChk" value="' + p.cedula + '" onchange="expActualizarContador()">'
-                    + '<span class="flex-grow-1">' + (p.nombre || '(sin nombre)') + '<br><small class="text-muted">Céd. ' + p.cedula + ' · ' + p.total + ' pts</small></span>'
+                    + '<span class="flex-grow-1">' + (p.nombre || '(sin nombre)') + '<br><small class="text-muted">' + det + '</small></span>'
                     + '</label>';
             }).join('');
         document.getElementById('expLista').innerHTML = html || '<div class="text-muted text-center py-3">Sin coincidencias.</div>';
