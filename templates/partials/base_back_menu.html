@@ -51,9 +51,14 @@
           </div>
           <div class="modal-footer border-0 justify-content-between pt-0">
             <span id="expContador" class="small text-muted">0 seleccionadas</span>
-            <button type="button" class="btn btn-warning rounded-pill fw-bold text-dark" onclick="exportarSeleccionadas()">
-              <i class="bi bi-download me-1"></i>Exportar TXT
-            </button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-dark rounded-pill fw-bold btn-sm" title="Últimas 25 personas con +501 pts y movimiento en 2 meses" onclick="exportarUltimas()">
+                <i class="bi bi-clock-history me-1"></i>Exportar últimos
+              </button>
+              <button type="button" class="btn btn-warning rounded-pill fw-bold text-dark btn-sm" onclick="exportarSeleccionadas()">
+                <i class="bi bi-download me-1"></i>Exportar TXT
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -173,6 +178,24 @@
     function exportarSeleccionadas() {
         var cedulas = Array.from(document.querySelectorAll('#expLista .expChk:checked')).map(function (c) { return c.value; });
         if (!cedulas.length) { alert('Seleccioná al menos una persona.'); return; }
+        expDescargar(cedulas);
+    }
+    function exportarUltimas() {
+        // Ultimas 25 personas con >501 pts acumulados, ganancias reales y
+        // un movimiento de puntos dentro de los ultimos 2 meses
+        var hace2m = new Date(); hace2m.setMonth(hace2m.getMonth() - 2);
+        var cedulas = _expPersonas
+            .filter(function (p) {
+                return p.total > 501 && (p.ganados || 0) > 0 &&
+                       p.ultima && new Date(p.ultima) >= hace2m;
+            })
+            .sort(function (a, b) { return (b.ultima || '').localeCompare(a.ultima || ''); })
+            .slice(0, 25)
+            .map(function (p) { return p.cedula; });
+        if (!cedulas.length) { alert('No hay personas con puntos acumulados en los últimos 2 meses.'); return; }
+        expDescargar(cedulas);
+    }
+    function expDescargar(cedulas) {
         fetch('/api/mis-puntos/exportar-personas.txt', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
