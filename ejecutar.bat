@@ -114,7 +114,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0disable_quickedit.ps1"
 
 :tail_loop
 echo [!] ENRUTANDO TAILSCALE...
-tailscale funnel --bg --https=8443 [http://127.0.0.1:5050](http://127.0.0.1:5050)
+tailscale funnel --bg --https=8443 http://127.0.0.1:5050
 echo [X] TAILSCALE CERRADO. Reiniciando...
 timeout /t 3 > nul
 goto tail_loop
