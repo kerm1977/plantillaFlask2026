@@ -129,6 +129,92 @@ def mis_puntos_caminata_txt(event_id):
                      download_name=f"puntos-{re.sub(r'[^a-z0-9]+', '-', (event.nombre_lugar or 'caminata').lower())}-{datetime.now().strftime('%Y%m%d-%H%M')}.txt")
 
 
+@bp.route('/api/mis-puntos/personas')
+def mis_puntos_personas():
+    """Lista ligera de personas con puntos para el selector del export
+    (cedula, nombre, total). Solo superusuario."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    filas = resumen_global()
+    return jsonify({'ok': True, 'personas': [
+        {'cedula': f['cedula'], 'nombre': f['nombre'], 'total': f['total']}
+        for f in filas]})
+
+
+@bp.route('/api/mis-puntos/exportar-personas.txt', methods=['POST'])
+def mis_puntos_exportar_personas_txt():
+    """TXT con el estado de cuenta completo SOLO de las cedulas elegidas
+    en el selector del modal (solo superusuario)."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'ok': False, 'error': 'No autorizado'}), 403
+    data = request.get_json(silent=True) or {}
+    cedulas = {str(c).strip() for c in (data.get('cedulas') or []) if str(c).strip()}
+    if not cedulas:
+        return jsonify({'ok': False, 'error': 'Seleccione al menos una persona'}), 400
+    filas = [f for f in resumen_global() if f['cedula'] in cedulas]
+    if not filas:
+        return jsonify({'ok': False, 'error': 'Sin resultados'}), 404
+    from sqlalchemy import func
+    redimidos = dict(db.session.query(HikerPoints.cedula, func.coalesce(func.sum(HikerPoints.points), 0))
+                   .filter(HikerPoints.tipo.like('redencion%')).group_by(HikerPoints.cedula).all())
+    comprados = dict(db.session.query(HikerPoints.cedula, func.coalesce(func.sum(HikerPoints.points), 0))
+                     .filter(HikerPoints.tipo == 'compra').group_by(HikerPoints.cedula).all())
+    sep = '=' * 64
+    sep2 = '-' * 64
+    L = ['PUNTOS SELECCIONADOS - LA TRIBU DE LOS LIBRES',
+         f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}",
+         f"Personas seleccionadas: {len(filas)}", sep]
+    tot = {'total': 0, 'ganados': 0, 'perdidos': 0, 'redimidos': 0,
+           'comprados': 0, 'donados': 0, 'obsequiados': 0, 'restados': 0}
+    for i, f in enumerate(filas, 1):
+        c = f['cedula']
+        red = -int(redimidos.get(c) or 0)
+        com = int(comprados.get(c) or 0)
+        tot['total'] += f['total']
+        tot['ganados'] += f['ganados']
+        tot['perdidos'] += f['perdidos']
+        tot['redimidos'] += red
+        tot['comprados'] += com
+        tot['donados'] += f.get('donados', 0)
+        tot['obsequiados'] += f.get('obsequiados', 0)
+        tot['restados'] += f.get('restados', 0)
+        L += ['',
+              f"{i}. {f['nombre'].upper()} - Céd. {c}",
+              sep2,
+              f"   Puntos disponibles   : {f['total']}",
+              f"   Puntos ganados       : {f['ganados']}",
+              f"   Puntos perdidos      : {f['perdidos']}",
+              f"   Puntos redimidos     : {red}",
+              f"   Puntos comprados     : {com}"]
+        if f.get('donados'):
+            L.append(f"   Puntos donados       : {f['donados']}")
+        if f.get('obsequiados'):
+            L.append(f"   Obsequios recibidos  : {f['obsequiados']}")
+        if f.get('restados'):
+            L.append(f"   Puntos castigados    : {f['restados']}")
+        L += [f"   Nivel VIP            : {f['vip_label']}",
+              f"   Retiros              : {f['retiros']}",
+              f"   Caminatas participadas ({len(f['caminatas_ok'])}):"]
+        L += [f'      - {x}' for x in f['caminatas_ok']]
+        L.append(f"   Caminatas sin participar ({len(f['caminatas_no'])}):")
+        L += [f'      - {x}' for x in f['caminatas_no']]
+    L += ['', sep,
+          'RESUMEN DE LA SELECCION',
+          f'   Personas seleccionadas : {len(filas)}',
+          f"   PUNTOS DISPONIBLES     : {tot['total']}",
+          f"   Puntos ganados         : {tot['ganados']}",
+          f"   Puntos perdidos        : {tot['perdidos']}",
+          f"   Puntos redimidos       : {tot['redimidos']}",
+          f"   Puntos comprados       : {tot['comprados']}",
+          f"   Puntos donados         : {tot['donados']}",
+          f"   Obsequios recibidos    : {tot['obsequiados']}",
+          f"   Puntos castigados      : {tot['restados']}"]
+    buf = io.BytesIO('\n'.join(L).encode('utf-8'))
+    buf.seek(0)
+    return send_file(buf, mimetype='text/plain; charset=utf-8', as_attachment=True,
+                     download_name=f"puntos-seleccion-{datetime.now().strftime('%Y%m%d-%H%M')}.txt")
+
+
 @bp.route('/api/mis-puntos/exportar.txt')
 def mis_puntos_exportar_txt():
     """TXT ordenado alfabéticamente con todo lo de puntos por persona:

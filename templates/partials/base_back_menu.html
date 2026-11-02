@@ -28,26 +28,99 @@
     <!-- ========================================== -->
     {% if session.get('role') == 'Superusuario' %}
     {% if request.path == '/mis-puntos' %}
-    <!-- Botón flotante: exportar todos los puntos por WhatsApp (solo en Mis puntos, encima del de invitaciones) -->
-    <a href="#" id="btnWaExportFloat" title="Exportar TXT de puntos por WhatsApp" onclick="exportarPuntosWhatsApp(); return false;"
-       style="position:fixed;bottom:calc(var(--nav-mobile-height, 70px) - 15px + 200px);right:20px;width:50px;height:50px;border-radius:50%;background:rgba(37,211,102,0.85);backdrop-filter:blur(5px);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 15px rgba(37,211,102,0.4);z-index:1045;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:all .3s ease;text-decoration:none;">
-        <i class="bi bi-whatsapp fs-4"></i>
+    <!-- Botón flotante: exportar TXT de puntos con selector de personas (solo en Mis puntos, encima del de invitaciones) -->
+    <a href="#" id="btnWaExportFloat" title="Exportar TXT de puntos" onclick="abrirExportPersonas(); return false;"
+       style="position:fixed;bottom:calc(var(--nav-mobile-height, 70px) - 15px + 200px);right:20px;width:50px;height:50px;border-radius:50%;background:rgba(255,140,0,0.85);backdrop-filter:blur(5px);color:#fff;border:1px solid rgba(255,255,255,0.3);box-shadow:0 4px 15px rgba(255,140,0,0.4);z-index:1045;display:flex;justify-content:center;align-items:center;cursor:pointer;transition:all .3s ease;text-decoration:none;">
+        <i class="bi bi-filetype-txt fs-4"></i>
     </a>
+    <!-- Modal: selector de personas para exportar TXT -->
+    <div class="modal fade" id="exportPersonasModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+          <div class="modal-header border-0 pb-0">
+            <h5 class="modal-title fw-bold"><i class="bi bi-filetype-txt text-orange me-2"></i>Exportar puntos a TXT</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <input type="text" id="expFiltro" class="form-control rounded-pill mb-2" placeholder="Buscar por nombre o cédula…" oninput="filtrarExpPersonas()">
+            <label class="d-flex align-items-center gap-2 fw-bold small mb-2" style="cursor:pointer;">
+              <input type="checkbox" id="expTodas" onchange="expSeleccionarTodas(this.checked)"> Seleccionar todas
+            </label>
+            <div id="expLista" style="max-height:45vh;overflow-y:auto;"></div>
+            <div id="expCargando" class="text-center text-muted small py-3">Cargando personas…</div>
+          </div>
+          <div class="modal-footer border-0 justify-content-between pt-0">
+            <span id="expContador" class="small text-muted">0 seleccionadas</span>
+            <button type="button" class="btn btn-warning rounded-pill fw-bold text-dark" onclick="exportarSeleccionadas()">
+              <i class="bi bi-download me-1"></i>Exportar TXT
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
     <script>
-    function exportarPuntosWhatsApp() {
-        fetch('/api/mis-puntos/exportar.txt')
+    var _expPersonas = [];
+    function abrirExportPersonas() {
+        var modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('exportPersonasModal'));
+        modal.show();
+        if (_expPersonas.length) return;
+        fetch('/api/mis-puntos/personas')
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                _expPersonas = d.personas || [];
+                document.getElementById('expCargando').style.display = 'none';
+                renderExpPersonas('');
+            })
+            .catch(function () {
+                document.getElementById('expCargando').textContent = 'No se pudo cargar la lista.';
+            });
+    }
+    function renderExpPersonas(filtro) {
+        var f = (filtro || '').toLowerCase();
+        var html = _expPersonas
+            .filter(function (p) {
+                return !f || (p.nombre || '').toLowerCase().indexOf(f) >= 0 || (p.cedula || '').indexOf(f) >= 0;
+            })
+            .map(function (p) {
+                return '<label class="d-flex align-items-center gap-2 py-1 border-bottom" style="cursor:pointer;">'
+                    + '<input type="checkbox" class="expChk" value="' + p.cedula + '" onchange="expActualizarContador()">'
+                    + '<span class="flex-grow-1">' + (p.nombre || '(sin nombre)') + '<br><small class="text-muted">Céd. ' + p.cedula + ' · ' + p.total + ' pts</small></span>'
+                    + '</label>';
+            }).join('');
+        document.getElementById('expLista').innerHTML = html || '<div class="text-muted text-center py-3">Sin coincidencias.</div>';
+        expActualizarContador();
+    }
+    function filtrarExpPersonas() {
+        renderExpPersonas(document.getElementById('expFiltro').value);
+    }
+    function expSeleccionarTodas(v) {
+        document.querySelectorAll('#expLista .expChk').forEach(function (c) { c.checked = v; });
+        expActualizarContador();
+    }
+    function expActualizarContador() {
+        var n = document.querySelectorAll('#expLista .expChk:checked').length;
+        document.getElementById('expContador').textContent = n + ' seleccionada' + (n === 1 ? '' : 's');
+    }
+    function exportarSeleccionadas() {
+        var cedulas = Array.from(document.querySelectorAll('#expLista .expChk:checked')).map(function (c) { return c.value; });
+        if (!cedulas.length) { alert('Seleccioná al menos una persona.'); return; }
+        fetch('/api/mis-puntos/exportar-personas.txt', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cedulas: cedulas })
+        })
             .then(function (r) {
                 if (!r.ok) { throw new Error('No autorizado'); }
                 return r.blob();
             })
             .then(function (blob) {
-                var nombre = 'puntos-latribu.txt';
+                var nombre = 'puntos-seleccion.txt';
                 var file = new File([blob], nombre, { type: 'text/plain' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     navigator.share({
                         files: [file],
                         title: 'Puntos La Tribu',
-                        text: 'Reporte de puntos de todas las personas — La Tribu de los Libres'
+                        text: 'Estado de cuenta de puntos — La Tribu de los Libres'
                     }).catch(function () {});
                 } else {
                     var a = document.createElement('a');
