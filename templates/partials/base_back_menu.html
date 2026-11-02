@@ -52,7 +52,8 @@
           <div class="modal-footer border-0 justify-content-between pt-0">
             <span id="expContador" class="small text-muted">0 seleccionadas</span>
             <div class="d-flex gap-2">
-              <button type="button" class="btn btn-outline-dark rounded-pill fw-bold btn-sm" title="Últimas 25 personas con +501 pts y movimiento en 2 meses" onclick="exportarUltimas()">
+              <input type="number" id="expCantUlt" class="form-control form-control-sm rounded-pill text-center fw-bold" value="25" min="1" max="500" title="Cantidad de últimas personas" style="width:62px;">
+              <button type="button" class="btn btn-outline-dark rounded-pill fw-bold btn-sm" title="Últimas N personas con +501 pts y movimiento en 2 meses" onclick="exportarUltimas()">
                 <i class="bi bi-clock-history me-1"></i>Exportar últimos
               </button>
               <button type="button" class="btn btn-warning rounded-pill fw-bold text-dark btn-sm" onclick="exportarSeleccionadas()">
@@ -181,8 +182,11 @@
         expDescargar(cedulas);
     }
     function exportarUltimas() {
-        // Ultimas 25 personas con >501 pts acumulados, ganancias reales y
+        // Ultimas N personas con >501 pts acumulados, ganancias reales y
         // un movimiento de puntos dentro de los ultimos 2 meses
+        var n = parseInt(document.getElementById('expCantUlt').value, 10);
+        if (!n || n < 1) n = 25;
+        if (n > 500) n = 500;
         var hace2m = new Date(); hace2m.setMonth(hace2m.getMonth() - 2);
         var cedulas = _expPersonas
             .filter(function (p) {
@@ -190,7 +194,7 @@
                        p.ultima && new Date(p.ultima) >= hace2m;
             })
             .sort(function (a, b) { return (b.ultima || '').localeCompare(a.ultima || ''); })
-            .slice(0, 25)
+            .slice(0, n)
             .map(function (p) { return p.cedula; });
         if (!cedulas.length) { alert('No hay personas con puntos acumulados en los últimos 2 meses.'); return; }
         expDescargar(cedulas);
