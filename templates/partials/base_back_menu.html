@@ -129,7 +129,11 @@
             lista = lista.filter(function (p) { return _expTokenOk(p, tok); });
         });
         if (ultimos) {
-            lista = lista.slice().sort(function (a, b) {
+            // Solo personas con >501 puntos acumulados y movimientos reales,
+            // ordenadas por su ultima modificacion de puntos (mas reciente primero)
+            lista = lista.filter(function (p) {
+                return p.total > 501 && (p.ganados || 0) > 0 && p.ultima;
+            }).sort(function (a, b) {
                 return (b.ultima || '').localeCompare(a.ultima || '');
             }).slice(0, 30);
         }
