@@ -127,6 +127,13 @@
 
   let caminatasVistaIndex = 0;
   const caminatasVistas = ['vistaProvincias', 'vistaAlfabetica', 'vistaPortadas'];
+  (function () {
+    const portadas = document.getElementById('vistaPortadas');
+    if (portadas && portadas.style.display !== 'none') {
+      caminatasVistaIndex = _vistasExistentes().indexOf('vistaPortadas');
+      _syncBtnPortadas(true);
+    }
+  })();
   function _vistasExistentes() {
     return caminatasVistas.filter(id => document.getElementById(id));
   }
