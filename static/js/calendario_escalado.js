@@ -9,9 +9,8 @@
 function ajustarEscalaWrapperCalendario() {
     const calWrapper = document.getElementById('flyer-wrapper');
     const calLienzoArte = document.getElementById('lienzo-arte');
+    const holder = document.getElementById('cal-flyer-holder');
     if(!calWrapper || !calLienzoArte) return;
-    const currentWidth = calWrapper.clientWidth;
-    if(currentWidth === 0) return;
 
     const fSelect = document.getElementById('calFormatoArte');
     const formato = fSelect ? fSelect.value : 'horizontal';
@@ -22,10 +21,19 @@ function ajustarEscalaWrapperCalendario() {
     calLienzoArte.style.width = baseWidth + 'px';
     calLienzoArte.style.height = baseHeight + 'px';
 
-    const ratio = baseHeight / baseWidth;
-    calWrapper.style.height = (currentWidth * ratio) + 'px';
+    // El flyer cabe COMPLETO en la mitad inferior: escala por ancho Y alto
+    const box = holder || calWrapper.parentElement;
+    const availW = box ? box.clientWidth : calWrapper.clientWidth;
+    const availH = box ? box.clientHeight : 0;
+    if(availW === 0) return;
 
-    const scale = currentWidth / baseWidth;
+    const scale = availH > 0
+        ? Math.min(availW / baseWidth, availH / baseHeight)
+        : (availW / baseWidth);
+
+    calWrapper.style.width = Math.round(baseWidth * scale) + 'px';
+    calWrapper.style.height = Math.round(baseHeight * scale) + 'px';
+    calWrapper.style.margin = '0 auto';
     calLienzoArte.style.transform = `scale(${scale})`;
 
     if(typeof renderizarFondoCanvas === 'function') {

@@ -2,14 +2,15 @@
      BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
-<!-- ÁREA DEL LIENZO -->
-<div class="col-lg-8">
-    <div class="alert alert-info rounded-pill text-center mb-3 py-2 shadow-sm border-0 bg-opacity-10 text-dark">
+<!-- ÁREA DEL LIENZO - mitad inferior, el flyer cabe completo -->
+<div class="cal-zona-arte d-flex flex-column" style="flex: 1 1 55%; min-height: 0; overflow: hidden;">
+    <div class="alert alert-info rounded-pill text-center mb-2 py-1 shadow-sm border-0 bg-opacity-10 text-dark flex-shrink-0">
         <i class="bi bi-info-circle-fill me-2 text-orange"></i>
         <small>El texto del botón inferior <strong>está asegurado</strong> y no se cortará en el archivo final.</small>
     </div>
 
-    <div id="flyer-wrapper">
+    <div id="cal-flyer-holder" class="d-flex align-items-center justify-content-center w-100" style="flex: 1; min-height: 0; overflow: hidden;">
+    <div id="flyer-wrapper" style="margin: 0 auto;">
         <div id="lienzo-arte">
             <canvas id="cal-flyer-bg-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;"></canvas>
             <div class="overlay-oscuro" id="cal-overlay-oscuro"></div>
@@ -45,5 +46,6 @@
                 </div>
             </div>
         </div>
+    </div>
     </div>
 </div>
