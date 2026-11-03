@@ -3,6 +3,7 @@
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
 <script>
+const DEFAULT_MEMBRETE = 'La Tribu de Los Libres\nCoordinadores: Kenneth Ruiz - 86227500, Jenny Ceciliano - 86520937\nProvincia: Cartago, Costa Rica';
 let currentFormId = null;
 let currentFormSlug = null;
 let fields = [];
@@ -101,9 +102,9 @@ function showCreateForm() {
     document.getElementById('trigResidencia').checked = false;
     document.getElementById('trigCodigoArea').checked = false;
     document.getElementById('trigLogo').checked = false;
-    document.getElementById('formMembrete').value = '';
-    document.getElementById('membreteBox').classList.add('d-none');
-    document.getElementById('btnCrearMembrete').innerHTML = '<i class="bi bi-plus-lg me-1"></i>Crear membrete';
+    document.getElementById('formMembrete').value = DEFAULT_MEMBRETE;
+    document.getElementById('membreteBox').classList.remove('d-none');
+    document.getElementById('btnCrearMembrete').innerHTML = '<i class="bi bi-dash-lg me-1"></i>Ocultar membrete';
     document.getElementById('formReservationNumbers').value = '';
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
