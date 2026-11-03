@@ -53,7 +53,7 @@ function _dashEditStart(sp) {
         if (ev.key === 'Enter') { ev.preventDefault(); fin(true); }
         else if (ev.key === 'Escape') { fin(false); }
     });
-    if (tipo === 'select') { inp.addEventListener('change', function () { fin(true); }); }
+    if (tipo === 'select' || tipo === 'date') { inp.addEventListener('change', function () { fin(true); }); }
     inp.addEventListener('blur', function () { fin(true); });
 }
 function _dashSave(sp, key, formName, val) {
@@ -124,13 +124,16 @@ function viewUserDetails(userObj) {
             <div class="row g-3 text-start">
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
-                    <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula || '—'}</div></div></div>
+                    <div class="fw-bold ps-2 text-dark">${_ed('crm_cedula', 'cedula', userObj.crm_cedula)}</div></div></div>
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
                     <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
                     <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${_ed('crm_tipo_sangre', 'tipo_sangre', userObj.crm_tipo_sangre)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Teléfono</label>
                     <div class="fw-semibold ps-2 text-dark">${_ed('phone', 'telefono', userObj.phone)}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-calendar-heart text-orange me-1"></i>Fecha de Nacimiento</label>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_fecha_nac', 'fecha_nacimiento', userObj.crm_fecha_nac)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
                     <div class="fw-semibold ps-2 text-dark">${_ed('crm_alergias', 'alergias', userObj.crm_alergias)}</div></div></div>
@@ -159,13 +162,16 @@ function viewUserDetails(userObj) {
             <div class="row g-3 text-start">
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
-                    <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula}</div></div></div>
+                    <div class="fw-bold ps-2 text-dark">${_ed('crm_cedula', 'cedula', userObj.crm_cedula)}</div></div></div>
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
                     <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
                     <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${_ed('crm_tipo_sangre', 'tipo_sangre', userObj.crm_tipo_sangre)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
                     <div class="fw-semibold ps-2 text-dark">${_ed('crm_alergias', 'alergias', userObj.crm_alergias)}</div></div></div>
+                <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
+                    <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-heart-pulse-fill text-danger me-1"></i>Enfermedades Crónicas</label>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_enfermedades', 'enfermedades_cronicas', userObj.crm_enfermedades)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-telephone-fill text-primary me-1"></i>Contacto de Emergencia</label>
                     <div class="fw-semibold ps-2 text-dark">${_ed('crm_emergencia_nombre', 'contacto_emergencia_nombre[]', userObj.crm_emergencia_nombre)} — ${_ed('crm_emergencia_tel', 'contacto_emergencia_telefono[]', userObj.crm_emergencia_tel)}</div></div></div>

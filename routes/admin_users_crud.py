@@ -131,6 +131,13 @@ def admin_update_user(user_id):
                     hiker.fecha_nacimiento = fecha_nac
                     u.dob = fecha_nac
                 except: pass
+        else:
+            # Sin caminante vinculado igual se guarda la fecha de nacimiento del usuario
+            f_nac2 = request.form.get('fecha_nacimiento') or request.form.get('dob')
+            if f_nac2:
+                try:
+                    u.dob = datetime.strptime(f_nac2, '%Y-%m-%d').date()
+                except: pass
 
             if not hiker.pin_secreto:
                 for _ in range(10):
@@ -153,6 +160,11 @@ def admin_update_hiker(hiker_id):
     if 'user_id' not in session or session.get('role') != 'Superusuario':
         return jsonify({'error': 'No autorizado'}), 403
     h = Hiker.query.get_or_404(hiker_id)
+    if 'cedula' in request.form:
+        ced = re.sub(r'\D', '', request.form.get('cedula', ''))
+        if ced and _hiker_por_cedula_limpia(ced, h.id):
+            return jsonify({'error': 'Ya esta cédula está registrada con otra persona.'}), 400
+        h.cedula = ced
     for campo in ('nombre_completo', 'telefono', 'tipo_sangre', 'alergias',
                   'enfermedades_cronicas', 'contacto_emergencia_nombre',
                   'contacto_emergencia_telefono'):
