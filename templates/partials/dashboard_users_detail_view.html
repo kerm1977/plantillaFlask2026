@@ -106,7 +106,6 @@ function viewUserDetails(userObj) {
     document.getElementById('adminUserDetails').classList.remove('d-none');
     const isUser = userObj.type === 'user';
     document.getElementById('btnBlockUser').classList.remove('d-none');
-    document.getElementById('btnEditUserAdmin').classList.remove('d-none');
     document.getElementById('btnDeleteUser').classList.remove('d-none');
     const btnQR = document.getElementById('btnVerQR');
     if (btnQR) btnQR.classList.toggle('d-none', !(isUser || userObj.crm_cedula));
@@ -117,12 +116,6 @@ function viewUserDetails(userObj) {
     } else {
         btnBlockTop.innerHTML = '<i class="bi bi-check-circle me-1"></i>Desbloquear';
         btnBlockTop.className = 'btn btn-warning-orange rounded-pill px-4 shadow-sm fw-bold w-100 w-sm-auto text-white btn-action-mobile';
-    }
-    const btnCrm = document.getElementById('btnEditHikerCrm');
-    if (btnCrm) {
-        const cedula = userObj.crm_cedula || (userObj.type === 'hiker' ? userObj.crm_cedula : null);
-        if (cedula) { btnCrm.href = `/editar_caminante/${cedula}`; btnCrm.classList.remove('d-none'); }
-        else { btnCrm.classList.add('d-none'); }
     }
     if (userObj.type === 'hiker') {
         document.getElementById('userDetailsContent').innerHTML = `
