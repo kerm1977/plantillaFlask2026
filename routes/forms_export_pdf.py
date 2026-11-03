@@ -3,8 +3,10 @@
 #   Explicar antes de editar. Contenido sagrado protegido.
 # ==============================================================
 """Exportación de respuestas de formularios a PDF (reportlab)."""
+import os
 from io import BytesIO
 from flask import request, jsonify, send_file
+from routes import _PROJECT_ROOT
 from routes.forms_responses_utils import _build_answers_map, _fmt_tel, _fmt_tel_resp
 
 
@@ -33,6 +35,17 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
         title_style = ParagraphStyle(
             'Title', parent=styles['Heading1'], fontName='Helvetica-Bold',
             fontSize=16, alignment=TA_CENTER, spaceAfter=12)
+
+        # Logo del grupo (si el formulario lo tiene activado)
+        if getattr(form, 'show_logo', False):
+            logo_path = os.path.join(_PROJECT_ROOT, 'static', 'logo.png')
+            if os.path.exists(logo_path):
+                from reportlab.platypus import Image as RLImage
+                img = RLImage(logo_path, width=1.3 * inch, height=1.3 * inch,
+                              kind='proportional')
+                img.hAlign = 'CENTER'
+                story.append(img)
+                story.append(Spacer(1, 0.15 * inch))
 
         # Agregar membrete si está activado
         if add_membrete:
@@ -94,6 +107,12 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
                     story.append(Paragraph(f"<b>Provincia:</b> {r.provincia}", field_style))
                 if r.direccion:
                     story.append(Paragraph(f"<b>Dirección:</b> {r.direccion}", field_style))
+            if form.show_pasaporte and r.pasaporte:
+                story.append(Paragraph(f"<b>Pasaporte:</b> {r.pasaporte}", field_style))
+            if form.show_fecha_nacimiento and r.fecha_nacimiento_dia:
+                story.append(Paragraph(
+                    f"<b>Fecha de Nacimiento:</b> {r.fecha_nacimiento_dia}/"
+                    f"{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}", field_style))
             if include_fecha and r.edad:
                 story.append(Paragraph(f"<b>Edad:</b> {r.edad}", field_style))
             if include_fecha and r.submitted_at:

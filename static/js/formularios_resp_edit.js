@@ -144,6 +144,8 @@ function copyResponsesTSV() {
     if (data.show_cedula) headers.push('Cédula');
     headers.push('Email', 'Teléfono', 'Edad', 'Fecha');
     if (data.responses.some(r => r.score !== null && r.score !== undefined)) headers.push('Nota (%)');
+    if (data.show_pasaporte) headers.push('Pasaporte');
+    if (data.show_fecha_nacimiento) headers.push('Fecha de Nacimiento');
     if (data.show_residencia) headers.push('Provincia', 'Dirección');
     if (data.show_ficha_medica) headers.push('Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas', 'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono');
     data.fields.forEach(f => headers.push(f.label));
@@ -154,6 +156,10 @@ function copyResponsesTSV() {
         row.push(r.email || '', (r.codigo_area ? r.codigo_area + ' ' : '') + (r.telefono || ''), r.edad || '', r.submitted_at || '');
         if (data.responses.some(x => x.score !== null && x.score !== undefined)) {
             row.push(r.score !== null && r.score !== undefined ? r.score + '%' : '');
+        }
+        if (data.show_pasaporte) row.push(r.pasaporte || '');
+        if (data.show_fecha_nacimiento) {
+            row.push(r.fecha_nacimiento_dia ? `${r.fecha_nacimiento_dia}/${r.fecha_nacimiento_mes}/${r.fecha_nacimiento_anio}` : '');
         }
         if (data.show_residencia) row.push(r.provincia || '', r.direccion || '');
         if (data.show_ficha_medica) {

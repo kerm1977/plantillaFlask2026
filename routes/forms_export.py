@@ -40,6 +40,12 @@ def api_export_responses(form_id, fmt):
                         'score': r.score})
             if form.show_residencia:
                 row.update({'provincia': r.provincia or '', 'direccion': r.direccion or ''})
+            if form.show_pasaporte:
+                row['pasaporte'] = r.pasaporte or ''
+            if form.show_fecha_nacimiento:
+                row['fecha_nacimiento'] = (
+                    f"{r.fecha_nacimiento_dia}/{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}"
+                    if r.fecha_nacimiento_dia else '')
             if form.show_ficha_medica:
                 row.update({'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
                             'enfermedades_cronicas': r.enfermedades_cronicas or '',
@@ -66,6 +72,10 @@ def api_export_responses(form_id, fmt):
             headers += ['Email', 'Teléfono', 'Edad', 'Fecha']
             if form.form_type == 'examen':
                 headers.append('Calificación')
+            if form.show_pasaporte:
+                headers.append('Pasaporte')
+            if form.show_fecha_nacimiento:
+                headers.append('Fecha de Nacimiento')
             if form.show_residencia:
                 headers += ['Provincia', 'Dirección']
             if form.show_ficha_medica:
@@ -82,6 +92,11 @@ def api_export_responses(form_id, fmt):
                         r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
+                if form.show_pasaporte:
+                    row.append(r.pasaporte or '')
+                if form.show_fecha_nacimiento:
+                    row.append(f"{r.fecha_nacimiento_dia}/{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}"
+                               if r.fecha_nacimiento_dia else '')
                 if form.show_residencia:
                     row += [r.provincia or '', r.direccion or '']
                 if form.show_ficha_medica:
@@ -115,6 +130,10 @@ def api_export_responses(form_id, fmt):
                 lines.append(f"   - Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
             if form.form_type == 'examen' and r.score is not None:
                 lines.append(f"   - Nota: {r.score}%")
+            if form.show_pasaporte and r.pasaporte:
+                lines.append(f"   - Pasaporte: {r.pasaporte}")
+            if form.show_fecha_nacimiento and r.fecha_nacimiento_dia:
+                lines.append(f"   - Fecha de Nacimiento: {r.fecha_nacimiento_dia}/{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}")
             if form.show_residencia:
                 if r.provincia:
                     lines.append(f"   - Provincia: {r.provincia}")
@@ -179,6 +198,10 @@ def api_export_responses(form_id, fmt):
                 lines.append(f"Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
             if form.form_type == 'examen' and r.score is not None:
                 lines.append(f"Calificación: {r.score}%")
+            if form.show_pasaporte and r.pasaporte:
+                lines.append(f"Pasaporte: {r.pasaporte}")
+            if form.show_fecha_nacimiento and r.fecha_nacimiento_dia:
+                lines.append(f"Fecha de Nacimiento: {r.fecha_nacimiento_dia}/{r.fecha_nacimiento_mes}/{r.fecha_nacimiento_anio}")
             if form.show_residencia:
                 if r.provincia:
                     lines.append(f"Provincia: {r.provincia}")
