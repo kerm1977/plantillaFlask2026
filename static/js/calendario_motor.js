@@ -10,7 +10,7 @@
 // Cargar módulos en orden de dependencia
 document.write('<script src="/static/js/calendario_fondo.js"></script>');
 document.write('<script src="/static/js/calendario_config.js"></script>');
-document.write('<script src="/static/js/calendario_eventos.js"></script>');
+document.write('<script src="/static/js/calendario_eventos.js?v=20261103"></script>');
 document.write('<script src="/static/js/calendario_escalado.js"></script>');
 document.write('<script src="/static/js/calendario_ui.js"></script>');
 document.write('<script src="/static/js/calendario_render.js"></script>');
