@@ -13,11 +13,22 @@
                     <button class="btn bg-white rounded-pill px-4 shadow-sm fw-bold dropdown-toggle" type="button" id="dashOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="color: #ff8c00; border: 2px solid #ff8c00;">
                         <i class="bi bi-gear-fill me-1"></i> Opciones
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end rounded-4 border-0 shadow-lg p-2" aria-labelledby="dashOptionsDropdown" style="min-width: 200px;">
+                    <ul class="dropdown-menu dropdown-menu-end rounded-4 border-0 shadow-lg p-2" aria-labelledby="dashOptionsDropdown" style="min-width: 220px;">
                         <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="dashOptionCreateUser()"><i class="bi bi-plus-lg text-success me-2"></i>Crear Usuario</button></li>
                         <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="dashOptionEditUser()"><i class="bi bi-pencil-square text-orange me-2"></i>Editar Usuario</button></li>
                         <li><button class="dropdown-item rounded-pill py-2 fw-bold text-danger" type="button" onclick="dashOptionDeleteUser()"><i class="bi bi-trash-fill text-danger me-2"></i>Eliminar Usuario</button></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header text-uppercase fw-bold"><i class="bi bi-database-down text-orange me-1"></i>Base de Datos</h6></li>
+                        <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="dashExportJSON()"><i class="bi bi-filetype-json text-orange me-2"></i>Exportar JSON</button></li>
+                        <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="dashExportExcel()"><i class="bi bi-file-earmark-spreadsheet text-orange me-2"></i>Exportar Excel</button></li>
+                        <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="document.getElementById('dashImportInput').click()"><i class="bi bi-upload text-orange me-2"></i>Importar JSON</button></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header text-uppercase fw-bold"><i class="bi bi-person-lines-fill text-orange me-1"></i>Contactos</h6></li>
+                        <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="dashExportContactos()"><i class="bi bi-filetype-json text-orange me-2"></i>Respaldar JSON</button></li>
+                        <li><button class="dropdown-item rounded-pill py-2 fw-bold" type="button" onclick="document.getElementById('dashImportContactosInput').click()"><i class="bi bi-upload text-orange me-2"></i>Importar JSON</button></li>
                     </ul>
+                    <input type="file" id="dashImportInput" accept=".json" class="d-none" onchange="dashImportJSON(this)">
+                    <input type="file" id="dashImportContactosInput" accept=".json" class="d-none" onchange="dashImportContactos(this)">
                 </div>
             </div>
             
@@ -43,32 +54,6 @@
                     </span>
                 </div>
 
-                <!-- Exportar / Importar BD -->
-                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-                    <span class="fw-bold text-dark small"><i class="bi bi-database-down text-orange me-1"></i>Base de Datos:</span>
-                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportJSON()">
-                        <i class="bi bi-filetype-json me-1"></i>JSON
-                    </button>
-                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportExcel()">
-                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Excel
-                    </button>
-                    <label class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
-                        <i class="bi bi-upload me-1"></i>Importar
-                        <input type="file" id="dashImportInput" accept=".json" class="d-none" onchange="dashImportJSON(this)">
-                    </label>
-                </div>
-
-                <!-- Respaldo / Importación de Contactos en JSON -->
-                <div class="d-flex flex-wrap gap-2 mb-3 align-items-center">
-                    <span class="fw-bold text-dark small"><i class="bi bi-person-lines-fill text-orange me-1"></i>Contactos:</span>
-                    <button class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3" onclick="dashExportContactos()">
-                        <i class="bi bi-filetype-json me-1"></i>Respaldar JSON
-                    </button>
-                    <label class="btn btn-sm btn-outline-orange rounded-pill fw-bold px-3 text-dark mb-0" style="cursor:pointer;">
-                        <i class="bi bi-upload me-1"></i>Importar JSON
-                        <input type="file" id="dashImportContactosInput" accept=".json" class="d-none" onchange="dashImportContactos(this)">
-                    </label>
-                </div>
                 <div id="dashDbMsg" class="mb-3 d-none small"></div>
 
                 <div class="table-responsive glass-table-container rounded-4 p-2 shadow-sm">
