@@ -118,6 +118,8 @@ def _migrate_forms_membrete():
             cursor.execute("ALTER TABLE form ADD COLUMN show_logo BOOLEAN DEFAULT 0")
         if "membrete" not in existing_cols:
             cursor.execute("ALTER TABLE form ADD COLUMN membrete TEXT")
+        if "show_membrete" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_membrete BOOLEAN DEFAULT 0")
         conn.commit()
         conn.close()
     except Exception as e:

@@ -18,6 +18,13 @@ async function viewResponses(formId) {
     const data = await (await fetch(`/api/forms/${formId}/responses`)).json();
     window._responsesData = data;
     document.getElementById('responsesTitle').textContent = `Respuestas (${data.responses.length})`;
+    let membreteHtml = '';
+    if (data.show_membrete && data.membrete) {
+        membreteHtml = `<div class="col-12 mb-1"><div class="rounded-4 p-3 text-center" style="background:rgba(255,140,0,0.06);border:1px solid rgba(255,140,0,0.15);">
+            ${data.show_logo ? '<img src="/static/logo.png" style="max-height:50px;" class="mb-2" alt="Logo">' : ''}
+            <div class="small fw-semibold text-secondary" style="white-space:pre-line;line-height:1.5;">${data.membrete}</div>
+        </div></div>`;
+    }
     if (!data.responses.length) {
         document.getElementById('responsesTable').innerHTML = '<p class="text-muted text-center py-4">Sin respuestas aun.</p>';
     } else {
@@ -94,7 +101,7 @@ async function viewResponses(formId) {
                 </div>
             </div>`;
         }).join('');
-        document.getElementById('responsesTable').innerHTML = `<div class="row g-3">${cards}</div>`;
+        document.getElementById('responsesTable').innerHTML = `<div class="row g-3">${membreteHtml}${cards}</div>`;
     }
     const viewer = document.getElementById('responsesViewer');
     const wasHidden = viewer.classList.contains('d-none');

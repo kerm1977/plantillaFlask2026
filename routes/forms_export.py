@@ -153,6 +153,8 @@ def api_export_responses(form_id, fmt):
             lines.append("=" * 60)
             lines.append("")
         lines.append(f"FORMULARIO: {form.name}")
+        if getattr(form, 'show_membrete', False) and getattr(form, 'membrete', None):
+            lines.append(form.membrete)
         lines.append(f"Cantidad Personas == {len(responses)} Respuestas")
         # Números de reserva si existen (desde parámetro)
         reservation_numbers = request.args.get('reservation_numbers', '')

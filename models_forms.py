@@ -31,6 +31,7 @@ class Form(db.Model):
     show_residencia = db.Column(db.Boolean, default=False)
     show_codigo_area = db.Column(db.Boolean, default=False)
     show_logo = db.Column(db.Boolean, default=False)
+    show_membrete = db.Column(db.Boolean, default=False)
     membrete = db.Column(db.Text)
     has_reservation_numbers = db.Column(db.Boolean, default=False)
     reservation_numbers = db.Column(db.Text)

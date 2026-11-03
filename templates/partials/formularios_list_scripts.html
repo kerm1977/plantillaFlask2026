@@ -91,17 +91,18 @@ function showCreateForm() {
     document.getElementById('formType').value = 'registro';
     document.getElementById('formAllowEdit').value = 'false';
     document.getElementById('trigNombre').checked = true;
-    document.getElementById('trigCedula').checked = false;
+    document.getElementById('trigCedula').checked = true;
     document.getElementById('trigFecha').checked = false;
     document.getElementById('trigEmail').checked = false;
     document.getElementById('trigEdad').checked = false;
-    document.getElementById('trigTelefono').checked = false;
+    document.getElementById('trigTelefono').checked = true;
     document.getElementById('trigFichaMedica').checked = false;
     document.getElementById('trigPasaporte').checked = false;
-    document.getElementById('trigFechaNacimiento').checked = false;
+    document.getElementById('trigFechaNacimiento').checked = true;
     document.getElementById('trigResidencia').checked = false;
     document.getElementById('trigCodigoArea').checked = false;
-    document.getElementById('trigLogo').checked = false;
+    document.getElementById('trigLogo').checked = true;
+    document.getElementById('trigMembrete').checked = false;
     document.getElementById('formMembrete').value = DEFAULT_MEMBRETE;
     document.getElementById('membreteBox').classList.remove('d-none');
     document.getElementById('btnCrearMembrete').innerHTML = '<i class="bi bi-dash-lg me-1"></i>Ocultar membrete';
@@ -130,6 +131,7 @@ async function editForm(id) {
     document.getElementById('trigResidencia').checked = !!form.show_residencia;
     document.getElementById('trigCodigoArea').checked = !!form.show_codigo_area;
     document.getElementById('trigLogo').checked = !!form.show_logo;
+    document.getElementById('trigMembrete').checked = !!form.show_membrete;
     document.getElementById('formMembrete').value = form.membrete || '';
     const hasMemb = !!(form.membrete || '').trim();
     document.getElementById('membreteBox').classList.toggle('d-none', !hasMemb);
@@ -162,6 +164,7 @@ async function saveForm() {
         show_residencia: document.getElementById('trigResidencia').checked,
         show_codigo_area: document.getElementById('trigCodigoArea').checked,
         show_logo: document.getElementById('trigLogo').checked,
+        show_membrete: document.getElementById('trigMembrete').checked,
         membrete: document.getElementById('formMembrete').value,
         reservation_numbers: document.getElementById('formReservationNumbers').value
     };

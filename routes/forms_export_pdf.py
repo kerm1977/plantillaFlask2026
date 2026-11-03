@@ -43,8 +43,8 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
         # Título del formulario
         story.append(Paragraph(f"FORMULARIO: {form.name}", title_style))
 
-        # Membrete propio del formulario (si fue creado)
-        if getattr(form, 'membrete', None):
+        # Membrete propio del formulario (si fue creado y activado)
+        if getattr(form, 'membrete', None) and getattr(form, 'show_membrete', False):
             form_membrete_style = ParagraphStyle(
                 'FormMembrete', parent=styles['Normal'], fontName='Helvetica-Bold',
                 fontSize=10, alignment=TA_CENTER, spaceAfter=10)

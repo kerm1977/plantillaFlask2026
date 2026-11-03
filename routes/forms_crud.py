@@ -88,6 +88,7 @@ def api_create_form():
         show_residencia=data.get('show_residencia', False),
         show_codigo_area=data.get('show_codigo_area', False),
         show_logo=data.get('show_logo', False),
+        show_membrete=data.get('show_membrete', False),
         membrete=data.get('membrete', ''),
     )
     db.session.add(form)
@@ -115,7 +116,8 @@ def api_get_form(form_id):
         'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
         'show_residencia': form.show_residencia,
         'show_codigo_area': form.show_codigo_area,
-        'show_logo': form.show_logo, 'membrete': form.membrete or '',
+        'show_logo': form.show_logo, 'show_membrete': form.show_membrete,
+        'membrete': form.membrete or '',
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses)
     })
@@ -148,6 +150,7 @@ def api_update_form(form_id):
     form.show_residencia = data.get('show_residencia', form.show_residencia)
     form.show_codigo_area = data.get('show_codigo_area', form.show_codigo_area)
     form.show_logo        = data.get('show_logo', form.show_logo)
+    form.show_membrete    = data.get('show_membrete', form.show_membrete)
     form.membrete         = data.get('membrete', form.membrete)
 
     db.session.commit()

@@ -13,7 +13,7 @@
                 <img src="{{ url_for('static', filename='logo.png') }}" style="max-height:70px;" alt="Logo">
             </div>
             {% endif %}
-            {% if form.membrete %}
+            {% if form.membrete and form.show_membrete %}
             <div class="text-center small fw-semibold text-secondary mb-2" style="white-space:pre-line;line-height:1.5;">{{ form.membrete }}</div>
             {% endif %}
             <h3 class="fw-bold text-orange mb-1">{{ form.name }}</h3>

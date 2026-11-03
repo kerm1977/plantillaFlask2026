@@ -101,6 +101,8 @@ def api_get_responses(form_id):
                     'options': json.loads(f.options) if f.options else []} for f in fields]
     return jsonify({'fields': fields_info, 'responses': output,
                     'form_name': form.name,
+                    'membrete': form.membrete or '', 'show_membrete': form.show_membrete,
+                    'show_logo': form.show_logo,
                     'show_cedula': form.show_cedula, 'show_ficha_medica': form.show_ficha_medica,
                     'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
                     'show_residencia': form.show_residencia,
