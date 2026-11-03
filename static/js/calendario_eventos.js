@@ -38,6 +38,9 @@ async function cargarEventosCalendario() {
             };
         });
 
+        // Solo caminatas de Viajes de la Tribu: las que tienen fecha real
+        // (el resto cae en "Otras Caminatas" sin fecha -> mes "S/M")
+        eventosDBCalendario = eventosDBCalendario.filter(ev => ev._timestamp > 0);
         eventosDBCalendario.sort((a, b) => a._timestamp - b._timestamp);
         renderizarCalendario();
     } catch(e) {
