@@ -1,7 +1,10 @@
             <div class="col-lg-6">
                 <div class="sticky-top" style="top: 80px;">
-                    <div class="d-flex align-items-center mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
                         <small class="fw-bold text-secondary"><i class="bi bi-phone me-1"></i>VISTA PREVIA EN VIVO</small>
+                        <button type="button" class="btn btn-sm btn-warning-orange rounded-pill px-3 py-1 fw-semibold" onclick="downloadPreviewPNG()" title="Descargar la vista previa como imagen PNG">
+                            <i class="bi bi-image me-1"></i>PNG
+                        </button>
                     </div>
                     <div class="card h-100 border-0 shadow-sm" style="background:linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(248,249,250,0.9) 100%);backdrop-filter:blur(10px);border-radius:15px;max-height: 85vh; overflow-y: auto;">
                         <div class="card-body p-4" id="livePreview">

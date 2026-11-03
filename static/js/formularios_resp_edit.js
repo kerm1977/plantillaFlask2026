@@ -14,6 +14,10 @@ function editResponseAdmin(index) {
             <input type="email" class="form-control form-control-sm" id="erEmail" value="${r.email || ''}"></div>
         <div class="col-6"><label class="fw-semibold small text-muted">Telefono</label>
             <input type="tel" class="form-control form-control-sm" id="erTelefono" value="${r.telefono || ''}"></div>
+        ${data.show_codigo_area ? `<div class="col-6"><label class="fw-semibold small text-muted">Código de área</label>
+            <select class="form-select form-select-sm" id="erCodigoArea">
+                ${['+506','+1','+52','+502','+503','+504','+505','+507','+57','+58','+593','+51','+56','+54','+55','+598','+595','+591','+34'].map(c => `<option value="${c}" ${r.codigo_area===c?'selected':''}>${c}</option>`).join('')}
+            </select></div>` : ''}
         ${data.show_ficha_medica ? `
         <div class="col-12"><hr class="my-1"><small class="fw-bold text-danger"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</small></div>
         <div class="col-6"><label class="fw-semibold small text-muted">Tipo de Sangre</label>
@@ -100,6 +104,7 @@ async function saveEditedResponse() {
             cedula: document.getElementById('erCedula')?.value || '',
             email: document.getElementById('erEmail').value,
             telefono: document.getElementById('erTelefono').value,
+            codigo_area: document.getElementById('erCodigoArea')?.value || '',
             tipo_sangre: document.getElementById('erTipoSangre')?.value || '',
             alergias: document.getElementById('erAlergias')?.value || '',
             enfermedades_cronicas: document.getElementById('erEnfermedades')?.value || '',
@@ -146,7 +151,7 @@ function copyResponsesTSV() {
     const rows = data.responses.map(r => {
         const row = [r.nombre_completo || ''];
         if (data.show_cedula) row.push(r.cedula || '');
-        row.push(r.email || '', r.telefono || '', r.edad || '', r.submitted_at || '');
+        row.push(r.email || '', (r.codigo_area ? r.codigo_area + ' ' : '') + (r.telefono || ''), r.edad || '', r.submitted_at || '');
         if (data.responses.some(x => x.score !== null && x.score !== undefined)) {
             row.push(r.score !== null && r.score !== undefined ? r.score + '%' : '');
         }

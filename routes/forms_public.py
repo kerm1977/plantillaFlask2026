@@ -54,6 +54,7 @@ def api_submit_form(form_id):
         cedula=cedula_valor or None,
         email=data.get('email', ''),
         telefono=data.get('telefono', ''),
+        codigo_area=data.get('codigo_area', '') or None,
         edad=int(data.get('edad')) if data.get('edad') else None,
         tipo_sangre=data.get('tipo_sangre', '') or None,
         alergias=data.get('alergias', '') or None,

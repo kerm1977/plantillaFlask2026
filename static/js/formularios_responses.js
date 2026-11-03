@@ -38,7 +38,7 @@ async function viewResponses(formId) {
             let fieldsHtml = '';
             if (showCedula) fieldsHtml += fieldRow('Cédula', r.cedula);
             fieldsHtml += fieldRow('Email', r.email);
-            fieldsHtml += fieldRow('Teléfono', fmtTel506(r.telefono, data.show_pasaporte));
+            fieldsHtml += fieldRow('Teléfono', r.codigo_area ? `${r.codigo_area} ${r.telefono || ''}`.trim() : fmtTel506(r.telefono, data.show_pasaporte));
             fieldsHtml += fieldRow('Edad', r.edad);
             if (r.score !== null && r.score !== undefined)
                 fieldsHtml += fieldRow('Nota', `<span class="badge rounded-pill ${r.score>=70?'bg-success':'bg-danger'}">${r.score}%</span>`);
@@ -128,7 +128,7 @@ function viewResponseDetail(index) {
     html += `<div class="row g-3 mb-4">`;
     if (r.cedula) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Cédula</label><div class="form-control glass-input rounded-3 py-2">${r.cedula}</div></div>`;
     if (r.email) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Email</label><div class="form-control glass-input rounded-3 py-2">${r.email}</div></div>`;
-    if (r.telefono) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Teléfono</label><div class="form-control glass-input rounded-3 py-2">${fmtTel506(r.telefono, data.show_pasaporte)}</div></div>`;
+    if (r.telefono) html += `<div class="col-12"><label class="form-label fw-semibold text-secondary">Teléfono</label><div class="form-control glass-input rounded-3 py-2">${r.codigo_area ? r.codigo_area + ' ' + r.telefono : fmtTel506(r.telefono, data.show_pasaporte)}</div></div>`;
     if (r.edad) html += `<div class="col-6"><label class="form-label fw-semibold text-secondary">Edad</label><div class="form-control glass-input rounded-3 py-2">${r.edad}</div></div>`;
     if (r.score !== null && r.score !== undefined) html += `<div class="col-6"><label class="form-label fw-semibold text-secondary">Nota</label><div class="form-control glass-input rounded-3 py-2 ${r.score>=70?'text-success':'text-danger'}">${r.score}%</div></div>`;
     html += `</div>`;

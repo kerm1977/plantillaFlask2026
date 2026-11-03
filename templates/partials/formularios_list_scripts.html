@@ -99,6 +99,11 @@ function showCreateForm() {
     document.getElementById('trigPasaporte').checked = false;
     document.getElementById('trigFechaNacimiento').checked = false;
     document.getElementById('trigResidencia').checked = false;
+    document.getElementById('trigCodigoArea').checked = false;
+    document.getElementById('trigLogo').checked = false;
+    document.getElementById('formMembrete').value = '';
+    document.getElementById('membreteBox').classList.add('d-none');
+    document.getElementById('btnCrearMembrete').innerHTML = '<i class="bi bi-plus-lg me-1"></i>Crear membrete';
     document.getElementById('formReservationNumbers').value = '';
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
@@ -122,6 +127,14 @@ async function editForm(id) {
     document.getElementById('trigPasaporte').checked = form.show_pasaporte;
     document.getElementById('trigFechaNacimiento').checked = form.show_fecha_nacimiento;
     document.getElementById('trigResidencia').checked = !!form.show_residencia;
+    document.getElementById('trigCodigoArea').checked = !!form.show_codigo_area;
+    document.getElementById('trigLogo').checked = !!form.show_logo;
+    document.getElementById('formMembrete').value = form.membrete || '';
+    const hasMemb = !!(form.membrete || '').trim();
+    document.getElementById('membreteBox').classList.toggle('d-none', !hasMemb);
+    document.getElementById('btnCrearMembrete').innerHTML = hasMemb
+        ? '<i class="bi bi-dash-lg me-1"></i>Ocultar membrete'
+        : '<i class="bi bi-plus-lg me-1"></i>Crear membrete';
     document.getElementById('formReservationNumbers').value = form.reservation_numbers || '';
     fields = form.fields.map(f => ({...f}));
     renderFields(); updatePreview();
@@ -146,6 +159,9 @@ async function saveForm() {
         show_pasaporte: document.getElementById('trigPasaporte').checked,
         show_fecha_nacimiento: document.getElementById('trigFechaNacimiento').checked,
         show_residencia: document.getElementById('trigResidencia').checked,
+        show_codigo_area: document.getElementById('trigCodigoArea').checked,
+        show_logo: document.getElementById('trigLogo').checked,
+        membrete: document.getElementById('formMembrete').value,
         reservation_numbers: document.getElementById('formReservationNumbers').value
     };
     let formId = currentFormId;

@@ -87,3 +87,39 @@ def _migrate_forms_residencia():
     except Exception as e:
         print(f"[Migration] Error en _migrate_forms_residencia: {e}")
 
+def _migrate_forms_codigo_area():
+    """Agrega columna show_codigo_area a form y codigo_area a form_response."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "show_codigo_area" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_codigo_area BOOLEAN DEFAULT 0")
+
+        cursor.execute("PRAGMA table_info(form_response)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "codigo_area" not in existing_cols:
+            cursor.execute("ALTER TABLE form_response ADD COLUMN codigo_area VARCHAR(10)")
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_forms_codigo_area: {e}")
+
+def _migrate_forms_membrete():
+    """Agrega columnas show_logo y membrete a la tabla form."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "show_logo" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_logo BOOLEAN DEFAULT 0")
+        if "membrete" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN membrete TEXT")
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_forms_membrete: {e}")
+

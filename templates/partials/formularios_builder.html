@@ -32,6 +32,18 @@
                             </div>
                         </div>
 
+                        <!-- Membrete -->
+                        <div class="mb-4 p-3 rounded-4" style="background:rgba(255,140,0,0.05);border:1px solid rgba(255,140,0,0.12);">
+                            <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-card-heading text-orange me-1"></i>Membrete del formulario</label>
+                            <button type="button" class="btn btn-outline-orange btn-sm rounded-pill px-3 py-2 fw-semibold" id="btnCrearMembrete" onclick="toggleMembreteEditor()">
+                                <i class="bi bi-plus-lg me-1"></i>Crear membrete
+                            </button>
+                            <div id="membreteBox" class="d-none mt-2">
+                                <textarea id="formMembrete" class="form-control form-control-sm rounded-3" rows="3" placeholder="Ej:&#10;La Tribu de Los Libres&#10;Coordinadores: Kenneth Ruiz - 86227500, Jenny Ceciliano - 86520937&#10;Provincia: Cartago" oninput="updatePreview()"></textarea>
+                                <small class="text-muted d-block mt-1">Aparece arriba del título en el formulario y en la imagen PNG.</small>
+                            </div>
+                        </div>
+
                         <!-- Triggers -->
                         <div class="mb-4 p-3 rounded-4" style="background:rgba(0,0,0,0.02);border:1px solid rgba(0,0,0,0.06);">
                             <label class="fw-semibold small text-muted d-block mb-2"><i class="bi bi-eye me-1"></i>Campos visibles</label>
@@ -94,6 +106,18 @@
                                     <div class="form-check form-switch">
                                         <input class="form-check-input" type="checkbox" id="trigResidencia" onchange="updatePreview()">
                                         <label class="form-check-label small" for="trigResidencia">Lugar de residencia</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigCodigoArea" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigCodigoArea">Código de área (con Teléfono)</label>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="trigLogo" onchange="updatePreview()">
+                                        <label class="form-check-label small" for="trigLogo">Logo del grupo</label>
                                     </div>
                                 </div>
                             </div>

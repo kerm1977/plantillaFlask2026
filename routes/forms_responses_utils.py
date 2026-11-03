@@ -36,6 +36,13 @@ def _fmt_tel(tel, form):
     return f'+506 {rest}'
 
 
+def _fmt_tel_resp(r, form):
+    """Teléfono con su código de área elegido; si no hay, usa la regla de pasaporte."""
+    if r.codigo_area and r.telefono:
+        return f"{r.codigo_area} {r.telefono}"
+    return _fmt_tel(r.telefono, form)
+
+
 def _update_response_answers(resp, answers_data, form_id):
     """Actualiza las respuestas de un formulario."""
     existing = {a.field_id: a for a in resp.answers}

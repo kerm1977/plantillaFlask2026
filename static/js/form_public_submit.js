@@ -9,6 +9,7 @@ async function checkExistingResponse(nombre) {
         editingResponseId = data.response_id;
         if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email;
         if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono;
+        if (document.getElementById('pf_codigo_area') && data.codigo_area) document.getElementById('pf_codigo_area').value = data.codigo_area;
         if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
         if (document.getElementById('pf_tipo_sangre')) document.getElementById('pf_tipo_sangre').value = data.tipo_sangre || '';
         if (document.getElementById('pf_alergias')) document.getElementById('pf_alergias').value = data.alergias || '';
@@ -45,7 +46,9 @@ async function checkExistingResponse(nombre) {
 async function submitForm(e) {
     e.preventDefault();
     const telEl = document.getElementById('pf_telefono');
-    if (telEl && telEl.value && telEl.value.replace(/\D/g,'').length !== 8) {
+    const codeEl = document.getElementById('pf_codigo_area');
+    const isCR = !codeEl || codeEl.value === '+506';
+    if (telEl && telEl.value && isCR && telEl.value.replace(/\D/g,'').length !== 8) {
         telEl.classList.add('is-invalid');
         telEl.focus();
         return;
@@ -110,6 +113,7 @@ async function submitForm(e) {
         cedula: document.getElementById('pf_cedula')?.value || '',
         email: document.getElementById('pf_email')?.value || '',
         telefono: document.getElementById('pf_telefono')?.value || '',
+        codigo_area: document.getElementById('pf_codigo_area')?.value || '',
         edad: document.getElementById('pf_edad')?.value || '',
         tipo_sangre: document.getElementById('pf_tipo_sangre')?.value || '',
         alergias: document.getElementById('pf_alergias')?.value || '',
@@ -191,6 +195,8 @@ function resetForNewEntry() {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });
+    const caEl = document.getElementById('pf_codigo_area');
+    if (caEl) caEl.value = '+506';
     document.querySelectorAll('#dynamicFields input, #dynamicFields textarea').forEach(el => {
         if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
         else el.value = '';

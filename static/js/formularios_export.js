@@ -66,7 +66,7 @@ async function shareResponsesBasico() {
         text += `\n*${i + 1}. ${r.nombre_completo || 'Sin nombre'}*`;
         if (r.cedula) text += `\n- Cédula: ${r.cedula}`;
         if (r.pasaporte) text += `\n- Pasaporte: ${r.pasaporte}`;
-        if (r.telefono) text += `\n- Teléfono: ${fmtTel506(r.telefono, data.show_pasaporte)}`;
+        if (r.telefono) text += `\n- Teléfono: ${r.codigo_area ? r.codigo_area + ' ' + r.telefono : fmtTel506(r.telefono, data.show_pasaporte)}`;
         const emerg = (r.contacto_emergencia_nombre || '') + (r.contacto_emergencia_telefono ? ' - ' + fmtTel506(r.contacto_emergencia_telefono, data.show_pasaporte) : '');
         if (emerg.trim()) text += `\n- Emergencia: ${emerg.trim()}`;
         if (r.reservation_number) text += `\n- Reserva: ${r.reservation_number}`;

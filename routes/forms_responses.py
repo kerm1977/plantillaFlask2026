@@ -81,7 +81,8 @@ def api_get_responses(form_id):
     output = []
     for r in responses:
         row = {'id': r.id, 'nombre_completo': r.nombre_completo, 'cedula': r.cedula or '',
-               'email': r.email, 'telefono': r.telefono, 'edad': r.edad,
+               'email': r.email, 'telefono': r.telefono,
+               'codigo_area': r.codigo_area or '', 'edad': r.edad,
                'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
                'enfermedades_cronicas': r.enfermedades_cronicas or '',
                'contacto_emergencia_nombre': r.contacto_emergencia_nombre or '',
@@ -102,7 +103,8 @@ def api_get_responses(form_id):
                     'form_name': form.name,
                     'show_cedula': form.show_cedula, 'show_ficha_medica': form.show_ficha_medica,
                     'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
-                    'show_residencia': form.show_residencia})
+                    'show_residencia': form.show_residencia,
+                    'show_codigo_area': form.show_codigo_area})
 
 
 # ── ELIMINAR RESPUESTA ───────────────────────────────────────────────────────
@@ -134,6 +136,7 @@ def api_update_response(form_id, response_id):
     resp.nombre_completo = data.get('nombre_completo', resp.nombre_completo)
     resp.email           = data.get('email', resp.email)
     resp.telefono        = data.get('telefono', resp.telefono)
+    resp.codigo_area     = data.get('codigo_area', resp.codigo_area)
     resp.edad            = int(data.get('edad')) if data.get('edad') else resp.edad
     resp.tipo_sangre                  = data.get('tipo_sangre', resp.tipo_sangre)
     resp.alergias                     = data.get('alergias', resp.alergias)
@@ -165,6 +168,7 @@ def api_get_my_response(form_id):
     return jsonify({'found': True, 'response_id': resp.id,
                     'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
                     'email': resp.email or '', 'telefono': resp.telefono or '',
+                    'codigo_area': resp.codigo_area or '',
                     'edad': resp.edad,
                     'tipo_sangre': resp.tipo_sangre or '', 'alergias': resp.alergias or '',
                     'enfermedades_cronicas': resp.enfermedades_cronicas or '',
@@ -192,6 +196,7 @@ def api_admin_update_response(response_id):
     resp.cedula          = data.get('cedula', resp.cedula)
     resp.email           = data.get('email', resp.email)
     resp.telefono        = data.get('telefono', resp.telefono)
+    resp.codigo_area     = data.get('codigo_area', resp.codigo_area)
     if data.get('edad'):
         resp.edad = int(data['edad'])
     resp.tipo_sangre                  = data.get('tipo_sangre', resp.tipo_sangre)
@@ -230,6 +235,7 @@ def api_get_response_by_token(token):
     return jsonify({'found': True, 'response_id': resp.id,
                     'nombre_completo': resp.nombre_completo, 'cedula': resp.cedula or '',
                     'email': resp.email or '', 'telefono': resp.telefono or '',
+                    'codigo_area': resp.codigo_area or '',
                     'edad': resp.edad,
                     'tipo_sangre': resp.tipo_sangre or '', 'alergias': resp.alergias or '',
                     'enfermedades_cronicas': resp.enfermedades_cronicas or '',

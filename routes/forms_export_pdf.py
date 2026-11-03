@@ -5,7 +5,7 @@
 """Exportación de respuestas de formularios a PDF (reportlab)."""
 from io import BytesIO
 from flask import request, jsonify, send_file
-from routes.forms_responses_utils import _build_answers_map, _fmt_tel
+from routes.forms_responses_utils import _build_answers_map, _fmt_tel, _fmt_tel_resp
 
 
 def _export_pdf(form, fields, responses, add_membrete, include_fecha,
@@ -42,6 +42,13 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
 
         # Título del formulario
         story.append(Paragraph(f"FORMULARIO: {form.name}", title_style))
+
+        # Membrete propio del formulario (si fue creado)
+        if getattr(form, 'membrete', None):
+            form_membrete_style = ParagraphStyle(
+                'FormMembrete', parent=styles['Normal'], fontName='Helvetica-Bold',
+                fontSize=10, alignment=TA_CENTER, spaceAfter=10)
+            story.append(Paragraph(form.membrete.replace('\n', '<br/>'), form_membrete_style))
 
         # Cantidad de respuestas
         count_style = ParagraphStyle(
@@ -81,7 +88,7 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
             if r.email:
                 story.append(Paragraph(f"<b>Email:</b> {r.email}", field_style))
             if r.telefono:
-                story.append(Paragraph(f"<b>Teléfono:</b> {_fmt_tel(r.telefono, form)}", field_style))
+                story.append(Paragraph(f"<b>Teléfono:</b> {_fmt_tel_resp(r, form)}", field_style))
             if form.show_residencia:
                 if r.provincia:
                     story.append(Paragraph(f"<b>Provincia:</b> {r.provincia}", field_style))

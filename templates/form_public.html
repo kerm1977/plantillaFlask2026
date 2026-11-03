@@ -8,6 +8,14 @@
 <div class="container py-4" style="max-width: 700px;">
     <div class="card glass-panel border-0 shadow-sm">
         <div class="card-body">
+            {% if form.show_logo %}
+            <div class="text-center mb-3">
+                <img src="{{ url_for('static', filename='logo.png') }}" style="max-height:70px;" alt="Logo">
+            </div>
+            {% endif %}
+            {% if form.membrete %}
+            <div class="text-center small fw-semibold text-secondary mb-2" style="white-space:pre-line;line-height:1.5;">{{ form.membrete }}</div>
+            {% endif %}
             <h3 class="fw-bold text-orange mb-1">{{ form.name }}</h3>
             <span class="badge {% if form.form_type == 'examen' %}bg-warning text-dark{% else %}bg-info{% endif %} rounded-pill mb-3">
                 {% if form.form_type == 'examen' %}Examen{% else %}Registro{% endif %}
@@ -46,7 +54,34 @@
                 {% if form.show_telefono %}
                 <div class="mb-3">
                     <label class="form-label fw-semibold">Teléfono</label>
+                    {% if form.show_codigo_area %}
+                    <div class="d-flex gap-2">
+                        <select class="form-select" id="pf_codigo_area" style="max-width:150px;">
+                            <option value="+506" selected>+506 Costa Rica</option>
+                            <option value="+1">+1 EE.UU./Canadá</option>
+                            <option value="+52">+52 México</option>
+                            <option value="+502">+502 Guatemala</option>
+                            <option value="+503">+503 El Salvador</option>
+                            <option value="+504">+504 Honduras</option>
+                            <option value="+505">+505 Nicaragua</option>
+                            <option value="+507">+507 Panamá</option>
+                            <option value="+57">+57 Colombia</option>
+                            <option value="+58">+58 Venezuela</option>
+                            <option value="+593">+593 Ecuador</option>
+                            <option value="+51">+51 Perú</option>
+                            <option value="+56">+56 Chile</option>
+                            <option value="+54">+54 Argentina</option>
+                            <option value="+55">+55 Brasil</option>
+                            <option value="+598">+598 Uruguay</option>
+                            <option value="+595">+595 Paraguay</option>
+                            <option value="+591">+591 Bolivia</option>
+                            <option value="+34">+34 España</option>
+                        </select>
+                        <input type="tel" class="form-control" id="pf_telefono" placeholder="88881234">
+                    </div>
+                    {% else %}
                     <input type="tel" class="form-control" id="pf_telefono" placeholder="88881234">
+                    {% endif %}
                 </div>
                 {% endif %}
                 {% if form.show_fecha %}

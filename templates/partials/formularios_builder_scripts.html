@@ -83,12 +83,30 @@ function addOption(fieldIdx) { fields[fieldIdx].options.push(''); renderFields()
 function removeOption(fieldIdx, optIdx) { fields[fieldIdx].options.splice(optIdx, 1); renderFields(); }
 function updateOption(fieldIdx, optIdx, value) { fields[fieldIdx].options[optIdx] = value; }
 
+function toggleMembreteEditor() {
+    const box = document.getElementById('membreteBox');
+    const btn = document.getElementById('btnCrearMembrete');
+    box.classList.toggle('d-none');
+    const open = !box.classList.contains('d-none');
+    btn.innerHTML = open
+        ? '<i class="bi bi-dash-lg me-1"></i>Ocultar membrete'
+        : '<i class="bi bi-plus-lg me-1"></i>Crear membrete';
+    if (open) document.getElementById('formMembrete').focus();
+}
+
 function updatePreview() {
     const preview  = document.getElementById('livePreview');
     const formName = document.getElementById('formName').value || 'Formulario sin título';
     const formType = document.getElementById('formType').value;
     const allowEdit= document.getElementById('formAllowEdit').value === 'true';
-    let html = `<h4 class="fw-bold mb-1" style="color:#ff8c00;">${formName}</h4>`;
+    const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    let html = '';
+    if (document.getElementById('trigLogo').checked)
+        html += `<div class="text-center mb-2"><img src="/static/logo.png" style="max-height:60px;" alt="Logo"></div>`;
+    const memb = (document.getElementById('formMembrete')?.value || '').trim();
+    if (memb)
+        html += `<div class="text-center small fw-semibold text-secondary mb-2" style="white-space:pre-line;line-height:1.4;">${esc(memb)}</div>`;
+    html += `<h4 class="fw-bold mb-1" style="color:#ff8c00;">${formName}</h4>`;
     let badgeClass = 'bg-info';
     let badgeText = 'Registro';
     if (formType === 'examen') { badgeClass = 'bg-warning text-dark'; badgeText = 'Examen'; }
@@ -98,7 +116,11 @@ function updatePreview() {
     if (document.getElementById('trigCedula').checked)   html += `<div class="mb-3"><label class="form-label fw-semibold small">Cédula</label><input type="text" class="form-control form-control-sm" disabled placeholder="1-2345-6789"></div>`;
     if (document.getElementById('trigEmail').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Email</label><input type="email" class="form-control form-control-sm" disabled placeholder="correo@ejemplo.com"></div>`;
     if (document.getElementById('trigEdad').checked)     html += `<div class="mb-3"><label class="form-label fw-semibold small">Edad</label><input type="number" class="form-control form-control-sm" disabled placeholder="25"></div>`;
-    if (document.getElementById('trigTelefono').checked) html += `<div class="mb-3"><label class="form-label fw-semibold small">Teléfono</label><input type="tel" class="form-control form-control-sm" disabled placeholder="88881234"></div>`;
+    if (document.getElementById('trigTelefono').checked) {
+        const codeSel = document.getElementById('trigCodigoArea').checked
+            ? `<select class="form-select form-select-sm" disabled style="max-width:130px;"><option>+506 Costa Rica</option></select>` : '';
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">Teléfono</label><div class="d-flex gap-2">${codeSel}<input type="tel" class="form-control form-control-sm" disabled placeholder="88881234"></div></div>`;
+    }
     if (document.getElementById('trigFecha').checked)    html += `<div class="mb-3"><label class="form-label fw-semibold small">Fecha</label><input type="date" class="form-control form-control-sm" disabled></div>`;
     if (document.getElementById('trigFichaMedica').checked) {
         html += `<div class="mt-2 mb-3 pt-2 border-top"><small class="fw-bold text-secondary d-block mb-2">Ficha Médica</small>`;
@@ -142,5 +164,15 @@ function updatePreview() {
     });
     html += `<button class="btn w-100 rounded-pill mt-3 text-white fw-bold" style="background-color:#ff8c00;" disabled><i class="bi bi-send me-1"></i>Enviar Respuesta</button>`;
     preview.innerHTML = html;
+}
+
+async function downloadPreviewPNG() {
+    const card = document.getElementById('livePreview').closest('.card');
+    if (!card || typeof html2canvas === 'undefined') return;
+    const canvas = await html2canvas(card, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const a = document.createElement('a');
+    a.download = (document.getElementById('formName').value.trim() || 'formulario') + '.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
 }
 </script>

@@ -8,7 +8,7 @@ from io import BytesIO
 from flask import request, jsonify, session, send_file, Response
 from models import Form, FormField, FormResponse
 from routes import bp
-from routes.forms_responses_utils import _build_answers_map, _fmt_tel
+from routes.forms_responses_utils import _build_answers_map, _fmt_tel, _fmt_tel_resp
 from routes.forms_export_pdf import _export_pdf
 from routes.forms_export_singlepage import _export_singlepage_offline
 
@@ -35,7 +35,7 @@ def api_export_responses(form_id, fmt):
             if form.show_cedula:
                 row['cedula'] = r.cedula or ''
             row['reservation_number'] = r.reservation_number or ''
-            row.update({'email': r.email, 'telefono': _fmt_tel(r.telefono, form),
+            row.update({'email': r.email, 'telefono': _fmt_tel_resp(r, form),
                         'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
                         'score': r.score})
             if form.show_residencia:
@@ -78,7 +78,7 @@ def api_export_responses(form_id, fmt):
                 if form.show_cedula:
                     row.append(r.cedula or '')
                 row.append(r.reservation_number or '')
-                row += [r.email, _fmt_tel(r.telefono, form), r.edad,
+                row += [r.email, _fmt_tel_resp(r, form), r.edad,
                         r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
@@ -170,7 +170,7 @@ def api_export_responses(form_id, fmt):
             if r.email:
                 lines.append(f"Email: {r.email}")
             if r.telefono:
-                lines.append(f"Teléfono: {_fmt_tel(r.telefono, form)}")
+                lines.append(f"Teléfono: {_fmt_tel_resp(r, form)}")
             if include_fecha and r.edad:
                 lines.append(f"Edad: {r.edad}")
             if include_fecha and r.submitted_at:

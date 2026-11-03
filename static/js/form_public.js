@@ -26,6 +26,7 @@ async function loadResponseByToken(token) {
     if (document.getElementById('pf_cedula')) document.getElementById('pf_cedula').value = data.cedula || '';
     if (document.getElementById('pf_email')) document.getElementById('pf_email').value = data.email || '';
     if (document.getElementById('pf_telefono')) document.getElementById('pf_telefono').value = data.telefono || '';
+    if (document.getElementById('pf_codigo_area') && data.codigo_area) document.getElementById('pf_codigo_area').value = data.codigo_area;
     if (document.getElementById('pf_edad') && data.edad) document.getElementById('pf_edad').value = data.edad;
     if (document.getElementById('pf_tipo_sangre')) document.getElementById('pf_tipo_sangre').value = data.tipo_sangre || '';
     if (document.getElementById('pf_alergias')) document.getElementById('pf_alergias').value = data.alergias || '';
