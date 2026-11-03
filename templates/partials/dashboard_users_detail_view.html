@@ -2,7 +2,102 @@
      BLINDADO - NO MODIFICAR SIN PERMISO EXPLICITO DEL DUENO
      Explicar antes de editar. Contenido sagrado protegido.
 ============================================================== -->
+<style>
+.dash-edit, .dash-edit-name { cursor: pointer; border-bottom: 1px dashed rgba(255,140,0,.55); padding-bottom: 1px; }
+.dash-edit:hover, .dash-edit-name:hover { background: rgba(255,140,0,.08); border-radius: 4px; }
+</style>
 <script>
+/* Edicion en vivo del expediente: tocar un campo -> input -> Enter/blur guarda */
+var DASH_SANGRES = ['O+','O-','A+','A-','B+','B-','AB+','AB-'];
+var DASH_ROLES = ['Usuario','Colaborador','Administrador','Superusuario'];
+function _ed(key, form, val) {
+    return '<span class="dash-edit" data-key="' + key + '" data-form="' + form + '" title="Tocá para editar">'
+        + (val || '—') + ' <i class="bi bi-pencil-fill" style="font-size:0.6rem;opacity:0.55;"></i></span>';
+}
+function _edName(u) {
+    return '<span class="dash-edit-name" title="Tocá para editar el nombre">' + u.name + ' ' + u.last_name_1 + ' ' + u.last_name_2
+        + ' <i class="bi bi-pencil-fill" style="font-size:0.6rem;opacity:0.55;"></i></span>';
+}
+document.addEventListener('click', function (e) {
+    var t = e.target.closest ? e.target.closest('.dash-edit, .dash-edit-name') : null;
+    if (!t || t.dataset.editing) return;
+    if (t.classList.contains('dash-edit-name')) { _dashEditName(t); return; }
+    _dashEditStart(t);
+});
+function _dashEditStart(sp) {
+    var u = currentSelectedUserObj || {};
+    var key = sp.dataset.key, tipo = 'text', ops = null;
+    if (key === 'role') { tipo = 'select'; ops = DASH_ROLES; }
+    else if (key === 'crm_tipo_sangre') { tipo = 'select'; ops = DASH_SANGRES; }
+    else if (key === 'dob' || key === 'crm_fecha_nac') { tipo = 'date'; }
+    sp.dataset.editing = '1';
+    var val = u[key] || '';
+    if (tipo === 'select') {
+        sp.innerHTML = '<select class="form-select form-select-sm d-inline-block w-auto fw-semibold">'
+            + '<option value="">—</option>'
+            + ops.map(function (o) { return '<option' + (o === val ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select>';
+    } else {
+        if (tipo === 'date') val = val.slice(0, 10);
+        sp.innerHTML = '<input type="' + tipo + '" class="form-control form-control-sm d-inline-block fw-semibold" style="width:auto;min-width:140px;" value="' + String(val).replace(/"/g, '&quot;') + '">';
+    }
+    var inp = sp.firstElementChild;
+    inp.focus();
+    var done = false;
+    function fin(save) {
+        if (done) return;
+        done = true;
+        if (save) { _dashSave(sp, key, sp.dataset.form, inp.value.trim()); }
+        else { viewUserDetails(currentSelectedUserObj); }
+    }
+    inp.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') { ev.preventDefault(); fin(true); }
+        else if (ev.key === 'Escape') { fin(false); }
+    });
+    if (tipo === 'select') { inp.addEventListener('change', function () { fin(true); }); }
+    inp.addEventListener('blur', function () { fin(true); });
+}
+function _dashSave(sp, key, formName, val) {
+    var u = currentSelectedUserObj;
+    if ((u[key] || '') === val) { viewUserDetails(u); return; }
+    var url = u.type === 'hiker' ? '/api/admin/update_hiker/' + u.hiker_id : '/api/admin/update_user/' + u.id;
+    var fd = new FormData();
+    fd.append(formName, val);
+    fetch(url, { method: 'POST', body: fd })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (res) {
+            if (!res.ok) { throw new Error(res.d.error || 'Error al guardar'); }
+            u[key] = val;
+            if (key === 'display_name') { u.display_name = val; }
+            viewUserDetails(u);
+        })
+        .catch(function (err) { alert(err.message || 'No se pudo guardar.'); viewUserDetails(u); });
+}
+function _dashEditName(sp) {
+    var u = currentSelectedUserObj;
+    sp.dataset.editing = '1';
+    sp.innerHTML = '<div class="d-flex flex-column gap-1" style="min-width:180px;">'
+        + '<input id="deN" class="form-control form-control-sm" placeholder="Nombre" value="' + String(u.name || '').replace(/"/g, '&quot;') + '">'
+        + '<input id="deA1" class="form-control form-control-sm" placeholder="Primer apellido" value="' + String(u.last_name_1 || '').replace(/"/g, '&quot;') + '">'
+        + '<input id="deA2" class="form-control form-control-sm" placeholder="Segundo apellido" value="' + String(u.last_name_2 || '').replace(/"/g, '&quot;') + '">'
+        + '<div class="d-flex gap-1"><button type="button" class="btn btn-sm btn-success flex-fill" id="deOk"><i class="bi bi-check-lg"></i></button>'
+        + '<button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="deNo"><i class="bi bi-x-lg"></i></button></div></div>';
+    document.getElementById('deOk').onclick = function () {
+        var fd = new FormData();
+        fd.append('name', document.getElementById('deN').value.trim());
+        fd.append('last_name_1', document.getElementById('deA1').value.trim());
+        fd.append('last_name_2', document.getElementById('deA2').value.trim());
+        fetch('/api/admin/update_user/' + u.id, { method: 'POST', body: fd })
+            .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+            .then(function (res) {
+                if (!res.ok) { throw new Error(res.d.error || 'Error al guardar'); }
+                u.name = fd.get('name'); u.last_name_1 = fd.get('last_name_1'); u.last_name_2 = fd.get('last_name_2');
+                u.display_name = (u.name + ' ' + u.last_name_1 + ' ' + u.last_name_2).trim();
+                viewUserDetails(u);
+            })
+            .catch(function (e) { alert(e.message || 'No se pudo guardar.'); viewUserDetails(u); });
+    };
+    document.getElementById('deNo').onclick = function () { viewUserDetails(u); };
+}
 function viewUserDetails(userObj) {
     currentSelectedUserId   = userObj.type === 'user' ? userObj.id : null;
     currentSelectedUserName = userObj.display_name;
@@ -32,26 +127,26 @@ function viewUserDetails(userObj) {
     if (userObj.type === 'hiker') {
         document.getElementById('userDetailsContent').innerHTML = `
             <h3 class="fw-bold text-dark border-bottom border-secondary border-opacity-25 pb-3 mb-4 fs-4">
-                <i class="bi bi-person-vcard-fill text-orange me-2"></i>Contacto — ${userObj.display_name}</h3>
+                <i class="bi bi-person-vcard-fill text-orange me-2"></i>Contacto — ${_ed('display_name', 'nombre_completo', userObj.display_name)}</h3>
             <div class="row g-3 text-start">
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Cédula</label>
                     <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula || '—'}</div></div></div>
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
                     <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
-                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${userObj.crm_tipo_sangre || '?'}</div></div></div>
+                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${_ed('crm_tipo_sangre', 'tipo_sangre', userObj.crm_tipo_sangre)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Teléfono</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.phone || '—'}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('phone', 'telefono', userObj.phone)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_alergias || 'Ninguna registrada'}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_alergias', 'alergias', userObj.crm_alergias)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-heart-pulse-fill text-danger me-1"></i>Enfermedades Crónicas</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_enfermedades || 'Ninguna registrada'}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_enfermedades', 'enfermedades_cronicas', userObj.crm_enfermedades)}</div></div></div>
                 <div class="col-12"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-telephone-fill text-primary me-1"></i>Contacto de Emergencia</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_emergencia_nombre || 'No registrado'}${userObj.crm_emergencia_tel ? ' — ' + userObj.crm_emergencia_tel : ''}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_emergencia_nombre', 'contacto_emergencia_nombre', userObj.crm_emergencia_nombre)} — ${_ed('crm_emergencia_tel', 'contacto_emergencia_telefono', userObj.crm_emergencia_tel)}</div></div></div>
             </div>`;
         return;
     }
@@ -61,7 +156,7 @@ function viewUserDetails(userObj) {
         let age = today.getFullYear() - dob.getFullYear();
         const m = today.getMonth() - dob.getMonth();
         if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-        ageStr = `${userObj.dob} (<span class="badge bg-secondary rounded-pill ms-1">${age} años</span>)`;
+        ageStr = `${_ed('dob', 'dob', userObj.dob)} (<span class="badge bg-secondary rounded-pill ms-1">${age} años</span>)`;
     }
     const hasCrm = !!userObj.crm_cedula;
     const crmSection = hasCrm ? `
@@ -74,13 +169,13 @@ function viewUserDetails(userObj) {
                     <div class="fw-bold ps-2 text-dark">${userObj.crm_cedula}</div></div></div>
                 <div class="col-6 col-md-3"><div class="info-item w-100 shadow-sm text-center">
                     <label class="text-uppercase text-secondary fw-bold mb-1 d-block" style="font-size:0.7rem;">Tipo de Sangre</label>
-                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${userObj.crm_tipo_sangre || '?'}</div></div></div>
+                    <div class="bg-danger text-white rounded-circle d-inline-flex align-items-center justify-content-center fw-black shadow mx-auto" style="width:48px;height:48px;font-size:1.1rem;">${_ed('crm_tipo_sangre', 'tipo_sangre', userObj.crm_tipo_sangre)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Alergias</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_alergias || 'Ninguna registrada'}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_alergias', 'alergias', userObj.crm_alergias)}</div></div></div>
                 <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm">
                     <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;"><i class="bi bi-telephone-fill text-primary me-1"></i>Contacto de Emergencia</label>
-                    <div class="fw-semibold ps-2 text-dark">${userObj.crm_emergencia_nombre || 'No registrado'} ${userObj.crm_emergencia_tel ? '— ' + userObj.crm_emergencia_tel : ''}</div></div></div>
+                    <div class="fw-semibold ps-2 text-dark">${_ed('crm_emergencia_nombre', 'contacto_emergencia_nombre[]', userObj.crm_emergencia_nombre)} — ${_ed('crm_emergencia_tel', 'contacto_emergencia_telefono[]', userObj.crm_emergencia_tel)}</div></div></div>
             </div></div>` :
         `<div class="mt-4 pt-3 border-top border-secondary border-opacity-25">
             <p class="text-muted small fst-italic"><i class="bi bi-database-slash me-1"></i>Sin ficha médica vinculada.</p></div>`;
@@ -90,18 +185,18 @@ function viewUserDetails(userObj) {
         <div class="row g-3 g-md-4 text-start">
             <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
                 <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Nombre Completo</label>
-                <div class="fw-bold fs-5 ps-2 text-dark text-break">${userObj.name} ${userObj.last_name_1} ${userObj.last_name_2}</div></div></div>
+                <div class="fw-bold fs-5 ps-2 text-dark text-break">${_edName(userObj)}</div></div></div>
             <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
                 <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Correo Electrónico</label>
-                <div class="fw-semibold fs-6 ps-2 text-dark text-break">${userObj.email}</div></div></div>
+                <div class="fw-semibold fs-6 ps-2 text-dark text-break">${_ed('email', 'email', userObj.email)}</div></div></div>
             <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
                 <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Rol y Estado</label>
-                <div class="fw-semibold fs-6 ps-2 text-dark">${userObj.role} — 
+                <div class="fw-semibold fs-6 ps-2 text-dark">${_ed('role', 'role', userObj.role)} — 
                 ${userObj.status === 'Activo' ? '<span class="text-success fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Activo</span>' : '<span class="text-danger fw-bold"><i class="bi bi-x-circle-fill me-1"></i>Bloqueado</span>'}
                 </div></div></div>
             <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
                 <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Teléfono</label>
-                <div class="fw-semibold fs-6 ps-2 text-dark">${userObj.phone}</div></div></div>
+                <div class="fw-semibold fs-6 ps-2 text-dark">${_ed('phone', 'phone', userObj.phone)}</div></div></div>
             <div class="col-12 col-md-6"><div class="info-item w-100 shadow-sm h-100">
                 <label class="text-uppercase text-secondary fw-bold mb-1" style="font-size:0.7rem;">Fecha de Nacimiento</label>
                 <div class="fw-semibold fs-6 ps-2 text-dark">${ageStr}</div></div></div>

@@ -146,6 +146,31 @@ def admin_update_user(user_id):
     return jsonify({'success': True})
 
 
+@bp.route('/api/admin/update_hiker/<int:hiker_id>', methods=['POST'])
+def admin_update_hiker(hiker_id):
+    """Edicion en vivo de un contacto (hiker sin usuario) desde la Agenda.
+    Acepta los mismos campos del CRM que se muestran en el expediente."""
+    if 'user_id' not in session or session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    h = Hiker.query.get_or_404(hiker_id)
+    for campo in ('nombre_completo', 'telefono', 'tipo_sangre', 'alergias',
+                  'enfermedades_cronicas', 'contacto_emergencia_nombre',
+                  'contacto_emergencia_telefono'):
+        if campo in request.form:
+            val = request.form.get(campo, '').strip()
+            if campo in ('telefono', 'contacto_emergencia_telefono'):
+                val = re.sub(r'\D', '', val)
+            setattr(h, campo, val)
+    f_nac = (request.form.get('fecha_nacimiento') or '').strip()
+    if f_nac:
+        try:
+            h.fecha_nacimiento = datetime.strptime(f_nac, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+    db.session.commit()
+    return jsonify({'success': True})
+
+
 @bp.route('/api/admin/create_user', methods=['POST'])
 def admin_create_user():
     if 'user_id' not in session or session.get('role') != 'Superusuario':
