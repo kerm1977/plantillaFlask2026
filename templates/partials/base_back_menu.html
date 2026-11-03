@@ -238,7 +238,7 @@
     <a href="#" class="btn-scan-float" id="btnScanFloat" title="Escanear QR de caminata">
         <i class="bi bi-qr-code-scan fs-4"></i>
     </a>
-    {% set _pins_default = 'crear-caminata,arte-calendario,arte-cotizaciones,link-inscripcion,gestor-fechas,notas,evento-social,formularios,cotizadores,rifas,festivos,rastreo,descargar-videos,puntos-personales' %}
+    {% set _pins_default = '' %}
     {% set _pins = site.herramientas_pins.split(',') if site.herramientas_pins is defined else _pins_default.split(',') %}
     <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
         <!-- El menú abre hacia abajo y se hace scroll si es largo -->
