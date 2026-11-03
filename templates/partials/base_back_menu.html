@@ -238,6 +238,8 @@
     <a href="#" class="btn-scan-float" id="btnScanFloat" title="Escanear QR de caminata">
         <i class="bi bi-qr-code-scan fs-4"></i>
     </a>
+    {% set _pins_default = 'crear-caminata,arte-calendario,arte-cotizaciones,link-inscripcion,gestor-fechas,notas,evento-social,formularios,cotizadores,rifas,festivos,rastreo,descargar-videos,puntos-personales' %}
+    {% set _pins = site.herramientas_pins.split(',') if site.herramientas_pins is defined else _pins_default.split(',') %}
     <div class="dropdown admin-tools-dropdown" data-bs-boundary="viewport">
         <!-- El menú abre hacia abajo y se hace scroll si es largo -->
         <a href="#" class="btn-global-add dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Herramientas de Admin" style="text-decoration: none; {% if site.admin_tools_bg %}background: {{ site.admin_tools_bg }} !important;{% endif %}">
@@ -246,15 +248,18 @@
 
         <!-- Menú desplegable Glassmorphic -->
         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2 p-2" style="background: rgba(255, 255, 255, 0.55); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); border-radius: 1rem; right: 20px; max-height: 70vh; overflow-y: auto; z-index: 9999;">
+            {% if 'crear-caminata' in _pins %}
             <!-- Opción 1: Crear Caminata -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/caminatas-2027?crear=1">
                     <i class="bi bi-plus-circle text-orange me-2 fs-5"></i> Crear Caminata
                 </a>
             </li>
-            
+
             <li><hr class="dropdown-divider opacity-25"></li>
-            
+            {% endif %}
+
+            {% if 'arte-calendario' in _pins %}
             <!-- Opción 2: Generar Calendario (ABRE EL MODAL) -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" data-bs-toggle="modal" data-bs-target="#calendarioModal">
@@ -263,7 +268,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
-            
+            {% endif %}
+
+            {% if 'arte-cotizaciones' in _pins %}
             <!-- Opción 2.5: Arte de Cotizaciones -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/cotizadores/arte">
@@ -272,7 +279,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
-            
+            {% endif %}
+
+            {% if 'link-inscripcion' in _pins %}
             <!-- NUEVA Opción 3: Link de Inscripción (ABRE EL MODAL DE GENERADOR) -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="abrirGeneradorLinks()">
@@ -281,7 +290,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
-            
+            {% endif %}
+
+            {% if 'gestor-fechas' in _pins %}
             <!-- Opción 4: Gestor de Fechas -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/gestor-fechas">
@@ -290,7 +301,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'notas' in _pins %}
             <!-- Opción 6: Notas -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="openNotesModal()">
@@ -299,7 +312,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'evento-social' in _pins %}
             <!-- Opción 7: Evento Social -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/publicaciones">
@@ -308,7 +323,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'formularios' in _pins %}
             <!-- Opción 6: Formularios -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/formularios">
@@ -317,7 +334,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'cotizadores' in _pins %}
             <!-- Opción 7: Cotizadores - VERSION ACTUALIZADA -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/cotizadores/lista">
@@ -326,7 +345,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'rifas' in _pins %}
             <!-- Opción 8: Rifas -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/rifas">
@@ -335,7 +356,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'festivos' in _pins %}
             <!-- Opción 9: Triggers de Festivos -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/admin/holidays">
@@ -344,7 +367,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'rastreo' in _pins %}
             <!-- Opción 10: Rastreo en Vivo -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/rastreo/admin">
@@ -353,7 +378,9 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'descargar-videos' in _pins %}
             <!-- Opción 11: Descargar Videos -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/herramientas/descargas">
@@ -362,13 +389,85 @@
             </li>
 
             <li><hr class="dropdown-divider opacity-25"></li>
+            {% endif %}
 
+            {% if 'puntos-personales' in _pins %}
             <!-- Opción 12: Puntos personales (expediente propio) -->
             <li>
                 <a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/control-puntos">
                     <i class="bi bi-trophy text-orange me-2 fs-5"></i> Puntos personales
                 </a>
             </li>
+            {% endif %}
+
+            {# ── Opciones del perfil fijadas con PIN ── #}
+            {% if 'agenda' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/dashboard"><i class="bi bi-journal-medical text-orange me-2 fs-5"></i> Agenda</a></li>
+            {% endif %}
+            {% if 'admin-puntos' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.mis_puntos') }}"><i class="bi bi-gear-wide-connected text-orange me-2 fs-5"></i> Administración de Puntos</a></li>
+            {% endif %}
+            {% if 'caminatas-escaneadas' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileEscaneos"><i class="bi bi-qr-code-scan text-orange me-2 fs-5"></i> Caminatas Escaneadas</a></li>
+            {% endif %}
+            {% if 'tema' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.admin_theme') }}"><i class="bi bi-palette text-orange me-2 fs-5"></i> Administrar Tema</a></li>
+            {% endif %}
+            {% if 'respaldos' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.backup_manager') }}"><i class="bi bi-database-fill-gear text-orange me-2 fs-5"></i> Respaldos</a></li>
+            {% endif %}
+            {% if 'offline' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileOffline"><i class="bi bi-cloud-arrow-down-fill text-orange me-2 fs-5"></i> Información offline</a></li>
+            {% endif %}
+            {% if 'actualizar-app' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileUpdate"><i class="bi bi-arrow-repeat text-orange me-2 fs-5"></i> Actualizar aplicación</a></li>
+            {% endif %}
+            {% if 'app-rastreo' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/static/downloads/LaTribu-Rastreo.apk"><i class="bi bi-android2 text-orange me-2 fs-5"></i> App de Rastreo GPS</a></li>
+            {% endif %}
+            {% if 'limpiar-cache' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileClearCache"><i class="bi bi-arrow-counterclockwise text-orange me-2 fs-5"></i> Limpiar caché</a></li>
+            {% endif %}
+            {% if 'logo' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.admin_logo_config') }}"><i class="bi bi-gear-fill text-orange me-2 fs-5"></i> Configurar logo</a></li>
+            {% endif %}
+            {% if 'carrusel' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.admin_carrusel') }}"><i class="bi bi-images text-orange me-2 fs-5"></i> Administrar carrusel</a></li>
+            {% endif %}
+            {% if 'multimedia' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="{{ url_for('main.multimedia_page') }}"><i class="bi bi-folder-fill text-orange me-2 fs-5"></i> Multimedia</a></li>
+            {% endif %}
+            {% if 'exportar-png' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="#" onclick="window.print(); return false;"><i class="bi bi-file-earmark-image text-orange me-2 fs-5"></i> Exportar PNG</a></li>
+            {% endif %}
+            {% if 'whatsapp' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileWhatsapp"><i class="bi bi-whatsapp text-orange me-2 fs-5"></i> WhatsApp</a></li>
+            {% endif %}
+            {% if 'otras-caminatas' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileOtrasCaminatas"><i class="bi bi-signpost-split text-orange me-2 fs-5"></i> Otras Caminatas</a></li>
+            {% endif %}
+            {% if 'herramientas' in _pins %}
+            <li><hr class="dropdown-divider opacity-25"></li>
+            <li><a class="dropdown-item fw-bold text-dark rounded d-flex align-items-center py-2" href="/profile#profileHerramientas"><i class="bi bi-tools text-orange me-2 fs-5"></i> Configurar Herramientas</a></li>
+            {% endif %}
+            {% if _pins == [''] %}
+            <li><a class="dropdown-item fw-bold text-muted rounded d-flex align-items-center py-2" href="/profile#profileHerramientas"><i class="bi bi-pin-angle me-2 fs-5"></i> Fijá opciones desde tu perfil</a></li>
+            {% endif %}
         </ul>
     </div>
 
