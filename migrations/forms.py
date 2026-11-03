@@ -62,3 +62,28 @@ def _migrate_forms_pasaporte_fecha_nacimiento():
     except Exception as e:
         print(f"[Migration] Error en _migrate_forms_pasaporte_fecha_nacimiento: {e}")
 
+def _migrate_forms_residencia():
+    """Agrega columna show_residencia a form y provincia/direccion a form_response."""
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "show_residencia" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN show_residencia BOOLEAN DEFAULT 0")
+
+        cursor.execute("PRAGMA table_info(form_response)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        migrations = [
+            ("provincia", "VARCHAR(50)"),
+            ("direccion", "VARCHAR(500)"),
+        ]
+        for col, definition in migrations:
+            if col not in existing_cols:
+                cursor.execute(f"ALTER TABLE form_response ADD COLUMN {col} {definition}")
+
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_forms_residencia: {e}")
+

@@ -43,6 +43,10 @@ async function viewResponses(formId) {
             if (r.score !== null && r.score !== undefined)
                 fieldsHtml += fieldRow('Nota', `<span class="badge rounded-pill ${r.score>=70?'bg-success':'bg-danger'}">${r.score}%</span>`);
             if (data.show_pasaporte) fieldsHtml += fieldRow('Pasaporte', r.pasaporte);
+            if (data.show_residencia) {
+                fieldsHtml += fieldRow('Provincia', r.provincia);
+                fieldsHtml += fieldRow('Dirección exacta', r.direccion, true);
+            }
             if (data.show_fecha_nacimiento) fieldsHtml += fieldRow('Fecha de Nacimiento', fechaNac);
             if (data.show_ficha_medica) {
                 fieldsHtml += fieldRow('Tipo de Sangre', r.tipo_sangre);
@@ -135,6 +139,17 @@ function viewResponseDetail(index) {
             <h6 class="fw-bold text-dark mb-2"><i class="bi bi-passport me-2"></i>Pasaporte</h6>
             <label class="form-label fw-semibold text-secondary">Número</label>
             <div class="form-control glass-input rounded-3 py-2">${r.pasaporte || '-'}</div>
+        </div>`;
+    }
+    
+    // Lugar de residencia
+    if (data.show_residencia) {
+        html += `<div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-geo-alt me-2"></i>Lugar de Residencia</h6>
+            <div class="row g-3">
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Provincia</label><div class="form-control glass-input rounded-3 py-2">${r.provincia || '-'}</div></div>
+                <div class="col-12"><label class="form-label fw-semibold text-secondary">Dirección exacta</label><div class="form-control glass-input rounded-3 py-2">${r.direccion || '-'}</div></div>
+            </div>
         </div>`;
     }
     

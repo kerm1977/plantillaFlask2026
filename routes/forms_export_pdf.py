@@ -82,6 +82,11 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
                 story.append(Paragraph(f"<b>Email:</b> {r.email}", field_style))
             if r.telefono:
                 story.append(Paragraph(f"<b>Teléfono:</b> {_fmt_tel(r.telefono, form)}", field_style))
+            if form.show_residencia:
+                if r.provincia:
+                    story.append(Paragraph(f"<b>Provincia:</b> {r.provincia}", field_style))
+                if r.direccion:
+                    story.append(Paragraph(f"<b>Dirección:</b> {r.direccion}", field_style))
             if include_fecha and r.edad:
                 story.append(Paragraph(f"<b>Edad:</b> {r.edad}", field_style))
             if include_fecha and r.submitted_at:

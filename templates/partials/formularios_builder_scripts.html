@@ -118,6 +118,10 @@ function updatePreview() {
         html += `<div class="col-4"><input type="number" class="form-control form-control-sm" disabled placeholder="Año" min="1900" max="2025"></div>`;
         html += `</div></div>`;
     }
+    if (document.getElementById('trigResidencia').checked) {
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">Provincia</label><select class="form-select form-select-sm" disabled><option>San José</option><option>Alajuela</option><option>Cartago</option><option>Heredia</option><option>Guanacaste</option><option>Puntarenas</option><option>Limón</option></select></div>`;
+        html += `<div class="mb-3"><label class="form-label fw-semibold small">Dirección exacta</label><input type="text" class="form-control form-control-sm" disabled placeholder="Ej: San Diego, La Unión, de la escuela 200 m norte..."></div>`;
+    }
     
     if (fields.length > 0) html += '<hr class="my-3">';
     fields.forEach((f, i) => {

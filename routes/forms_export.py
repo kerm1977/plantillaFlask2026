@@ -38,6 +38,8 @@ def api_export_responses(form_id, fmt):
             row.update({'email': r.email, 'telefono': _fmt_tel(r.telefono, form),
                         'edad': r.edad, 'fecha': r.submitted_at.isoformat() if r.submitted_at else '',
                         'score': r.score})
+            if form.show_residencia:
+                row.update({'provincia': r.provincia or '', 'direccion': r.direccion or ''})
             if form.show_ficha_medica:
                 row.update({'tipo_sangre': r.tipo_sangre or '', 'alergias': r.alergias or '',
                             'enfermedades_cronicas': r.enfermedades_cronicas or '',
@@ -64,6 +66,8 @@ def api_export_responses(form_id, fmt):
             headers += ['Email', 'Teléfono', 'Edad', 'Fecha']
             if form.form_type == 'examen':
                 headers.append('Calificación')
+            if form.show_residencia:
+                headers += ['Provincia', 'Dirección']
             if form.show_ficha_medica:
                 headers += ['Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas',
                             'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono']
@@ -78,6 +82,8 @@ def api_export_responses(form_id, fmt):
                         r.submitted_at.strftime('%d/%m/%Y %H:%M') if r.submitted_at else '']
                 if form.form_type == 'examen':
                     row.append(f"{r.score}%" if r.score is not None else '')
+                if form.show_residencia:
+                    row += [r.provincia or '', r.direccion or '']
                 if form.show_ficha_medica:
                     row += [r.tipo_sangre or '', r.alergias or '', r.enfermedades_cronicas or '',
                            r.contacto_emergencia_nombre or '', _fmt_tel(r.contacto_emergencia_telefono, form)]
@@ -109,6 +115,11 @@ def api_export_responses(form_id, fmt):
                 lines.append(f"   - Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
             if form.form_type == 'examen' and r.score is not None:
                 lines.append(f"   - Nota: {r.score}%")
+            if form.show_residencia:
+                if r.provincia:
+                    lines.append(f"   - Provincia: {r.provincia}")
+                if r.direccion:
+                    lines.append(f"   - Dirección: {r.direccion}")
             if include_ficha_medica and form.show_ficha_medica:
                 if r.tipo_sangre:
                     lines.append(f"   - Tipo Sangre: {r.tipo_sangre}")
@@ -166,6 +177,11 @@ def api_export_responses(form_id, fmt):
                 lines.append(f"Fecha: {r.submitted_at.strftime('%d/%m/%Y %H:%M')}")
             if form.form_type == 'examen' and r.score is not None:
                 lines.append(f"Calificación: {r.score}%")
+            if form.show_residencia:
+                if r.provincia:
+                    lines.append(f"Provincia: {r.provincia}")
+                if r.direccion:
+                    lines.append(f"Dirección: {r.direccion}")
             if include_ficha_medica and form.show_ficha_medica:
                 lines.append("Ficha Médica:")
                 if r.tipo_sangre:

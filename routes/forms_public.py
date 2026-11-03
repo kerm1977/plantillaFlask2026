@@ -61,6 +61,8 @@ def api_submit_form(form_id):
         contacto_emergencia_nombre=data.get('contacto_emergencia_nombre', '') or None,
         contacto_emergencia_telefono=data.get('contacto_emergencia_telefono', '') or None,
         pasaporte=data.get('pasaporte', '') or None,
+        provincia=data.get('provincia', '') or None,
+        direccion=data.get('direccion', '') or None,
         fecha_nacimiento_dia=int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else None,
         fecha_nacimiento_mes=int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else None,
         fecha_nacimiento_anio=int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else None,

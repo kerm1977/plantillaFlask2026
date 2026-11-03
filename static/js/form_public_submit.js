@@ -16,6 +16,8 @@ async function checkExistingResponse(nombre) {
         if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
         if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
         if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+        if (document.getElementById('pf_provincia') && data.provincia) document.getElementById('pf_provincia').value = data.provincia;
+        if (document.getElementById('pf_direccion')) document.getElementById('pf_direccion').value = data.direccion || '';
         if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
         if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
         if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
@@ -115,6 +117,8 @@ async function submitForm(e) {
         contacto_emergencia_nombre: document.getElementById('pf_contacto_nombre')?.value || '',
         contacto_emergencia_telefono: document.getElementById('pf_contacto_telefono')?.value || '',
         pasaporte: document.getElementById('pf_pasaporte')?.value || '',
+        provincia: document.getElementById('pf_provincia')?.value || '',
+        direccion: document.getElementById('pf_direccion')?.value || '',
         fecha_nacimiento_dia: document.getElementById('pf_fecha_nacimiento_dia')?.value || '',
         fecha_nacimiento_mes: document.getElementById('pf_fecha_nacimiento_mes')?.value || '',
         fecha_nacimiento_anio: document.getElementById('pf_fecha_nacimiento_anio')?.value || '',
@@ -183,7 +187,7 @@ async function submitForm(e) {
 }
 
 function resetForNewEntry() {
-    ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono','pf_pasaporte','pf_fecha_nacimiento_dia','pf_fecha_nacimiento_mes','pf_fecha_nacimiento_anio'].forEach(id => {
+    ['pf_nombre','pf_cedula','pf_email','pf_telefono','pf_edad','pf_fecha','pf_tipo_sangre','pf_alergias','pf_enfermedades','pf_contacto_nombre','pf_contacto_telefono','pf_pasaporte','pf_provincia','pf_direccion','pf_fecha_nacimiento_dia','pf_fecha_nacimiento_mes','pf_fecha_nacimiento_anio'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = '';
     });

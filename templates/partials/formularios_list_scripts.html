@@ -98,6 +98,7 @@ function showCreateForm() {
     document.getElementById('trigFichaMedica').checked = false;
     document.getElementById('trigPasaporte').checked = false;
     document.getElementById('trigFechaNacimiento').checked = false;
+    document.getElementById('trigResidencia').checked = false;
     document.getElementById('formReservationNumbers').value = '';
     renderFields(); updatePreview();
     document.getElementById('formsList').classList.add('d-none');
@@ -120,6 +121,7 @@ async function editForm(id) {
     document.getElementById('trigFichaMedica').checked = form.show_ficha_medica;
     document.getElementById('trigPasaporte').checked = form.show_pasaporte;
     document.getElementById('trigFechaNacimiento').checked = form.show_fecha_nacimiento;
+    document.getElementById('trigResidencia').checked = !!form.show_residencia;
     document.getElementById('formReservationNumbers').value = form.reservation_numbers || '';
     fields = form.fields.map(f => ({...f}));
     renderFields(); updatePreview();
@@ -143,6 +145,7 @@ async function saveForm() {
         show_ficha_medica: document.getElementById('trigFichaMedica').checked,
         show_pasaporte: document.getElementById('trigPasaporte').checked,
         show_fecha_nacimiento: document.getElementById('trigFechaNacimiento').checked,
+        show_residencia: document.getElementById('trigResidencia').checked,
         reservation_numbers: document.getElementById('formReservationNumbers').value
     };
     let formId = currentFormId;

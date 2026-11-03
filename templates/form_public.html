@@ -78,6 +78,25 @@
                     <small class="text-muted">Debe tener al menos 15 años para completar este formulario</small>
                 </div>
                 {% endif %}
+                {% if form.show_residencia %}
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Provincia <span class="text-danger">*</span></label>
+                    <select class="form-select" id="pf_provincia">
+                        <option value="" selected disabled>Seleccione su provincia...</option>
+                        <option value="San José">San José</option>
+                        <option value="Alajuela">Alajuela</option>
+                        <option value="Cartago">Cartago</option>
+                        <option value="Heredia">Heredia</option>
+                        <option value="Guanacaste">Guanacaste</option>
+                        <option value="Puntarenas">Puntarenas</option>
+                        <option value="Limón">Limón</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Dirección exacta</label>
+                    <input type="text" class="form-control" id="pf_direccion" placeholder="Ej: San Diego, La Unión, de la escuela 200 m norte, casa verde">
+                </div>
+                {% endif %}
                 {% if form.show_ficha_medica %}
                 <hr>
                 <h6 class="fw-bold text-secondary mb-3"><i class="bi bi-heart-pulse me-1"></i>Ficha Médica</h6>

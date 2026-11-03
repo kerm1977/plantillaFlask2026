@@ -87,6 +87,7 @@ def api_get_responses(form_id):
                'contacto_emergencia_nombre': r.contacto_emergencia_nombre or '',
                'contacto_emergencia_telefono': r.contacto_emergencia_telefono or '',
                'pasaporte': r.pasaporte or '',
+               'provincia': r.provincia or '', 'direccion': r.direccion or '',
                'fecha_nacimiento_dia': r.fecha_nacimiento_dia,
                'fecha_nacimiento_mes': r.fecha_nacimiento_mes,
                'fecha_nacimiento_anio': r.fecha_nacimiento_anio,
@@ -100,7 +101,8 @@ def api_get_responses(form_id):
     return jsonify({'fields': fields_info, 'responses': output,
                     'form_name': form.name,
                     'show_cedula': form.show_cedula, 'show_ficha_medica': form.show_ficha_medica,
-                    'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento})
+                    'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
+                    'show_residencia': form.show_residencia})
 
 
 # ── ELIMINAR RESPUESTA ───────────────────────────────────────────────────────
@@ -139,6 +141,8 @@ def api_update_response(form_id, response_id):
     resp.contacto_emergencia_nombre   = data.get('contacto_emergencia_nombre', resp.contacto_emergencia_nombre)
     resp.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono', resp.contacto_emergencia_telefono)
     resp.pasaporte                    = data.get('pasaporte', resp.pasaporte)
+    resp.provincia                    = data.get('provincia', resp.provincia)
+    resp.direccion                    = data.get('direccion', resp.direccion)
     resp.fecha_nacimiento_dia         = int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else resp.fecha_nacimiento_dia
     resp.fecha_nacimiento_mes         = int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else resp.fecha_nacimiento_mes
     resp.fecha_nacimiento_anio        = int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else resp.fecha_nacimiento_anio
@@ -167,6 +171,7 @@ def api_get_my_response(form_id):
                     'contacto_emergencia_nombre': resp.contacto_emergencia_nombre or '',
                     'contacto_emergencia_telefono': resp.contacto_emergencia_telefono or '',
                     'pasaporte': resp.pasaporte or '',
+                    'provincia': resp.provincia or '', 'direccion': resp.direccion or '',
                     'fecha_nacimiento_dia': resp.fecha_nacimiento_dia,
                     'fecha_nacimiento_mes': resp.fecha_nacimiento_mes,
                     'fecha_nacimiento_anio': resp.fecha_nacimiento_anio,
@@ -195,6 +200,8 @@ def api_admin_update_response(response_id):
     resp.contacto_emergencia_nombre   = data.get('contacto_emergencia_nombre', resp.contacto_emergencia_nombre)
     resp.contacto_emergencia_telefono = data.get('contacto_emergencia_telefono', resp.contacto_emergencia_telefono)
     resp.pasaporte                    = data.get('pasaporte', resp.pasaporte)
+    resp.provincia                    = data.get('provincia', resp.provincia)
+    resp.direccion                    = data.get('direccion', resp.direccion)
     resp.fecha_nacimiento_dia         = int(data.get('fecha_nacimiento_dia')) if data.get('fecha_nacimiento_dia') else resp.fecha_nacimiento_dia
     resp.fecha_nacimiento_mes         = int(data.get('fecha_nacimiento_mes')) if data.get('fecha_nacimiento_mes') else resp.fecha_nacimiento_mes
     resp.fecha_nacimiento_anio        = int(data.get('fecha_nacimiento_anio')) if data.get('fecha_nacimiento_anio') else resp.fecha_nacimiento_anio
@@ -229,6 +236,7 @@ def api_get_response_by_token(token):
                     'contacto_emergencia_nombre': resp.contacto_emergencia_nombre or '',
                     'contacto_emergencia_telefono': resp.contacto_emergencia_telefono or '',
                     'pasaporte': resp.pasaporte or '',
+                    'provincia': resp.provincia or '', 'direccion': resp.direccion or '',
                     'fecha_nacimiento_dia': resp.fecha_nacimiento_dia,
                     'fecha_nacimiento_mes': resp.fecha_nacimiento_mes,
                     'fecha_nacimiento_anio': resp.fecha_nacimiento_anio,

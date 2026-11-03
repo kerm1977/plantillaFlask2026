@@ -41,6 +41,15 @@ function editResponseAdmin(index) {
         <div class="col-12"><hr class="my-1"><small class="fw-bold text-primary"><i class="bi bi-passport me-1"></i>Pasaporte</small></div>
         <div class="col-12"><label class="fw-semibold small text-muted">Número de Pasaporte</label>
             <input type="text" class="form-control form-control-sm" id="erPasaporte" value="${r.pasaporte || ''}"></div>` : ''}
+        ${data.show_residencia ? `
+        <div class="col-12"><hr class="my-1"><small class="fw-bold text-success"><i class="bi bi-geo-alt me-1"></i>Lugar de Residencia</small></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Provincia</label>
+            <select class="form-select form-select-sm" id="erProvincia">
+                <option value="">Sin provincia</option>
+                ${['San José','Alajuela','Cartago','Heredia','Guanacaste','Puntarenas','Limón'].map(p => `<option value="${p}" ${r.provincia===p?'selected':''}>${p}</option>`).join('')}
+            </select></div>
+        <div class="col-6"><label class="fw-semibold small text-muted">Dirección exacta</label>
+            <input type="text" class="form-control form-control-sm" id="erDireccion" value="${r.direccion || ''}"></div>` : ''}
         ${data.show_fecha_nacimiento ? `
         <div class="col-12"><hr class="my-1"><small class="fw-bold text-success"><i class="bi bi-calendar3 me-1"></i>Fecha de Nacimiento</small></div>
         <div class="col-4"><label class="fw-semibold small text-muted">Día</label>
@@ -97,6 +106,8 @@ async function saveEditedResponse() {
             contacto_emergencia_nombre: document.getElementById('erContactoNombre')?.value || '',
             contacto_emergencia_telefono: document.getElementById('erContactoTelefono')?.value || '',
             pasaporte: document.getElementById('erPasaporte')?.value || '',
+            provincia: document.getElementById('erProvincia')?.value || '',
+            direccion: document.getElementById('erDireccion')?.value || '',
             fecha_nacimiento_dia: document.getElementById('erFechaNacimientoDia')?.value || '',
             fecha_nacimiento_mes: document.getElementById('erFechaNacimientoMes')?.value || '',
             fecha_nacimiento_anio: document.getElementById('erFechaNacimientoAnio')?.value || '',
@@ -128,6 +139,7 @@ function copyResponsesTSV() {
     if (data.show_cedula) headers.push('Cédula');
     headers.push('Email', 'Teléfono', 'Edad', 'Fecha');
     if (data.responses.some(r => r.score !== null && r.score !== undefined)) headers.push('Nota (%)');
+    if (data.show_residencia) headers.push('Provincia', 'Dirección');
     if (data.show_ficha_medica) headers.push('Tipo de Sangre', 'Alergias', 'Enfermedades Crónicas', 'Contacto Emergencia Nombre', 'Contacto Emergencia Teléfono');
     data.fields.forEach(f => headers.push(f.label));
     // Construir filas
@@ -138,6 +150,7 @@ function copyResponsesTSV() {
         if (data.responses.some(x => x.score !== null && x.score !== undefined)) {
             row.push(r.score !== null && r.score !== undefined ? r.score + '%' : '');
         }
+        if (data.show_residencia) row.push(r.provincia || '', r.direccion || '');
         if (data.show_ficha_medica) {
             row.push(r.tipo_sangre || '', r.alergias || '', r.enfermedades_cronicas || '', r.contacto_emergencia_nombre || '', r.contacto_emergencia_telefono || '');
         }

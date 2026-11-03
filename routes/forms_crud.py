@@ -85,6 +85,7 @@ def api_create_form():
         show_ficha_medica=data.get('show_ficha_medica', False),
         show_pasaporte=data.get('show_pasaporte', False),
         show_fecha_nacimiento=data.get('show_fecha_nacimiento', False),
+        show_residencia=data.get('show_residencia', False),
     )
     db.session.add(form)
     db.session.commit()
@@ -109,6 +110,7 @@ def api_get_form(form_id):
         'show_email': form.show_email, 'show_edad': form.show_edad,
         'show_telefono': form.show_telefono, 'show_ficha_medica': form.show_ficha_medica,
         'show_pasaporte': form.show_pasaporte, 'show_fecha_nacimiento': form.show_fecha_nacimiento,
+        'show_residencia': form.show_residencia,
         'created_at': form.created_at.strftime('%d/%m/%Y %H:%M') if form.created_at else '',
         'fields': fields, 'responses_count': len(form.responses)
     })
@@ -138,7 +140,8 @@ def api_update_form(form_id):
     form.show_ficha_medica = data.get('show_ficha_medica', form.show_ficha_medica)
     form.show_pasaporte = data.get('show_pasaporte', form.show_pasaporte)
     form.show_fecha_nacimiento = data.get('show_fecha_nacimiento', form.show_fecha_nacimiento)
-    
+    form.show_residencia = data.get('show_residencia', form.show_residencia)
+
     db.session.commit()
     return jsonify({'ok': True})
 

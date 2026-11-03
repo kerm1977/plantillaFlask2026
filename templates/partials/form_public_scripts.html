@@ -7,5 +7,5 @@ const EDIT_RESPONSE_ID = {{ edit_response_id|default('null', true) }};
 const IS_SUPER = {{ 'true' if session.get('role') == 'Superusuario' else 'false' }};
 const FORM_EDIT_BASE = "/form/{{ form.slug or form.id }}";
 </script>
-<script src="{{ url_for('static', filename='js/form_public.js') }}"></script>
-<script src="{{ url_for('static', filename='js/form_public_submit.js') }}"></script>
+<script src="{{ url_for('static', filename='js/form_public.js') }}?v=20261103"></script>
+<script src="{{ url_for('static', filename='js/form_public_submit.js') }}?v=20261103"></script>

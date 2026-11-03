@@ -33,6 +33,8 @@ async function loadResponseByToken(token) {
     if (document.getElementById('pf_contacto_nombre')) document.getElementById('pf_contacto_nombre').value = data.contacto_emergencia_nombre || '';
     if (document.getElementById('pf_contacto_telefono')) document.getElementById('pf_contacto_telefono').value = data.contacto_emergencia_telefono || '';
     if (document.getElementById('pf_pasaporte')) document.getElementById('pf_pasaporte').value = data.pasaporte || '';
+    if (document.getElementById('pf_provincia') && data.provincia) document.getElementById('pf_provincia').value = data.provincia;
+    if (document.getElementById('pf_direccion')) document.getElementById('pf_direccion').value = data.direccion || '';
     if (document.getElementById('pf_fecha_nacimiento_dia') && data.fecha_nacimiento_dia) document.getElementById('pf_fecha_nacimiento_dia').value = data.fecha_nacimiento_dia;
     if (document.getElementById('pf_fecha_nacimiento_mes') && data.fecha_nacimiento_mes) document.getElementById('pf_fecha_nacimiento_mes').value = data.fecha_nacimiento_mes;
     if (document.getElementById('pf_fecha_nacimiento_anio') && data.fecha_nacimiento_anio) document.getElementById('pf_fecha_nacimiento_anio').value = data.fecha_nacimiento_anio;
