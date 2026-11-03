@@ -142,9 +142,9 @@
                    alt="{{ ev.nombre_lugar }}" class="img-fluid rounded-3 shadow-sm w-100"
                    style="aspect-ratio:9/16; object-fit:cover;" loading="lazy">
             </a>
-            <span class="position-absolute top-0 start-0 translate-middle rounded-circle d-flex align-items-center justify-content-center fw-bold shadow"
+            <span class="position-absolute rounded-circle d-flex align-items-center justify-content-center fw-bold shadow"
                   title="{{ ev.nombre_lugar }}: {{ ev.puntos or 0 }} puntos por participar"
-                  style="width:38px;height:38px;font-size:11px;color:#fff;background:linear-gradient(135deg,var(--pastel-salmon,#f4a261),var(--pastel-coral,#ff9a8b));border:2px solid #fff;z-index:2;">
+                  style="left:25%;top:0;transform:translate(-50%,-50%);width:38px;height:38px;font-size:11px;color:#fff;background:linear-gradient(135deg,var(--pastel-salmon,#f4a261),var(--pastel-coral,#ff9a8b));border:2px solid #fff;z-index:2;">
               {{ ('+' ~ ev.puntos) if ev.puntos else '0' }}
             </span>
           </div>
