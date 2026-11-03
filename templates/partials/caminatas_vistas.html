@@ -1,4 +1,4 @@
-  <div id="vistaProvincias" class="caminatas-vista" style="display:{{ 'none' if is_tribu else 'block' }};">
+  {% if is_tribu %}<div id="vistaProvincias" class="caminatas-vista" style="display:none;">{% else %}<div id="vistaProvincias" class="caminatas-vista" style="display:block;">{% endif %}
   <div id="accordionProvincias">
     {% set ns = namespace(divider_2027_shown=false, sec2027_open=false) %}
     {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) and not (entry.group_label == 'Otras Caminatas' and not (mostrar_otras | default(true)) and not is_super) %}
