@@ -1,7 +1,7 @@
   <div id="vistaProvincias" class="caminatas-vista" style="display:{{ 'none' if is_tribu else 'block' }};">
   <div id="accordionProvincias">
     {% set ns = namespace(divider_2027_shown=false, sec2027_open=false) %}
-    {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) %}
+    {% for entry in timeline if not (entry.type == 'provincia' and entry.group_label == 'Referencia' and not is_super) and not (entry.group_label == 'Otras Caminatas' and not (mostrar_otras | default(true)) and not is_super) %}
       {% if entry.type == 'provincia' and '2027' in (entry.group_label or '') and not ns.divider_2027_shown %}
       {% set ns.divider_2027_shown = true %}
       {% set ns.sec2027_open = true %}
@@ -123,16 +123,18 @@
   </div>
   {% if is_tribu %}
   <div id="vistaPortadas" class="caminatas-vista" style="display:block;">
-    {% for entry in timeline if entry.type == 'provincia' and entry.walks and not (entry.group_label == 'Referencia' and not is_super) %}
+    {% for entry in timeline if entry.type == 'provincia' and entry.walks and not (entry.group_label == 'Referencia' and not is_super) and not (entry.group_label == 'Otras Caminatas' and not (mostrar_otras | default(true)) and not is_super) %}
       {% set _parts = (entry.group_label or '').split(' ') %}
       {% set _anio = _parts[-1] if _parts and _parts[-1]|length == 4 and _parts[-1]|int(0) > 1900 else '' %}
       {% set _mes = _parts[:-1]|join(' ') if _anio else (entry.group_label or '') %}
-      <div class="d-flex align-items-center gap-3 my-4">
+      {% set _otras = entry.group_label == 'Otras Caminatas' %}
+      <div class="d-flex align-items-center gap-3 my-4"{% if _otras %} data-bs-toggle="collapse" data-bs-target="#portadasOtras" role="button" style="cursor:pointer;" aria-expanded="false"{% endif %}>
         <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
         <span class="fw-bold fs-4 text-uppercase" style="color:#722F37;letter-spacing:3px;">{{ _mes }}</span>
         {% if _anio %}<span class="fw-bold fs-5" style="color:#9aa4c0;letter-spacing:2px;">{{ _anio }}</span>{% endif %}
         <hr class="flex-grow-1 m-0" style="border-top:2px solid #722F37;opacity:1;">
       </div>
+      {% if _otras %}<div id="portadasOtras" class="collapse">{% endif %}
       <div class="row row-cols-3 row-cols-sm-4 row-cols-md-5 g-2 mb-4">
         {% for ev in entry.walks %}
         <div class="col">
@@ -151,6 +153,7 @@
         </div>
         {% endfor %}
       </div>
+      {% if _otras %}</div>{% endif %}
     {% endfor %}
   </div>
   {% endif %}

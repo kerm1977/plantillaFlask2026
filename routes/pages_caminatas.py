@@ -54,6 +54,9 @@ def caminatas():
             entry['walks_2027'] = walks_2027
         timeline.append(entry)
 
+    from models import SiteContent
+    _otras_row = SiteContent.query.filter_by(key='otras_caminatas_visible').first()
+    mostrar_otras = (_otras_row.value != '0') if _otras_row else True
     return render_template('caminatas_2027.html',
         caminatas_2027_text=_get_site_text('caminatas'),
         is_super=is_super,
@@ -61,6 +64,7 @@ def caminatas():
         timeline=timeline,
         page_title='Caminatas de la Tribu',
         is_caminatas_2027_page=False,
+        mostrar_otras=mostrar_otras,
         empty_message='Aún no hay caminatas registradas.',
         detail_endpoint='main.detalles_evento',
         group_header_text_class='',

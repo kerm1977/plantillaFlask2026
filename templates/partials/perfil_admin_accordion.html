@@ -84,9 +84,36 @@
                         <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileWhatsapp"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp</button></h2>
                         <div id="profileWhatsapp" class="accordion-collapse collapse" data-bs-parent="#profileActionsAccordion"><div class="accordion-body"><p class="small text-muted">Prepara un mensaje con los datos públicos del perfil para compartirlos mediante WhatsApp. Podrás revisar el mensaje antes de enviarlo.</p><button class="btn btn-success rounded-pill fw-bold" onclick="shareToWhatsapp()">Compartir por WhatsApp</button></div></div>
                     </div>
+                    <div class="accordion-item border-0 rounded-4 overflow-hidden mb-2">
+                        <h2 class="accordion-header"><button class="accordion-button collapsed fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#profileOtrasCaminatas"><i class="bi bi-signpost-split me-2 text-orange"></i>Otras Caminatas</button></h2>
+                        <div id="profileOtrasCaminatas" class="accordion-collapse collapse" data-bs-parent="#profileActionsAccordion"><div class="accordion-body">
+                            <p class="small text-muted mb-2">Controla si la sección "Otras Caminatas" es visible en Viajes de la Tribu. Al activarla, aparece colapsada para todos.</p>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="switchOtrasCaminatas" style="cursor:pointer;" {{ 'checked' if site.otras_caminatas_visible != '0' }} onchange="guardarOtrasCaminatas(this.checked)">
+                                <label class="form-check-label fw-semibold" for="switchOtrasCaminatas" style="cursor:pointer;">Mostrar "Otras Caminatas"</label>
+                            </div>
+                            <span id="otrasCaminatasMsg" class="small text-success d-block mt-1"></span>
+                        </div></div>
+                    </div>
                 </div>
                 {% if session.get('user_id') == user.id %}
                 <a href="{{ url_for('main.logout') }}" class="btn btn-outline-danger rounded-pill px-4 ms-sm-auto fw-bold w-100 w-sm-auto mt-3 mt-sm-0" style="margin-bottom: 100px;">
                     <i class="bi bi-power me-2"></i>Cerrar Sesión
                 </a>
                 {% endif %}
+<script>
+function guardarOtrasCaminatas(on) {
+    fetch('/api/site-content/otras_caminatas_visible', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ value: on ? '1' : '0' })
+    })
+        .then(function (r) {
+            if (!r.ok) { throw new Error('No autorizado'); }
+            var msg = document.getElementById('otrasCaminatasMsg');
+            msg.textContent = on ? 'Guardado: visible (colapsada) para todos.' : 'Guardado: oculta para visitantes.';
+            setTimeout(function () { msg.textContent = ''; }, 3000);
+        })
+        .catch(function () { alert('No se pudo guardar el ajuste.'); });
+}
+</script>
