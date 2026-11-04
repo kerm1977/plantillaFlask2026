@@ -18,6 +18,33 @@ async function exportResponses(fmt) {
     }
 }
 
+async function copyDataLink() {
+    if (!currentResponsesFormId) return;
+    const btn = document.getElementById('btnCopyDataLink');
+    try {
+        const data = await (await fetch(`/api/forms/${currentResponsesFormId}/share-link`)).json();
+        if (!data.share_url) throw new Error('sin url');
+        if (navigator.clipboard) {
+            await navigator.clipboard.writeText(data.share_url);
+        } else {
+            const ta = document.createElement('textarea');
+            ta.value = data.share_url; document.body.appendChild(ta);
+            ta.select(); document.execCommand('copy'); ta.remove();
+        }
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Copiado';
+            setTimeout(() => { btn.innerHTML = orig; }, 2200);
+        }
+    } catch (e) {
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-x-lg me-1"></i>Error';
+            setTimeout(() => { btn.innerHTML = orig; }, 2200);
+        }
+    }
+}
+
 function shareWhatsAppText(text) {
     if (navigator.share) {
         navigator.share({ title: document.getElementById('responsesTitle')?.textContent || 'Respuestas', text })

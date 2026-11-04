@@ -52,6 +52,7 @@
                                 <li><button class="dropdown-item" onclick="exportResponses('xlsx')"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Excel</button></li>
                                 <li><button class="dropdown-item" onclick="copyResponsesTSV()" id="btnCopyTSV"><i class="bi bi-clipboard-data me-2 text-primary"></i>Copiar tabla</button></li>
                                 <li><button class="dropdown-item" onclick="exportResponses('json')"><i class="bi bi-filetype-json me-2 text-dark"></i>JSON</button></li>
+                                <li><button class="dropdown-item" onclick="copyDataLink()"><i class="bi bi-link-45deg me-2 text-success"></i>Copiar enlace de datos</button></li>
                                 <li><button class="dropdown-item" onclick="exportResponses('personas')"><i class="bi bi-people-fill me-2 text-primary"></i>Página de Personas (compartible)</button></li>
                                 <li><button class="dropdown-item" onclick="openSinglepageModal()"><i class="bi bi-file-earmark-code me-2 text-orange"></i>Single Page Offline</button></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -61,6 +62,9 @@
                         </div>
                         <button class="btn btn-sm btn-warning-orange rounded-pill px-3 fw-semibold" onclick="exportResponses('pdf')" title="Descargar toda la información en PDF">
                             <i class="bi bi-file-earmark-pdf me-1"></i>Descargar PDF
+                        </button>
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3 fw-semibold" id="btnCopyDataLink" onclick="copyDataLink()" title="Copiar el enlace de solo lectura para compartir">
+                            <i class="bi bi-link-45deg me-1"></i>Enlace
                         </button>
                         <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="backToList()">
                             <i class="bi bi-arrow-left me-1"></i>Volver

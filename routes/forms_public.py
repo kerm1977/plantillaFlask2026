@@ -5,13 +5,15 @@
 import os
 import json
 import uuid
+import hmac
 from urllib.parse import quote
-from flask import request, jsonify, render_template
+from flask import request, jsonify, render_template, abort
 from werkzeug.utils import secure_filename
 from models import Form, FormField, FormResponse, FormAnswer, Hiker
 from db import db
 from routes import bp, _PROJECT_ROOT
 from modules.points_bonuses import get_points_bonuses
+from routes.forms_export_personas import _build_personas_html
 
 FORM_UPLOADS = os.path.join(_PROJECT_ROOT, 'static', 'uploads', 'forms')
 
@@ -34,6 +36,21 @@ def public_form(slug):
     if not form.is_active:
         return render_template('form_closed.html', form=form)
     return render_template('form_public.html', form=form)
+
+
+@bp.route('/form/<path:slug>/datos/<token>')
+def public_form_datos(slug, token):
+    """Vista pública de solo lectura: datos de las personas del formulario.
+
+    Requiere el share_token secreto del formulario (sin sesión, sin inputs).
+    """
+    form = Form.query.get_or_404(int(slug)) if slug.isdigit() else \
+           Form.query.filter_by(slug=slug).first_or_404()
+    if not form.share_token or not hmac.compare_digest(form.share_token, token):
+        abort(404)
+    fields = FormField.query.filter_by(form_id=form.id).order_by(FormField.order).all()
+    responses = FormResponse.query.filter_by(form_id=form.id).order_by(FormResponse.submitted_at).all()
+    return _build_personas_html(form, fields, responses)
 
 
 # ── ENVIAR RESPUESTA ─────────────────────────────────────────────────────────

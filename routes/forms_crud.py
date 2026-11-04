@@ -4,6 +4,7 @@
 # ==============================================================
 import re
 import json
+import uuid
 from flask import request, jsonify, session, render_template, redirect, url_for
 from models import Form, FormField, FormResponse
 from models_forms import ReservationConfig
@@ -90,6 +91,7 @@ def api_create_form():
         show_logo=data.get('show_logo', False),
         show_membrete=data.get('show_membrete', False),
         membrete=data.get('membrete', ''),
+        share_token=uuid.uuid4().hex,
     )
     db.session.add(form)
     db.session.commit()
@@ -155,6 +157,20 @@ def api_update_form(form_id):
 
     db.session.commit()
     return jsonify({'ok': True})
+
+
+@bp.route('/api/forms/<int:form_id>/share-link', methods=['GET'])
+def api_form_share_link(form_id):
+    """Devuelve el enlace público de solo lectura (datos de las personas)."""
+    if session.get('role') != 'Superusuario':
+        return jsonify({'error': 'No autorizado'}), 403
+    form = Form.query.get_or_404(form_id)
+    if not form.share_token:
+        form.share_token = uuid.uuid4().hex
+        db.session.commit()
+    return jsonify({
+        'share_url': f"https://www.latribu.top/form/{form.slug or form.id}/datos/{form.share_token}"
+    })
 
 
 @bp.route('/api/forms/<int:form_id>', methods=['DELETE'])

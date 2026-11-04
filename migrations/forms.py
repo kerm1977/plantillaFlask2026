@@ -125,3 +125,22 @@ def _migrate_forms_membrete():
     except Exception as e:
         print(f"[Migration] Error en _migrate_forms_membrete: {e}")
 
+def _migrate_forms_share_token():
+    """Agrega share_token a form y rellena tokens en formularios existentes."""
+    import uuid
+    try:
+        conn = db.engine.raw_connection()
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(form)")
+        existing_cols = {row[1] for row in cursor.fetchall()}
+        if "share_token" not in existing_cols:
+            cursor.execute("ALTER TABLE form ADD COLUMN share_token VARCHAR(64)")
+        cursor.execute("SELECT id FROM form WHERE share_token IS NULL OR share_token = ''")
+        for (fid,) in cursor.fetchall():
+            cursor.execute("UPDATE form SET share_token = ? WHERE id = ?",
+                           (uuid.uuid4().hex, fid))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"[Migration] Error en _migrate_forms_share_token: {e}")
+

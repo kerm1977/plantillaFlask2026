@@ -14,7 +14,7 @@ from routes.forms_responses_utils import _build_answers_map, _fmt_tel, _fmt_tel_
 from routes.forms_export_singlepage import _static_img_b64
 
 
-def _export_personas_page(form, fields, responses):
+def _build_personas_html(form, fields, responses):
     logo_b64 = _static_img_b64('logo.png') if getattr(form, 'show_logo', False) else None
 
     personas = []
@@ -63,11 +63,15 @@ def _export_personas_page(form, fields, responses):
         personas.append({'num': i, 'nombre': r.nombre_completo or 'Sin nombre',
                          'datos': datos, 'respuestas': respuestas})
 
-    html = render_template(
+    return render_template(
         'form_personas.html', form=form, personas=personas,
         logo_b64=logo_b64,
         membrete=form.membrete if getattr(form, 'show_membrete', False) else '',
         generado=datetime.now().strftime('%d/%m/%Y %H:%M'))
+
+
+def _export_personas_page(form, fields, responses):
+    html = _build_personas_html(form, fields, responses)
     return Response(
         html, mimetype='text/html',
         headers={'Content-Disposition': f'attachment; filename="{form.name} - personas.html"'})

@@ -7,7 +7,7 @@
 from .raffle import _migrate_raffle_selection
 from .user import _migrate_user_reset
 from .publicacion import _migrate_publicacion
-from .forms import _migrate_forms_ficha_medica, _migrate_forms_pasaporte_fecha_nacimiento, _migrate_forms_residencia, _migrate_forms_codigo_area, _migrate_forms_membrete
+from .forms import _migrate_forms_ficha_medica, _migrate_forms_pasaporte_fecha_nacimiento, _migrate_forms_residencia, _migrate_forms_codigo_area, _migrate_forms_membrete, _migrate_forms_share_token
 from .hiker import _migrate_hiker_pasaporte, _migrate_hiker_card_email, _migrate_hiker_status, _migrate_hiker_consultas_puntos
 from .form_response import _migrate_form_response_reservation_number
 from .cotizador import _migrate_cotizador
@@ -35,6 +35,7 @@ def run_migrations():
     _migrate_forms_residencia()
     _migrate_forms_codigo_area()
     _migrate_forms_membrete()
+    _migrate_forms_share_token()
     _migrate_hiker_pasaporte()
     _migrate_hiker_card_email()
     _migrate_hiker_status()

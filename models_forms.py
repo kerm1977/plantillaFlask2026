@@ -33,6 +33,7 @@ class Form(db.Model):
     show_logo = db.Column(db.Boolean, default=False)
     show_membrete = db.Column(db.Boolean, default=False)
     membrete = db.Column(db.Text)
+    share_token = db.Column(db.String(64))
     has_reservation_numbers = db.Column(db.Boolean, default=False)
     reservation_numbers = db.Column(db.Text)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
