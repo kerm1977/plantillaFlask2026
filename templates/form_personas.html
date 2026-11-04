@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ form.name }} — Personas registradas</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background:#f4f5f7; color:#212529; padding-bottom:110px; }
+    .hero { background:linear-gradient(135deg,#ff8c00 0%,#e67800 100%); color:#fff; text-align:center; padding:34px 18px 28px; }
+    .hero img { max-height:74px; margin-bottom:12px; }
+    .membrete { font-size:.92rem; font-weight:600; opacity:.95; white-space:pre-line; line-height:1.5; margin-bottom:12px; }
+    .hero h1 { font-size:1.6rem; font-weight:800; letter-spacing:.3px; }
+    .hero .sub { font-size:.9rem; opacity:.9; margin-top:6px; }
+    .container { max-width:860px; margin:-14px auto 0; padding:0 14px; }
+    .persona { background:#fff; border-radius:16px; box-shadow:0 3px 14px rgba(0,0,0,.08); margin-bottom:18px; overflow:hidden; }
+    .persona-head { display:flex; align-items:center; gap:12px; padding:14px 18px; background:linear-gradient(90deg,rgba(255,140,0,.08),rgba(255,140,0,.02)); border-bottom:1px solid rgba(0,0,0,.06); }
+    .num { flex-shrink:0; width:34px; height:34px; border-radius:50%; background:#ff8c00; color:#fff; font-weight:800; display:flex; align-items:center; justify-content:center; font-size:.95rem; }
+    .persona-head h2 { font-size:1.15rem; font-weight:700; }
+    .datos { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+    .dato { padding:9px 18px; border-bottom:1px solid rgba(0,0,0,.05); }
+    .dato.full { grid-column:1 / -1; }
+    .dato .lbl { font-size:.68rem; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:#8a8f98; margin-bottom:2px; }
+    .dato .val { font-size:.92rem; font-weight:600; color:#212529; word-break:break-word; }
+    .resp { padding:6px 18px 14px; }
+    .resp .rlbl { font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#ff8c00; margin:10px 0 4px; }
+    .resp .item { padding:6px 0; border-bottom:1px dashed rgba(0,0,0,.08); }
+    .resp .item:last-child { border-bottom:none; }
+    .resp .item .lbl { font-size:.72rem; font-weight:700; color:#6c757d; }
+    .resp .item .val { font-size:.92rem; }
+    .download-bar { position:fixed; left:0; right:0; bottom:0; z-index:1000; background:rgba(255,255,255,.96); backdrop-filter:blur(8px); border-top:1px solid rgba(0,0,0,.08); padding:12px 16px; text-align:center; }
+    .download-bar button { background:linear-gradient(135deg,#ff8c00,#e67800); border:none; color:#fff; font-size:1rem; font-weight:700; padding:13px 34px; border-radius:999px; cursor:pointer; box-shadow:0 6px 18px rgba(255,140,0,.4); }
+    .download-bar button:hover { filter:brightness(1.05); }
+    .footer-note { text-align:center; font-size:.75rem; color:#98a0a8; padding:10px 0 22px; }
+    @media print {
+        body { padding-bottom:0; background:#fff; }
+        .download-bar { display:none; }
+        .persona { box-shadow:none; border:1px solid #ddd; page-break-inside:avoid; }
+    }
+</style>
+</head>
+<body>
+    <div class="hero">
+        {% if logo_b64 %}<img src="{{ logo_b64 }}" alt="Logo">{% endif %}
+        {% if membrete %}<div class="membrete">{{ membrete }}</div>{% endif %}
+        <h1>{{ form.name }}</h1>
+        <div class="sub">{{ personas|length }} persona{% if personas|length != 1 %}s{% endif %} registrada{% if personas|length != 1 %}s{% endif %} · Generado el {{ generado }}</div>
+    </div>
+
+    <div class="container">
+        {% for p in personas %}
+        <div class="persona">
+            <div class="persona-head">
+                <div class="num">{{ p.num }}</div>
+                <h2>{{ p.nombre }}</h2>
+            </div>
+            <div class="datos">
+                {% for d in p.datos %}
+                <div class="dato{% if d.label in ('Dirección exacta','Contacto de Emergencia','Alergias','Enfermedades Crónicas') %} full{% endif %}">
+                    <div class="lbl">{{ d.label }}</div>
+                    <div class="val">{{ d.value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% if p.respuestas %}
+            <div class="resp">
+                <div class="rlbl">Respuestas del formulario</div>
+                {% for a in p.respuestas %}
+                <div class="item">
+                    <div class="lbl">{{ a.label }}</div>
+                    <div class="val">{{ a.value }}</div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="persona" style="padding:30px;text-align:center;color:#8a8f98;">
+            No hay personas registradas en este formulario.
+        </div>
+        {% endfor %}
+        <div class="footer-note">Documento generado por La Tribu de Los Libres — {{ generado }}</div>
+    </div>
+
+    <div class="download-bar">
+        <button onclick="window.print()">Descargar datos del formulario (PDF)</button>
+    </div>
+</body>
+</html>

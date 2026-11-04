@@ -11,6 +11,7 @@ from routes import bp
 from routes.forms_responses_utils import _build_answers_map, _fmt_tel, _fmt_tel_resp
 from routes.forms_export_pdf import _export_pdf
 from routes.forms_export_singlepage import _export_singlepage_offline
+from routes.forms_export_personas import _export_personas_page
 
 
 # ── EXPORTAR RESPUESTAS ──────────────────────────────────────────────────────
@@ -229,6 +230,9 @@ def api_export_responses(form_id, fmt):
         content = '\n'.join(lines)
         return Response(content, mimetype='text/plain',
                         headers={'Content-Disposition': f'attachment; filename="{form.name}.txt"'})
+
+    if fmt == 'personas':
+        return _export_personas_page(form, fields, responses)
 
     if fmt == 'singlepage':
         return _export_singlepage_offline(form, fields, responses)

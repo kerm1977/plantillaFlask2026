@@ -47,21 +47,22 @@ def _export_pdf(form, fields, responses, add_membrete, include_fecha,
                 story.append(img)
                 story.append(Spacer(1, 0.15 * inch))
 
-        # Agregar membrete si está activado
-        if add_membrete:
+        # Agregar membrete: el propio del formulario tiene prioridad (evita doble encabezado)
+        tiene_membrete_propio = getattr(form, 'show_membrete', False) and getattr(form, 'membrete', None)
+        if add_membrete and not tiene_membrete_propio:
             membrete = Paragraph("La Tribu de Los Libres<br/>Cartago, La Unión, San Diego<br/>86227500<br/><br/>Responsables<br/>Kenneth Ruiz Matamoros - 86227500<br/>Jenny Ceciliano Cordoba - 86520937<br/>lthikingcr@gmail.com", membrete_style)
             story.append(membrete)
             story.append(Spacer(1, 0.2 * inch))
 
-        # Título del formulario
-        story.append(Paragraph(f"FORMULARIO: {form.name}", title_style))
-
         # Membrete propio del formulario (si fue creado y activado)
-        if getattr(form, 'membrete', None) and getattr(form, 'show_membrete', False):
+        if tiene_membrete_propio:
             form_membrete_style = ParagraphStyle(
                 'FormMembrete', parent=styles['Normal'], fontName='Helvetica-Bold',
                 fontSize=10, alignment=TA_CENTER, spaceAfter=10)
             story.append(Paragraph(form.membrete.replace('\n', '<br/>'), form_membrete_style))
+
+        # Título del formulario
+        story.append(Paragraph(f"FORMULARIO: {form.name}", title_style))
 
         # Cantidad de respuestas
         count_style = ParagraphStyle(
